@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">فليت بلس</string>
+
+    <!-- Registration -->
+    <string name="registration_title">تفعيل الجهاز</string>
+    <string name="registration_token_hint">رمز التفعيل</string>
+    <string name="registration_server_hint">عنوان الخادم</string>
+    <string name="registration_activate">تفعيل الجهاز</string>
+    <string name="registration_scan_qr">مسح رمز QR</string>
+    <string name="registration_invalid_token">رمز التفعيل غير صالح</string>
+    <string name="registration_success">تم تفعيل الجهاز بنجاح</string>
+    <string name="registration_failed">فشل التفعيل. تأكد من الرمز وحاول مرة أخرى</string>
+
+    <!-- Home -->
+    <string name="home_greeting">مرحبًا، %s</string>
+    <string name="home_shift_active">الوردية نشطة</string>
+    <string name="home_shift_inactive">لا توجد وردية نشطة</string>
+    <string name="home_orders_today">طلبات اليوم</string>
+    <string name="home_hours_today">ساعات اليوم</string>
+    <string name="home_clock_in">تسجيل الحضور</string>
+    <string name="home_clock_out">تسجيل الانصراف</string>
+    <string name="home_inspection">فحص المركبة</string>
+    <string name="home_cash_deposit">إيداع نقدي</string>
+    <string name="home_maintenance">طلب صيانة</string>
+
+    <!-- Clock In/Out -->
+    <string name="clockin_title">تسجيل الحضور</string>
+    <string name="clockin_take_selfie">التقط صورة سيلفي</string>
+    <string name="clockin_retake">إعادة التقاط</string>
+    <string name="clockin_confirm">تأكيد الحضور</string>
+    <string name="clockin_getting_location">جاري تحديد الموقع…</string>
+    <string name="clockin_success">تم تسجيل الحضور بنجاح</string>
+    <string name="clockout_title">تسجيل الانصراف</string>
+    <string name="clockout_confirm_message">هل تريد تسجيل الانصراف؟</string>
+    <string name="clockout_confirm">تأكيد الانصراف</string>
+    <string name="clockout_success">تم تسجيل الانصراف بنجاح</string>
+
+    <!-- Inspection -->
+    <string name="inspection_title">فحص المركبة</string>
+    <string name="inspection_select_vehicle">اختر المركبة</string>
+    <string name="inspection_photo_front">الأمام</string>
+    <string name="inspection_photo_rear">الخلف</string>
+    <string name="inspection_photo_right">اليمين</string>
+    <string name="inspection_photo_left">اليسار</string>
+    <string name="inspection_photo_dashboard">لوحة القيادة</string>
+    <string name="inspection_photo_tires">الإطارات</string>
+    <string name="inspection_checklist">قائمة الفحص</string>
+    <string name="inspection_tires">الإطارات</string>
+    <string name="inspection_brakes">الفرامل</string>
+    <string name="inspection_lights">الأضواء</string>
+    <string name="inspection_engine">المحرك</string>
+    <string name="inspection_mirrors">المرايا</string>
+    <string name="inspection_cleanliness">النظافة</string>
+    <string name="inspection_notes">ملاحظات</string>
+    <string name="inspection_status_pass">ناجح</string>
+    <string name="inspection_status_fail">راسب</string>
+    <string name="inspection_status_attention">يحتاج اهتمام</string>
+    <string name="inspection_submit">إرسال الفحص</string>
+    <string name="inspection_success">تم إرسال الفحص بنجاح</string>
+
+    <!-- Cash Deposit -->
+    <string name="cash_deposit_title">إيداع نقدي</string>
+    <string name="cash_deposit_amount">المبلغ (د.ك)</string>
+    <string name="cash_deposit_location">موقع الإيداع</string>
+    <string name="cash_deposit_reference">رقم المرجع</string>
+    <string name="cash_deposit_notes">ملاحظات</string>
+    <string name="cash_deposit_receipt">صورة الإيصال</string>
+    <string name="cash_deposit_submit">تأكيد الإيداع</string>
+    <string name="cash_deposit_success">تم تسجيل الإيداع بنجاح</string>
+
+    <!-- Maintenance -->
+    <string name="maintenance_title">طلب صيانة</string>
+    <string name="maintenance_category">التصنيف</string>
+    <string name="maintenance_type">نوع الصيانة</string>
+    <string name="maintenance_description">الوصف</string>
+    <string name="maintenance_cost">التكلفة (د.ك)</string>
+    <string name="maintenance_submit">إرسال الطلب</string>
+    <string name="maintenance_success">تم إرسال طلب الصيانة بنجاح</string>
+    <string name="maintenance_cat_scheduled">صيانة مجدولة</string>
+    <string name="maintenance_cat_unscheduled">صيانة غير مجدولة</string>
+    <string name="maintenance_cat_emergency">طوارئ</string>
+    <string name="maintenance_cat_accident">حادث</string>
+    <string name="maintenance_type_oil">تغيير زيت</string>
+    <string name="maintenance_type_brake">خدمة فرامل</string>
+    <string name="maintenance_type_tire">تبديل إطارات</string>
+    <string name="maintenance_type_engine">إصلاح محرك</string>
+    <string name="maintenance_type_battery">بطارية</string>
+    <string name="maintenance_type_ac">تكييف</string>
+    <string name="maintenance_type_body">أعمال هيكل</string>
+    <string name="maintenance_type_other">أخرى</string>
+
+    <!-- Common -->
+    <string name="cancel">إلغاء</string>
+    <string name="confirm">تأكيد</string>
+    <string name="submit">إرسال</string>
+    <string name="error_generic">حدث خطأ. حاول مرة أخرى</string>
+    <string name="error_network">لا يوجد اتصال بالإنترنت</string>
+    <string name="loading">جاري التحميل…</string>
+    <string name="service_notification_text">فليت بلس يعمل في الخلفية</string>
+    <string name="device_deactivated">تم إلغاء تفعيل الجهاز</string>
+
+    <!-- Permissions -->
+    <string name="permission_notification_title">صلاحية قراءة الإشعارات</string>
+    <string name="permission_notification_desc">مطلوبة لالتقاط إشعارات تطبيقات التوصيل</string>
+    <string name="permission_location_title">صلاحية الموقع</string>
+    <string name="permission_location_desc">مطلوبة لتتبع الموقع أثناء الوردية</string>
+    <string name="permission_usage_title">صلاحية إحصائيات الاستخدام</string>
+    <string name="permission_usage_desc">مطلوبة لمراقبة استخدام التطبيقات</string>
+    <string name="permission_enable">تفعيل</string>
+</resources>
