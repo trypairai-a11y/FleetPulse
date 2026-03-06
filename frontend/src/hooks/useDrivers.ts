@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { queryKeys } from "./useQueryHelpers";
 import type { PaginatedResponse } from "@/types/api";
-import type { Driver, DriverCreate, DriverUpdate, DriverFilters, DriverStatsResponse, DriverLeaderboardEntry, DriverImportResponse } from "@/types/driver";
+import type { Driver, DriverCreate, DriverUpdate, DriverFilters, DriverStatsResponse, DriverAnalyticsResponse, DriverLeaderboardEntry, DriverImportResponse, DriverSummary, LeaderboardParams } from "@/types/driver";
 
 export function useDrivers(filters: DriverFilters = {}) {
   return useQuery({
@@ -13,6 +13,7 @@ export function useDrivers(filters: DriverFilters = {}) {
       if (filters.per_page) params.per_page = String(filters.per_page);
       if (filters.status) params.status = filters.status;
       if (filters.platform) params.platform = filters.platform;
+      if (filters.company) params.company = filters.company;
       if (filters.search) params.search = filters.search;
       const { data } = await api.get<PaginatedResponse<Driver>>("/api/drivers", { params });
       return data;
@@ -42,13 +43,49 @@ export function useDriverStats(id: string) {
   });
 }
 
-export function useDriverLeaderboard() {
+export function useDriverAnalytics(id: string, dateFrom: string, dateTo: string) {
   return useQuery({
-    queryKey: queryKeys.drivers.leaderboard(),
+    queryKey: queryKeys.drivers.analytics(id, dateFrom, dateTo),
     queryFn: async () => {
-      const { data } = await api.get<DriverLeaderboardEntry[]>("/api/drivers/leaderboard");
+      const { data } = await api.get<DriverAnalyticsResponse>(`/api/drivers/${id}/analytics`, {
+        params: { date_from: dateFrom, date_to: dateTo },
+      });
       return data;
     },
+    enabled: !!id && !!dateFrom && !!dateTo,
+  });
+}
+
+export function useDriverSummary(company?: string, platform?: string) {
+  return useQuery({
+    queryKey: [...queryKeys.drivers.summary(), company, platform],
+    queryFn: async () => {
+      const params: Record<string, string> = {};
+      if (company) params.company = company;
+      if (platform) params.platform = platform;
+      const { data } = await api.get<DriverSummary>("/api/drivers/summary", { params });
+      return data;
+    },
+  });
+}
+
+export function useDriverLeaderboard(params?: LeaderboardParams & { enabled?: boolean }) {
+  const { enabled = true, ...queryParams } = params ?? {};
+  return useQuery({
+    queryKey: queryKeys.drivers.leaderboard(queryParams),
+    queryFn: async () => {
+      const reqParams: Record<string, string> = {};
+      if (queryParams.limit) reqParams.limit = String(queryParams.limit);
+      if (queryParams.sort_by) reqParams.sort_by = queryParams.sort_by;
+      if (queryParams.direction) reqParams.direction = queryParams.direction;
+      if (queryParams.date_from) reqParams.date_from = queryParams.date_from;
+      if (queryParams.date_to) reqParams.date_to = queryParams.date_to;
+      if (queryParams.company) reqParams.company = queryParams.company;
+      if (queryParams.platform) reqParams.platform = queryParams.platform;
+      const { data } = await api.get<DriverLeaderboardEntry[]>("/api/drivers/leaderboard", { params: reqParams });
+      return data;
+    },
+    enabled,
   });
 }
 
@@ -79,6 +116,21 @@ export function useDeleteDriver() {
   return useMutation({
     mutationFn: async (id: string) => {
       await api.delete(`/api/drivers/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.drivers.all }),
+  });
+}
+
+export function useUploadDriverPhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, file }: { id: string; file: File }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const { data } = await api.post<Driver>(`/api/drivers/${id}/photo`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.drivers.all }),
   });

@@ -22,12 +22,15 @@ export function useAttendance(filters: AttendanceFilters = {}) {
   });
 }
 
-export function useAttendanceSummary(date?: string) {
+export function useAttendanceSummary(date?: string, dateFrom?: string, dateTo?: string, company?: string, platform?: string) {
   return useQuery({
-    queryKey: queryKeys.attendance.summary(date),
+    queryKey: [...queryKeys.attendance.summary(date ?? dateFrom), company, platform],
     queryFn: async () => {
       const params: Record<string, string> = {};
-      if (date) params.date = date;
+      if (dateFrom) { params.date_from = dateFrom; if (dateTo) params.date_to = dateTo; }
+      else if (date) params.date = date;
+      if (company) params.company = company;
+      if (platform) params.platform = platform;
       const { data } = await api.get<AttendanceSummary>("/api/attendance/summary", { params });
       return data;
     },
