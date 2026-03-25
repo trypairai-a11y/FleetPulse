@@ -1,24 +1,22 @@
 services:
   postgres:
-    image: postgres:16-alpine
-    container_name: fleetpulse-postgres
+    image: postgres:15-alpine
     environment:
-      POSTGRES_DB: fleetpulse
-      POSTGRES_USER: fleetpulse
-      POSTGRES_PASSWORD: fleetpulse_dev
+      POSTGRES_USER: darb
+      POSTGRES_PASSWORD: darb_secret
+      POSTGRES_DB: darb
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fleetpulse"]
+      test: ["CMD-SHELL", "pg_isready -U darb"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: fleetpulse-redis
     ports:
       - "6379:6379"
     volumes:
@@ -28,6 +26,41 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://darb:darb_secret@postgres:5432/darb?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: darb-jwt-secret-change-in-production
+      JWT_REFRESH_SECRET: darb-jwt-refresh-secret-change-in-production
+      PORT: "3001"
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+    depends_on:
+      - backend
+    restart: unless-stopped
 
 volumes:
   postgres_data:

@@ -1,18 +1,16 @@
-import { PLATFORM_COLORS } from "@/lib/constants";
+import { cn } from "@/lib/cn";
 
-interface PlatformBadgeProps {
-  platform: string | null;
-}
+const PLATFORM_COLORS: Record<string, { bg: string; text: string }> = {
+  KEETA: { bg: "bg-keeta/10", text: "text-keeta" },
+  TALABAT: { bg: "bg-talabat/10", text: "text-talabat" },
+  DELIVEROO: { bg: "bg-deliveroo/10", text: "text-deliveroo" },
+  AMERICANA: { bg: "bg-americana/10", text: "text-americana" },
+};
 
-export function PlatformBadge({ platform }: PlatformBadgeProps) {
-  if (!platform) return <span className="text-[12px] text-[#6B7A8D]">—</span>;
-  const colors = PLATFORM_COLORS[platform] || { bg: "#6B7A8D0D", text: "#6B7A8D" };
-
+export default function PlatformBadge({ platform }: { platform: string }) {
+  const colors = PLATFORM_COLORS[platform] || { bg: "bg-gray-100", text: "text-gray-600" };
   return (
-    <span
-      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold capitalize"
-      style={{ color: colors.text, backgroundColor: colors.bg }}
-    >
+    <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", colors.bg, colors.text)}>
       {platform}
     </span>
   );

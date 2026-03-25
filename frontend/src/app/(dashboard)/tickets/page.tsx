@@ -1,461 +1,230 @@
 "use client";
+import { useState } from "react";
+import { useApiGet } from "@/hooks/useApi";
+import StatCard from "@/components/shared/StatCard";
+import PlatformBadge from "@/components/shared/PlatformBadge";
+import { cn } from "@/lib/cn";
+import { Ticket, AlertTriangle, Clock, CheckCircle, Plus, X } from "lucide-react";
+import api from "@/lib/api";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useUIStore } from "@/stores/uiStore";
-import { Plus, Ticket, Clock, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { DataTable } from "@/components/shared/DataTable";
-import { Pagination } from "@/components/shared/Pagination";
-import { FilterBar } from "@/components/shared/FilterBar";
-import { StatusBadge } from "@/components/shared/StatusBadge";
-import { StatCard } from "@/components/shared/StatCard";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { useTickets, useTicketStats, useCreateTicket } from "@/hooks/useTickets";
-import { useDebounce } from "@/hooks/useDebounce";
-import { usePagination } from "@/hooks/usePagination";
-import {
-  TICKET_STATUS_CONFIG,
-  TICKET_PRIORITY_CONFIG,
-  TICKET_CATEGORIES,
-} from "@/lib/constants";
-import { formatRelativeTime } from "@/lib/utils";
-import type { Ticket as TicketType, TicketCreate } from "@/types/ticket";
+const PRIORITY_DOT: Record<string, string> = {
+  URGENT: "bg-red-500",
+  HIGH: "bg-orange-500",
+  MEDIUM: "bg-yellow-500",
+  LOW: "bg-gray-400",
+};
+
+const STATUS_BADGE: Record<string, string> = {
+  OPEN: "bg-blue-50 text-blue-600",
+  ASSIGNED: "bg-purple-50 text-purple-600",
+  IN_PROGRESS: "bg-yellow-50 text-yellow-700",
+  RESOLVED: "bg-green-50 text-green-600",
+  CLOSED: "bg-gray-100 text-gray-500",
+};
 
 export default function TicketsPage() {
-  const router = useRouter();
-  const { language } = useUIStore();
-  const isAr = language === "ar";
+  const [statusFilter, setStatusFilter] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("");
+  const [showNewModal, setShowNewModal] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
 
-  // Filter state
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
+  const params = new URLSearchParams({ limit: "50" });
+  if (statusFilter) params.set("status", statusFilter);
+  if (priorityFilter) params.set("priority", priorityFilter);
 
-  // Create dialog
-  const [createOpen, setCreateOpen] = useState(false);
-  const [formTitle, setFormTitle] = useState("");
-  const [formCategory, setFormCategory] = useState("");
-  const [formPriority, setFormPriority] = useState("medium");
-  const [formDescription, setFormDescription] = useState("");
-  const [formDriverId, setFormDriverId] = useState("");
+  const { data: ticketsData, refetch } = useApiGet<any>(`/api/tickets?${params}`);
+  const tickets = ticketsData?.data || [];
 
-  // Debounced search
-  const debouncedSearch = useDebounce(search, 300);
+  const openCount = tickets.filter((t: any) => ["OPEN", "ASSIGNED", "IN_PROGRESS"].includes(t.status)).length;
+  const overdueCount = tickets.filter((t: any) => t.slaDeadline && new Date(t.slaDeadline) < new Date() && t.status !== "RESOLVED" && t.status !== "CLOSED").length;
+  const resolvedWeek = tickets.filter((t: any) => t.status === "RESOLVED").length;
 
-  // Pagination
-  const { page, perPage, goToPage, resetPage } = usePagination({
-    initialPage: 1,
-    initialPerPage: 20,
+  // New ticket form state
+  const [newTicket, setNewTicket] = useState({
+    category: "OTHER",
+    priority: "MEDIUM",
+    title: "",
+    description: "",
+    submitterType: "USER",
   });
 
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    resetPage();
-  }, [debouncedSearch, statusFilter, categoryFilter, priorityFilter, resetPage]);
-
-  // Fetch tickets
-  const { data, isLoading } = useTickets({
-    search: debouncedSearch || undefined,
-    status: statusFilter !== "all" ? statusFilter : undefined,
-    category: categoryFilter !== "all" ? categoryFilter : undefined,
-    priority: priorityFilter !== "all" ? priorityFilter : undefined,
-    page,
-    per_page: perPage,
-  });
-
-  // Stats
-  const { data: stats } = useTicketStats();
-
-  // Create mutation
-  const createTicket = useCreateTicket();
-
-  const tickets = data?.items ?? [];
-  const total = data?.total ?? 0;
-  const pages = data?.pages ?? 1;
-
-  const openCount = stats?.by_status?.open ?? 0;
-  const inProgressCount = stats?.by_status?.in_progress ?? 0;
-  const resolvedCount = stats?.by_status?.resolved ?? 0;
-  const avgResolution = stats?.avg_resolution_hours ?? 0;
-
-  const handleCreate = async () => {
-    if (!formTitle || !formCategory) return;
-    const body: TicketCreate = {
-      title: formTitle,
-      category: formCategory,
-      priority: formPriority || "medium",
-      description: formDescription || undefined,
-      driver_id: formDriverId || undefined,
-    };
-    await createTicket.mutateAsync(body);
-    setCreateOpen(false);
-    setFormTitle("");
-    setFormCategory("");
-    setFormPriority("medium");
-    setFormDescription("");
-    setFormDriverId("");
+  const handleCreateTicket = async () => {
+    try {
+      await api.post("/api/tickets", newTicket);
+      setShowNewModal(false);
+      setNewTicket({ category: "OTHER", priority: "MEDIUM", title: "", description: "", submitterType: "USER" });
+      refetch();
+    } catch (err) {
+      console.error("Failed to create ticket", err);
+    }
   };
 
-  // Filter options
-  const statusOptions = Object.keys(TICKET_STATUS_CONFIG).map((s) => ({
-    value: s,
-    labelEn: TICKET_STATUS_CONFIG[s].labelEn,
-    labelAr: TICKET_STATUS_CONFIG[s].labelAr,
-  }));
-
-  const categoryOptions = TICKET_CATEGORIES.map((c) => ({
-    value: c.value,
-    labelEn: c.labelEn,
-    labelAr: c.labelAr,
-  }));
-
-  const priorityOptions = Object.keys(TICKET_PRIORITY_CONFIG).map((p) => ({
-    value: p,
-    labelEn: TICKET_PRIORITY_CONFIG[p].labelEn,
-    labelAr: TICKET_PRIORITY_CONFIG[p].labelAr,
-  }));
-
-  // Table columns
-  const columns = [
-    {
-      key: "title",
-      headerEn: "Title",
-      headerAr: "العنوان",
-      render: (t: TicketType) => (
-        <div>
-          <div className="text-[13px] font-medium text-[#0C1825] group-hover:text-[#2563EB] transition-colors">
-            {t.title}
-          </div>
-          {t.title_ar && (
-            <div className="text-[11px] text-[#9CA3AF]">{t.title_ar}</div>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: "category",
-      headerEn: "Category",
-      headerAr: "التصنيف",
-      render: (t: TicketType) => {
-        const cat = TICKET_CATEGORIES.find((c) => c.value === t.category);
-        return (
-          <span className="text-[12px] text-[#6B7A8D] capitalize">
-            {cat ? (isAr ? cat.labelAr : cat.labelEn) : t.category.replace(/_/g, " ")}
-          </span>
-        );
-      },
-    },
-    {
-      key: "priority",
-      headerEn: "Priority",
-      headerAr: "الأولوية",
-      render: (t: TicketType) => (
-        <StatusBadge
-          status={t.priority}
-          config={TICKET_PRIORITY_CONFIG}
-          language={language}
-        />
-      ),
-    },
-    {
-      key: "status",
-      headerEn: "Status",
-      headerAr: "الحالة",
-      render: (t: TicketType) => (
-        <StatusBadge
-          status={t.status}
-          config={TICKET_STATUS_CONFIG}
-          language={language}
-        />
-      ),
-    },
-    {
-      key: "created_at",
-      headerEn: "Created",
-      headerAr: "تاريخ الإنشاء",
-      render: (t: TicketType) => (
-        <span className="text-[12px] text-[#6B7A8D]">
-          {formatRelativeTime(t.created_at)}
-        </span>
-      ),
-    },
-    {
-      key: "assigned_to",
-      headerEn: "Assigned",
-      headerAr: "مسند إلى",
-      render: (t: TicketType) => (
-        <span className="text-[12px] text-[#6B7A8D]">
-          {t.assigned_to || "\u2014"}
-        </span>
-      ),
-    },
-  ];
-
-  const noFiltersActive =
-    !debouncedSearch &&
-    statusFilter === "all" &&
-    categoryFilter === "all" &&
-    priorityFilter === "all";
-
   return (
-    <div className="max-w-[1400px] space-y-4">
-      {/* Header */}
-      <PageHeader
-        titleEn="Tickets"
-        titleAr="التذاكر"
-        subtitleEn="Manage support requests and follow-ups"
-        subtitleAr="إدارة طلبات الدعم والمتابعة"
-        actions={
-          <Button
-            onClick={() => setCreateOpen(true)}
-            className="h-8 px-3 text-[12px] font-medium bg-[#2563EB] hover:bg-[#1d4ed8] text-white gap-1.5"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            {isAr ? "تذكرة جديدة" : "New Ticket"}
-          </Button>
-        }
-      />
+    <div className="space-y-6 max-w-7xl">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Tickets</h1>
+        <button
+          onClick={() => setShowNewModal(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors"
+        >
+          <Plus size={16} /> New Ticket
+        </button>
+      </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-        <StatCard
-          label={isAr ? "مفتوحة" : "Open"}
-          value={openCount}
-          icon={AlertCircle}
-          iconColor="#2563EB"
-        />
-        <StatCard
-          label={isAr ? "قيد التنفيذ" : "In Progress"}
-          value={inProgressCount}
-          icon={Loader2}
-          iconColor="#F59E0B"
-        />
-        <StatCard
-          label={isAr ? "تم الحل" : "Resolved"}
-          value={resolvedCount}
-          icon={CheckCircle2}
-          iconColor="#12B981"
-        />
-        <StatCard
-          label={isAr ? "متوسط وقت الحل (ساعات)" : "Avg Resolution (hrs)"}
-          value={avgResolution.toFixed(1)}
-          icon={Clock}
-          iconColor="#8B5CF6"
-        />
+      {/* Stats */}
+      <div className="grid grid-cols-4 gap-4">
+        <StatCard title="Open Tickets" value={openCount} icon={Ticket} />
+        <StatCard title="Overdue" value={overdueCount} icon={AlertTriangle} highlight={overdueCount > 0} />
+        <StatCard title="Avg Resolution" value="—" icon={Clock} />
+        <StatCard title="Resolved This Week" value={resolvedWeek} icon={CheckCircle} />
       </div>
 
       {/* Filters */}
-      <FilterBar
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholderEn="Search tickets..."
-        searchPlaceholderAr="بحث في التذاكر..."
-        filters={[
-          {
-            key: "status",
-            placeholderEn: "Status",
-            placeholderAr: "الحالة",
-            options: statusOptions,
-            value: statusFilter,
-            onChange: setStatusFilter,
-          },
-          {
-            key: "category",
-            placeholderEn: "Category",
-            placeholderAr: "التصنيف",
-            options: categoryOptions,
-            value: categoryFilter,
-            onChange: setCategoryFilter,
-          },
-          {
-            key: "priority",
-            placeholderEn: "Priority",
-            placeholderAr: "الأولوية",
-            options: priorityOptions,
-            value: priorityFilter,
-            onChange: setPriorityFilter,
-          },
-        ]}
-      />
+      <div className="flex gap-3">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+          <option value="">All Statuses</option>
+          {["OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"].map((s) => (
+            <option key={s} value={s}>{s.replace("_", " ")}</option>
+          ))}
+        </select>
+        <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}
+          className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+          <option value="">All Priorities</option>
+          {["URGENT", "HIGH", "MEDIUM", "LOW"].map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+      </div>
 
-      {/* Table or Empty State */}
-      {!isLoading && tickets.length === 0 && noFiltersActive ? (
-        <EmptyState
-          icon={Ticket}
-          titleEn="No tickets yet"
-          titleAr="لا توجد تذاكر بعد"
-          descriptionEn="Create a ticket to track issues and requests."
-          descriptionAr="أنشئ تذكرة لتتبع المشاكل والطلبات."
-          actionLabelEn="New Ticket"
-          actionLabelAr="تذكرة جديدة"
-          onAction={() => setCreateOpen(true)}
-        />
-      ) : (
-        <>
-          <DataTable<TicketType>
-            columns={columns}
-            data={tickets}
-            loading={isLoading}
-            emptyMessage={isAr ? "لا توجد نتائج" : "No tickets found"}
-            language={language}
-            rowKey={(t) => t.id}
-            onRowClick={(t) => router.push(`/tickets/${t.id}`)}
-          />
-          {total > 0 && (
-            <Pagination
-              page={page}
-              pages={pages}
-              total={total}
-              perPage={perPage}
-              onPageChange={goToPage}
-            />
-          )}
-        </>
-      )}
-
-      {/* Create Ticket Dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-[520px]">
-          <DialogHeader>
-            <DialogTitle className="text-[16px]">
-              {isAr ? "تذكرة جديدة" : "New Ticket"}
-            </DialogTitle>
-            <DialogDescription className="text-[12px]">
-              {isAr
-                ? "أنشئ تذكرة جديدة لتتبع مشكلة أو طلب"
-                : "Create a new ticket to track an issue or request"}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            {/* Title */}
-            <div className="space-y-1.5">
-              <Label className="text-[12px] text-[#374151]">
-                {isAr ? "العنوان" : "Title"}
-              </Label>
-              <Input
-                value={formTitle}
-                onChange={(e) => setFormTitle(e.target.value)}
-                placeholder={isAr ? "عنوان التذكرة" : "Ticket title"}
-                className="h-8 text-[12px] border-[#E6E9EE]"
-              />
-            </div>
-
-            {/* Category & Priority */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-[12px] text-[#374151]">
-                  {isAr ? "التصنيف" : "Category"}
-                </Label>
-                <Select value={formCategory} onValueChange={setFormCategory}>
-                  <SelectTrigger className="h-8 text-[12px] border-[#E6E9EE]">
-                    <SelectValue
-                      placeholder={isAr ? "اختر التصنيف" : "Select category"}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TICKET_CATEGORIES.map((c) => (
-                      <SelectItem key={c.value} value={c.value}>
-                        {isAr ? c.labelAr : c.labelEn}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      {/* Ticket List */}
+      <div className="space-y-2">
+        {tickets.length === 0 ? (
+          <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
+            <p className="text-sm text-secondary">No tickets found</p>
+          </div>
+        ) : (
+          tickets.map((ticket: any) => {
+            const overdue = ticket.slaDeadline && new Date(ticket.slaDeadline) < new Date() && !["RESOLVED", "CLOSED"].includes(ticket.status);
+            return (
+              <div
+                key={ticket.id}
+                onClick={() => setSelectedTicket(ticket)}
+                className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer flex items-center gap-4"
+              >
+                <span className={cn("w-2.5 h-2.5 rounded-full flex-shrink-0", PRIORITY_DOT[ticket.priority])} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-xs text-secondary font-mono">{ticket.ticketNumber}</span>
+                    <span className={cn("px-2 py-0.5 rounded-md text-[11px] font-medium", STATUS_BADGE[ticket.status])}>
+                      {ticket.status.replace("_", " ")}
+                    </span>
+                    {ticket.platform && <PlatformBadge platform={ticket.platform} />}
+                  </div>
+                  <p className="text-sm font-medium text-foreground truncate">{ticket.title}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs text-secondary">{ticket.assignedTo?.name || "Unassigned"}</p>
+                  {ticket.slaDeadline && (
+                    <p className={cn("text-[11px] mt-0.5", overdue ? "text-red-500 font-medium" : "text-secondary")}>
+                      {overdue ? "OVERDUE" : `SLA: ${new Date(ticket.slaDeadline).toLocaleDateString()}`}
+                    </p>
+                  )}
+                </div>
               </div>
+            );
+          })
+        )}
+      </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-[12px] text-[#374151]">
-                  {isAr ? "الأولوية" : "Priority"}
-                </Label>
-                <Select value={formPriority} onValueChange={setFormPriority}>
-                  <SelectTrigger className="h-8 text-[12px] border-[#E6E9EE]">
-                    <SelectValue
-                      placeholder={isAr ? "اختر الأولوية" : "Select priority"}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(TICKET_PRIORITY_CONFIG).map(([key, cfg]) => (
-                      <SelectItem key={key} value={key}>
-                        {isAr ? cfg.labelAr : cfg.labelEn}
-                      </SelectItem>
+      {/* New Ticket Modal */}
+      {showNewModal && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-lg w-full max-w-lg p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold">New Ticket</h2>
+              <button onClick={() => setShowNewModal(false)} className="p-1 hover:bg-gray-50 rounded-lg">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-secondary mb-1.5">Category</label>
+                  <select value={newTicket.category} onChange={(e) => setNewTicket({ ...newTicket, category: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+                    {["VEHICLE_REPAIR", "EQUIPMENT_REQUEST", "LEAVE_REQUEST", "COMPLAINT", "OTHER"].map((c) => (
+                      <option key={c} value={c}>{c.replace("_", " ")}</option>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-secondary mb-1.5">Priority</label>
+                  <select value={newTicket.priority} onChange={(e) => setNewTicket({ ...newTicket, priority: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+                    {["LOW", "MEDIUM", "HIGH", "URGENT"].map((p) => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
-
-            {/* Description */}
-            <div className="space-y-1.5">
-              <Label className="text-[12px] text-[#374151]">
-                {isAr ? "الوصف" : "Description"}
-              </Label>
-              <Textarea
-                value={formDescription}
-                onChange={(e) => setFormDescription(e.target.value)}
-                placeholder={isAr ? "وصف المشكلة أو الطلب..." : "Describe the issue or request..."}
-                className="text-[12px] border-[#E6E9EE] min-h-[80px]"
-              />
-            </div>
-
-            {/* Driver ID */}
-            <div className="space-y-1.5">
-              <Label className="text-[12px] text-[#374151]">
-                {isAr ? "معرف السائق (اختياري)" : "Driver ID (optional)"}
-              </Label>
-              <Input
-                value={formDriverId}
-                onChange={(e) => setFormDriverId(e.target.value)}
-                placeholder={isAr ? "معرف السائق" : "Driver ID"}
-                className="h-8 text-[12px] border-[#E6E9EE]"
-              />
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Title</label>
+                <input value={newTicket.title} onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="Brief description of the issue" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Description</label>
+                <textarea value={newTicket.description} onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 h-24 resize-none"
+                  placeholder="Detailed description..." />
+              </div>
+              <button onClick={handleCreateTicket}
+                className="w-full py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors">
+                Create Ticket
+              </button>
             </div>
           </div>
+        </div>
+      )}
 
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setCreateOpen(false)}
-              className="h-8 px-3 text-[12px]"
-            >
-              {isAr ? "إلغاء" : "Cancel"}
-            </Button>
-            <Button
-              onClick={handleCreate}
-              disabled={!formTitle || !formCategory || createTicket.isPending}
-              className="h-8 px-3 text-[12px] bg-[#2563EB] hover:bg-[#1d4ed8] text-white"
-            >
-              {createTicket.isPending
-                ? isAr
-                  ? "جاري الإنشاء..."
-                  : "Creating..."
-                : isAr
-                  ? "إنشاء التذكرة"
-                  : "Create Ticket"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Ticket Detail Panel */}
+      {selectedTicket && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex justify-end">
+          <div className="bg-white w-full max-w-md h-full shadow-lg overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <span className="text-xs text-secondary font-mono">{selectedTicket.ticketNumber}</span>
+                <h2 className="text-lg font-semibold mt-1">{selectedTicket.title}</h2>
+              </div>
+              <button onClick={() => setSelectedTicket(null)} className="p-1 hover:bg-gray-50 rounded-lg">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="flex gap-2 flex-wrap">
+                <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", STATUS_BADGE[selectedTicket.status])}>
+                  {selectedTicket.status}
+                </span>
+                <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
+                  {selectedTicket.category?.replace("_", " ")}
+                </span>
+                <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
+                  {selectedTicket.priority}
+                </span>
+              </div>
+              <p className="text-sm text-secondary">{selectedTicket.description}</p>
+              <div className="pt-4 border-t border-gray-100">
+                <p className="text-xs text-secondary">Assigned to: {selectedTicket.assignedTo?.name || "Unassigned"}</p>
+                <p className="text-xs text-secondary mt-1">
+                  Created: {new Date(selectedTicket.createdAt).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

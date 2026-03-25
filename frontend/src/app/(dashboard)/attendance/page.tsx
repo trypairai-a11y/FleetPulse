@@ -1,275 +1,206 @@
 "use client";
+import { useState } from "react";
+import { useApiGet } from "@/hooks/useApi";
+import StatCard from "@/components/shared/StatCard";
+import PlatformBadge from "@/components/shared/PlatformBadge";
+import { cn } from "@/lib/cn";
+import { CalendarCheck, Clock, UserX, FileText } from "lucide-react";
 
-import { useState, useMemo } from "react";
-import { useUIStore } from "@/stores/uiStore";
-import {
-  ClipboardCheck,
-  UserPlus,
-  Clock,
-  AlertCircle,
-  CheckCircle,
-  TrendingUp,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { PageHeader } from "@/components/shared/PageHeader";
-import { DataTable } from "@/components/shared/DataTable";
-import { Pagination } from "@/components/shared/Pagination";
-import { FilterBar } from "@/components/shared/FilterBar";
-import { StatusBadge } from "@/components/shared/StatusBadge";
-import { StatCard } from "@/components/shared/StatCard";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { ExportButton } from "@/components/shared/ExportButton";
-import { useAttendance, useAttendanceSummary } from "@/hooks/useAttendance";
-import { useDebounce } from "@/hooks/useDebounce";
-import { usePagination } from "@/hooks/usePagination";
-import { ATTENDANCE_STATUS_CONFIG } from "@/lib/constants";
-import { formatDate, formatDateTime } from "@/lib/utils";
-import type { AttendanceRecord } from "@/types/attendance";
+type Tab = "daily" | "monthly" | "leaves";
 
-function getTodayString(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
+const STATUS_COLORS: Record<string, string> = {
+  PRESENT: "bg-green-100 text-green-700",
+  LATE: "bg-orange-100 text-orange-700",
+  ABSENT: "bg-red-100 text-red-700",
+  EARLY_LEAVE: "bg-yellow-100 text-yellow-700",
+  EXCUSED: "bg-gray-100 text-gray-600",
+};
 
 export default function AttendancePage() {
-  const { language } = useUIStore();
-  const isAr = language === "ar";
+  const [tab, setTab] = useState<Tab>("daily");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [platform, setPlatform] = useState("");
 
-  // State
-  const [selectedDate, setSelectedDate] = useState(getTodayString());
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const debouncedSearch = useDebounce(search, 300);
-  const { page, perPage, goToPage, resetPage } = usePagination({ initialPerPage: 20 });
+  const { data: summary } = useApiGet<any>("/api/attendance/summary");
+  const { data: records } = useApiGet<any>(
+    `/api/attendance?dateFrom=${date}&dateTo=${date}&limit=100${platform ? `&platform=${platform}` : ""}`
+  );
+  const { data: leaves } = useApiGet<any>("/api/leave-requests?limit=50");
 
-  // Display today's date
-  const todayDisplay = useMemo(() => {
-    const d = new Date(selectedDate + "T00:00:00");
-    return d.toLocaleDateString(isAr ? "ar-KW" : "en-US", {
-      weekday: "long",
-      month: "short",
-      day: "numeric",
-    });
-  }, [selectedDate, isAr]);
-
-  // Queries
-  const { data: summary, isLoading: summaryLoading } = useAttendanceSummary(selectedDate);
-  const { data: attendanceData, isLoading: tableLoading } = useAttendance({
-    date_from: selectedDate,
-    date_to: selectedDate,
-    search: debouncedSearch || undefined,
-    status: statusFilter !== "all" ? statusFilter : undefined,
-    page,
-    per_page: perPage,
-  });
-
-  const records = attendanceData?.items ?? [];
-  const total = attendanceData?.total ?? 0;
-  const pages = attendanceData?.pages ?? 1;
-
-  // Summary values
-  const presentCount = summary?.summary?.present ?? 0;
-  const lateCount = summary?.summary?.late ?? 0;
-  const absentCount = summary?.summary?.absent ?? 0;
-  const attendanceRate = summary?.attendance_rate ?? 0;
-  const avgLateMin = summary?.avg_late_minutes ?? 0;
-
-  // Status filter options
-  const statusOptions = Object.entries(ATTENDANCE_STATUS_CONFIG).map(([value, cfg]) => ({
-    value,
-    labelEn: cfg.labelEn,
-    labelAr: cfg.labelAr,
-  }));
-
-  // Table columns
-  const columns = [
-    {
-      key: "driver",
-      headerEn: "Driver",
-      headerAr: "السائق",
-      render: (r: AttendanceRecord) => (
-        <span className="text-[13px] font-medium text-[#0C1825]">
-          {r.driver_id.slice(0, 8)}...
-        </span>
-      ),
-    },
-    {
-      key: "date",
-      headerEn: "Date",
-      headerAr: "التاريخ",
-      render: (r: AttendanceRecord) => (
-        <span className="text-[12px] text-[#6B7A8D]">{formatDate(r.date, language)}</span>
-      ),
-    },
-    {
-      key: "status",
-      headerEn: "Status",
-      headerAr: "الحالة",
-      render: (r: AttendanceRecord) => (
-        <StatusBadge status={r.status} config={ATTENDANCE_STATUS_CONFIG} language={language} />
-      ),
-    },
-    {
-      key: "scheduled_start",
-      headerEn: "Scheduled Start",
-      headerAr: "البداية المجدولة",
-      render: (r: AttendanceRecord) => (
-        <span className="text-[12px] text-[#6B7A8D] tabular-nums" dir="ltr">
-          {formatDateTime(r.scheduled_start, language)}
-        </span>
-      ),
-    },
-    {
-      key: "actual_start",
-      headerEn: "Actual Start",
-      headerAr: "البداية الفعلية",
-      render: (r: AttendanceRecord) => (
-        <span className="text-[12px] text-[#6B7A8D] tabular-nums" dir="ltr">
-          {formatDateTime(r.actual_start, language)}
-        </span>
-      ),
-    },
-    {
-      key: "late_minutes",
-      headerEn: "Late Min",
-      headerAr: "دقائق التأخير",
-      render: (r: AttendanceRecord) => (
-        <span
-          className={`text-[12px] tabular-nums font-medium ${
-            r.late_minutes > 0 ? "text-[#E5484D]" : "text-[#6B7A8D]"
-          }`}
-        >
-          {r.late_minutes > 0 ? `${r.late_minutes}` : "0"}
-        </span>
-      ),
-    },
-    {
-      key: "source",
-      headerEn: "Source",
-      headerAr: "المصدر",
-      render: (r: AttendanceRecord) => (
-        <span className="text-[12px] text-[#6B7A8D] capitalize">{r.source}</span>
-      ),
-    },
-  ];
+  const attendanceList = records?.data || [];
+  const leaveList = leaves?.data || [];
 
   return (
-    <div className="max-w-[1400px] space-y-4">
-      {/* Header */}
-      <PageHeader
-        titleEn="Attendance"
-        titleAr="الحضور"
-        subtitleEn={todayDisplay}
-        subtitleAr={todayDisplay}
-        actions={
-          <>
-            <Button className="h-8 px-3 text-[12px] font-medium bg-[#2563EB] hover:bg-[#1d4ed8] text-white gap-1.5">
-              <UserPlus className="w-3.5 h-3.5" />
-              {isAr ? "تسجيل يدوي" : "Manual Log"}
-            </Button>
-            <ExportButton url="/api/attendance/export" filename="attendance.csv" />
-          </>
-        }
-      />
+    <div className="space-y-6 max-w-7xl">
+      <h1 className="text-xl font-semibold">Attendance</h1>
 
-      {/* Date picker */}
-      <div>
-        <Input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => {
-            setSelectedDate(e.target.value);
-            resetPage();
-          }}
-          className="h-8 w-[160px] text-[12px] bg-white border-[#E6E9EE] text-[#0C1825]"
+      {/* Summary Cards */}
+      <div className="grid grid-cols-4 gap-4">
+        <StatCard
+          title="Present Today"
+          value={`${summary?.present || 0} (${summary?.presentPercentage || 0}%)`}
+          icon={CalendarCheck}
         />
+        <StatCard title="Late Today" value={summary?.late || 0} icon={Clock} />
+        <StatCard title="Absent Today" value={summary?.absent || 0} icon={UserX} highlight={(summary?.absent || 0) > 5} />
+        <StatCard title="Pending Leaves" value={summary?.pendingLeaves || 0} icon={FileText} />
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard
-          label={isAr ? "حاضر" : "Present"}
-          value={summaryLoading ? "..." : presentCount}
-          icon={CheckCircle}
-          iconColor="#12B981"
-        />
-        <StatCard
-          label={isAr ? "متأخر" : "Late"}
-          value={summaryLoading ? "..." : lateCount}
-          icon={Clock}
-          iconColor="#F59E0B"
-        />
-        <StatCard
-          label={isAr ? "غائب" : "Absent"}
-          value={summaryLoading ? "..." : absentCount}
-          icon={AlertCircle}
-          iconColor="#E5484D"
-        />
-        <StatCard
-          label={isAr ? "معدل الحضور" : "Attendance Rate"}
-          value={summaryLoading ? "..." : `${attendanceRate.toFixed(1)}%`}
-          icon={TrendingUp}
-          iconColor="#2563EB"
-          change={avgLateMin > 0 ? `${isAr ? "متوسط التأخير" : "Avg late"}: ${avgLateMin.toFixed(0)}${isAr ? " د" : "m"}` : undefined}
-          positive={false}
-        />
+      {/* Tabs */}
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+        {(["daily", "monthly", "leaves"] as Tab[]).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={cn(
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize",
+              tab === t ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
+            )}
+          >
+            {t === "leaves" ? "Leave Requests" : `${t} Log`}
+          </button>
+        ))}
       </div>
 
-      {/* Filters */}
-      <FilterBar
-        search={search}
-        onSearchChange={(v) => {
-          setSearch(v);
-          resetPage();
-        }}
-        searchPlaceholderEn="Search by driver..."
-        searchPlaceholderAr="بحث بالسائق..."
-        filters={[
-          {
-            key: "status",
-            placeholderEn: "Status",
-            placeholderAr: "الحالة",
-            options: statusOptions,
-            value: statusFilter,
-            onChange: (v) => {
-              setStatusFilter(v);
-              resetPage();
-            },
-          },
-        ]}
-      />
+      {tab === "daily" && (
+        <div>
+          {/* Filters */}
+          <div className="flex gap-3 mb-4">
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <select
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              <option value="">All Platforms</option>
+              <option value="KEETA">Keeta</option>
+              <option value="TALABAT">Talabat</option>
+              <option value="DELIVEROO">Deliveroo</option>
+              <option value="AMERICANA">Americana</option>
+            </select>
+          </div>
 
-      {/* Table */}
-      {!tableLoading && records.length === 0 ? (
-        <EmptyState
-          icon={ClipboardCheck}
-          titleEn="No attendance records"
-          titleAr="لا توجد سجلات حضور"
-          descriptionEn="Attendance data will appear as drivers clock in/out via the agent app"
-          descriptionAr="ستظهر بيانات الحضور عند تسجيل دخول/خروج السائقين من التطبيق"
-        />
-      ) : (
-        <>
-          <DataTable<AttendanceRecord>
-            columns={columns}
-            data={records}
-            loading={tableLoading}
-            emptyMessage={isAr ? "لا توجد سجلات" : "No records found"}
-            language={language}
-            rowKey={(r) => r.id}
-          />
-          <Pagination
-            page={page}
-            pages={pages}
-            total={total}
-            perPage={perPage}
-            onPageChange={goToPage}
-          />
-        </>
+          {/* Table */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-50">
+                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
+                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Platform</th>
+                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
+                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Clock In</th>
+                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Clock Out</th>
+                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Late (min)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attendanceList.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-12 text-center text-sm text-secondary">
+                      No attendance records for this date
+                    </td>
+                  </tr>
+                ) : (
+                  attendanceList.map((record: any) => (
+                    <tr key={record.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-25">
+                      <td className="px-5 py-3 text-sm font-medium">{record.driver?.name}</td>
+                      <td className="px-5 py-3">
+                        <PlatformBadge platform={record.driver?.platform} />
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", STATUS_COLORS[record.status])}>
+                          {record.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-sm text-secondary">
+                        {record.shift?.actualStart
+                          ? new Date(record.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                          : "—"}
+                      </td>
+                      <td className="px-5 py-3 text-sm text-secondary">
+                        {record.shift?.actualEnd
+                          ? new Date(record.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                          : "—"}
+                      </td>
+                      <td className="px-5 py-3 text-sm text-secondary">{record.lateMinutes || "—"}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {tab === "monthly" && (
+        <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+          <p className="text-sm text-secondary">Monthly calendar heatmap — populated with data in Prompt 5</p>
+        </div>
+      )}
+
+      {tab === "leaves" && (
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-50">
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Type</th>
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Start</th>
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">End</th>
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leaveList.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-5 py-12 text-center text-sm text-secondary">
+                    No leave requests
+                  </td>
+                </tr>
+              ) : (
+                leaveList.map((leave: any) => (
+                  <tr key={leave.id} className="border-b border-gray-50 last:border-0">
+                    <td className="px-5 py-3 text-sm font-medium">{leave.driver?.name}</td>
+                    <td className="px-5 py-3 text-sm text-secondary">{leave.type}</td>
+                    <td className="px-5 py-3 text-sm text-secondary">
+                      {new Date(leave.startDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-5 py-3 text-sm text-secondary">
+                      {new Date(leave.endDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
+                        "bg-yellow-100 text-yellow-700": leave.status === "PENDING",
+                        "bg-green-100 text-green-700": leave.status === "APPROVED",
+                        "bg-red-100 text-red-700": leave.status === "REJECTED",
+                      })}>
+                        {leave.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      {leave.status === "PENDING" && (
+                        <div className="flex gap-2">
+                          <button className="px-3 py-1 text-xs font-medium bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors">
+                            Approve
+                          </button>
+                          <button className="px-3 py-1 text-xs font-medium bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors">
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

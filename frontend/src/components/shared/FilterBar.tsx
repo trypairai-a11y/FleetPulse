@@ -1,74 +1,65 @@
 "use client";
 
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUIStore } from "@/stores/uiStore";
-
 interface FilterOption {
   value: string;
-  labelEn: string;
-  labelAr: string;
+  label: string;
 }
 
-interface SelectFilter {
+interface Filter {
   key: string;
-  placeholderEn: string;
-  placeholderAr: string;
-  options: FilterOption[];
-  value: string;
-  onChange: (value: string) => void;
+  label: string;
+  type: "select" | "date" | "search";
+  options?: FilterOption[];
+  placeholder?: string;
 }
 
 interface FilterBarProps {
-  search?: string;
-  onSearchChange?: (value: string) => void;
-  searchPlaceholderEn?: string;
-  searchPlaceholderAr?: string;
-  filters?: SelectFilter[];
-  children?: React.ReactNode;
+  filters: Filter[];
+  values: Record<string, string>;
+  onChange: (key: string, value: string) => void;
 }
 
-export function FilterBar({
-  search,
-  onSearchChange,
-  searchPlaceholderEn = "Search...",
-  searchPlaceholderAr = "بحث...",
-  filters = [],
-  children,
-}: FilterBarProps) {
-  const { language } = useUIStore();
-  const isAr = language === "ar";
-
+export default function FilterBar({ filters, values, onChange }: FilterBarProps) {
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      {onSearchChange !== undefined && (
-        <div className="relative flex-1 max-w-xs min-w-[200px]">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9CA3AF]" />
-          <Input
-            placeholder={isAr ? searchPlaceholderAr : searchPlaceholderEn}
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="h-8 pl-8 text-[12px] bg-white border-[#E6E9EE]"
-          />
-        </div>
-      )}
-      {filters.map((f) => (
-        <Select key={f.key} value={f.value} onValueChange={f.onChange}>
-          <SelectTrigger className="h-8 w-[140px] text-[12px] bg-white border-[#E6E9EE] text-[#6B7A8D]">
-            <SelectValue placeholder={isAr ? f.placeholderAr : f.placeholderEn} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{isAr ? "الكل" : "All"}</SelectItem>
-            {f.options.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {isAr ? opt.labelAr : opt.labelEn}
-              </SelectItem>
+    <div className="flex gap-3 flex-wrap">
+      {filters.map((filter) => {
+        if (filter.type === "search") {
+          return (
+            <input
+              key={filter.key}
+              type="text"
+              value={values[filter.key] || ""}
+              onChange={(e) => onChange(filter.key, e.target.value)}
+              placeholder={filter.placeholder || `Search...`}
+              className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 min-w-[200px]"
+            />
+          );
+        }
+        if (filter.type === "date") {
+          return (
+            <input
+              key={filter.key}
+              type="date"
+              value={values[filter.key] || ""}
+              onChange={(e) => onChange(filter.key, e.target.value)}
+              className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          );
+        }
+        return (
+          <select
+            key={filter.key}
+            value={values[filter.key] || ""}
+            onChange={(e) => onChange(filter.key, e.target.value)}
+            className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+          >
+            <option value="">{filter.label}</option>
+            {filter.options?.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
-          </SelectContent>
-        </Select>
-      ))}
-      {children}
+          </select>
+        );
+      })}
     </div>
   );
 }

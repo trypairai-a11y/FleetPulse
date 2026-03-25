@@ -1,33 +1,39 @@
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { LucideIcon } from "lucide-react";
 
 interface StatCardProps {
-  label: string;
+  title: string;
   value: string | number;
-  change?: string;
-  positive?: boolean;
-  icon: React.ElementType;
-  iconColor: string;
+  icon?: LucideIcon;
+  trend?: string;
+  highlight?: boolean;
+  className?: string;
 }
 
-export function StatCard({ label, value, change, positive, icon: Icon, iconColor }: StatCardProps) {
+export default function StatCard({ title, value, icon: Icon, trend, highlight, className }: StatCardProps) {
   return (
-    <div className="bg-white rounded-lg border border-[#E6E9EE] p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ backgroundColor: `${iconColor}0D` }}
-        >
-          <Icon className="w-4 h-4" style={{ color: iconColor }} strokeWidth={2} />
+    <div className={cn(
+      "bg-white rounded-2xl p-5 shadow-sm transition-all duration-200 hover:shadow-md",
+      highlight && "ring-1 ring-red-200",
+      className
+    )}>
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs font-medium text-secondary mb-1">{title}</p>
+          <p className={cn(
+            "text-2xl font-semibold",
+            highlight ? "text-red-500" : "text-foreground"
+          )}>
+            {value}
+          </p>
+          {trend && <p className="text-xs text-secondary mt-1">{trend}</p>}
         </div>
-        {change && (
-          <span className={`flex items-center gap-0.5 text-[11px] font-semibold ${positive ? "text-[#12B981]" : "text-[#E5484D]"}`}>
-            {positive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-            {change}
-          </span>
+        {Icon && (
+          <div className="p-2 bg-gray-50 rounded-xl">
+            <Icon size={18} className="text-secondary" />
+          </div>
         )}
       </div>
-      <div className="text-[22px] font-bold text-[#0C1825] tracking-tight leading-none">{value}</div>
-      <div className="text-[11px] text-[#6B7A8D] mt-1 font-medium">{label}</div>
     </div>
   );
 }

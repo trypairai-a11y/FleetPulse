@@ -1,29 +1,21 @@
 import type { Metadata } from "next";
-import { Almarai } from "next/font/google";
-import { AppProviders } from "@/providers/AppProviders";
 import "./globals.css";
-
-const almarai = Almarai({
-  variable: "--font-almarai",
-  subsets: ["arabic"],
-  weight: ["300", "400", "700", "800"],
-  display: "swap",
-});
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export const metadata: Metadata = {
-  title: "FleetPulse",
-  description: "AI-Powered Fleet Operating System",
+  title: "Darb — Fleet Management",
+  description: "AI-powered delivery fleet operating system",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
-      <body className={`${almarai.variable} antialiased`}>
-        <AppProviders>{children}</AppProviders>
+    <html lang="en">
+      <body className="antialiased">
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
