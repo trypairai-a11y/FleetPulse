@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Map, CalendarCheck, Ticket, Users, Settings,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeft,
   Car, Smartphone, ClipboardList, DollarSign, Briefcase,
-  CalendarClock, ShieldAlert,
+  CalendarClock, ShieldAlert, BarChart3,
 } from "lucide-react";
 
 const PLATFORMS = [
@@ -21,6 +21,7 @@ const PLATFORMS = [
       { name: "Attendance", path: "/keeta/attendance", icon: CalendarCheck },
       { name: "Shifts", path: "/keeta/shifts", icon: ClipboardList },
       { name: "Orders", path: "/keeta/orders", icon: Briefcase },
+      { name: "Performance", path: "/keeta/performance", icon: BarChart3 },
       { name: "Vehicles", path: "/keeta/vehicles", icon: Car },
       { name: "Phones", path: "/keeta/phones", icon: Smartphone },
     ],
@@ -66,6 +67,7 @@ const PLATFORMS = [
       { name: "Attendance", path: "/americana/attendance", icon: CalendarCheck },
       { name: "Shifts", path: "/americana/shifts", icon: ClipboardList },
       { name: "Orders", path: "/americana/orders", icon: Briefcase },
+      { name: "Performance", path: "/americana/performance", icon: BarChart3 },
       { name: "Vehicles", path: "/americana/vehicles", icon: Car },
       { name: "Phones", path: "/americana/phones", icon: Smartphone },
     ],

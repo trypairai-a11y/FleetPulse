@@ -43,7 +43,7 @@ async function main() {
   console.log("Seeding Darb database...");
 
   // Clean existing data
-  await prisma.$executeRawUnsafe(`TRUNCATE TABLE "TalabatComplianceEvent", "TalabatSession", "AuditLog", "AiDigest", "Alert", "AiScore", "DeviceCommand", "AppUsageLog", "LocationLog", "CapturedOrder", "Device", "VehicleInspection", "MaintenanceRecord", "PendingDuesLedger", "CashRecord", "OrderLog", "AttendanceRecord", "Shift", "DriverInventory", "LeaveRequest", "Ticket", "RecruitmentPipeline", "Vehicle", "Driver", "User", "Company", "Tenant" CASCADE`);
+  await prisma.$executeRawUnsafe(`TRUNCATE TABLE "AmericanaDailyOrders", "KeetaDailyMetrics", "TalabatComplianceEvent", "TalabatSession", "AuditLog", "AiDigest", "Alert", "AiScore", "DeviceCommand", "AppUsageLog", "LocationLog", "CapturedOrder", "Device", "VehicleInspection", "MaintenanceRecord", "PendingDuesLedger", "CashRecord", "OrderLog", "AttendanceRecord", "Shift", "DriverInventory", "LeaveRequest", "Ticket", "RecruitmentPipeline", "Vehicle", "Driver", "User", "Company", "Tenant" CASCADE`);
 
   // 1. Tenant
   const tenant = await prisma.tenant.create({
@@ -613,6 +613,82 @@ async function main() {
       },
     });
   }
+
+  // 14b. KeetaDailyMetrics — 30 days for each Keeta driver
+  for (let dayOffset = 29; dayOffset >= 0; dayOffset--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - dayOffset);
+    date.setHours(0, 0, 0, 0);
+    for (const driver of keetaDrivers) {
+      const onShift = Math.random() < 0.92;
+      const validDay = onShift && Math.random() < 0.85;
+      const onlineMin = onShift ? rand(180, 480) : 0;
+      const delivered = onShift ? rand(8, 25) : 0;
+      const accepted = delivered + rand(0, 3);
+      const onTime = delivered > 0 ? decimal(0.7, 1.0, 4) : null;
+      await prisma.keetaDailyMetrics.create({
+        data: {
+          tenantId: tid, driverId: driver.id, date,
+          courierPlatformId: driver.platformDriverId,
+          supervisorName: "Sidra Operations",
+          vehicleType: driver.vehicleType === "MOTORCYCLE" ? "Motorcycle" : "Private Car",
+          onShift, validDay,
+          onlineTime: onlineMin,
+          validOnlineTime: onShift ? Math.max(0, onlineMin - rand(0, 20)) : 0,
+          peakOnlineMinutes: onShift ? rand(60, 180) : 0,
+          acceptedTasks: accepted,
+          restaurantArrivals: onShift ? Math.min(accepted, accepted - rand(0, 2)) : 0,
+          deliveredTasks: delivered,
+          largeOrdersCompleted: onShift ? rand(0, 3) : 0,
+          cancelledTasks: onShift ? rand(0, 2) : 0,
+          rejectedTasks: onShift ? rand(0, 3) : 0,
+          rejectedByCourier: onShift ? rand(0, 1) : 0,
+          rejectedAuto: onShift ? rand(0, 2) : 0,
+          cancellationRate: onShift ? decimal(0, 0.1, 4) : null,
+          completionRate: delivered > 0 ? decimal(0.85, 1.0, 4) : null,
+          onTimeRate: onTime,
+          largeOrderOnTimeRate: delivered > 0 ? decimal(0.6, 1.0, 4) : null,
+          avgDeliveryMinutes: delivered > 0 ? decimal(20, 45, 2) : null,
+          over55minProportion: delivered > 0 ? decimal(0, 0.15, 4) : null,
+          overdueOrders: onShift ? rand(0, 2) : 0,
+          severelyOverdue: onShift ? rand(0, 1) : 0,
+          source: "EXCEL_IMPORT",
+        },
+      });
+    }
+  }
+  console.log("Created Keeta daily metrics (30 days x 35 drivers)");
+
+  // 14c. AmericanaDailyOrders — current month for each Americana driver
+  const amStores = ["KFC Audiliya", "KFC Salwa", "Hardees Salmiya"];
+  for (const driver of americanaDrivers) {
+    const dailyOrders: Record<string, number> = {};
+    let total = 0;
+    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    for (let d = 1; d <= Math.min(today.getDate(), daysInMonth); d++) {
+      const key = String(d).padStart(2, "0");
+      const isOff = Math.random() < 0.14;
+      const orders = isOff ? 0 : rand(12, 35);
+      dailyOrders[key] = orders;
+      total += orders;
+    }
+    await prisma.americanaDailyOrders.create({
+      data: {
+        tenantId: tid, driverId: driver.id,
+        month: new Date(today.getFullYear(), today.getMonth(), 1),
+        chain: "12",
+        empId: driver.platformDriverId,
+        storeName: driver.zone || pick(amStores),
+        costCenter: String(rand(12700, 12800)),
+        company: "Al Hazm Express",
+        position: driver.vehicleType === "CAR" ? "Car" : "Bike",
+        dailyOrders,
+        totalOrders: total,
+        source: "EXCEL_IMPORT",
+      },
+    });
+  }
+  console.log("Created Americana daily orders");
 
   // 15. Driver Inventory — equip every driver with realistic items
   const inventoryItems: { type: any; hasQty: boolean }[] = [

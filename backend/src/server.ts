@@ -21,6 +21,8 @@ import leaveRequestRoutes from "./routes/leaveRequests";
 import agentRoutes from "./routes/agent";
 import aiRoutes from "./routes/ai";
 import talabatRoutes from "./routes/talabat";
+import americanaRoutes from "./routes/americana";
+import keetaRoutes from "./routes/keeta";
 
 const app = express();
 
@@ -49,6 +51,8 @@ app.use("/api/leave-requests", leaveRequestRoutes);
 app.use("/api/agent", agentRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/talabat", talabatRoutes);
+app.use("/api/americana", americanaRoutes);
+app.use("/api/keeta", keetaRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {

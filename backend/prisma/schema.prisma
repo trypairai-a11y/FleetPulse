@@ -277,6 +277,8 @@ model Tenant {
   vehicles                Vehicle[]
   talabatSessions         TalabatSession[]
   talabatComplianceEvents TalabatComplianceEvent[]
+  keetaDailyMetrics       KeetaDailyMetrics[]
+  americanaDailyOrders    AmericanaDailyOrders[]
 }
 
 // 2. Company
@@ -367,6 +369,8 @@ model Driver {
   submittedTickets        Ticket[]           @relation("TicketSubmitterDriver")
   talabatSessions         TalabatSession[]
   talabatComplianceEvents TalabatComplianceEvent[]
+  keetaDailyMetrics       KeetaDailyMetrics[]
+  americanaDailyOrders    AmericanaDailyOrders[]
 
   @@index([tenantId])
   @@index([companyId])
@@ -935,4 +939,74 @@ model TalabatComplianceEvent {
   @@index([driverId])
   @@index([type])
   @@index([createdAt])
+}
+
+// 28. KeetaDailyMetrics — mirrors the 27-column Keeta dashboard export
+model KeetaDailyMetrics {
+  id                    String      @id @default(uuid())
+  tenantId              String
+  driverId              String
+  date                  DateTime
+  courierPlatformId     String?
+  supervisorName        String?
+  vehicleType           String?
+  onShift               Boolean     @default(false)
+  validDay              Boolean     @default(false)
+  onlineTime            Int         @default(0)    // minutes
+  validOnlineTime       Int         @default(0)    // minutes
+  peakOnlineMinutes     Int         @default(0)
+  acceptedTasks         Int         @default(0)
+  restaurantArrivals    Int         @default(0)
+  deliveredTasks        Int         @default(0)
+  largeOrdersCompleted  Int         @default(0)
+  cancelledTasks        Int         @default(0)
+  rejectedTasks         Int         @default(0)
+  rejectedByCourier     Int         @default(0)
+  rejectedAuto          Int         @default(0)
+  cancellationRate      Decimal?    @db.Decimal(5, 4)
+  completionRate        Decimal?    @db.Decimal(5, 4)
+  onTimeRate            Decimal?    @db.Decimal(5, 4)
+  largeOrderOnTimeRate  Decimal?    @db.Decimal(5, 4)
+  avgDeliveryMinutes    Decimal?    @db.Decimal(6, 2)
+  over55minProportion   Decimal?    @db.Decimal(5, 4)
+  overdueOrders         Int         @default(0)
+  severelyOverdue       Int         @default(0)
+  source                String      @default("MANUAL")
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@unique([tenantId, driverId, date])
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([date])
+}
+
+// 29. AmericanaDailyOrders — daily order counts per driver per store
+model AmericanaDailyOrders {
+  id          String   @id @default(uuid())
+  tenantId    String
+  driverId    String
+  month       DateTime
+  chain       String?
+  empId       String?
+  storeName   String?
+  costCenter  String?
+  company     String?
+  position    String?  // Car or Bike
+  dailyOrders Json     // { "01": 19, "02": 20, ... "28": 30 }
+  totalOrders Int      @default(0)
+  source      String   @default("MANUAL")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@unique([tenantId, driverId, month])
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([month])
 }
