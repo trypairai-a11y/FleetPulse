@@ -4,6 +4,7 @@ import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
 import { upload } from "../utils/upload";
+import fs from "fs";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -124,12 +125,80 @@ router.post("/upload-screenshot", upload.single("screenshot"), async (req: Reque
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
     const { platform, driverId, date } = req.body;
-    // File saved — OCR processing will be added in Prompt 5
+    const tenantId = req.user!.tenantId;
+
+    // Attempt OCR via AI service
+    let ocrResult = null;
+    let orderRecord = null;
+
+    try {
+      const { AiOcrService } = await import("../services/aiOcrService");
+      const imageBuffer = fs.readFileSync(req.file.path);
+      ocrResult = await AiOcrService.processScreenshot(imageBuffer, platform || "KEETA");
+    } catch {
+      res.json({
+        message: "OCR requires ANTHROPIC_API_KEY to be configured.",
+        file: req.file.filename,
+        platform,
+        driverId,
+      });
+      return;
+    }
+
+    if (!ocrResult) {
+      res.json({
+        message: "OCR requires ANTHROPIC_API_KEY to be configured.",
+        file: req.file.filename,
+        platform,
+        driverId,
+      });
+      return;
+    }
+
+    // Create an OrderLog record from the parsed OCR data
+    if (driverId) {
+      const orderCount =
+        "deliveryCount" in ocrResult ? (ocrResult.deliveryCount ?? 0) :
+        "deliveries" in ocrResult ? (ocrResult.deliveries ?? 0) :
+        "totalOrders" in ocrResult ? (ocrResult.totalOrders ?? 0) : 0;
+
+      const distanceKm =
+        "distanceKm" in ocrResult ? (ocrResult.distanceKm ?? undefined) : undefined;
+
+      const cashCollected =
+        "cashCollectedKD" in ocrResult ? (ocrResult.cashCollectedKD ?? undefined) :
+        "cashKD" in ocrResult ? (ocrResult.cashKD ?? undefined) :
+        "totalAmountKWD" in ocrResult ? (ocrResult.totalAmountKWD ?? undefined) : undefined;
+
+      const tips =
+        "tipsKD" in ocrResult ? (ocrResult.tipsKD ?? undefined) : undefined;
+
+      const orderDate = ocrResult.platform !== "AMERICANA" && "date" in ocrResult && ocrResult.date
+        ? new Date(ocrResult.date)
+        : date ? new Date(date) : new Date();
+
+      orderRecord = await prisma.orderLog.create({
+        data: {
+          tenantId,
+          driverId,
+          date: orderDate,
+          platform: platform || ocrResult.platform,
+          orderCount: orderCount || 0,
+          distanceKm,
+          cashCollected,
+          tips,
+          screenshotUrl: req.file.filename,
+          source: "SCREENSHOT_OCR",
+          rawData: ocrResult as any,
+        },
+      });
+    }
+
     res.json({
-      message: "Screenshot uploaded. OCR processing will extract data.",
+      message: "Screenshot processed successfully.",
       file: req.file.filename,
-      platform,
-      driverId,
+      parsed: ocrResult,
+      order: orderRecord,
     });
   } catch (err: any) {
     res.status(400).json({ error: err.message });

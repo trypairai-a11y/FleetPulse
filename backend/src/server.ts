@@ -23,6 +23,7 @@ import aiRoutes from "./routes/ai";
 import talabatRoutes from "./routes/talabat";
 import americanaRoutes from "./routes/americana";
 import keetaRoutes from "./routes/keeta";
+import analyticsRoutes from "./routes/analytics";
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/talabat", talabatRoutes);
 app.use("/api/americana", americanaRoutes);
 app.use("/api/keeta", keetaRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {

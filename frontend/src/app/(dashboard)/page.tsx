@@ -2,9 +2,10 @@
 import { useApiGet } from "@/hooks/useApi";
 import StatCard from "@/components/shared/StatCard";
 import PlatformBadge from "@/components/shared/PlatformBadge";
-import { Users, Activity, DollarSign, AlertTriangle, CheckCircle, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { Users, Activity, DollarSign, AlertTriangle, CheckCircle, Sparkles, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useState } from "react";
+import api from "@/lib/api";
 
 interface Alert {
   id: string;
@@ -26,11 +27,25 @@ const SEVERITY_DOT: Record<string, string> = {
 
 export default function OverviewPage() {
   const [briefingOpen, setBriefingOpen] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const { data: alertsData } = useApiGet<{ data: Alert[]; pagination: any }>("/api/alerts?status=ACTIVE&limit=20");
   const { data: driversData } = useApiGet<{ pagination: { total: number } }>("/api/drivers?limit=1");
   const { data: summaryData } = useApiGet<any>("/api/attendance/summary");
-  const { data: digest } = useApiGet<any>("/api/ai/digest");
+  const { data: digest, refetch: refetchDigest } = useApiGet<any>("/api/ai/digest");
   const { data: cashData } = useApiGet<any>("/api/cash/ledger?month=" + new Date().toISOString().slice(0, 7) + "&limit=100");
+
+  const handleRefreshDigest = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRefreshing(true);
+    try {
+      await api.post("/api/ai/digest/generate");
+      await refetchDigest();
+    } catch {
+      // silently fail
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const alerts = alertsData?.data || [];
   const totalDrivers = driversData?.pagination?.total || 0;
@@ -51,6 +66,14 @@ export default function OverviewPage() {
               <span className="text-[10px] text-secondary">
                 {digest.date ? new Date(digest.date).toLocaleDateString() : "Today"}
               </span>
+              <button
+                onClick={handleRefreshDigest}
+                disabled={refreshing}
+                className="ml-1 p-1 rounded-lg hover:bg-primary/10 transition-colors disabled:opacity-50"
+                title="Regenerate digest"
+              >
+                <RefreshCw size={13} className={cn("text-secondary", refreshing && "animate-spin")} />
+              </button>
             </div>
             {briefingOpen ? <ChevronUp size={16} className="text-secondary" /> : <ChevronDown size={16} className="text-secondary" />}
           </button>

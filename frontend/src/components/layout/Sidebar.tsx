@@ -76,6 +76,7 @@ const PLATFORMS = [
 
 const GLOBAL_NAV = [
   { name: "Overview", path: "/", icon: LayoutDashboard },
+  { name: "Analytics", path: "/analytics", icon: BarChart3 },
   { name: "Live Map", path: "/map", icon: Map },
   { name: "Attendance", path: "/attendance", icon: CalendarCheck },
   { name: "Tickets", path: "/tickets", icon: Ticket },
