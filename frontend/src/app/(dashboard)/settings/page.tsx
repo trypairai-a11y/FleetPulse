@@ -4,10 +4,208 @@ import { useApiGet } from "@/hooks/useApi";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/cn";
 import PlatformBadge from "@/components/shared/PlatformBadge";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Shield, UserX, UserCheck, Loader2 } from "lucide-react";
 import api from "@/lib/api";
 
+const ROLES = ["ADMIN", "OPS_MANAGER", "SUPERVISOR", "ACCOUNTANT", "VIEWER"] as const;
+
+const ROLE_COLORS: Record<string, string> = {
+  ADMIN: "bg-red-50 text-red-600",
+  OPS_MANAGER: "bg-blue-50 text-blue-600",
+  SUPERVISOR: "bg-purple-50 text-purple-600",
+  ACCOUNTANT: "bg-green-50 text-green-600",
+  VIEWER: "bg-gray-100 text-gray-500",
+};
+
 type Tab = "companies" | "users" | "profile";
+
+function UsersTab() {
+  const { data, refetch } = useApiGet<any>("/api/users?limit=100");
+  const users = data?.data || [];
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ name: "", email: "", password: "", role: "VIEWER", phone: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [toggling, setToggling] = useState<string | null>(null);
+
+  async function handleInvite(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      await api.post("/api/users", inviteForm);
+      setShowInvite(false);
+      setInviteForm({ name: "", email: "", password: "", role: "VIEWER", phone: "" });
+      refetch();
+    } catch (err: any) {
+      setError(err.response?.data?.error || err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleToggleActive(userId: string) {
+    setToggling(userId);
+    try {
+      await api.put(`/api/users/${userId}/toggle-active`);
+      refetch();
+    } catch (err: any) {
+      console.error(err);
+    } finally {
+      setToggling(null);
+    }
+  }
+
+  async function handleRoleChange(userId: string, role: string) {
+    try {
+      await api.put(`/api/users/${userId}`, { role });
+      refetch();
+    } catch (err: any) {
+      console.error(err);
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex justify-end mb-4">
+        <button onClick={() => setShowInvite(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors">
+          <Plus size={16} /> Invite User
+        </button>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-50">
+              <th className="text-left text-xs font-medium text-secondary px-5 py-3">Name</th>
+              <th className="text-left text-xs font-medium text-secondary px-5 py-3">Email</th>
+              <th className="text-left text-xs font-medium text-secondary px-5 py-3">Role</th>
+              <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
+              <th className="text-left text-xs font-medium text-secondary px-5 py-3">Last Login</th>
+              <th className="text-right text-xs font-medium text-secondary px-5 py-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u: any) => (
+              <tr key={u.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-25">
+                <td className="px-5 py-3 text-sm font-medium">{u.name}</td>
+                <td className="px-5 py-3 text-sm text-secondary">{u.email}</td>
+                <td className="px-5 py-3">
+                  <select
+                    value={u.role}
+                    onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                    className="appearance-none px-2 py-0.5 rounded-md text-xs font-medium border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    style={{ backgroundColor: "transparent" }}
+                  >
+                    {ROLES.map((r) => (
+                      <option key={r} value={r}>{r.replace("_", " ")}</option>
+                    ))}
+                  </select>
+                  <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium sr-only", ROLE_COLORS[u.role])}>
+                    {u.role.replace("_", " ")}
+                  </span>
+                </td>
+                <td className="px-5 py-3">
+                  <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium",
+                    u.isActive ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500")}>
+                    {u.isActive ? "Active" : "Inactive"}
+                  </span>
+                </td>
+                <td className="px-5 py-3 text-sm text-secondary">
+                  {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString() : "Never"}
+                </td>
+                <td className="px-5 py-3 text-right">
+                  <button
+                    onClick={() => handleToggleActive(u.id)}
+                    disabled={toggling === u.id}
+                    className={cn(
+                      "p-1.5 rounded-lg transition-colors",
+                      u.isActive ? "text-red-400 hover:bg-red-50 hover:text-red-600" : "text-green-400 hover:bg-green-50 hover:text-green-600"
+                    )}
+                    title={u.isActive ? "Deactivate" : "Activate"}
+                  >
+                    {toggling === u.id ? <Loader2 size={14} className="animate-spin" /> : u.isActive ? <UserX size={14} /> : <UserCheck size={14} />}
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {users.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-5 py-8 text-center text-sm text-secondary">No users found</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {showInvite && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowInvite(false)}>
+          <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold">Invite User</h2>
+              <button onClick={() => setShowInvite(false)} className="p-1 hover:bg-gray-50 rounded-lg"><X size={18} /></button>
+            </div>
+
+            {error && <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm">{error}</div>}
+
+            <form onSubmit={handleInvite} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1">Name *</label>
+                <input type="text" required value={inviteForm.name}
+                  onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="Full name" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1">Email *</label>
+                <input type="email" required value={inviteForm.email}
+                  onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="user@example.com" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1">Password *</label>
+                <input type="password" required value={inviteForm.password}
+                  onChange={(e) => setInviteForm({ ...inviteForm, password: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="Min 8 characters" minLength={8} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-secondary mb-1">Role *</label>
+                  <select value={inviteForm.role}
+                    onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+                    {ROLES.map((r) => <option key={r} value={r}>{r.replace("_", " ")}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-secondary mb-1">Phone</label>
+                  <input type="text" value={inviteForm.phone}
+                    onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    placeholder="+965 xxxx xxxx" />
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowInvite(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" disabled={submitting}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-50">
+                  {submitting && <Loader2 size={14} className="animate-spin" />}
+                  {submitting ? "Creating..." : "Invite User"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>("companies");
@@ -125,11 +323,7 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {tab === "users" && (
-        <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-          <p className="text-sm text-secondary">User management — list and manage dashboard users</p>
-        </div>
-      )}
+      {tab === "users" && <UsersTab />}
 
       {tab === "profile" && (
         <div className="bg-white rounded-2xl shadow-sm p-6 max-w-lg">

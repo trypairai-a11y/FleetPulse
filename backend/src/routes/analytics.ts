@@ -3,6 +3,7 @@ import { prisma } from "../config";
 import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
+import { sendXlsx } from "../utils/xlsxExport";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -337,6 +338,87 @@ router.get("/driver-scores", async (req: Request, res: Response) => {
     const paginated = scores.slice(skip, skip + limit);
 
     res.json(paginatedResponse(paginated, total, page, limit));
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Export ────────────────────────────────────────────────────────────────
+
+router.get("/export/platform-comparison", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const now = new Date();
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const platforms: Array<"KEETA" | "TALABAT" | "DELIVEROO" | "AMERICANA"> = [
+      "KEETA", "TALABAT", "DELIVEROO", "AMERICANA",
+    ];
+
+    const rows = await Promise.all(
+      platforms.map(async (platform) => {
+        const [driverCount, orderAgg, attendanceRecords, shiftAgg] = await Promise.all([
+          prisma.driver.count({ where: { tenantId, platform, status: "ACTIVE" } }),
+          prisma.orderLog.aggregate({
+            where: { tenantId, platform, date: { gte: sevenDaysAgo } },
+            _sum: { orderCount: true, totalAmount: true },
+          }),
+          prisma.attendanceRecord.findMany({
+            where: { tenantId, date: { gte: sevenDaysAgo }, driver: { platform } },
+            select: { status: true },
+          }),
+          prisma.shift.aggregate({
+            where: { tenantId, platform, date: { gte: sevenDaysAgo }, status: "COMPLETED" },
+            _avg: { actualHoursMinutes: true },
+          }),
+        ]);
+
+        const totalOrders = orderAgg._sum.orderCount || 0;
+        const presentCount = attendanceRecords.filter((a) => a.status === "PRESENT" || a.status === "LATE").length;
+        const attendanceRate = attendanceRecords.length > 0 ? Math.round((presentCount / attendanceRecords.length) * 100) : 0;
+        const avgShiftHours = shiftAgg._avg.actualHoursMinutes ? Math.round((Number(shiftAgg._avg.actualHoursMinutes) / 60) * 10) / 10 : 0;
+
+        return {
+          Platform: platform,
+          "Active Drivers": driverCount,
+          "Orders/Driver/Day": driverCount > 0 ? Math.round((totalOrders / (driverCount * 7)) * 10) / 10 : 0,
+          "Avg Shift Hours": avgShiftHours,
+          "Attendance Rate %": attendanceRate,
+        };
+      })
+    );
+
+    sendXlsx(res, rows, "Platform Comparison", "platform-comparison.xlsx");
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/export/top-performers", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const scores = await prisma.aiScore.findMany({
+      where: { tenantId },
+      orderBy: [{ date: "desc" }, { compositeScore: "desc" }],
+      distinct: ["driverId"],
+      take: 50,
+      include: { driver: { select: { name: true, platform: true } } },
+    });
+    scores.sort((a, b) => b.compositeScore - a.compositeScore);
+
+    const rows = scores.map((s, i) => ({
+      Rank: i + 1,
+      Name: s.driver.name,
+      Platform: s.driver.platform,
+      "Composite Score": s.compositeScore,
+      "Attendance Score": s.attendanceScore,
+      "Delivery Score": s.deliveryScore,
+      "Financial Score": s.financialScore,
+      Trend: s.trend,
+    }));
+
+    sendXlsx(res, rows, "Top Performers", "top-performers.xlsx");
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

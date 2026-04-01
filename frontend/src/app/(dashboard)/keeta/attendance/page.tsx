@@ -20,7 +20,7 @@ import {
 
 type Tab = "daily" | "monthly" | "leaves";
 
-const ZONES = ["Hawally", "Salmiya", "Jabriya", "Rumaithiya", "Bayan"];
+const ZONES = ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"];
 
 const STATUS_STYLES: Record<string, string> = {
   PRESENT: "bg-green-50 text-green-700",

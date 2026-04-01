@@ -9,8 +9,7 @@ import { cn } from "@/lib/cn";
 import { Car, ShieldCheck, AlertTriangle, Wrench, Plus, X, CheckCircle2, XCircle } from "lucide-react";
 
 const TALABAT_ZONES = [
-  "Hawally", "Salmiya", "Jabriya", "Rumaithiya", "Bayan",
-  "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf",
+  "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
 ];
 
 const EQUIPMENT_ITEMS = [
@@ -101,17 +100,6 @@ export default function TalabatVehiclesPage() {
           {v || "—"}
         </span>
       ),
-    },
-    {
-      key: "docsStatus",
-      label: "Docs",
-      render: (_: any, r: any) => {
-        const expired = r.expiredDocCount || 0;
-        const expiring = r.expiringDocCount || 0;
-        if (expired > 0) return <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600">{expired} Expired</span>;
-        if (expiring > 0) return <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-yellow-50 text-yellow-600">{expiring} Expiring</span>;
-        return <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">OK</span>;
-      },
     },
   ];
 

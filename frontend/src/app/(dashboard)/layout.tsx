@@ -5,6 +5,23 @@ import { useEffect } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import ChatWidget from "@/components/ai/ChatWidget";
+import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
+import { cn } from "@/lib/cn";
+
+function DashboardContent({ children }: { children: React.ReactNode }) {
+  const { collapsed } = useSidebar();
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Sidebar />
+      <div className={cn("transition-all duration-200", collapsed ? "ml-16" : "ml-60")}>
+        <Header />
+        <main className="p-8">{children}</main>
+      </div>
+      <ChatWidget />
+    </div>
+  );
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -27,13 +44,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Sidebar />
-      <div className="ml-60">
-        <Header />
-        <main className="p-8">{children}</main>
-      </div>
-      <ChatWidget />
-    </div>
+    <SidebarProvider>
+      <DashboardContent>{children}</DashboardContent>
+    </SidebarProvider>
   );
 }

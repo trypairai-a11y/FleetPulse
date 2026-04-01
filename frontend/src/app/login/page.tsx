@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, demoLogin } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,9 +31,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-semibold text-primary tracking-tight">Darb</h1>
-          <p className="text-sm text-secondary mt-2">Fleet Management System</p>
+        <div className="text-center mb-8 flex flex-col items-center">
+          <div className="overflow-hidden" style={{ maxWidth: 210 }}>
+            <Image src="/logo.png" alt="Darb — Fleet Operating System" width={220} height={80} className="object-contain" priority />
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm p-8">
@@ -120,7 +122,7 @@ export default function LoginPage() {
               setError("");
               setLoading(true);
               try {
-                await login("osama@fleet.kw", "demo123");
+                await demoLogin();
                 router.push("/");
               } catch {
                 setError("Demo login failed");

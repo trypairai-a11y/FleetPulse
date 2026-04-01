@@ -7,7 +7,7 @@ import SlidePanel from "@/components/shared/SlidePanel";
 import { cn } from "@/lib/cn";
 import { Plus, X } from "lucide-react";
 
-const ZONES = ["Hawally", "Salmiya", "Jabriya"];
+const ZONES = ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"];
 
 export default function KeetaDriversPage() {
   const [filters, setFilters] = useState<Record<string, string>>({});

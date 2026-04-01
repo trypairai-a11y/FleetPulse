@@ -3,10 +3,11 @@ import { useApiGet } from "@/hooks/useApi";
 import StatCard from "@/components/shared/StatCard";
 import PlatformBadge from "@/components/shared/PlatformBadge";
 import { cn } from "@/lib/cn";
+import { downloadBlob } from "@/utils/downloadBlob";
 import {
   Users, Package, DollarSign, ShieldCheck,
   TrendingUp, TrendingDown, Minus,
-  Zap, FileText, Play,
+  Zap, FileText, Play, Download,
 } from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────
@@ -321,9 +322,19 @@ export default function AnalyticsPage() {
             <Zap size={16} className="text-primary" />
             Generate AI Digest
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl shadow-sm border border-gray-100 text-sm font-medium text-foreground hover:shadow-md hover:border-gray-200 transition-all duration-200">
+          <button
+            onClick={() => downloadBlob("/api/analytics/export/platform-comparison", "platform-comparison.xlsx").catch(console.error)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl shadow-sm border border-gray-100 text-sm font-medium text-foreground hover:shadow-md hover:border-gray-200 transition-all duration-200"
+          >
             <FileText size={16} className="text-primary" />
-            Export Fleet Report
+            Export Platform Report
+          </button>
+          <button
+            onClick={() => downloadBlob("/api/analytics/export/top-performers", "top-performers.xlsx").catch(console.error)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-xl shadow-sm border border-gray-100 text-sm font-medium text-foreground hover:shadow-md hover:border-gray-200 transition-all duration-200"
+          >
+            <Download size={16} className="text-primary" />
+            Export Top Performers
           </button>
         </div>
       </div>

@@ -33,7 +33,7 @@ export class AiDigestService {
     yesterdayEnd.setUTCHours(23, 59, 59, 999);
 
     // ── Query all relevant data in parallel ────────────────────────────────
-    const [shifts, orders, attendance, cash, alerts] = await Promise.all([
+    const [shifts, orders, attendance, cash, alerts, tickets] = await Promise.all([
       prisma.shift.findMany({
         where: {
           tenantId,
@@ -67,6 +67,13 @@ export class AiDigestService {
       }),
 
       prisma.alert.findMany({
+        where: {
+          tenantId,
+          createdAt: { gte: yesterdayStart, lte: yesterdayEnd },
+        },
+      }),
+
+      prisma.ticket.findMany({
         where: {
           tenantId,
           createdAt: { gte: yesterdayStart, lte: yesterdayEnd },
@@ -116,6 +123,24 @@ export class AiDigestService {
       unresolved: alerts.filter((a) => a.status === "ACTIVE").length,
     };
 
+    const ticketStats = {
+      total: tickets.length,
+      open: tickets.filter((t) => t.status === "OPEN").length,
+      assigned: tickets.filter((t) => t.status === "ASSIGNED").length,
+      inProgress: tickets.filter((t) => t.status === "IN_PROGRESS").length,
+      resolved: tickets.filter((t) => t.status === "RESOLVED").length,
+      byCategory: {
+        vehicleRepair: tickets.filter((t) => t.category === "VEHICLE_REPAIR").length,
+        equipmentRequest: tickets.filter((t) => t.category === "EQUIPMENT_REQUEST").length,
+        leaveRequest: tickets.filter((t) => t.category === "LEAVE_REQUEST").length,
+        complaint: tickets.filter((t) => t.category === "COMPLAINT").length,
+        other: tickets.filter((t) => t.category === "OTHER").length,
+      },
+      overdue: tickets.filter(
+        (t) => t.slaDeadline && new Date(t.slaDeadline) < now && t.status !== "RESOLVED" && t.status !== "CLOSED"
+      ).length,
+    };
+
     const summaryPayload = {
       date: yesterdayStart.toISOString().split("T")[0],
       shifts: shiftStats,
@@ -123,6 +148,7 @@ export class AiDigestService {
       attendance: attendanceStats,
       cash: cashStats,
       alerts: alertStats,
+      tickets: ticketStats,
     };
 
     // ── Send to Claude ─────────────────────────────────────────────────────
@@ -137,6 +163,7 @@ Analyze the operational summary provided and respond ONLY with valid JSON in thi
   "recommendations": ["list of specific improvement recommendations, max 5"]
 }
 
+Include ticket-related alerts when there are open, overdue, or high-volume tickets. Highlight overdue tickets and unresolved complaints.
 Be concise, data-driven, and actionable. Currency is KWD (Kuwaiti Dinar).`;
 
     const userMessage = `Here is yesterday's operational data for ${yesterdayStart.toISOString().split("T")[0]}:\n\n${JSON.stringify(summaryPayload, null, 2)}\n\nGenerate the daily digest JSON.`;

@@ -11,8 +11,7 @@ import api from "@/lib/api";
 import { Plus, X, Users, ShieldCheck, AlertTriangle, FileText, Loader2 } from "lucide-react";
 
 const TALABAT_ZONES = [
-  "Hawally", "Salmiya", "Jabriya", "Rumaithiya", "Bayan",
-  "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf",
+  "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
 ];
 
 const BATCH_NUMBERS = ["Batch A", "Batch B", "Batch C", "Batch D"];
@@ -40,7 +39,7 @@ function AddDriverModal({
   const [form, setForm] = useState({
     name: "",
     phone: "",
-    platformDriverId: "",
+    utr: "",
     zone: "",
     batchNumber: "",
     vehicleType: "MOTORCYCLE",
@@ -113,14 +112,14 @@ function AddDriverModal({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1">Talabat ID *</label>
+            <label className="block text-xs font-medium text-secondary mb-1">UTR *</label>
             <input
               type="text"
               required
-              value={form.platformDriverId}
-              onChange={(e) => update("platformDriverId", e.target.value)}
+              value={form.utr}
+              onChange={(e) => update("utr", e.target.value)}
               className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
-              placeholder="e.g. T-12345"
+              placeholder="e.g. UTR-12345"
             />
           </div>
 
@@ -208,50 +207,78 @@ export default function TalabatDriversPage() {
   const [selected, setSelected] = useState<any>(null);
   const [showAdd, setShowAdd] = useState(false);
 
+  const { data: companiesData } = useApiGet<any>("/api/companies?platform=TALABAT");
+  const companies = companiesData?.data || [];
+
   const params = new URLSearchParams({ platform: "TALABAT", limit: "100" });
+  if (filters.company) params.set("companyId", filters.company);
   if (filters.zone) params.set("zone", filters.zone);
   if (filters.status) params.set("status", filters.status);
   if (filters.batch) params.set("batchNumber", filters.batch);
   if (filters.search) params.set("search", filters.search);
 
+  const summaryParams = new URLSearchParams({ platform: "TALABAT" });
+  if (filters.company) summaryParams.set("companyId", filters.company);
+
   const { data, refetch } = useApiGet<any>(`/api/drivers?${params}`);
-  const { data: summary } = useApiGet<any>("/api/drivers/summary?platform=TALABAT");
-  const { data: companiesData } = useApiGet<any>("/api/companies?platform=TALABAT");
-  const companies = companiesData?.data || [];
+  const { data: summary } = useApiGet<any>(`/api/drivers/summary?${summaryParams}`);
   const drivers = data?.data || [];
 
   const columns = [
     {
       key: "name",
       label: "Driver Name",
-      render: (_: any, r: any) => (
-        <span className="font-medium font-mono text-sm">
-          {r.talabatDisplayName || r.name}
+      render: (_: any, r: any) => {
+        const raw = r.talabatDisplayName || r.name || "";
+        const cleanName = raw.replace(/\s+\d+[A-Z]?\s*[–—-]\s*\w+$/i, "").trim();
+        return (
+          <span className="font-medium font-mono text-sm">
+            {cleanName || raw}
+          </span>
+        );
+      },
+    },
+    { key: "utr", label: "UTR" },
+    {
+      key: "dailyOrders",
+      label: "Daily Orders",
+      render: (v: number) => (
+        <span className="font-medium text-sm tabular-nums">
+          {v ?? 0}
         </span>
       ),
     },
-    { key: "platformDriverId", label: "Talabat ID" },
     {
-      key: "batchNumber",
-      label: "Batch",
+      key: "cashCollected",
+      label: "Cash",
+      render: (v: number) => (
+        <span className="font-medium text-sm tabular-nums whitespace-nowrap">
+          {v != null ? `${v.toFixed(1)} KD` : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "workingHours",
+      label: "Hours",
+      render: (v: number) => (
+        <span className="font-medium text-sm tabular-nums">
+          {v != null ? `${v.toFixed(1)}h` : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "vehicleType",
+      label: "Vehicle Type",
       render: (v: string) => (
-        <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-orange-50 text-orange-700">
-          {v || "—"}
+        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
+          "bg-blue-50 text-blue-600": v === "MOTORCYCLE",
+          "bg-purple-50 text-purple-600": v === "CAR",
+        })}>
+          {v === "MOTORCYCLE" ? "Motorcycle" : v === "CAR" ? "Car" : v || "—"}
         </span>
       ),
     },
     { key: "zone", label: "Zone" },
-    {
-      key: "vehicleType",
-      label: "Vehicle",
-      render: (v: string) => (
-        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium",
-          v === "MOTORCYCLE" ? "bg-orange-50 text-orange-600" : "bg-blue-50 text-blue-600"
-        )}>
-          {v === "MOTORCYCLE" ? "Bike" : "Car"}
-        </span>
-      ),
-    },
     {
       key: "status",
       label: "Status",
@@ -265,27 +292,15 @@ export default function TalabatDriversPage() {
         </span>
       ),
     },
-    {
-      key: "docsStatus",
-      label: "Docs",
-      render: (_: any, r: any) => {
-        const expired = r.expiredDocCount || 0;
-        const expiring = r.expiringDocCount || 0;
-        if (expired > 0) return <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600">{expired} Expired</span>;
-        if (expiring > 0) return <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-yellow-50 text-yellow-600">{expiring} Expiring</span>;
-        return <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">OK</span>;
-      },
-    },
   ];
 
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-talabat" />
           <h1 className="text-xl font-semibold">Talabat — Drivers</h1>
-          <span className="text-sm text-secondary">Wahoo International</span>
         </div>
         <button
           onClick={() => setShowAdd(true)}
@@ -299,18 +314,19 @@ export default function TalabatDriversPage() {
       <div className="grid grid-cols-4 gap-4">
         <StatCard title="Total Drivers" value={summary?.total || drivers.length} icon={Users} />
         <StatCard title="Active" value={summary?.active || 0} icon={ShieldCheck} />
-        <StatCard title="Docs Expiring" value={summary?.docsExpiring || 0} icon={AlertTriangle} highlight={(summary?.docsExpiring || 0) > 0} />
-        <StatCard title="Missing Docs" value={summary?.docsMissing || 0} icon={FileText} highlight={(summary?.docsMissing || 0) > 0} />
+        <StatCard title="Docs Expiring" value={summary?.docsExpiring || 0} icon={AlertTriangle} highlight={(summary?.docsExpiring || 0) > 0} onClick={() => router.push("/talabat/drivers/docs-expiring")} />
+        <StatCard title="Missing Docs" value={summary?.docsMissing || 0} icon={FileText} highlight={(summary?.docsMissing || 0) > 0} onClick={() => router.push("/talabat/drivers/missing-docs")} />
       </div>
 
       {/* Filters */}
       <FilterBar
         filters={[
-          { key: "search", type: "search", label: "Search", placeholder: "Search name or Talabat ID..." },
-          { key: "zone", type: "select", label: "All Zones", options: TALABAT_ZONES.map(z => ({ value: z, label: z })) },
-          { key: "batch", type: "select", label: "All Batches", options: BATCH_NUMBERS.map(b => ({ value: b, label: b })) },
+          { key: "search", type: "search", label: "Search", placeholder: "Search name or UTR..." },
+          { key: "company", type: "multi-select", label: "All Companies", options: companies.map((c: any) => ({ value: c.id, label: c.name })) },
+          { key: "zone", type: "multi-select", label: "All Zones", options: TALABAT_ZONES.map(z => ({ value: z, label: z })) },
+          { key: "batch", type: "multi-select", label: "All Batches", options: BATCH_NUMBERS.map(b => ({ value: b, label: b })) },
           {
-            key: "status", type: "select", label: "All Statuses", options: [
+            key: "status", type: "multi-select", label: "All Statuses", options: [
               { value: "ACTIVE", label: "Active" },
               { value: "INACTIVE", label: "Inactive" },
               { value: "SUSPENDED", label: "Suspended" },
@@ -327,15 +343,15 @@ export default function TalabatDriversPage() {
       <SlidePanel
         open={!!selected}
         onClose={() => setSelected(null)}
-        title={selected?.talabatDisplayName || selected?.name || ""}
-        subtitle="Talabat / Wahoo International"
+        title={(selected?.talabatDisplayName || selected?.name || "").replace(/\s+\d+[A-Z]?\s*[–—-]\s*\w+$/i, "").trim()}
+        subtitle={`Talabat / ${selected?.company?.name || "—"}`}
       >
         {selected && (
           <div className="space-y-5">
             {/* Basic Info */}
             <div className="grid grid-cols-2 gap-3">
               {[
-                ["Talabat ID", selected.platformDriverId],
+                ["UTR", selected.utr],
                 ["Batch", selected.batchNumber],
                 ["Zone", selected.zone],
                 ["Vehicle", selected.vehicleType],
@@ -408,7 +424,7 @@ export default function TalabatDriversPage() {
         <AddDriverModal
           zones={TALABAT_ZONES}
           batches={BATCH_NUMBERS}
-          companyId={companies[0]?.id}
+          companyId={filters.company?.split(",")[0] || companies[0]?.id}
           onClose={() => setShowAdd(false)}
           onSuccess={() => {
             setShowAdd(false);

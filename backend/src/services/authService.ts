@@ -113,6 +113,55 @@ export class AuthService {
     return { accessToken: this.generateAccessToken(payload) };
   }
 
+  static async demoLogin() {
+    // Prefer the seeded admin user which is always in the correct tenant with data
+    let user = await prisma.user.findUnique({ where: { email: "osama@fleet.kw" } });
+
+    if (!user) {
+      // Fallback: find tenant with the most drivers (the real seeded one)
+      const tenant = await prisma.tenant.findFirst({
+        where: { name: "Osama Fleet Management" },
+        include: { _count: { select: { drivers: true } } },
+        orderBy: { drivers: { _count: "desc" } },
+      }) || await prisma.tenant.create({
+        data: { name: "Demo Fleet", subscriptionPlan: "FREE" },
+      });
+
+      const passwordHash = await bcrypt.hash("demo123", 12);
+      user = await prisma.user.create({
+        data: {
+          email: "demo@fleet.kw",
+          passwordHash,
+          name: "Demo User",
+          tenantId: tenant.id,
+          role: "ADMIN",
+          isActive: true,
+        },
+      });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    const payload: JwtPayload = {
+      userId: user.id,
+      tenantId: user.tenantId,
+      role: user.role,
+      email: user.email,
+    };
+
+    const accessToken = this.generateAccessToken(payload);
+    const refreshToken = this.generateRefreshToken(payload);
+
+    return {
+      accessToken,
+      refreshToken,
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, tenantId: user.tenantId },
+    };
+  }
+
   static async getMe(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },

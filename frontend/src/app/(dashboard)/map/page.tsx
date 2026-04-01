@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { useApiGet } from "@/hooks/useApi";
 import { cn } from "@/lib/cn";
 import { MapPin, RefreshCw, Wifi, WifiOff } from "lucide-react";
+
+const LeafletMap = dynamic(() => import("@/components/map/LeafletMap"), { ssr: false });
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -298,7 +301,7 @@ export default function MapPage() {
             </div>
           </div>
         ) : (
-          <MapPlaceholder drivers={drivers} activeFilters={activeFilters} />
+          <LeafletMap drivers={drivers} activeFilters={activeFilters} />
         )}
 
         {/* ── Floating top-right controls ── */}

@@ -68,8 +68,8 @@ async function main() {
   ]);
 
   // 4. Drivers (80 total)
-  const keetaZones = ["Hawally", "Salmiya", "Jabriya"];
-  const talabatZones = ["Sabah", "Jahra", "Farwaniya"];
+  const keetaZones = ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"];
+  const talabatZones = ["Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem"];
   const allDrivers: any[] = [];
   let nameIdx = 0;
 
@@ -98,7 +98,7 @@ async function main() {
         tenantId: tid, companyId: wahoo.id,
         name: `${name.toUpperCase()} ${batch} - WAHI`,
         phone: `+965${rand(50000000, 99999999)}`, platform: "TALABAT",
-        platformDriverId: `TB${rand(100000, 999999)}`, vehicleType: Math.random() < 0.7 ? "MOTORCYCLE" : "CAR",
+        platformDriverId: `TB${rand(100000, 999999)}`, utr: `UTR${rand(100000, 999999)}`, vehicleType: Math.random() < 0.7 ? "MOTORCYCLE" : "CAR",
         zone: pick(talabatZones), batchNumber: batch, status: "ACTIVE",
         hireDate: new Date(2025, rand(0, 11), rand(1, 28)),
         supervisorId: users[3].id,

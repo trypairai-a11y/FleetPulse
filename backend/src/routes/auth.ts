@@ -56,6 +56,21 @@ router.post("/verify-otp", async (req: Request, res: Response) => {
   }
 });
 
+router.post("/demo", async (_req: Request, res: Response) => {
+  try {
+    const result = await AuthService.demoLogin();
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    res.json({ accessToken: result.accessToken, user: result.user });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post("/refresh", async (req: Request, res: Response) => {
   try {
     const token = req.cookies?.refreshToken;

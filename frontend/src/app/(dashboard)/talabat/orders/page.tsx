@@ -15,8 +15,7 @@ import {
 type PageTab = "orders" | "performance";
 
 const TALABAT_ZONES = [
-  "Hawally", "Salmiya", "Jabriya", "Rumaithiya", "Bayan",
-  "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf",
+  "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
 ];
 
 function ChangeIndicator({ current, previous }: { current: number; previous: number }) {

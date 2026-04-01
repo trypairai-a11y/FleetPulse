@@ -265,7 +265,7 @@ router.put("/compliance/:id/resolve", async (req: Request, res: Response) => {
   try {
     const event = await prisma.talabatComplianceEvent.updateMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },
-      data: { resolved: true, resolvedAt: new Date(), resolvedBy: req.user!.id },
+      data: { resolved: true, resolvedAt: new Date(), resolvedBy: (req.user as any).id },
     });
     if (event.count === 0) { res.status(404).json({ error: "Compliance event not found" }); return; }
     const updated = await prisma.talabatComplianceEvent.findUnique({ where: { id: req.params.id } });
@@ -356,15 +356,15 @@ router.get("/orders/summary", async (req: Request, res: Response) => {
     const pctChange = (curr: number, prev: number) =>
       prev === 0 ? (curr > 0 ? 100 : 0) : Math.round(((curr - prev) / prev) * 1000) / 10;
 
-    const totalDeliveries = current._sum.deliveries || 0;
-    const totalDistanceKm = current._sum.distanceKm || 0;
-    const totalTips = current._sum.tips || 0;
-    const totalCash = current._sum.cashCollected || 0;
+    const totalDeliveries = Number(current._sum.deliveries || 0);
+    const totalDistanceKm = Number(current._sum.distanceKm || 0);
+    const totalTips = Number(current._sum.tips || 0);
+    const totalCash = Number(current._sum.cashCollected || 0);
 
-    const prevDeliveries = previous._sum.deliveries || 0;
-    const prevDistanceKm = previous._sum.distanceKm || 0;
-    const prevTips = previous._sum.tips || 0;
-    const prevCash = previous._sum.cashCollected || 0;
+    const prevDeliveries = Number(previous._sum.deliveries || 0);
+    const prevDistanceKm = Number(previous._sum.distanceKm || 0);
+    const prevTips = Number(previous._sum.tips || 0);
+    const prevCash = Number(previous._sum.cashCollected || 0);
 
     res.json({
       totalDeliveries,

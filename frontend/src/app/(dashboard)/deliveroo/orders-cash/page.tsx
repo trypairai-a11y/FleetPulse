@@ -262,7 +262,7 @@ export default function DeliverooOrdersCashPage() {
   const screenshotRef = useRef<HTMLInputElement>(null);
 
   const { data: summary } = useApiGet<any>(
-    `/api/orders/summary?platform=DELIVEROO&date=${date}`
+    `/api/deliveroo/orders/summary?dateFrom=${date}&dateTo=${date}`
   );
   const { data: driversData } = useApiGet<any>(
     `/api/orders/by-driver?platform=DELIVEROO&date=${date}`
@@ -348,24 +348,24 @@ export default function DeliverooOrdersCashPage() {
       <div className="grid grid-cols-4 gap-4">
         <StatCard
           title="Total Cash (KD)"
-          value={fmt(summary?.totalCash)}
+          value={fmt(summary?.totalCashCollected || 0)}
           icon={Banknote}
         />
         <StatCard
-          title="Total Tips (KD)"
-          value={fmt(summary?.totalTips)}
+          title="Revenue (KD)"
+          value={fmt(summary?.totalRevenue || 0)}
           icon={Gift}
         />
         <StatCard
-          title="Deliveries"
-          value={summary?.totalDeliveries ?? "—"}
+          title="Total Orders"
+          value={summary?.totalOrders ?? "—"}
           icon={ShoppingBag}
         />
         <StatCard
-          title="Unassigned Orders"
-          value={summary?.unassignedOrders ?? 0}
+          title="Pending Cash (KD)"
+          value={fmt(summary?.pendingCash || 0)}
           icon={Package}
-          highlight={(summary?.unassignedOrders || 0) > 0}
+          highlight={(summary?.pendingCash || 0) > 0}
         />
       </div>
 

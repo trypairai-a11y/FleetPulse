@@ -17,7 +17,7 @@ import {
   Info,
 } from "lucide-react";
 
-const ZONES = ["Hawally", "Salmiya", "Jabriya", "Rumaithiya", "Bayan"];
+const ZONES = ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"];
 
 export default function KeetaOrdersPage() {
   const [filters, setFilters] = useState<Record<string, string>>({});

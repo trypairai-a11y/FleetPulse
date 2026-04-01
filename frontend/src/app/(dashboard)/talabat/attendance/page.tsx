@@ -21,8 +21,7 @@ const FACE_FAIL_REASONS: Record<string, string> = {
 };
 
 const TALABAT_ZONES = [
-  "Hawally", "Salmiya", "Jabriya", "Rumaithiya", "Bayan",
-  "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf",
+  "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
 ];
 
 function YesNoBadge({ value, falseLabel }: { value: boolean; falseLabel?: string }) {

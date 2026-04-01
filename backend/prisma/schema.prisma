@@ -335,6 +335,7 @@ model Driver {
   phone            String
   platform         Platform
   platformDriverId String?
+  utr              String?
   vehicleType      VehicleType
   zone             String?
   batchNumber      String?

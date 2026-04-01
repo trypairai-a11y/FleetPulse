@@ -3,6 +3,7 @@ import { prisma } from "../config";
 import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
+import { sendXlsx } from "../utils/xlsxExport";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -94,6 +95,47 @@ router.get("/monthly", async (req: Request, res: Response) => {
       include: { driver: { select: { id: true, name: true, platform: true } } },
     });
     res.json(records);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/export", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { platform, dateFrom, dateTo, companyId } = req.query;
+    const where: any = { tenantId };
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = new Date(dateFrom as string);
+      if (dateTo) where.date.lte = new Date(dateTo as string);
+    }
+    if (platform || companyId) {
+      where.driver = {};
+      if (platform) where.driver.platform = platform;
+      if (companyId) where.driver.companyId = companyId;
+    }
+
+    const records = await prisma.attendanceRecord.findMany({
+      where,
+      orderBy: { date: "desc" },
+      take: 5000,
+      include: {
+        driver: { select: { name: true, platform: true, zone: true } },
+      },
+    });
+
+    const rows = records.map((r) => ({
+      Date: new Date(r.date).toLocaleDateString(),
+      "Driver Name": r.driver.name,
+      Platform: r.driver.platform,
+      Zone: r.driver.zone || "",
+      Status: r.status,
+      Source: r.source,
+      "Late Minutes": r.lateMinutes || 0,
+    }));
+
+    sendXlsx(res, rows, "Attendance", "attendance-report.xlsx");
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

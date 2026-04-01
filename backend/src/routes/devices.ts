@@ -85,4 +85,37 @@ router.post("/:id/command", async (req: Request, res: Response) => {
   }
 });
 
+// GET /trail/:driverId — Location history for polyline trail
+router.get("/trail/:driverId", async (req: Request, res: Response) => {
+  try {
+    const { hours } = req.query;
+    const hoursBack = parseInt(hours as string) || 4;
+    const since = new Date(Date.now() - hoursBack * 60 * 60 * 1000);
+
+    const logs = await prisma.locationLog.findMany({
+      where: {
+        driverId: req.params.driverId,
+        capturedAt: { gte: since },
+      },
+      orderBy: { capturedAt: "asc" },
+      select: {
+        latitude: true,
+        longitude: true,
+        speed: true,
+        capturedAt: true,
+      },
+      take: 500,
+    });
+
+    res.json(logs.map((l) => ({
+      lat: Number(l.latitude),
+      lng: Number(l.longitude),
+      speed: l.speed ? Number(l.speed) : null,
+      time: l.capturedAt,
+    })));
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

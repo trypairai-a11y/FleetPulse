@@ -66,9 +66,15 @@ export default function TalabatDriverProfilePage() {
         </button>
         <span className="w-3 h-3 rounded-full bg-talabat" />
         <div>
-          <h1 className="text-xl font-semibold">{driver.talabatDisplayName || driver.name}</h1>
+          <h1 className="text-xl font-semibold">{(driver.talabatDisplayName || driver.name || "").replace(/\s+\d+[A-Z]?\s*[–—-]\s*\w+$/i, "").trim()}</h1>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-sm text-secondary font-mono">{driver.platformDriverId || "—"}</span>
+            {driver.platformDriverId && (
+              <span className="text-xs font-mono text-orange-700 bg-orange-50 px-2 py-0.5 rounded-md">ID: {driver.platformDriverId}</span>
+            )}
+            <span className="text-sm text-secondary font-mono">{driver.utr || "—"}</span>
+            {driver.vehicleType && (
+              <span className="text-xs text-secondary">{driver.vehicleType.replace(/_/g, " ").toLowerCase()}</span>
+            )}
             <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
               "bg-green-50 text-green-600": driver.status === "ACTIVE",
               "bg-gray-100 text-gray-500": driver.status === "INACTIVE",
@@ -89,7 +95,7 @@ export default function TalabatDriverProfilePage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           title="Sessions This Month"
           value={driverSummary?.sessionsThisMonth || 0}
@@ -136,15 +142,15 @@ export default function TalabatDriverProfilePage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-50">
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Date</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Session Code</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Zone</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Planned</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Actual Hrs</th>
-                  <th className="text-right text-xs font-medium text-secondary px-5 py-3">Deliveries</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Face</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
+                <tr className="border-b border-gray-100 bg-gray-50/60">
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Date</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Session Code</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Zone</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Planned</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Actual</th>
+                  <th className="text-right text-xs font-semibold text-secondary px-5 py-3">Deliveries</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Face</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -155,18 +161,25 @@ export default function TalabatDriverProfilePage() {
                     </td>
                   </tr>
                 ) : (
-                  sessions.map((s: any) => (
-                    <tr key={s.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
-                      <td className="px-5 py-3 text-sm text-secondary">
-                        {s.plannedStart ? new Date(s.plannedStart).toLocaleDateString() : "—"}
+                  sessions.map((s: any, i: number) => (
+                    <tr key={s.id} className={cn(
+                      "border-b border-gray-50 last:border-0 hover:bg-blue-50/40 transition-colors",
+                      i % 2 === 1 && "bg-gray-50/30"
+                    )}>
+                      <td className="px-5 py-2.5 text-sm font-medium">
+                        {s.plannedStart ? new Date(s.plannedStart).toLocaleDateString([], { month: "short", day: "numeric" }) : <span className="text-gray-300">—</span>}
                       </td>
-                      <td className="px-5 py-3">
-                        <span className="font-mono text-xs font-medium text-orange-700 bg-orange-50 px-2 py-0.5 rounded-md">
-                          {s.sessionCode || "—"}
-                        </span>
+                      <td className="px-5 py-2.5">
+                        {s.sessionCode ? (
+                          <span className="font-mono text-xs font-medium text-orange-700 bg-orange-50 px-2 py-0.5 rounded-md">
+                            {s.sessionCode}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300 text-sm">—</span>
+                        )}
                       </td>
-                      <td className="px-5 py-3 text-sm text-secondary">{s.zone || "—"}</td>
-                      <td className="px-5 py-3 font-mono text-xs text-secondary">
+                      <td className="px-5 py-2.5 text-sm text-secondary">{s.zone || <span className="text-gray-300">—</span>}</td>
+                      <td className="px-5 py-2.5 font-mono text-xs text-secondary">
                         {s.plannedStart
                           ? new Date(s.plannedStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
                           : "—"}
@@ -174,11 +187,17 @@ export default function TalabatDriverProfilePage() {
                           ? `–${new Date(s.plannedEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
                           : ""}
                       </td>
-                      <td className="px-5 py-3 text-sm font-mono text-secondary">
-                        {s.actualHours != null ? `${s.actualHours.toFixed(1)}h` : "—"}
+                      <td className="px-5 py-2.5 text-sm font-mono">
+                        {s.actualHours != null ? (
+                          <span className="font-medium">{Number(s.actualHours).toFixed(1)}<span className="text-secondary text-xs">h</span></span>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
                       </td>
-                      <td className="px-5 py-3 text-sm text-right font-mono font-medium">{s.deliveriesCount ?? "—"}</td>
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-2.5 text-sm text-right font-mono font-medium">
+                        {s.deliveriesCount != null ? s.deliveriesCount : <span className="text-gray-300">—</span>}
+                      </td>
+                      <td className="px-5 py-2.5">
                         {s.faceVerified !== undefined ? (
                           s.faceVerified ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
@@ -190,10 +209,10 @@ export default function TalabatDriverProfilePage() {
                             </span>
                           )
                         ) : (
-                          <span className="text-xs text-secondary">—</span>
+                          <span className="text-gray-300 text-xs">—</span>
                         )}
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-2.5">
                         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
                           "bg-green-50 text-green-600": s.status === "COMPLETED",
                           "bg-blue-50 text-blue-600": s.status === "IN_PROGRESS",
@@ -213,58 +232,118 @@ export default function TalabatDriverProfilePage() {
       )}
 
       {/* Orders Tab */}
-      {tab === "orders" && (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-50">
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Date</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Zone</th>
-                  <th className="text-right text-xs font-medium text-secondary px-5 py-3">Deliveries</th>
-                  <th className="text-right text-xs font-medium text-secondary px-5 py-3">Distance (km)</th>
-                  <th className="text-right text-xs font-medium text-secondary px-5 py-3">Tips (KD)</th>
-                  <th className="text-right text-xs font-medium text-secondary px-5 py-3">Cash (KD)</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Source</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-5 py-12 text-center text-sm text-secondary">
-                      No orders found
-                    </td>
+      {tab === "orders" && (() => {
+        const hasZone = orders.some((o: any) => o.zone);
+        const hasDeliveries = orders.some((o: any) => o.deliveriesCount != null);
+        const hasTips = orders.some((o: any) => o.tipsKd != null);
+        const hasCash = orders.some((o: any) => o.cashCollectedKd != null);
+        const totalDistance = orders.reduce((sum: number, o: any) => sum + (o.distanceKm != null ? Number(o.distanceKm) : 0), 0);
+        const totalTips = orders.reduce((sum: number, o: any) => sum + (o.tipsKd != null ? Number(o.tipsKd) : 0), 0);
+        const totalCash = orders.reduce((sum: number, o: any) => sum + (o.cashCollectedKd != null ? Number(o.cashCollectedKd) : 0), 0);
+        const totalDeliveries = orders.reduce((sum: number, o: any) => sum + (o.deliveriesCount ?? 0), 0);
+
+        return (
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50/60">
+                    <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Date</th>
+                    {hasZone && <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Zone</th>}
+                    {hasDeliveries && <th className="text-right text-xs font-semibold text-secondary px-5 py-3">Deliveries</th>}
+                    <th className="text-right text-xs font-semibold text-secondary px-5 py-3">Distance</th>
+                    {hasTips && <th className="text-right text-xs font-semibold text-secondary px-5 py-3">Tips</th>}
+                    {hasCash && <th className="text-right text-xs font-semibold text-secondary px-5 py-3">Cash</th>}
+                    <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Source</th>
                   </tr>
-                ) : (
-                  orders.map((o: any) => (
-                    <tr key={o.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
-                      <td className="px-5 py-3 text-sm text-secondary">
-                        {o.date ? new Date(o.date).toLocaleDateString() : "—"}
-                      </td>
-                      <td className="px-5 py-3 text-sm text-secondary">{o.zone || "—"}</td>
-                      <td className="px-5 py-3 text-sm text-right font-mono font-medium">{o.deliveriesCount ?? "—"}</td>
-                      <td className="px-5 py-3 text-sm text-right font-mono text-secondary">{o.distanceKm?.toFixed(1) ?? "—"}</td>
-                      <td className="px-5 py-3 text-sm text-right font-mono text-green-600">
-                        {o.tipsKd != null ? o.tipsKd.toFixed(3) : "—"}
-                      </td>
-                      <td className="px-5 py-3 text-sm text-right font-mono text-orange-600">
-                        {o.cashCollectedKd != null ? o.cashCollectedKd.toFixed(3) : "—"}
-                      </td>
-                      <td className="px-5 py-3">
-                        {o.fromScreenshot ? (
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-violet-50 text-violet-600">OCR</span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-gray-100 text-gray-500">Manual</span>
-                        )}
+                </thead>
+                <tbody>
+                  {orders.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-5 py-12 text-center text-sm text-secondary">
+                        No orders found
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    <>
+                      {orders.map((o: any, i: number) => (
+                        <tr key={o.id} className={cn(
+                          "border-b border-gray-50 last:border-0 hover:bg-blue-50/40 transition-colors",
+                          i % 2 === 1 && "bg-gray-50/30"
+                        )}>
+                          <td className="px-5 py-2.5 text-sm font-medium">
+                            {o.date ? new Date(o.date).toLocaleDateString([], { month: "short", day: "numeric" }) : "—"}
+                          </td>
+                          {hasZone && <td className="px-5 py-2.5 text-sm text-secondary">{o.zone || "—"}</td>}
+                          {hasDeliveries && (
+                            <td className="px-5 py-2.5 text-sm text-right font-mono font-medium">{o.deliveriesCount ?? "—"}</td>
+                          )}
+                          <td className="px-5 py-2.5 text-sm text-right font-mono">
+                            {o.distanceKm != null ? (
+                              <span className="font-medium">{Number(o.distanceKm).toFixed(1)} <span className="text-secondary text-xs">km</span></span>
+                            ) : (
+                              <span className="text-gray-300">—</span>
+                            )}
+                          </td>
+                          {hasTips && (
+                            <td className="px-5 py-2.5 text-sm text-right font-mono">
+                              {o.tipsKd != null ? (
+                                <span className="text-green-600 font-medium">{Number(o.tipsKd).toFixed(3)}</span>
+                              ) : (
+                                <span className="text-gray-300">—</span>
+                              )}
+                            </td>
+                          )}
+                          {hasCash && (
+                            <td className="px-5 py-2.5 text-sm text-right font-mono">
+                              {o.cashCollectedKd != null ? (
+                                <span className="text-orange-600 font-medium">{Number(o.cashCollectedKd).toFixed(3)}</span>
+                              ) : (
+                                <span className="text-gray-300">—</span>
+                              )}
+                            </td>
+                          )}
+                          <td className="px-5 py-2.5">
+                            {o.fromScreenshot ? (
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-violet-50 text-violet-600">OCR</span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-gray-100 text-gray-500">Manual</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                      {/* Totals row */}
+                      <tr className="bg-gray-50 border-t border-gray-200">
+                        <td className="px-5 py-2.5 text-xs font-semibold text-secondary uppercase">
+                          Total ({orders.length} days)
+                        </td>
+                        {hasZone && <td />}
+                        {hasDeliveries && (
+                          <td className="px-5 py-2.5 text-sm text-right font-mono font-bold">{totalDeliveries}</td>
+                        )}
+                        <td className="px-5 py-2.5 text-sm text-right font-mono font-bold">
+                          {totalDistance.toFixed(1)} <span className="text-secondary text-xs font-normal">km</span>
+                        </td>
+                        {hasTips && (
+                          <td className="px-5 py-2.5 text-sm text-right font-mono font-bold text-green-600">
+                            {totalTips.toFixed(3)}
+                          </td>
+                        )}
+                        {hasCash && (
+                          <td className="px-5 py-2.5 text-sm text-right font-mono font-bold text-orange-600">
+                            {totalCash.toFixed(3)}
+                          </td>
+                        )}
+                        <td />
+                      </tr>
+                    </>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Compliance Tab */}
       {tab === "compliance" && (
@@ -272,12 +351,12 @@ export default function TalabatDriverProfilePage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-50">
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Date / Time</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Type</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Severity</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Description</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
+                <tr className="border-b border-gray-100 bg-gray-50/60">
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Date / Time</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Type</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Severity</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Description</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -288,16 +367,22 @@ export default function TalabatDriverProfilePage() {
                     </td>
                   </tr>
                 ) : (
-                  complianceEvents.map((evt: any) => (
-                    <tr key={evt.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
-                      <td className="px-5 py-3 text-sm text-secondary font-mono">
-                        {evt.createdAt ? new Date(evt.createdAt).toLocaleDateString([], { month: "short", day: "numeric" }) : "—"}
-                        <br />
-                        <span className="text-xs">
-                          {evt.createdAt ? new Date(evt.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                  complianceEvents.map((evt: any, i: number) => (
+                    <tr key={evt.id} className={cn(
+                      "border-b border-gray-50 last:border-0 hover:bg-blue-50/40 transition-colors",
+                      i % 2 === 1 && "bg-gray-50/30"
+                    )}>
+                      <td className="px-5 py-2.5 text-sm font-mono">
+                        <span className="font-medium">
+                          {evt.createdAt ? new Date(evt.createdAt).toLocaleDateString([], { month: "short", day: "numeric" }) : "—"}
                         </span>
+                        {evt.createdAt && (
+                          <span className="text-xs text-secondary ml-1.5">
+                            {new Date(evt.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        )}
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-2.5">
                         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
                           "bg-red-50 text-red-600": evt.type === "SELFIE_FAILURE",
                           "bg-amber-50 text-amber-600": evt.type === "GPS_VIOLATION",
@@ -308,7 +393,7 @@ export default function TalabatDriverProfilePage() {
                           {(evt.type || "").replace(/_/g, " ")}
                         </span>
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-2.5">
                         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
                           "bg-gray-100 text-gray-500": evt.severity === "LOW",
                           "bg-yellow-50 text-yellow-600": evt.severity === "MEDIUM",
@@ -318,8 +403,8 @@ export default function TalabatDriverProfilePage() {
                           {evt.severity}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-sm text-secondary max-w-xs truncate">{evt.description || "—"}</td>
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-2.5 text-sm text-secondary max-w-xs truncate">{evt.description || <span className="text-gray-300">—</span>}</td>
+                      <td className="px-5 py-2.5">
                         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
                           "bg-green-50 text-green-600": evt.status === "RESOLVED",
                           "bg-red-50 text-red-600": evt.status === "OPEN",

@@ -15,6 +15,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  demoLogin: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   login: async () => {},
+  demoLogin: async () => {},
   logout: async () => {},
 });
 
@@ -53,6 +55,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   }
 
+  async function demoLogin() {
+    const { data } = await api.post("/api/auth/demo");
+    setAccessToken(data.accessToken);
+    setUser(data.user);
+  }
+
   async function logout() {
     await api.post("/api/auth/logout");
     setAccessToken(null);
@@ -60,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, demoLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );

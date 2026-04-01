@@ -24,11 +24,21 @@ import talabatRoutes from "./routes/talabat";
 import americanaRoutes from "./routes/americana";
 import keetaRoutes from "./routes/keeta";
 import analyticsRoutes from "./routes/analytics";
+import userRoutes from "./routes/users";
+import deliverooRoutes from "./routes/deliveroo";
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:3003",
+  "http://localhost:3006",
+  process.env.FRONTEND_URL,
+].filter(Boolean) as string[];
+
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3006"],
+  origin: allowedOrigins,
   credentials: true,
 }));
 app.use(express.json({ limit: "10mb" }));
@@ -55,6 +65,8 @@ app.use("/api/talabat", talabatRoutes);
 app.use("/api/americana", americanaRoutes);
 app.use("/api/keeta", keetaRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/deliveroo", deliverooRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {

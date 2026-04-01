@@ -15,7 +15,7 @@ import {
   CalendarCheck,
 } from "lucide-react";
 
-const ZONES = ["Hawally", "Salmiya", "Jabriya", "Rumaithiya", "Bayan"];
+const ZONES = ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"];
 
 const KEETA_SLOTS = [
   { id: "s1", label: "04:00 – 08:00", start: "04:00", end: "08:00" },

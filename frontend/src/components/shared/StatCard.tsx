@@ -8,15 +8,20 @@ interface StatCardProps {
   trend?: string;
   highlight?: boolean;
   className?: string;
+  onClick?: () => void;
 }
 
-export default function StatCard({ title, value, icon: Icon, trend, highlight, className }: StatCardProps) {
+export default function StatCard({ title, value, icon: Icon, trend, highlight, className, onClick }: StatCardProps) {
   return (
-    <div className={cn(
-      "bg-white rounded-2xl p-5 shadow-sm transition-all duration-200 hover:shadow-md",
-      highlight && "ring-1 ring-red-200",
-      className
-    )}>
+    <div
+      onClick={onClick}
+      className={cn(
+        "bg-white rounded-2xl p-5 shadow-sm transition-all duration-200 hover:shadow-md",
+        highlight && "ring-1 ring-red-200",
+        onClick && "cursor-pointer hover:ring-1 hover:ring-primary/30",
+        className
+      )}
+    >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs font-medium text-secondary mb-1">{title}</p>

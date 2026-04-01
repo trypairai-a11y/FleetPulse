@@ -9,8 +9,7 @@ import { cn } from "@/lib/cn";
 import { Smartphone, ShieldCheck, AlertTriangle, BatteryLow, Plus, X } from "lucide-react";
 
 const TALABAT_ZONES = [
-  "Hawally", "Salmiya", "Jabriya", "Rumaithiya", "Bayan",
-  "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf",
+  "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
 ];
 
 export default function TalabatPhonesPage() {

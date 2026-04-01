@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "",
   withCredentials: true,
 });
 
@@ -30,7 +30,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const { data } = await axios.post(
-          `${api.defaults.baseURL}/api/auth/refresh`,
+          "/api/auth/refresh",
           {},
           { withCredentials: true }
         );
