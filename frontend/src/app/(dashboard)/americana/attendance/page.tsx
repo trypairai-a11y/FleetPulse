@@ -91,8 +91,16 @@ export default function AmericanaAttendancePage() {
   const { data: summary } = useApiGet<any>("/api/attendance/summary?platform=AMERICANA");
   const { data: leaves } = useApiGet<any>("/api/leave-requests?platform=AMERICANA&limit=50");
 
-  const attendanceList: any[] = records?.data || [];
+  const rawAttendance: any[] = records?.data || [];
   const leaveList: any[] = leaves?.data || [];
+
+  // Mock face verification + mismatch data for demo
+  const attendanceList = rawAttendance.map((r: any, i: number) => ({
+    ...r,
+    faceVerified: r.faceVerified ?? (i % 7 !== 0),
+    faceMismatch: r.faceMismatch ?? (i % 7 === 0 || i % 13 === 0),
+    gpsAtStore: r.gpsAtStore ?? (i % 9 !== 0),
+  }));
 
   const present = attendanceList.filter((r) => r.status === "PRESENT").length;
   const late = attendanceList.filter((r) => r.status === "LATE").length;
@@ -155,16 +163,20 @@ export default function AmericanaAttendancePage() {
     },
     {
       key: "faceVerified",
-      label: "Face (Darb)",
+      label: "Face",
       render: (_: any, r: any) =>
-        r.faceVerified != null ? (
+        r.faceMismatch ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
+            <XCircle size={13} /> Mismatch
+          </span>
+        ) : r.faceVerified != null ? (
           r.faceVerified ? (
             <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
-              <CheckCircle2 size={13} /> Passed
+              <CheckCircle2 size={13} /> Pass
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 text-xs font-medium text-red-500">
-              <XCircle size={13} /> Failed
+              <XCircle size={13} /> Fail
             </span>
           )
         ) : (
@@ -423,6 +435,7 @@ export default function AmericanaAttendancePage() {
                 ["Late (min)", selected.lateMinutes ?? "—"],
                 ["GPS @ Store", selected.gpsAtStore === true ? "Yes — at assigned store" : selected.gpsAtStore === false ? "No — off-site" : "—"],
                 ["Face Verified (Darb)", selected.faceVerified === true ? "Passed" : selected.faceVerified === false ? "Failed" : "—"],
+                ["Face Mismatch", selected.faceMismatch === true ? "Mismatch — different person detected" : selected.faceMismatch === false ? "Match — identity confirmed" : "—"],
                 ["GPS Location", selected.gpsLocation || "—"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">

@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Map, CalendarCheck, Ticket, Users, Settings,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeft,
   Car, Smartphone, ClipboardList, DollarSign, Briefcase,
-  CalendarClock, ShieldAlert, BarChart3,
+  ShieldAlert, BarChart3,
 } from "lucide-react";
 
 const PLATFORMS = [
@@ -20,12 +20,10 @@ const PLATFORMS = [
     bg: "bg-talabat/10",
     subPages: [
       { name: "Drivers", path: "/talabat/drivers", icon: Users },
-      { name: "Attendance", path: "/talabat/attendance", icon: CalendarCheck },
       { name: "Shifts", path: "/talabat/shifts", icon: ClipboardList },
-      { name: "Sessions", path: "/talabat/sessions", icon: CalendarClock },
       { name: "Orders", path: "/talabat/orders", icon: Briefcase },
       { name: "Cash & Dues", path: "/talabat/cash", icon: DollarSign },
-      { name: "Compliance", path: "/talabat/compliance", icon: ShieldAlert },
+      { name: "Violations", path: "/talabat/violations", icon: ShieldAlert },
       { name: "Vehicles", path: "/talabat/vehicles", icon: Car },
       { name: "Phones", path: "/talabat/phones", icon: Smartphone },
     ],
@@ -37,7 +35,6 @@ const PLATFORMS = [
     bg: "bg-keeta/10",
     subPages: [
       { name: "Drivers", path: "/keeta/drivers", icon: Users },
-      { name: "Attendance", path: "/keeta/attendance", icon: CalendarCheck },
       { name: "Shifts", path: "/keeta/shifts", icon: ClipboardList },
       { name: "Orders", path: "/keeta/orders", icon: Briefcase },
       { name: "Performance", path: "/keeta/performance", icon: BarChart3 },
@@ -52,7 +49,6 @@ const PLATFORMS = [
     bg: "bg-deliveroo/10",
     subPages: [
       { name: "Drivers", path: "/deliveroo/drivers", icon: Users },
-      { name: "Attendance", path: "/deliveroo/attendance", icon: CalendarCheck },
       { name: "Shifts", path: "/deliveroo/shifts", icon: ClipboardList },
       { name: "Orders & Cash", path: "/deliveroo/orders-cash", icon: Briefcase },
       { name: "Vehicles", path: "/deliveroo/vehicles", icon: Car },
@@ -66,7 +62,6 @@ const PLATFORMS = [
     bg: "bg-americana/10",
     subPages: [
       { name: "Drivers", path: "/americana/drivers", icon: Users },
-      { name: "Attendance", path: "/americana/attendance", icon: CalendarCheck },
       { name: "Shifts", path: "/americana/shifts", icon: ClipboardList },
       { name: "Orders", path: "/americana/orders", icon: Briefcase },
       { name: "Performance", path: "/americana/performance", icon: BarChart3 },
@@ -87,7 +82,7 @@ const GLOBAL_NAV = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { collapsed, toggle } = useSidebar();
+  const { collapsed, toggle, open, setOpen } = useSidebar();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const togglePlatform = (key: string) => {
@@ -102,17 +97,23 @@ export default function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-white border-r border-gray-100 z-40 flex flex-col transition-all duration-200",
-        collapsed ? "w-16" : "w-60"
+        "fixed left-0 top-0 h-screen bg-white z-40 flex flex-col transition-all duration-200",
+        !open ? "-translate-x-full w-60" : collapsed ? "w-16" : "w-60"
       )}
     >
-      {/* Logo */}
-      <div className={cn("h-16 flex items-center border-b border-gray-50", collapsed ? "justify-center px-2" : "px-5")}>
+      {/* Logo + Collapse */}
+      <div className={cn("h-16 flex items-center border-b border-gray-50", collapsed ? "justify-center px-2" : "px-5 justify-between")}>
         {!collapsed ? (
           <Image src="/logo.png" alt="Darb" width={120} height={40} className="object-contain" priority />
         ) : (
           <Image src="/logo.png" alt="Darb" width={28} height={28} className="object-contain" priority />
         )}
+        <button
+          onClick={() => setOpen(false)}
+          className="p-1.5 rounded-lg text-secondary hover:bg-gray-50 hover:text-foreground transition-colors"
+        >
+          <PanelLeftClose size={18} />
+        </button>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4 px-2">
@@ -214,18 +215,6 @@ export default function Sidebar() {
         </div>
       </nav>
 
-      {/* Collapse toggle */}
-      <div className={cn("border-t border-gray-100 p-2", collapsed ? "flex justify-center" : "px-3")}>
-        <button
-          onClick={toggle}
-          className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-secondary hover:bg-gray-50 hover:text-foreground transition-colors",
-            collapsed && "justify-center px-2"
-          )}
-        >
-          {collapsed ? <PanelLeft size={18} /> : <><PanelLeftClose size={18} /><span>Collapse</span></>}
-        </button>
-      </div>
     </aside>
   );
 }

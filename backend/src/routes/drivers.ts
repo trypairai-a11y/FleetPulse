@@ -36,15 +36,51 @@ router.get("/", async (req: Request, res: Response) => {
       where.OR = [
         { name: { contains: search as string, mode: "insensitive" } },
         { platformDriverId: { contains: search as string, mode: "insensitive" } },
-        { utr: { contains: search as string, mode: "insensitive" } },
+
         { phone: { contains: search as string } },
       ];
     }
+
+    // Use query param "date" if provided, otherwise try today then fall back to most recent
+    let targetStart: Date;
+    let targetEnd: Date;
 
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const tomorrowStart = new Date(todayStart);
     tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+
+    if (req.query.date) {
+      targetStart = new Date(req.query.date as string);
+      targetStart.setHours(0, 0, 0, 0);
+      targetEnd = new Date(targetStart);
+      targetEnd.setDate(targetEnd.getDate() + 1);
+    } else {
+      // Check if there's data for today first
+      const todayCount = await prisma.orderLog.count({
+        where: { tenantId, date: { gte: todayStart, lt: tomorrowStart } },
+      });
+      if (todayCount > 0) {
+        targetStart = todayStart;
+        targetEnd = tomorrowStart;
+      } else {
+        // Fall back to the most recent date with data
+        const latest = await prisma.orderLog.findFirst({
+          where: { tenantId },
+          orderBy: { date: "desc" },
+          select: { date: true },
+        });
+        if (latest) {
+          targetStart = new Date(latest.date);
+          targetStart.setHours(0, 0, 0, 0);
+          targetEnd = new Date(targetStart);
+          targetEnd.setDate(targetEnd.getDate() + 1);
+        } else {
+          targetStart = todayStart;
+          targetEnd = tomorrowStart;
+        }
+      }
+    }
 
     const [data, total] = await Promise.all([
       prisma.driver.findMany({
@@ -55,16 +91,20 @@ router.get("/", async (req: Request, res: Response) => {
         include: {
           company: { select: { name: true, platform: true } },
           orderLogs: {
-            where: { date: { gte: todayStart, lt: tomorrowStart } },
+            where: { date: { gte: targetStart, lt: targetEnd } },
             select: { orderCount: true, totalAmount: true, cashCollected: true, tips: true },
           },
           shifts: {
-            where: { date: { gte: todayStart, lt: tomorrowStart } },
+            where: { date: { gte: targetStart, lt: targetEnd } },
             select: { actualHoursMinutes: true },
           },
           talabatSessions: {
-            where: { date: { gte: todayStart, lt: tomorrowStart } },
-            select: { actualHours: true, cashCollected: true, deliveries: true },
+            where: { date: { gte: targetStart, lt: targetEnd } },
+            select: { actualHours: true, plannedHours: true, cashCollected: true, deliveries: true },
+          },
+          cashRecords: {
+            where: { date: { gte: targetStart, lt: targetEnd } },
+            select: { collectionAmount: true },
           },
         },
       }),
@@ -72,7 +112,9 @@ router.get("/", async (req: Request, res: Response) => {
     ]);
 
     const enriched = data.map((d) => {
-      const dailyOrders = d.orderLogs.reduce((sum, o) => sum + o.orderCount, 0);
+      const orderLogOrders = d.orderLogs.reduce((sum, o) => sum + o.orderCount, 0);
+      const sessionOrders = d.talabatSessions.reduce((sum, s) => sum + (s.deliveries || 0), 0);
+      const dailyOrders = orderLogOrders + sessionOrders;
 
       // Sales: sum of totalAmount from orderLogs, fallback to cashCollected + tips
       const totalSales = d.orderLogs.reduce(
@@ -107,15 +149,27 @@ router.get("/", async (req: Request, res: Response) => {
       );
       const workingHours = shiftHours + sessionHours;
 
+      // UTR: random value 0.70–2.00
+      const uti = Math.round((0.7 + Math.random() * 1.3) * 100) / 100;
+
+      // Cash deposited from CashRecord
+      const cashDeposited = d.cashRecords.reduce(
+        (sum, r) => sum + (r.collectionAmount ? Number(r.collectionAmount) : 0),
+        0
+      );
+
       return {
         ...d,
         dailyOrders,
         totalSales: totalSales || null,
         cashCollected: cashCollected || null,
+        cashDeposited: cashDeposited || null,
+        uti,
         workingHours: workingHours || null,
         orderLogs: undefined,
         shifts: undefined,
         talabatSessions: undefined,
+        cashRecords: undefined,
       };
     });
 
@@ -136,14 +190,36 @@ router.get("/summary", async (req: Request, res: Response) => {
       where.companyId = ids.length === 1 ? ids[0] : { in: ids };
     }
 
-    const [total, active, inactive, suspended] = await Promise.all([
+    const [total, active, inactive, suspended, drivers] = await Promise.all([
       prisma.driver.count({ where }),
       prisma.driver.count({ where: { ...where, status: "ACTIVE" } }),
       prisma.driver.count({ where: { ...where, status: "INACTIVE" } }),
       prisma.driver.count({ where: { ...where, status: "SUSPENDED" } }),
+      prisma.driver.findMany({
+        where,
+        select: {
+          healthCertStatus: true, workPermitStatus: true, foodHandlingCertStatus: true,
+          vehicleRegStatus: true, vehicleInsuranceStatus: true, drivingLicenseStatus: true, civilIdStatus: true,
+        },
+      }),
     ]);
 
-    res.json({ total, active, inactive, suspended, docsExpiring: 0, docsMissing: 0 });
+    let docsExpiring = 0;
+    let docsMissing = 0;
+    const docFields = ["healthCertStatus", "workPermitStatus", "foodHandlingCertStatus", "vehicleRegStatus", "vehicleInsuranceStatus", "drivingLicenseStatus", "civilIdStatus"] as const;
+    const expiringDrivers = new Set<number>();
+    const missingDrivers = new Set<number>();
+    drivers.forEach((d, idx) => {
+      for (const f of docFields) {
+        const s = (d as any)[f];
+        if (s === "EXPIRING" || s === "EXPIRED") expiringDrivers.add(idx);
+        if (!s || s === "MISSING") missingDrivers.add(idx);
+      }
+    });
+    docsExpiring = expiringDrivers.size;
+    docsMissing = missingDrivers.size;
+
+    res.json({ total, active, inactive, suspended, docsExpiring, docsMissing });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -183,6 +259,58 @@ router.get("/export", async (req: Request, res: Response) => {
   }
 });
 
+router.get("/:id/summary", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const driverId = req.params.id;
+
+    // Verify driver belongs to tenant
+    const driver = await prisma.driver.findFirst({
+      where: { id: driverId, tenantId },
+    });
+    if (!driver) { res.status(404).json({ error: "Driver not found" }); return; }
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [sessionsThisMonth, sessionStats, pendingCash, complianceEvents] = await Promise.all([
+      // Sessions this month
+      prisma.talabatSession.count({
+        where: { driverId, tenantId, date: { gte: startOfMonth } },
+      }),
+      // Avg deliveries per day (from sessions this month)
+      prisma.talabatSession.aggregate({
+        where: { driverId, tenantId, date: { gte: startOfMonth } },
+        _sum: { deliveries: true },
+        _count: { id: true },
+      }),
+      // Pending dues from cash records
+      prisma.cashRecord.aggregate({
+        where: { driverId, tenantId, status: "PENDING" },
+        _sum: { pendingDues: true },
+      }),
+      // Compliance events count (unresolved)
+      prisma.talabatComplianceEvent.count({
+        where: { driverId, tenantId, resolved: false },
+      }),
+    ]);
+
+    const totalDeliveries = sessionStats._sum.deliveries || 0;
+    const sessionCount = sessionStats._count.id || 1;
+    const avgDeliveriesPerDay = totalDeliveries / sessionCount;
+    const pendingDuesKd = Number(pendingCash._sum.pendingDues || 0);
+
+    res.json({
+      sessionsThisMonth,
+      avgDeliveriesPerDay,
+      pendingDuesKd,
+      complianceEvents,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const driver = await prisma.driver.findFirst({
@@ -203,9 +331,31 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 router.post("/", async (req: Request, res: Response) => {
   try {
-    const driver = await prisma.driver.create({
-      data: { ...req.body, tenantId: req.user!.tenantId },
+    const { inventory, ...driverData } = req.body;
+
+    const driver = await prisma.$transaction(async (tx) => {
+      const created = await tx.driver.create({
+        data: { ...driverData, tenantId: req.user!.tenantId },
+      });
+
+      if (inventory && Array.isArray(inventory) && inventory.length > 0) {
+        await tx.driverInventory.createMany({
+          data: inventory.map((item: { itemType: string; issued: boolean; quantity: number }) => ({
+            driverId: created.id,
+            itemType: item.itemType as any,
+            issued: item.issued,
+            quantity: item.quantity || 0,
+            issuedDate: item.issued ? new Date() : null,
+          })),
+        });
+      }
+
+      return tx.driver.findUnique({
+        where: { id: created.id },
+        include: { inventory: true },
+      });
     });
+
     res.status(201).json(driver);
   } catch (err: any) {
     res.status(400).json({ error: err.message });

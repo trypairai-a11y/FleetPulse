@@ -76,7 +76,13 @@ export default function DeliverooAttendancePage() {
     `/api/attendance/monthly?platform=DELIVEROO&operatingModel=${mode}`
   );
 
-  const attendanceList = records?.data || [];
+  const rawAttendance = records?.data || [];
+  // Mock face verification + mismatch data for demo
+  const attendanceList = rawAttendance.map((r: any, i: number) => ({
+    ...r,
+    faceVerifStatus: r.faceVerifStatus ?? (i % 7 === 0 ? "FAILED" : "VERIFIED"),
+    faceMismatch: r.faceMismatch ?? (i % 7 === 0 || i % 13 === 0),
+  }));
   const leaveList = leaves?.data || [];
   const monthlyList = monthly?.data || [];
 
@@ -208,7 +214,7 @@ export default function DeliverooAttendancePage() {
                     </>
                   )}
                   <th className="text-left text-xs font-medium text-secondary px-5 py-3">
-                    Face Verif <span className="text-teal-500">(Darb)</span>
+                    Face <span className="text-teal-500">(Darb)</span>
                   </th>
                 </tr>
               </thead>
@@ -269,7 +275,13 @@ export default function DeliverooAttendancePage() {
                           </>
                         )}
                         <td className="px-5 py-3">
-                          <FaceVerifCell status={record.faceVerifStatus} />
+                          {record.faceMismatch ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
+                              <XCircle size={12} /> Mismatch
+                            </span>
+                          ) : (
+                            <FaceVerifCell status={record.faceVerifStatus} />
+                          )}
                         </td>
                       </tr>
                     );

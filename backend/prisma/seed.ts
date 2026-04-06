@@ -1,7 +1,9 @@
 import { PrismaClient, Platform, UserRole, DriverStatus, VehicleType, VehicleStatus, ShiftStatus, AttendanceStatus, OrderSource, CashStatus, DepositMethod, DeviceStatus, AlertSeverity, AlertStatus, ScoreTrend, TicketCategory, TicketPriority, TicketStatus, SubmitterType, LeaveType, LeaveStatus, RecruitmentStage, LedgerStatus, InspectionStatus, MaintenanceCategory, MaintenanceStatus, TalabatSessionStatus, ComplianceEventType } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources: { db: { url: process.env.DATABASE_URL + (process.env.DATABASE_URL?.includes('?') ? '&' : '?') + 'connection_limit=5' } },
+});
 
 function rand(min: number, max: number) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 function pick<T>(arr: T[]): T { return arr[rand(0, arr.length - 1)]; }
@@ -43,7 +45,10 @@ async function main() {
   console.log("Seeding Darb database...");
 
   // Clean existing data
-  await prisma.$executeRawUnsafe(`TRUNCATE TABLE "AmericanaDailyOrders", "KeetaDailyMetrics", "TalabatComplianceEvent", "TalabatSession", "AuditLog", "AiDigest", "Alert", "AiScore", "DeviceCommand", "AppUsageLog", "LocationLog", "CapturedOrder", "Device", "VehicleInspection", "MaintenanceRecord", "PendingDuesLedger", "CashRecord", "OrderLog", "AttendanceRecord", "Shift", "DriverInventory", "LeaveRequest", "Ticket", "RecruitmentPipeline", "Vehicle", "Driver", "User", "Company", "Tenant" CASCADE`);
+  // Clean existing data — safe to skip on fresh DB
+  try {
+    await prisma.$executeRawUnsafe(`TRUNCATE TABLE "TalabatDelivery", "AmericanaDailyOrders", "KeetaDailyMetrics", "TalabatComplianceEvent", "TalabatSession", "AuditLog", "AiDigest", "Alert", "AiScore", "DeviceCommand", "AppUsageLog", "LocationLog", "CapturedOrder", "Device", "VehicleInspection", "MaintenanceRecord", "PendingDuesLedger", "CashRecord", "OrderLog", "AttendanceRecord", "Shift", "DriverInventory", "LeaveRequest", "Ticket", "RecruitmentPipeline", "Vehicle", "Driver", "User", "Company", "Tenant" CASCADE`);
+  } catch { console.log("Skipping truncate (tables may not exist yet)"); }
 
   // 1. Tenant
   const tenant = await prisma.tenant.create({
@@ -92,13 +97,13 @@ async function main() {
   // Talabat/Wahoo - 25 drivers
   for (let i = 0; i < 25; i++) {
     const name = SOUTH_ASIAN_NAMES[nameIdx++];
-    const batch = `${rand(1, 4)}${pick(["A", "B"])}`;
+    const batch = `${rand(1, 4)}`;
     const d = await prisma.driver.create({
       data: {
         tenantId: tid, companyId: wahoo.id,
         name: `${name.toUpperCase()} ${batch} - WAHI`,
         phone: `+965${rand(50000000, 99999999)}`, platform: "TALABAT",
-        platformDriverId: `TB${rand(100000, 999999)}`, utr: `UTR${rand(100000, 999999)}`, vehicleType: Math.random() < 0.7 ? "MOTORCYCLE" : "CAR",
+        platformDriverId: `TB${rand(100000, 999999)}`, vehicleType: Math.random() < 0.7 ? "MOTORCYCLE" : "CAR",
         zone: pick(talabatZones), batchNumber: batch, status: "ACTIVE",
         hireDate: new Date(2025, rand(0, 11), rand(1, 28)),
         supervisorId: users[3].id,
@@ -145,6 +150,9 @@ async function main() {
     const comp = companies[Math.min(Math.floor(i / 18), 3)];
     const vt: VehicleType = i < 42 ? "MOTORCYCLE" : "CAR";
     const driver = i < allDrivers.length ? allDrivers[i] : null;
+    const colors = vt === "MOTORCYCLE"
+      ? ["Black", "Red", "White", "Blue", "Silver"]
+      : ["White", "Silver", "Grey", "Black", "Blue", "Red"];
     vehicleData.push({
       tenantId: tid, companyId: comp.id,
       plateNumber: `KW-${rand(10000, 99999)}`,
@@ -152,6 +160,8 @@ async function main() {
       make: vt === "MOTORCYCLE" ? pick(["Honda", "Yamaha", "Suzuki"]) : pick(["Toyota", "Nissan", "Hyundai"]),
       model: vt === "MOTORCYCLE" ? pick(["PCX 150", "NMAX", "Gixxer"]) : pick(["Yaris", "Sunny", "Accent"]),
       year: rand(2021, 2025), mileage: rand(5000, 50000),
+      color: pick(colors),
+      chassisNumber: `${pick(["JH", "JM", "MR", "KN", "5N"])}${rand(100000, 999999)}${rand(100000, 999999)}`,
       status: i < 58 ? "ACTIVE" as VehicleStatus : "MAINTENANCE" as VehicleStatus,
       assignedDriverId: driver?.id || null,
       insuranceExpiry: new Date(2026, rand(3, 9), rand(1, 28)),
@@ -250,14 +260,19 @@ async function main() {
       const missed = Math.random() < 0.05;
       const lateMin = !missed && Math.random() < 0.1 ? rand(5, 30) : 0;
 
+      const actualStartTime = missed ? null : new Date(start.getTime() + lateMin * 60000);
+      const actualEndTime = missed ? null : new Date(end.getTime() + rand(-30, 30) * 60000);
+      const actualMins = actualStartTime && actualEndTime ? Math.round((actualEndTime.getTime() - actualStartTime.getTime()) / 60000) : null;
+
       const shift = await prisma.shift.create({
         data: {
           tenantId: tid, driverId: driver.id, date, platform: "TALABAT",
           zone: driver.zone, scheduledStart: start, scheduledEnd: end,
-          actualStart: missed ? null : new Date(start.getTime() + lateMin * 60000),
-          actualEnd: missed ? null : new Date(end.getTime() + rand(-30, 30) * 60000),
+          actualStart: actualStartTime,
+          actualEnd: actualEndTime,
           status: missed ? "MISSED" : "COMPLETED",
           plannedHoursMinutes: duration * 60,
+          actualHoursMinutes: actualMins,
         },
       });
 
@@ -267,14 +282,36 @@ async function main() {
       });
 
       if (!missed) {
-        const cash = decimal(30, 60);
-        await prisma.orderLog.create({
-          data: {
+        // Create individual order entries for each delivery (batched)
+        const numOrders = rand(15, 25);
+        const shiftStartHour = startHour;
+        let totalCash = 0;
+        const orderBatch: any[] = [];
+
+        for (let oi = 0; oi < numOrders; oi++) {
+          const isCash = Math.random() < 0.4;
+          const orderCash = isCash ? decimal(0.5, 5) : 0;
+          totalCash += orderCash;
+          const finishHour = shiftStartHour + Math.floor((oi / numOrders) * duration);
+          const finishMin = rand(0, 59);
+          const finishTime = new Date(date);
+          finishTime.setHours(finishHour, finishMin, 0, 0);
+
+          orderBatch.push({
             tenantId: tid, driverId: driver.id, shiftId: shift.id, date,
-            platform: "TALABAT", orderCount: rand(15, 25),
-            distanceKm: decimal(80, 150), cashCollected: cash, tips: decimal(0, 2), source: "MANUAL",
-          },
-        });
+            platform: "TALABAT" as Platform, orderCount: 1,
+            orderNumber: `${3538000000 + rand(0, 999999)}`,
+            paymentSource: isCash ? "CASH" : "KNET",
+            arrivalTime: finishTime,
+            cashCollected: isCash ? orderCash : null,
+            distanceKm: decimal(1, 8),
+            tips: Math.random() < 0.15 ? decimal(0.1, 1) : null,
+            source: "WHATSAPP" as OrderSource,
+          });
+        }
+        await prisma.orderLog.createMany({ data: orderBatch });
+
+        const cash = totalCash || decimal(30, 60);
 
         // Cash record
         const deposited = Math.random() < 0.8;
@@ -339,6 +376,34 @@ async function main() {
           },
         });
 
+        // Individual deliveries for this session (batched)
+        if (!missed && sessDeliveries > 0) {
+          const orderTypes = ["food", "food", "food", "grocery", "express"];
+          const baseOrderId = 3530000000 + rand(0, 9999999);
+          const deliveryBatch: any[] = [];
+          for (let di = 0; di < sessDeliveries; di++) {
+            const deliveryOrderId = String(baseOrderId + di);
+            const shortCode = `#${rand(1000, 9999)}`;
+            const minutesIntoSession = Math.round((di / sessDeliveries) * sessPlannedHrs * 60);
+            const finishTime = new Date(sessStart.getTime() + (minutesIntoSession + rand(10, 40)) * 60000);
+            deliveryBatch.push({
+              tenantId: tid,
+              driverId: driver.id,
+              sessionId: session.id,
+              date,
+              platformOrderId: deliveryOrderId,
+              shortCode,
+              finishedAt: finishTime,
+              orderType: pick(orderTypes),
+              amount: decimal(0.5, 3.0),
+              tip: Math.random() < 0.3 ? decimal(0.05, 0.5) : 0,
+              distanceKm: decimal(1.5, 8.0),
+              status: Math.random() < 0.97 ? "COMPLETED" : "CANCELLED",
+            });
+          }
+          await prisma.talabatDelivery.createMany({ data: deliveryBatch });
+        }
+
         // Compliance events for ~10% of sessions
         if (!faceOk) {
           await prisma.talabatComplianceEvent.create({
@@ -375,6 +440,30 @@ async function main() {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
               type: "SHIFT_NOT_BOOKED", severity: "HIGH",
               description: "Driver did not show up for scheduled session",
+            },
+          });
+        }
+        // Out of zone ~15% of sessions
+        if (Math.random() < 0.15) {
+          const zone = pick(["WAHI", "HAWALLY", "SALMIYA", "FARWANIYA"]);
+          await prisma.talabatComplianceEvent.create({
+            data: {
+              tenantId: tid, driverId: driver.id, sessionId: session.id,
+              type: "OUT_OF_ZONE", severity: "HIGH",
+              description: `Driver detected outside assigned zone (${zone})`,
+              metadata: { assignedZone: zone, detectedZone: pick(["JAHRA", "MANGAF", "FINTAS", "KHAITAN"].filter(z => z !== zone)) },
+            },
+          });
+        }
+        // Cash threshold exceeded ~8% of sessions
+        if (Number(session.cashCollected) > 100 || Math.random() < 0.08) {
+          const cashAmt = Number(session.cashCollected) > 100 ? Number(session.cashCollected) : rand(101, 250);
+          await prisma.talabatComplianceEvent.create({
+            data: {
+              tenantId: tid, driverId: driver.id, sessionId: session.id,
+              type: "CASH_THRESHOLD_EXCEEDED", severity: "CRITICAL",
+              description: `Cash collected reached KWD ${cashAmt.toFixed(3)} — exceeds 100 KWD threshold`,
+              metadata: { cashCollected: cashAmt, threshold: 100 },
             },
           });
         }
@@ -443,6 +532,43 @@ async function main() {
 
   console.log("Created 30 days of shifts, attendance, orders");
 
+  // 7b. Document expiry data for Talabat drivers
+  const DOC_EXPIRY_FIELDS = [
+    "healthCertExpiry", "workPermitExpiry", "foodHandlingCertExpiry",
+    "vehicleRegExpiry", "vehicleInsuranceExpiry", "drivingLicenseExpiry", "civilIdExpiry",
+  ] as const;
+  const DOC_STATUS_MAP = [
+    "healthCertStatus", "workPermitStatus", "foodHandlingCertStatus",
+    "vehicleRegStatus", "vehicleInsuranceStatus", "drivingLicenseStatus", "civilIdStatus",
+  ] as const;
+
+  for (const driver of talabatDrivers) {
+    const docUpdate: any = {};
+    for (let di = 0; di < DOC_EXPIRY_FIELDS.length; di++) {
+      const roll = Math.random();
+      if (roll < 0.55) {
+        const expiry = new Date(today);
+        expiry.setMonth(expiry.getMonth() + rand(1, 8));
+        docUpdate[DOC_EXPIRY_FIELDS[di]] = expiry;
+        docUpdate[DOC_STATUS_MAP[di]] = "VALID";
+      } else if (roll < 0.75) {
+        const expiry = new Date(today);
+        expiry.setDate(expiry.getDate() + rand(1, 30));
+        docUpdate[DOC_EXPIRY_FIELDS[di]] = expiry;
+        docUpdate[DOC_STATUS_MAP[di]] = "EXPIRING";
+      } else if (roll < 0.88) {
+        const expiry = new Date(today);
+        expiry.setDate(expiry.getDate() - rand(1, 60));
+        docUpdate[DOC_EXPIRY_FIELDS[di]] = expiry;
+        docUpdate[DOC_STATUS_MAP[di]] = "EXPIRED";
+      } else {
+        docUpdate[DOC_STATUS_MAP[di]] = "MISSING";
+      }
+    }
+    await prisma.driver.update({ where: { id: driver.id }, data: docUpdate });
+  }
+  console.log("Created document expiry data for Talabat drivers");
+
   // 8. Pending Dues Ledger (March 2026 for Talabat)
   for (const driver of talabatDrivers) {
     const dailySales: Record<string, number> = {};
@@ -470,6 +596,36 @@ async function main() {
       },
     });
   }
+
+  // 8b. Pending Dues Ledger (April 2026 — current month for Talabat)
+  for (const driver of talabatDrivers) {
+    const dailySales2: Record<string, number> = {};
+    const dailyCollections2: Record<string, number> = {};
+    let totalSales2 = 0, totalCollections2 = 0;
+    const currentDay = Math.min(today.getDate(), 30);
+    for (let d = 1; d <= currentDay; d++) {
+      const key = String(d).padStart(2, "0");
+      const sale = decimal(25, 65);
+      const collected = Math.random() < 0.75 ? sale : Math.random() < 0.4 ? decimal(10, sale) : 0;
+      dailySales2[key] = sale;
+      dailyCollections2[key] = collected;
+      totalSales2 += sale;
+      totalCollections2 += collected;
+    }
+    const opening2 = decimal(5, 40);
+    await prisma.pendingDuesLedger.create({
+      data: {
+        tenantId: tid, driverId: driver.id,
+        month: new Date(2026, 3, 1), // April 2026
+        openingBalance: opening2, totalSales: totalSales2, totalCollection: totalCollections2,
+        cashDeposits: totalCollections2 * 0.55, bankTransfers: totalCollections2 * 0.35,
+        incentives: decimal(3, 15), adjustments: decimal(-8, 8),
+        closingBalance: opening2 + totalSales2 - totalCollections2,
+        dailySales: dailySales2, dailyCollections: dailyCollections2, status: "OPEN",
+      },
+    });
+  }
+  console.log("Created April 2026 pending dues ledger");
 
   // 9. AI Scores (14 days)
   for (let dayOffset = 13; dayOffset >= 0; dayOffset--) {
@@ -775,11 +931,19 @@ async function main() {
   // 18. Make some drivers inactive/suspended for realism
   const driversToSuspend = talabatDrivers.slice(0, 2);
   const driversToInactivate = keetaDrivers.slice(0, 3);
+  const driversToLeave = talabatDrivers.slice(2, 4);
+  const driversToTermination = talabatDrivers.slice(4, 6);
   for (const d of driversToSuspend) {
     await prisma.driver.update({ where: { id: d.id }, data: { status: "SUSPENDED" } });
   }
   for (const d of driversToInactivate) {
     await prisma.driver.update({ where: { id: d.id }, data: { status: "INACTIVE" } });
+  }
+  for (const d of driversToLeave) {
+    await prisma.driver.update({ where: { id: d.id }, data: { status: "LEAVE" } });
+  }
+  for (const d of driversToTermination) {
+    await prisma.driver.update({ where: { id: d.id }, data: { status: "TERMINATION" } });
   }
   console.log("Updated some driver statuses");
 

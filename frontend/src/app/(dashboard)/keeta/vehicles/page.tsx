@@ -204,7 +204,6 @@ export default function KeetaVehiclesPage() {
             label: "All Statuses",
             options: [
               { value: "ACTIVE", label: "Active" },
-              { value: "INACTIVE", label: "Inactive" },
               { value: "MAINTENANCE", label: "Maintenance" },
               { value: "SPARE", label: "Spare" },
             ],

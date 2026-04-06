@@ -29,6 +29,8 @@ enum DriverStatus {
   INACTIVE
   SUSPENDED
   TERMINATED
+  LEAVE
+  TERMINATION
 }
 
 enum VehicleType {
@@ -63,6 +65,7 @@ enum OrderSource {
   SCREENSHOT_OCR
   EXCEL_IMPORT
   AGENT_CAPTURE
+  WHATSAPP
 }
 
 enum DepositMethod {
@@ -244,6 +247,8 @@ enum ComplianceEventType {
   LATE_CLOCK_IN
   EARLY_CLOCK_OUT
   ZONE_MISMATCH
+  OUT_OF_ZONE
+  CASH_THRESHOLD_EXCEEDED
 }
 
 // ─── Models ─────────────────────────────────────────────
@@ -346,6 +351,22 @@ model Driver {
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
+  // Document expiry dates and statuses
+  healthCertExpiry         DateTime?
+  healthCertStatus         String?   // VALID, EXPIRING, EXPIRED, MISSING
+  workPermitExpiry         DateTime?
+  workPermitStatus         String?
+  foodHandlingCertExpiry   DateTime?
+  foodHandlingCertStatus   String?
+  vehicleRegExpiry         DateTime?
+  vehicleRegStatus         String?
+  vehicleInsuranceExpiry   DateTime?
+  vehicleInsuranceStatus   String?
+  drivingLicenseExpiry     DateTime?
+  drivingLicenseStatus     String?
+  civilIdExpiry            DateTime?
+  civilIdStatus            String?
+
   tenant     Tenant  @relation(fields: [tenantId], references: [id])
   company    Company @relation(fields: [companyId], references: [id])
   supervisor User?   @relation("DriverSupervisor", fields: [supervisorId], references: [id])
@@ -372,6 +393,7 @@ model Driver {
   talabatComplianceEvents TalabatComplianceEvent[]
   keetaDailyMetrics       KeetaDailyMetrics[]
   americanaDailyOrders    AmericanaDailyOrders[]
+  talabatDeliveries       TalabatDelivery[]
 
   @@index([tenantId])
   @@index([companyId])
@@ -425,6 +447,8 @@ model Vehicle {
   make               String
   model              String
   year               Int
+  color              String?
+  chassisNumber      String?
   mileage            Int           @default(0)
   fuelType           String        @default("Petrol")
   status             VehicleStatus @default(ACTIVE)
@@ -518,6 +542,9 @@ model OrderLog {
   cashCollected Decimal?    @db.Decimal(10, 3)
   tips          Decimal?    @db.Decimal(10, 3)
   totalAmount   Decimal?    @db.Decimal(10, 3)
+  orderNumber   String?
+  paymentSource String?
+  arrivalTime   DateTime?
   screenshotUrl String?
   source        OrderSource @default(MANUAL)
   rawData       Json?
@@ -910,6 +937,7 @@ model TalabatSession {
   driver           Driver                    @relation(fields: [driverId], references: [id])
   shift            Shift?                    @relation(fields: [shiftId], references: [id])
   complianceEvents TalabatComplianceEvent[]
+  deliveryItems    TalabatDelivery[]
 
   @@index([tenantId])
   @@index([driverId])
@@ -942,7 +970,34 @@ model TalabatComplianceEvent {
   @@index([createdAt])
 }
 
-// 28. KeetaDailyMetrics — mirrors the 27-column Keeta dashboard export
+// 28. TalabatDelivery — individual delivery items within a session
+model TalabatDelivery {
+  id              String         @id @default(uuid())
+  tenantId        String
+  driverId        String
+  sessionId       String
+  date            DateTime
+  platformOrderId String
+  shortCode       String
+  finishedAt      DateTime?
+  orderType       String         @default("food")
+  amount          Decimal        @default(0) @db.Decimal(10, 3)
+  tip             Decimal        @default(0) @db.Decimal(10, 3)
+  distanceKm      Decimal?       @db.Decimal(10, 3)
+  status          String         @default("COMPLETED")
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  driver  Driver         @relation(fields: [driverId], references: [id])
+  session TalabatSession @relation(fields: [sessionId], references: [id])
+
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([sessionId])
+  @@index([date])
+}
+
+// 29. KeetaDailyMetrics — mirrors the 27-column Keeta dashboard export
 model KeetaDailyMetrics {
   id                    String      @id @default(uuid())
   tenantId              String

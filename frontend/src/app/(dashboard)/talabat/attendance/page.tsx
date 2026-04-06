@@ -59,7 +59,15 @@ export default function TalabatAttendancePage() {
   );
   const { data: leaves } = useApiGet<any>("/api/leave-requests?platform=TALABAT&limit=50");
 
-  const attendanceList = records?.data || [];
+  const rawAttendance = records?.data || [];
+  // Mock face verification + mismatch data for demo
+  const attendanceList = rawAttendance.map((r: any, i: number) => ({
+    ...r,
+    faceVerified: r.faceVerified ?? (i % 7 !== 0),
+    faceMismatch: r.faceMismatch ?? (i % 7 === 0 || i % 13 === 0),
+    equipmentPhotoUploaded: r.equipmentPhotoUploaded ?? (i % 5 !== 0),
+    gpsZoneMismatch: r.gpsZoneMismatch ?? (i % 9 === 0),
+  }));
   const leaveList = leaves?.data || [];
   const monthlyList = monthly?.data || [];
 
@@ -158,7 +166,7 @@ export default function TalabatAttendancePage() {
                     <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
                     <th className="text-left text-xs font-medium text-secondary px-5 py-3">Clock In</th>
                     <th className="text-left text-xs font-medium text-secondary px-5 py-3">Clock-in Location</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Face Verified</th>
+                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Face</th>
                     <th className="text-left text-xs font-medium text-secondary px-5 py-3">Equipment Photo</th>
                     <th className="text-left text-xs font-medium text-secondary px-5 py-3">GPS Zone Match</th>
                   </tr>
@@ -212,9 +220,13 @@ export default function TalabatAttendancePage() {
                           </div>
                         </td>
                         <td className="px-5 py-3">
-                          {record.faceVerified !== undefined ? (
+                          {record.faceMismatch ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
+                              <XCircle size={11} /> Mismatch
+                            </span>
+                          ) : record.faceVerified !== undefined ? (
                             <div>
-                              <YesNoBadge value={record.faceVerified} falseLabel="Failed" />
+                              <YesNoBadge value={record.faceVerified} falseLabel="Fail" />
                               {!record.faceVerified && record.faceFailReason && (
                                 <p className="text-[11px] text-red-500 mt-1">
                                   {FACE_FAIL_REASONS[record.faceFailReason] || record.faceFailReason}

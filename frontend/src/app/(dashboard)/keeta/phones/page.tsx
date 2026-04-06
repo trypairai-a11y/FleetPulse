@@ -9,7 +9,6 @@ import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
 import {
   Smartphone,
-  BatteryLow,
   Wifi,
   WifiOff,
   Lock,
@@ -31,18 +30,6 @@ function timeAgo(dateStr: string): string {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
   return `${Math.floor(hrs / 24)}d ago`;
-}
-
-function BatteryIndicator({ level }: { level: number | null }) {
-  if (level === null || level === undefined) return <span className="text-secondary text-sm">—</span>;
-  const color =
-    level <= 15 ? "text-red-500" : level <= 30 ? "text-orange-500" : "text-green-600";
-  return (
-    <span className={cn("flex items-center gap-1 text-sm font-medium", color)}>
-      <BatteryLow size={13} />
-      {level}%
-    </span>
-  );
 }
 
 function OnlineIndicator({ online }: { online: boolean }) {
@@ -83,7 +70,6 @@ export default function KeetaPhonesPage() {
   const total = devices.length;
   const online = devices.filter((d) => d.isOnline || d.online).length;
   const onlinePercent = total > 0 ? Math.round((online / total) * 100) : 0;
-  const lowBattery = devices.filter((d) => (d.batteryLevel ?? d.battery) <= 15).length;
   const outdatedAgent = devices.filter((d) => d.agentVersion && d.latestAgentVersion && d.agentVersion !== d.latestAgentVersion).length;
 
   const sendMdmCommand = async (deviceId: string, command: string, payload?: any) => {
@@ -125,9 +111,11 @@ export default function KeetaPhonesPage() {
       ),
     },
     {
-      key: "batteryLevel",
-      label: "Battery",
-      render: (v: number, r: any) => <BatteryIndicator level={v ?? r.battery ?? null} />,
+      key: "mobileNumber",
+      label: "Mobile Number",
+      render: (_: any, r: any) => (
+        <span className="font-mono text-xs text-secondary">{r.driver?.phone || "—"}</span>
+      ),
     },
     {
       key: "lastSeen",
@@ -174,13 +162,6 @@ export default function KeetaPhonesPage() {
           icon={Wifi}
           trend={`${online} of ${total} devices`}
           highlight={onlinePercent < 50}
-        />
-        <StatCard
-          title="Low Battery"
-          value={lowBattery}
-          icon={BatteryLow}
-          highlight={lowBattery > 5}
-          trend="≤ 15% battery"
         />
         <StatCard
           title="Outdated Agent"
@@ -244,7 +225,6 @@ export default function KeetaPhonesPage() {
                 ["IMEI", selected.imei],
                 ["Model", selected.model || selected.phoneModel],
                 ["Assigned Driver", selected.driver?.name || selected.assignedDriver || "Unassigned"],
-                ["Battery", selected.batteryLevel != null ? `${selected.batteryLevel}%` : selected.battery != null ? `${selected.battery}%` : "—"],
                 ["Agent Version", selected.agentVersion || "—"],
                 ["Latest Agent", selected.latestAgentVersion || "—"],
                 ["OS Version", selected.osVersion || "—"],

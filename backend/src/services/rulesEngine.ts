@@ -177,19 +177,69 @@ export async function detectShiftBookingReminder(tenantId: string) {
 }
 
 /**
+ * Detect drivers whose cumulative cash collected exceeds 100 KWD.
+ * Creates a CASH_THRESHOLD_EXCEEDED compliance event.
+ */
+export async function detectCashThresholdExceeded(tenantId: string) {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // Find sessions today where cashCollected > 100
+  const sessions = await prisma.talabatSession.findMany({
+    where: {
+      tenantId,
+      date: { gte: startOfDay },
+      cashCollected: { gt: 100 },
+    },
+    include: { driver: { select: { id: true, name: true } } },
+  });
+
+  let created = 0;
+  for (const session of sessions) {
+    // Avoid duplicate events for same driver today
+    const existing = await prisma.talabatComplianceEvent.findFirst({
+      where: {
+        tenantId,
+        driverId: session.driverId,
+        type: "CASH_THRESHOLD_EXCEEDED",
+        createdAt: { gte: startOfDay },
+      },
+    });
+    if (existing) continue;
+
+    await prisma.talabatComplianceEvent.create({
+      data: {
+        tenantId,
+        driverId: session.driverId,
+        sessionId: session.id,
+        type: "CASH_THRESHOLD_EXCEEDED",
+        severity: "CRITICAL",
+        description: `Cash collected reached KWD ${Number(session.cashCollected).toFixed(3)} — exceeds 100 KWD threshold`,
+        metadata: { cashCollected: Number(session.cashCollected), threshold: 100 },
+      },
+    });
+    created++;
+  }
+
+  return { checked: sessions.length, eventsCreated: created };
+}
+
+/**
  * Run all rule checks for a tenant.
  */
 export async function runAllRules(tenantId: string) {
-  const [cashResult, shiftResult, bookingResult] = await Promise.all([
+  const [cashResult, shiftResult, bookingResult, cashThresholdResult] = await Promise.all([
     detectCashOverdue(tenantId),
     detectIncompleteShifts(tenantId),
     detectShiftBookingReminder(tenantId),
+    detectCashThresholdExceeded(tenantId),
   ]);
 
   return {
     cashOverdue: cashResult,
     incompleteShifts: shiftResult,
     bookingReminder: bookingResult,
+    cashThresholdExceeded: cashThresholdResult,
     timestamp: new Date().toISOString(),
   };
 }

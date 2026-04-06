@@ -7,18 +7,41 @@ import { getPagination, paginatedResponse } from "../utils/pagination";
 const router = Router();
 router.use(authMiddleware, tenantScope);
 
-router.get("/", async (req: Request, res: Response) => {
+router.get("/summary", async (req: Request, res: Response) => {
   try {
-    const { skip, limit, page } = getPagination(req);
-    const { status, search } = req.query;
+    const { platform } = req.query;
     const where: any = {
       driver: { tenantId: req.user!.tenantId },
     };
+    if (platform) where.driver.platform = platform as string;
+
+    const [total, online, lowBattery, lost] = await Promise.all([
+      prisma.device.count({ where }),
+      prisma.device.count({ where: { ...where, isOnline: true } }),
+      prisma.device.count({ where: { ...where, batteryLevel: { lt: 20 } } }),
+      prisma.device.count({ where: { ...where, status: "LOST" } }),
+    ]);
+
+    res.json({ total, online, lowBattery, lost });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/", async (req: Request, res: Response) => {
+  try {
+    const { skip, limit, page } = getPagination(req);
+    const { status, search, platform } = req.query;
+    const where: any = {
+      driver: { tenantId: req.user!.tenantId },
+    };
+    if (platform) where.driver.platform = platform as string;
     if (status) where.status = status;
     if (search) {
       where.OR = [
         { imei: { contains: search as string } },
         { model: { contains: search as string, mode: "insensitive" } },
+        { driver: { name: { contains: search as string, mode: "insensitive" }, tenantId: req.user!.tenantId } },
       ];
     }
 
@@ -26,11 +49,23 @@ router.get("/", async (req: Request, res: Response) => {
       prisma.device.findMany({
         where, skip, take: limit,
         orderBy: { lastSeen: "desc" },
-        include: { driver: { select: { id: true, name: true, platform: true } } },
+        include: { driver: { select: { id: true, name: true, phone: true, platform: true, zone: true } } },
       }),
       prisma.device.count({ where }),
     ]);
-    res.json(paginatedResponse(data, total, page, limit));
+
+    const enriched = data.map((d) => ({
+      ...d,
+      zone: d.driver?.zone || null,
+      deviceId: d.id.slice(0, 8).toUpperCase(),
+      appVersion: d.agentVersion || null,
+      lastLocation: d.lastLatitude && d.lastLongitude
+        ? `${Number(d.lastLatitude).toFixed(4)}, ${Number(d.lastLongitude).toFixed(4)}`
+        : null,
+      issuedOn: d.createdAt,
+    }));
+
+    res.json(paginatedResponse(enriched, total, page, limit));
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -63,7 +98,16 @@ router.get("/:id", async (req: Request, res: Response) => {
       },
     });
     if (!device) { res.status(404).json({ error: "Device not found" }); return; }
-    res.json(device);
+    res.json({
+      ...device,
+      deviceId: device.id.slice(0, 8).toUpperCase(),
+      zone: device.driver?.zone || null,
+      appVersion: device.agentVersion || null,
+      lastLocation: device.lastLatitude && device.lastLongitude
+        ? `${Number(device.lastLatitude).toFixed(4)}, ${Number(device.lastLongitude).toFixed(4)}`
+        : null,
+      issuedOn: device.createdAt,
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

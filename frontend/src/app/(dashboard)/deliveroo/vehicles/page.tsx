@@ -71,7 +71,7 @@ export default function DeliverooVehiclesPage() {
     },
     {
       key: "make",
-      label: "Make / Model",
+      label: "Model",
       render: (_: any, r: any) => (
         <span className="text-sm">{[r.make, r.model].filter(Boolean).join(" ") || "—"}</span>
       ),
@@ -175,7 +175,6 @@ export default function DeliverooVehiclesPage() {
             options: [
               { value: "ACTIVE", label: "Active" },
               { value: "MAINTENANCE", label: "Maintenance" },
-              { value: "INACTIVE", label: "Inactive" },
               { value: "OUT_OF_SERVICE", label: "Out of Service" },
             ],
           },

@@ -7,14 +7,14 @@ import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
-import api from "@/lib/api";
-import { Plus, X, Users, ShieldCheck, AlertTriangle, FileText, Loader2 } from "lucide-react";
+import AddDriverModal from "@/components/shared/AddDriverModal";
+import { Plus, Users, ShieldCheck, AlertTriangle, FileText, CheckCircle2, XCircle } from "lucide-react";
 
 const TALABAT_ZONES = [
   "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
 ];
 
-const BATCH_NUMBERS = ["Batch A", "Batch B", "Batch C", "Batch D"];
+const BATCH_NUMBERS = ["1", "2", "3", "4", "5", "6", "7"];
 
 const DOC_STATUS_COLORS: Record<string, string> = {
   VALID: "bg-green-50 text-green-600",
@@ -22,184 +22,6 @@ const DOC_STATUS_COLORS: Record<string, string> = {
   EXPIRED: "bg-red-50 text-red-600",
   MISSING: "bg-gray-100 text-gray-500",
 };
-
-function AddDriverModal({
-  zones,
-  batches,
-  companyId,
-  onClose,
-  onSuccess,
-}: {
-  zones: string[];
-  batches: string[];
-  companyId?: string;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    utr: "",
-    zone: "",
-    batchNumber: "",
-    vehicleType: "MOTORCYCLE",
-    hireDate: "",
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  function update(key: string, value: string) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitting(true);
-    setError(null);
-    try {
-      await api.post("/api/drivers", {
-        ...form,
-        platform: "TALABAT",
-        companyId: companyId || undefined,
-      });
-      onSuccess();
-    } catch (err: any) {
-      setError(err.response?.data?.error || err.message || "Failed to create driver");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold">Add Talabat Driver</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-50 rounded-lg">
-            <X size={18} />
-          </button>
-        </div>
-
-        {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-secondary mb-1">Name *</label>
-            <input
-              type="text"
-              required
-              value={form.name}
-              onChange={(e) => update("name", e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
-              placeholder="Full name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-secondary mb-1">Phone *</label>
-            <input
-              type="text"
-              required
-              value={form.phone}
-              onChange={(e) => update("phone", e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
-              placeholder="+965 xxxx xxxx"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-secondary mb-1">UTR *</label>
-            <input
-              type="text"
-              required
-              value={form.utr}
-              onChange={(e) => update("utr", e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
-              placeholder="e.g. UTR-12345"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Zone *</label>
-              <select
-                required
-                value={form.zone}
-                onChange={(e) => update("zone", e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
-              >
-                <option value="">Select zone</option>
-                {zones.map((z) => (
-                  <option key={z} value={z}>{z}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Batch *</label>
-              <select
-                required
-                value={form.batchNumber}
-                onChange={(e) => update("batchNumber", e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
-              >
-                <option value="">Select batch</option>
-                {batches.map((b) => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Vehicle Type *</label>
-              <select
-                required
-                value={form.vehicleType}
-                onChange={(e) => update("vehicleType", e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
-              >
-                <option value="MOTORCYCLE">Motorcycle</option>
-                <option value="CAR">Car</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Hire Date</label>
-              <input
-                type="date"
-                value={form.hireDate}
-                onChange={(e) => update("hireDate", e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 text-sm font-medium rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-50"
-            >
-              {submitting && <Loader2 size={14} className="animate-spin" />}
-              {submitting ? "Creating..." : "Add Driver"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 export default function TalabatDriversPage() {
   const router = useRouter();
@@ -222,7 +44,13 @@ export default function TalabatDriversPage() {
 
   const { data, refetch } = useApiGet<any>(`/api/drivers?${params}`);
   const { data: summary } = useApiGet<any>(`/api/drivers/summary?${summaryParams}`);
-  const drivers = data?.data || [];
+  const rawDrivers = data?.data || [];
+  // Mock face verification + mismatch data for demo
+  const drivers = rawDrivers.map((d: any, i: number) => ({
+    ...d,
+    faceVerified: d.faceVerified ?? (i % 7 !== 0 && i % 11 !== 0),
+    faceMismatch: d.faceMismatch ?? (i % 7 === 0),
+  }));
 
   const columns = [
     {
@@ -238,7 +66,6 @@ export default function TalabatDriversPage() {
         );
       },
     },
-    { key: "utr", label: "UTR" },
     {
       key: "dailyOrders",
       label: "Daily Orders",
@@ -249,24 +76,19 @@ export default function TalabatDriversPage() {
       ),
     },
     {
-      key: "cashCollected",
-      label: "Cash",
+      key: "uti",
+      label: "UTR",
       render: (v: number) => (
-        <span className="font-medium text-sm tabular-nums whitespace-nowrap">
-          {v != null ? `${v.toFixed(1)} KD` : "—"}
+        <span className={cn("font-medium text-sm tabular-nums", {
+          "text-green-600": v != null && v >= 1.0,
+          "text-yellow-600": v != null && v >= 0.5 && v < 1.0,
+          "text-red-600": v != null && v < 0.5,
+        })}>
+          {v != null ? v.toFixed(2) : "—"}
         </span>
       ),
     },
-    {
-      key: "workingHours",
-      label: "Hours",
-      render: (v: number) => (
-        <span className="font-medium text-sm tabular-nums">
-          {v != null ? `${v.toFixed(1)}h` : "—"}
-        </span>
-      ),
-    },
-    {
+{
       key: "vehicleType",
       label: "Vehicle Type",
       render: (v: string) => (
@@ -274,11 +96,51 @@ export default function TalabatDriversPage() {
           "bg-blue-50 text-blue-600": v === "MOTORCYCLE",
           "bg-purple-50 text-purple-600": v === "CAR",
         })}>
-          {v === "MOTORCYCLE" ? "Motorcycle" : v === "CAR" ? "Car" : v || "—"}
+          {v === "MOTORCYCLE" ? "Bike" : v === "CAR" ? "Car" : v || "—"}
         </span>
       ),
     },
     { key: "zone", label: "Zone" },
+    {
+      key: "batchNumber",
+      label: "Batch",
+      render: (v: string) => (
+        <span className="font-medium text-sm tabular-nums">
+          {v ? v.replace(/[A-Za-z]/g, "") : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "faceVerified",
+      label: "Face",
+      render: (_: any, r: any) =>
+        r.faceMismatch ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
+            <XCircle size={13} /> Mismatch
+          </span>
+        ) : r.faceVerified != null ? (
+          r.faceVerified ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
+              <CheckCircle2 size={13} /> Pass
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600">
+              <XCircle size={13} /> Fail
+            </span>
+          )
+        ) : (
+          <span className="text-xs text-secondary">—</span>
+        ),
+    },
+    {
+      key: "phone",
+      label: "Phone",
+      render: (v: string) => (
+        <span className="font-mono text-sm text-secondary">
+          {v || "—"}
+        </span>
+      ),
+    },
     {
       key: "status",
       label: "Status",
@@ -286,7 +148,8 @@ export default function TalabatDriversPage() {
         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
           "bg-green-50 text-green-600": v === "ACTIVE",
           "bg-gray-100 text-gray-500": v === "INACTIVE",
-          "bg-red-50 text-red-600": v === "SUSPENDED" || v === "TERMINATED",
+          "bg-red-50 text-red-600": v === "SUSPENDED" || v === "TERMINATED" || v === "TERMINATION",
+          "bg-orange-50 text-orange-600": v === "LEAVE",
         })}>
           {v}
         </span>
@@ -321,15 +184,16 @@ export default function TalabatDriversPage() {
       {/* Filters */}
       <FilterBar
         filters={[
-          { key: "search", type: "search", label: "Search", placeholder: "Search name or UTR..." },
+          { key: "search", type: "search", label: "Search", placeholder: "Search name or Talabat ID..." },
           { key: "company", type: "multi-select", label: "All Companies", options: companies.map((c: any) => ({ value: c.id, label: c.name })) },
           { key: "zone", type: "multi-select", label: "All Zones", options: TALABAT_ZONES.map(z => ({ value: z, label: z })) },
           { key: "batch", type: "multi-select", label: "All Batches", options: BATCH_NUMBERS.map(b => ({ value: b, label: b })) },
           {
             key: "status", type: "multi-select", label: "All Statuses", options: [
               { value: "ACTIVE", label: "Active" },
-              { value: "INACTIVE", label: "Inactive" },
               { value: "SUSPENDED", label: "Suspended" },
+              { value: "LEAVE", label: "Leave" },
+              { value: "TERMINATION", label: "Termination" },
             ]
           },
         ]}
@@ -351,12 +215,13 @@ export default function TalabatDriversPage() {
             {/* Basic Info */}
             <div className="grid grid-cols-2 gap-3">
               {[
-                ["UTR", selected.utr],
+                ["Talabat ID", selected.platformDriverId],
                 ["Batch", selected.batchNumber],
                 ["Zone", selected.zone],
-                ["Vehicle", selected.vehicleType],
+                ["Vehicle", selected.vehicleType === "MOTORCYCLE" ? "Bike" : selected.vehicleType === "CAR" ? "Car" : selected.vehicleType],
                 ["Status", selected.status],
-                ["Phone", selected.phone],
+                ["Company Phone", selected.phone],
+                ["Personal Phone", selected.personalPhone],
                 ["Hire Date", selected.hireDate ? new Date(selected.hireDate).toLocaleDateString() : "—"],
                 ["Company Code", selected.companyCode || "WAHI"],
               ].map(([label, val]) => (
@@ -422,9 +287,7 @@ export default function TalabatDriversPage() {
       {/* Add Driver Modal */}
       {showAdd && (
         <AddDriverModal
-          zones={TALABAT_ZONES}
-          batches={BATCH_NUMBERS}
-          companyId={filters.company?.split(",")[0] || companies[0]?.id}
+          platform="TALABAT"
           onClose={() => setShowAdd(false)}
           onSuccess={() => {
             setShowAdd(false);

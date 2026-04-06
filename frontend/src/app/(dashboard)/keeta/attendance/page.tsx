@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   XCircle,
   Camera,
+  AlertTriangle,
 } from "lucide-react";
 
 type Tab = "daily" | "monthly" | "leaves";
@@ -62,8 +63,15 @@ export default function KeetaAttendancePage() {
   const { data: summary } = useApiGet<any>("/api/attendance/summary?platform=KEETA");
   const { data: leaves } = useApiGet<any>("/api/leave-requests?platform=KEETA&limit=50");
 
-  const attendanceList: any[] = records?.data || [];
+  const rawAttendance: any[] = records?.data || [];
   const leaveList: any[] = leaves?.data || [];
+
+  // Mock face verification + mismatch data for demo
+  const attendanceList = rawAttendance.map((r: any, i: number) => ({
+    ...r,
+    faceVerified: r.faceVerified ?? (i % 7 !== 0),
+    faceMismatch: r.faceMismatch ?? (i % 7 === 0 || i % 13 === 0),
+  }));
 
   const present = attendanceList.filter((r) => r.status === "PRESENT").length;
   const late = attendanceList.filter((r) => r.status === "LATE").length;
@@ -139,6 +147,28 @@ export default function KeetaAttendancePage() {
           </span>
         ) : (
           <span className="text-secondary text-sm">—</span>
+        ),
+    },
+    {
+      key: "faceVerified",
+      label: "Face",
+      render: (_: any, r: any) =>
+        r.faceMismatch ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
+            <XCircle size={13} /> Mismatch
+          </span>
+        ) : r.faceVerified != null ? (
+          r.faceVerified ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
+              <CheckCircle2 size={13} /> Pass
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600">
+              <XCircle size={13} /> Fail
+            </span>
+          )
+        ) : (
+          <span className="text-xs text-secondary">—</span>
         ),
     },
     {

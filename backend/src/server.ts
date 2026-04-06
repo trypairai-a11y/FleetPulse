@@ -68,15 +68,20 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/deliveroo", deliverooRoutes);
 
-// Health check
+// Root & health check
+app.get("/", (_req, res) => {
+  res.json({ name: "Darb API", status: "ok", timestamp: new Date().toISOString() });
+});
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 app.use(errorHandler);
 
-app.listen(env.PORT, () => {
-  console.log(`Darb backend running on port ${env.PORT}`);
-});
+if (process.env.VERCEL !== "1") {
+  app.listen(env.PORT, () => {
+    console.log(`Darb backend running on port ${env.PORT}`);
+  });
+}
 
 export default app;

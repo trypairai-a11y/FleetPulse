@@ -8,7 +8,6 @@ import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
 import {
   Smartphone,
-  Battery,
   Wifi,
   WifiOff,
   Plus,
@@ -28,17 +27,6 @@ const STATUS_STYLES: Record<string, string> = {
   IN_REPAIR: "bg-orange-50 text-orange-600",
   LOST: "bg-red-50 text-red-600",
 };
-
-function BatteryIndicator({ level }: { level: number | null }) {
-  if (level === null || level === undefined) return <span className="text-xs text-secondary">—</span>;
-  const color = level > 50 ? "text-green-600" : level > 20 ? "text-amber-500" : "text-red-500";
-  return (
-    <span className={cn("text-xs font-medium tabular-nums flex items-center gap-1", color)}>
-      <Battery size={12} />
-      {level}%
-    </span>
-  );
-}
 
 export default function DeliverooPhonesPage() {
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -80,6 +68,13 @@ export default function DeliverooPhonesPage() {
           <span className="text-xs text-secondary">Unassigned</span>
         ),
     },
+    {
+      key: "mobileNumber",
+      label: "Mobile Number",
+      render: (_: any, r: any) => (
+        <span className="font-mono text-xs text-secondary">{r.driver?.phone || "—"}</span>
+      ),
+    },
     { key: "zone", label: "Zone" },
     {
       key: "status",
@@ -99,11 +94,6 @@ export default function DeliverooPhonesPage() {
           {v ? "Online" : "Offline"}
         </span>
       ),
-    },
-    {
-      key: "batteryLevel",
-      label: "Battery",
-      render: (v: number) => <BatteryIndicator level={v} />,
     },
     {
       key: "agentVersion",
@@ -152,12 +142,6 @@ export default function DeliverooPhonesPage() {
           title="Offline"
           value={summary?.offline || 0}
           icon={WifiOff}
-        />
-        <StatCard
-          title="Low Battery (<20%)"
-          value={summary?.lowBattery || 0}
-          icon={Battery}
-          highlight={(summary?.lowBattery || 0) > 0}
         />
       </div>
 
@@ -249,13 +233,6 @@ export default function DeliverooPhonesPage() {
                 <span className={cn("text-xs font-medium", selected.isOnline ? "text-green-600" : "text-secondary")}>
                   {selected.isOnline ? "Online" : "Offline"}
                 </span>
-              </div>
-
-              <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2.5">
-                <span className="text-xs text-secondary flex items-center gap-2">
-                  <Battery size={13} /> Battery
-                </span>
-                <BatteryIndicator level={selected.batteryLevel} />
               </div>
 
               <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2.5">

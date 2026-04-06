@@ -6,18 +6,18 @@ import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
-import api from "@/lib/api";
+import AddDriverModal from "@/components/shared/AddDriverModal";
 import {
   Users,
   ShieldCheck,
   AlertCircle,
   Plus,
-  X,
   Camera,
   MapPin,
   Phone,
   Bike,
-  Loader2,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
 const ZONES = ["Al Hazm", "Madinat Al Hareer", "Abu Halifa", "Mangaf", "Fahaheel"];
@@ -57,9 +57,6 @@ export default function DeliverooDriversPage() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [addForm, setAddForm] = useState({ name: "", phone: "", platformDriverId: "", zone: "", vehicleType: "MOTORCYCLE", hireDate: "" });
-  const [addSubmitting, setAddSubmitting] = useState(false);
-  const [addError, setAddError] = useState<string | null>(null);
 
   const params = new URLSearchParams({ platform: "DELIVEROO", limit: "100" });
   if (filters.zone) params.set("zone", filters.zone);
@@ -70,7 +67,13 @@ export default function DeliverooDriversPage() {
   const { data, refetch } = useApiGet<any>(`/api/drivers?${params}`);
   const { data: summary } = useApiGet<any>("/api/deliveroo/drivers/summary");
 
-  const drivers = data?.data || [];
+  const rawDrivers = data?.data || [];
+  // Mock face verification + mismatch data for demo
+  const drivers = rawDrivers.map((d: any, i: number) => ({
+    ...d,
+    faceVerified: d.faceVerified ?? (i % 7 !== 0),
+    faceMismatch: d.faceMismatch ?? (i % 7 === 0 || i % 13 === 0),
+  }));
 
   const columns = [
     {
@@ -118,8 +121,25 @@ export default function DeliverooDriversPage() {
     },
     {
       key: "faceVerified",
-      label: "Face Verif (Darb)",
-      render: (v: boolean) => <FaceVerifBadge verified={!!v} />,
+      label: "Face",
+      render: (_: any, r: any) =>
+        r.faceMismatch ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
+            <XCircle size={13} /> Mismatch
+          </span>
+        ) : r.faceVerified != null ? (
+          r.faceVerified ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
+              <CheckCircle2 size={13} /> Pass
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600">
+              <XCircle size={13} /> Fail
+            </span>
+          )
+        ) : (
+          <span className="text-xs text-secondary">—</span>
+        ),
     },
     {
       key: "status",
@@ -205,7 +225,6 @@ export default function DeliverooDriversPage() {
             label: "All Statuses",
             options: [
               { value: "ACTIVE", label: "Active" },
-              { value: "INACTIVE", label: "Inactive" },
               { value: "SUSPENDED", label: "Suspended" },
             ],
           },
@@ -242,7 +261,8 @@ export default function DeliverooDriversPage() {
                 ["Zone", selected.zone],
                 ["Vehicle", selected.vehicleType],
                 ["Status", selected.status],
-                ["Phone", selected.phone],
+                ["Company Phone", selected.phone],
+                ["Personal Phone", selected.personalPhone],
                 ["Hire Date", selected.hireDate ? new Date(selected.hireDate).toLocaleDateString() : "—"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
@@ -296,78 +316,14 @@ export default function DeliverooDriversPage() {
 
       {/* Add Driver Modal */}
       {showAdd && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowAdd(false)}>
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Add Deliveroo Driver</h2>
-              <button onClick={() => setShowAdd(false)} className="p-1 hover:bg-gray-50 rounded-lg"><X size={18} /></button>
-            </div>
-            {addError && <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm">{addError}</div>}
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              setAddSubmitting(true);
-              setAddError(null);
-              try {
-                await api.post("/api/drivers", { ...addForm, platform: "DELIVEROO" });
-                setShowAdd(false);
-                setAddForm({ name: "", phone: "", platformDriverId: "", zone: "", vehicleType: "MOTORCYCLE", hireDate: "" });
-                refetch();
-              } catch (err: any) {
-                setAddError(err.response?.data?.error || err.message);
-              } finally {
-                setAddSubmitting(false);
-              }
-            }} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-secondary mb-1">Name *</label>
-                <input type="text" required value={addForm.name} onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200" placeholder="Full name" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-secondary mb-1">Phone *</label>
-                <input type="text" required value={addForm.phone} onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200" placeholder="+965 xxxx xxxx" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-secondary mb-1">Rider ID *</label>
-                <input type="text" required value={addForm.platformDriverId} onChange={(e) => setAddForm({ ...addForm, platformDriverId: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200" placeholder="e.g. DLV-12345" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-secondary mb-1">Zone</label>
-                  <select value={addForm.zone} onChange={(e) => setAddForm({ ...addForm, zone: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200">
-                    <option value="">Select zone</option>
-                    {ZONES.map((z) => <option key={z} value={z}>{z}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-secondary mb-1">Vehicle *</label>
-                  <select value={addForm.vehicleType} onChange={(e) => setAddForm({ ...addForm, vehicleType: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200">
-                    <option value="MOTORCYCLE">Motorcycle</option>
-                    <option value="CAR">Car</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-secondary mb-1">Hire Date</label>
-                <input type="date" value={addForm.hireDate} onChange={(e) => setAddForm({ ...addForm, hireDate: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200" />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowAdd(false)}
-                  className="flex-1 px-4 py-2 text-sm font-medium rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">Cancel</button>
-                <button type="submit" disabled={addSubmitting}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-50">
-                  {addSubmitting && <Loader2 size={14} className="animate-spin" />}
-                  {addSubmitting ? "Creating..." : "Add Driver"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <AddDriverModal
+          platform="DELIVEROO"
+          onClose={() => setShowAdd(false)}
+          onSuccess={() => {
+            setShowAdd(false);
+            refetch();
+          }}
+        />
       )}
     </div>
   );

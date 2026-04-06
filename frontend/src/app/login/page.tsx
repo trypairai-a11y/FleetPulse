@@ -124,8 +124,8 @@ export default function LoginPage() {
               try {
                 await demoLogin();
                 router.push("/");
-              } catch {
-                setError("Demo login failed");
+              } catch (err: any) {
+                setError(err?.response?.data?.error || err?.message || "Demo login failed");
               } finally {
                 setLoading(false);
               }

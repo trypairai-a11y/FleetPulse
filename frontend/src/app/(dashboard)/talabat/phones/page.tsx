@@ -6,7 +6,7 @@ import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
-import { Smartphone, ShieldCheck, AlertTriangle, BatteryLow, Plus, X } from "lucide-react";
+import { Smartphone, ShieldCheck, AlertTriangle, Plus, X } from "lucide-react";
 
 const TALABAT_ZONES = [
   "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
@@ -27,11 +27,6 @@ export default function TalabatPhonesPage() {
   const devices = data?.data || [];
 
   const columns = [
-    {
-      key: "deviceId",
-      label: "Device ID",
-      render: (v: string) => <span className="font-mono text-sm">{v || "—"}</span>,
-    },
     { key: "model", label: "Model" },
     { key: "imei", label: "IMEI", render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "—"}</span> },
     {
@@ -39,26 +34,14 @@ export default function TalabatPhonesPage() {
       label: "Assigned Driver",
       render: (_: any, r: any) => r.driver?.name || <span className="text-secondary text-sm">Unassigned</span>,
     },
-    { key: "zone", label: "Zone" },
     {
-      key: "batteryLevel",
-      label: "Battery",
-      render: (v: number) => {
-        if (v == null) return <span className="text-secondary text-xs">—</span>;
-        const color = v < 20 ? "text-red-500" : v < 50 ? "text-amber-500" : "text-green-600";
-        return (
-          <div className="flex items-center gap-1.5">
-            <div className="w-16 bg-gray-100 rounded-full h-1.5">
-              <div
-                className={cn("h-1.5 rounded-full", v < 20 ? "bg-red-400" : v < 50 ? "bg-amber-400" : "bg-green-400")}
-                style={{ width: `${v}%` }}
-              />
-            </div>
-            <span className={cn("text-xs font-mono", color)}>{v}%</span>
-          </div>
-        );
-      },
+      key: "mobileNumber",
+      label: "Mobile Number",
+      render: (_: any, r: any) => (
+        <span className="font-mono text-xs text-secondary">{r.driver?.phone || "—"}</span>
+      ),
     },
+    { key: "zone", label: "Zone" },
     {
       key: "lastSeen",
       label: "Last Seen",
@@ -105,12 +88,6 @@ export default function TalabatPhonesPage() {
       <div className="grid grid-cols-4 gap-4">
         <StatCard title="Total Devices" value={summary?.total || devices.length} icon={Smartphone} />
         <StatCard title="Online" value={summary?.online || 0} icon={ShieldCheck} />
-        <StatCard
-          title="Low Battery"
-          value={summary?.lowBattery || 0}
-          icon={BatteryLow}
-          highlight={(summary?.lowBattery || 0) > 0}
-        />
         <StatCard
           title="Lost / Damaged"
           value={summary?.lost || 0}
@@ -159,9 +136,9 @@ export default function TalabatPhonesPage() {
                 ["Status", selected.status],
                 ["Zone", selected.zone],
                 ["Assigned Driver", selected.driver?.name || "Unassigned"],
+                ["Mobile Number", selected.driver?.phone || "—"],
                 ["OS Version", selected.osVersion || "—"],
                 ["App Version", selected.appVersion || "—"],
-                ["Battery", selected.batteryLevel != null ? `${selected.batteryLevel}%` : "—"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>

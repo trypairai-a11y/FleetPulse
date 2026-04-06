@@ -9,12 +9,12 @@ import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/cn";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
-  const { collapsed } = useSidebar();
+  const { collapsed, open } = useSidebar();
 
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className={cn("transition-all duration-200", collapsed ? "ml-16" : "ml-60")}>
+      <div className={cn("transition-all duration-200", !open ? "ml-0" : collapsed ? "ml-16" : "ml-60")}>
         <Header />
         <main className="p-8">{children}</main>
       </div>

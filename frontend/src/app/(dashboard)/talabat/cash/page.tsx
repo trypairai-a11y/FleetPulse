@@ -125,7 +125,7 @@ function DepositModal({ rider, onClose, onSuccess }: { rider: LedgerRow; onClose
 function DailyBreakdown({ row }: { row: LedgerRow }) {
   return (
     <tr className="bg-orange-50/50">
-      <td colSpan={14} className="px-3 py-3">
+      <td colSpan={8} className="px-3 py-3">
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
@@ -219,12 +219,6 @@ export default function TalabatCashPage() {
 
   // Summary calculations
   const totalPending = ledger.reduce((s, r) => s + r.pendingDues, 0);
-  const highDueCount = ledger.filter((r) => r.pendingDues > 50).length;
-  const todayKey = String(new Date().getDate()).padStart(2, "0");
-  const todaySalesCalc = ledger.reduce((s, r) => s + Number(r.dailySales?.[todayKey] || 0), 0);
-  const todayCollectionsCalc = ledger.reduce((s, r) => s + Number(r.dailyCollections?.[todayKey] || 0), 0);
-  const todaySales = todaySalesCalc;
-  const todayCollections = todayCollectionsCalc;
 
   function toggleRow(id: string) {
     setExpandedRows((prev) => {
@@ -312,30 +306,23 @@ export default function TalabatCashPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <StatCard
-          title="Total Pending Dues"
-          value={`${totalPending.toFixed(3)} KWD`}
+          title="Total Collected"
+          value={`${ledger.reduce((s, r) => s + r.totalCollection, 0).toFixed(3)} KWD`}
+          icon={TrendingUp}
+        />
+        <StatCard
+          title="Total Deposits"
+          value={`${ledger.reduce((s, r) => s + r.cashAlMuzaini + r.bankTransfer, 0).toFixed(3)} KWD`}
           icon={Wallet}
+        />
+        <StatCard
+          title="Total Remaining Balance"
+          value={`${totalPending.toFixed(3)} KWD`}
+          icon={AlertTriangle}
           highlight={totalPending > 100}
           className={totalPending > 100 ? "ring-orange-200" : ""}
-        />
-        <StatCard
-          title="Drivers > KWD 50"
-          value={highDueCount}
-          icon={AlertTriangle}
-          highlight={highDueCount > 0}
-        />
-        <StatCard
-          title="Today's Sales"
-          value={`${todaySales.toFixed(3)} KD`}
-          icon={TrendingUp}
-        />
-        <StatCard
-          title="Today's Collections"
-          value={`${todayCollections.toFixed(3)} KD`}
-          icon={TrendingUp}
-          highlight={todayCollections < todaySales * 0.8}
         />
       </div>
 
@@ -360,23 +347,17 @@ export default function TalabatCashPage() {
                 <th className="w-8 px-3 py-3" />
                 <th className="text-left text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Rider ID</th>
                 <th className="text-left text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Rider Name</th>
-                <th className="text-left text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Company</th>
                 <th className="text-left text-xs font-medium text-secondary px-4 py-3">Status</th>
-                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Opening Bal</th>
-                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Total Sales</th>
-                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Total Collect.</th>
-                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Cash / Muzaini</th>
-                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Bank Transfer</th>
-                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Incentives</th>
-                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Adjustments</th>
-                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Pending Dues</th>
+                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Collected</th>
+                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Deposit</th>
+                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Remaining Balance</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={14} className="px-5 py-12 text-center text-sm text-secondary">
+                  <td colSpan={8} className="px-5 py-12 text-center text-sm text-secondary">
                     No ledger data for {month}
                   </td>
                 </tr>
@@ -384,6 +365,7 @@ export default function TalabatCashPage() {
                 filtered.map((row) => {
                   const isExpanded = expandedRows.has(row.id);
                   const highDue = row.pendingDues > 50;
+                  const totalDeposit = row.cashAlMuzaini + row.bankTransfer;
                   return (
                     <>
                       <tr
@@ -403,7 +385,6 @@ export default function TalabatCashPage() {
                         </td>
                         <td className="px-4 py-3 text-sm font-mono text-secondary">{row.riderId}</td>
                         <td className="px-4 py-3 text-sm font-medium">{row.riderName}</td>
-                        <td className="px-4 py-3 text-sm text-secondary">{row.companyCode}</td>
                         <td className="px-4 py-3">
                           <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
                             "bg-green-50 text-green-600": row.status === "ACTIVE",
@@ -413,26 +394,11 @@ export default function TalabatCashPage() {
                             {row.status}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-right font-mono text-secondary">
-                          {kd(row.openingBalance)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right font-mono font-medium">
-                          {kd(row.totalSales)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right font-mono text-green-600">
+                        <td className="px-4 py-3 text-sm text-right font-mono text-green-600 font-medium">
                           {kd(row.totalCollection)}
                         </td>
-                        <td className="px-4 py-3 text-sm text-right font-mono text-secondary">
-                          {kd(row.cashAlMuzaini)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right font-mono text-secondary">
-                          {kd(row.bankTransfer)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right font-mono text-secondary">
-                          {kd(row.incentivesTips)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right font-mono text-secondary">
-                          {kd(row.adjustments)}
+                        <td className="px-4 py-3 text-sm text-right font-mono text-blue-600 font-medium">
+                          {kd(totalDeposit)}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <span className={cn(

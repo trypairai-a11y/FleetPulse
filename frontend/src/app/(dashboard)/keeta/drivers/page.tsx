@@ -5,7 +5,8 @@ import DataTable from "@/components/shared/DataTable";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import { cn } from "@/lib/cn";
-import { Plus, X } from "lucide-react";
+import AddDriverModal from "@/components/shared/AddDriverModal";
+import { Plus, CheckCircle2, XCircle } from "lucide-react";
 
 const ZONES = ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"];
 
@@ -19,8 +20,14 @@ export default function KeetaDriversPage() {
   if (filters.status) params.set("status", filters.status);
   if (filters.search) params.set("search", filters.search);
 
-  const { data } = useApiGet<any>(`/api/drivers?${params}`);
-  const drivers = data?.data || [];
+  const { data, refetch } = useApiGet<any>(`/api/drivers?${params}`);
+  const rawDrivers = data?.data || [];
+  // Mock face verification + mismatch data for demo
+  const drivers = rawDrivers.map((d: any, i: number) => ({
+    ...d,
+    faceVerified: d.faceVerified ?? (i % 7 !== 0),
+    faceMismatch: d.faceMismatch ?? (i % 7 === 0 || i % 13 === 0),
+  }));
 
   const columns = [
     { key: "name", label: "Driver Name", render: (_: any, r: any) => <span className="font-medium">{r.name}</span> },
@@ -31,6 +38,28 @@ export default function KeetaDriversPage() {
         {v === "MOTORCYCLE" ? "Bike" : "Car"}
       </span>
     )},
+    {
+      key: "faceVerified",
+      label: "Face",
+      render: (_: any, r: any) =>
+        r.faceMismatch ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
+            <XCircle size={13} /> Mismatch
+          </span>
+        ) : r.faceVerified != null ? (
+          r.faceVerified ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
+              <CheckCircle2 size={13} /> Pass
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600">
+              <XCircle size={13} /> Fail
+            </span>
+          )
+        ) : (
+          <span className="text-xs text-secondary">—</span>
+        ),
+    },
     { key: "status", label: "Status", render: (v: string) => (
       <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
         "bg-green-50 text-green-600": v === "ACTIVE", "bg-gray-100 text-gray-500": v === "INACTIVE",
@@ -57,8 +86,7 @@ export default function KeetaDriversPage() {
           { key: "search", type: "search", label: "Search", placeholder: "Search name or ID..." },
           { key: "zone", type: "select", label: "All Zones", options: ZONES.map(z => ({ value: z, label: z })) },
           { key: "status", type: "select", label: "All Statuses", options: [
-            { value: "ACTIVE", label: "Active" }, { value: "INACTIVE", label: "Inactive" },
-          ]},
+            { value: "ACTIVE", label: "Active" },          ]},
         ]}
         values={filters}
         onChange={(k, v) => setFilters({ ...filters, [k]: v })}
@@ -75,7 +103,8 @@ export default function KeetaDriversPage() {
                 ["Zone", selected.zone],
                 ["Vehicle", selected.vehicleType],
                 ["Status", selected.status],
-                ["Phone", selected.phone],
+                ["Company Phone", selected.phone],
+                ["Personal Phone", selected.personalPhone],
                 ["Hire Date", new Date(selected.hireDate).toLocaleDateString()],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
@@ -89,15 +118,14 @@ export default function KeetaDriversPage() {
       </SlidePanel>
 
       {showAdd && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Add Keeta Driver</h2>
-              <button onClick={() => setShowAdd(false)} className="p-1 hover:bg-gray-50 rounded-lg"><X size={18} /></button>
-            </div>
-            <p className="text-sm text-secondary">Driver form — connects to POST /api/drivers</p>
-          </div>
-        </div>
+        <AddDriverModal
+          platform="KEETA"
+          onClose={() => setShowAdd(false)}
+          onSuccess={() => {
+            setShowAdd(false);
+            refetch();
+          }}
+        />
       )}
     </div>
   );

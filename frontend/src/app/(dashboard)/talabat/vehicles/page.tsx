@@ -1,12 +1,13 @@
 "use client";
 import { useState } from "react";
 import { useApiGet } from "@/hooks/useApi";
+import api from "@/lib/api";
 import DataTable from "@/components/shared/DataTable";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
-import { Car, ShieldCheck, AlertTriangle, Wrench, Plus, X, CheckCircle2, XCircle } from "lucide-react";
+import { Car, ShieldCheck, AlertTriangle, Wrench, Plus, X, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
 const TALABAT_ZONES = [
   "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
@@ -23,18 +24,156 @@ const DOC_STATUS_COLORS: Record<string, string> = {
   MISSING: "bg-gray-100 text-gray-500",
 };
 
-function EquipmentBadge({ compliant }: { compliant: boolean | null | undefined }) {
-  if (compliant === null || compliant === undefined) {
-    return <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-500">Not Checked</span>;
+const INITIAL_FORM = {
+  plateNumber: "",
+  vehicleType: "MOTORCYCLE" as "MOTORCYCLE" | "CAR",
+  make: "",
+  model: "",
+  year: new Date().getFullYear(),
+  fuelType: "Petrol",
+  insuranceExpiry: "",
+  registrationExpiry: "",
+};
+
+function AddVehicleModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const [form, setForm] = useState(INITIAL_FORM);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const { data: companiesData } = useApiGet<any>("/api/companies?platform=TALABAT&limit=50");
+  const companies = companiesData?.data || [];
+
+  const [companyId, setCompanyId] = useState("");
+
+  // Auto-select first company when loaded
+  const firstCompanyId = companies[0]?.id;
+  if (firstCompanyId && !companyId) {
+    setCompanyId(firstCompanyId);
   }
-  return compliant ? (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
-      <CheckCircle2 size={11} /> Compliant
-    </span>
-  ) : (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600">
-      <XCircle size={11} /> Non-Compliant
-    </span>
+
+  const set = (key: string, value: string | number) => setForm((f) => ({ ...f, [key]: value }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (!companyId) { setError("No company found for Talabat"); return; }
+    setSubmitting(true);
+    try {
+      await api.post("/api/vehicles", {
+        ...form,
+        companyId,
+        insuranceExpiry: new Date(form.insuranceExpiry).toISOString(),
+        registrationExpiry: new Date(form.registrationExpiry).toISOString(),
+      });
+      onSuccess();
+    } catch (err: any) {
+      setError(err.response?.data?.error || err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const inputClass = "w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary";
+  const labelClass = "block text-xs font-medium text-secondary mb-1";
+
+  return (
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-lg w-full max-w-lg p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-semibold">Add Vehicle</h2>
+          <button onClick={onClose} className="p-1 hover:bg-gray-50 rounded-lg">
+            <X size={18} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Plate + Type row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Plate Number *</label>
+              <input required className={inputClass} placeholder="KW-12345" value={form.plateNumber} onChange={(e) => set("plateNumber", e.target.value)} />
+            </div>
+            <div>
+              <label className={labelClass}>Vehicle Type *</label>
+              <select className={inputClass} value={form.vehicleType} onChange={(e) => set("vehicleType", e.target.value)}>
+                <option value="MOTORCYCLE">Motorcycle</option>
+                <option value="CAR">Car</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Make + Model row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Make *</label>
+              <input required className={inputClass} placeholder="Honda" value={form.make} onChange={(e) => set("make", e.target.value)} />
+            </div>
+            <div>
+              <label className={labelClass}>Model *</label>
+              <input required className={inputClass} placeholder="PCX 160" value={form.model} onChange={(e) => set("model", e.target.value)} />
+            </div>
+          </div>
+
+          {/* Year + Fuel row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Year *</label>
+              <input required type="number" min={2000} max={2030} className={inputClass} value={form.year} onChange={(e) => set("year", parseInt(e.target.value))} />
+            </div>
+            <div>
+              <label className={labelClass}>Fuel Type</label>
+              <select className={inputClass} value={form.fuelType} onChange={(e) => set("fuelType", e.target.value)}>
+                <option value="Petrol">Petrol</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Electric">Electric</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Company selector (if multiple) */}
+          {companies.length > 1 && (
+            <div>
+              <label className={labelClass}>Company *</label>
+              <select className={inputClass} value={companyId} onChange={(e) => setCompanyId(e.target.value)}>
+                {companies.map((c: any) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Expiry dates row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Insurance Expiry *</label>
+              <input required type="date" className={inputClass} value={form.insuranceExpiry} onChange={(e) => set("insuranceExpiry", e.target.value)} />
+            </div>
+            <div>
+              <label className={labelClass}>Registration Expiry *</label>
+              <input required type="date" className={inputClass} value={form.registrationExpiry} onChange={(e) => set("registrationExpiry", e.target.value)} />
+            </div>
+          </div>
+
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-xl">{error}</p>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium text-secondary hover:bg-gray-50 rounded-xl transition-colors">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex items-center gap-2 px-5 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-50"
+            >
+              {submitting && <Loader2 size={14} className="animate-spin" />}
+              {submitting ? "Adding..." : "Add Vehicle"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -62,7 +201,7 @@ export default function TalabatVehiclesPage() {
     },
     {
       key: "makeModel",
-      label: "Make / Model",
+      label: "Model",
       render: (_: any, r: any) => <span>{r.make} {r.model}{r.year ? ` (${r.year})` : ""}</span>,
     },
     {
@@ -82,11 +221,6 @@ export default function TalabatVehiclesPage() {
       render: (_: any, r: any) => r.driver?.name || <span className="text-secondary">Unassigned</span>,
     },
     { key: "zone", label: "Zone" },
-    {
-      key: "equipmentCompliant",
-      label: "Equipment Compliance",
-      render: (v: boolean | null) => <EquipmentBadge compliant={v} />,
-    },
     {
       key: "status",
       label: "Status",
@@ -154,7 +288,6 @@ export default function TalabatVehiclesPage() {
             key: "status", type: "select", label: "All Statuses", options: [
               { value: "ACTIVE", label: "Active" },
               { value: "MAINTENANCE", label: "Maintenance" },
-              { value: "INACTIVE", label: "Inactive" },
             ],
           },
         ]}
@@ -258,17 +391,14 @@ export default function TalabatVehiclesPage() {
 
       {/* Add Vehicle Modal */}
       {showAdd && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Add Vehicle</h2>
-              <button onClick={() => setShowAdd(false)} className="p-1 hover:bg-gray-50 rounded-lg">
-                <X size={18} />
-              </button>
-            </div>
-            <p className="text-sm text-secondary">Vehicle form — connects to POST /api/vehicles with platform=TALABAT</p>
-          </div>
-        </div>
+        <AddVehicleModal
+          onClose={() => setShowAdd(false)}
+          onSuccess={() => {
+            setShowAdd(false);
+            // refetch handled by useApiGet re-render
+            window.location.reload();
+          }}
+        />
       )}
     </div>
   );

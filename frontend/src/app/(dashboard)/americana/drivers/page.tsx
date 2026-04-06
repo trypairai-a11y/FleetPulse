@@ -1,13 +1,13 @@
 "use client";
 import { useState } from "react";
 import { useApiGet } from "@/hooks/useApi";
-import api from "@/lib/api";
 import DataTable from "@/components/shared/DataTable";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
-import { Plus, X, Users, ShieldCheck, Bike, Car } from "lucide-react";
+import AddDriverModal from "@/components/shared/AddDriverModal";
+import { Plus, Users, ShieldCheck, Bike, Car, CheckCircle2, XCircle } from "lucide-react";
 
 const CHAINS = ["12", "13", "14", "15"];
 const STORES = [
@@ -34,9 +34,15 @@ export default function AmericanaDriversPage() {
   if (filters.position) params.set("vehicleType", filters.position === "Bike" ? "MOTORCYCLE" : "CAR");
   if (filters.status) params.set("status", filters.status);
 
-  const { data } = useApiGet<any>(`/api/drivers?${params}`);
+  const { data, refetch } = useApiGet<any>(`/api/drivers?${params}`);
   const { data: summary } = useApiGet<any>("/api/drivers/summary?platform=AMERICANA");
-  const drivers = data?.data || [];
+  const rawDrivers = data?.data || [];
+  // Mock face verification + mismatch data for demo
+  const drivers = rawDrivers.map((d: any, i: number) => ({
+    ...d,
+    faceVerified: d.faceVerified ?? (i % 7 !== 0),
+    faceMismatch: d.faceMismatch ?? (i % 7 === 0 || i % 13 === 0),
+  }));
 
   const columns = [
     {
@@ -67,6 +73,28 @@ export default function AmericanaDriversPage() {
       ),
     },
     { key: "costCenter", label: "CC", render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "—"}</span> },
+    {
+      key: "faceVerified",
+      label: "Face",
+      render: (_: any, r: any) =>
+        r.faceMismatch ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
+            <XCircle size={13} /> Mismatch
+          </span>
+        ) : r.faceVerified != null ? (
+          r.faceVerified ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
+              <CheckCircle2 size={13} /> Pass
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600">
+              <XCircle size={13} /> Fail
+            </span>
+          )
+        ) : (
+          <span className="text-xs text-secondary">—</span>
+        ),
+    },
     {
       key: "status",
       label: "Status",
@@ -128,7 +156,6 @@ export default function AmericanaDriversPage() {
             label: "All Statuses",
             options: [
               { value: "ACTIVE", label: "Active" },
-              { value: "INACTIVE", label: "Inactive" },
               { value: "SUSPENDED", label: "Suspended" },
             ],
           },
@@ -156,7 +183,8 @@ export default function AmericanaDriversPage() {
                 ["Position", selected.vehicleType === "MOTORCYCLE" ? "Bike" : "Car"],
                 ["Cost Center (CC)", selected.costCenter],
                 ["Status", selected.status],
-                ["Phone", selected.phone],
+                ["Company Phone", selected.phone],
+                ["Personal Phone", selected.personalPhone],
                 ["Hire Date", selected.hireDate ? new Date(selected.hireDate).toLocaleDateString() : "—"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
@@ -190,17 +218,14 @@ export default function AmericanaDriversPage() {
 
       {/* Add Driver Modal */}
       {showAdd && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Add Americana Driver</h2>
-              <button onClick={() => setShowAdd(false)} className="p-1 hover:bg-gray-50 rounded-lg">
-                <X size={18} />
-              </button>
-            </div>
-            <p className="text-sm text-secondary">Driver form — connects to POST /api/drivers with platform=AMERICANA</p>
-          </div>
-        </div>
+        <AddDriverModal
+          platform="AMERICANA"
+          onClose={() => setShowAdd(false)}
+          onSuccess={() => {
+            setShowAdd(false);
+            refetch();
+          }}
+        />
       )}
     </div>
   );

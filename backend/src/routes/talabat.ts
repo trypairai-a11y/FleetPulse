@@ -3,6 +3,7 @@ import { prisma } from "../config";
 import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
+import { parseLocalDate, parseLocalDateEnd } from "../utils/date";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -21,17 +22,8 @@ router.get("/sessions", async (req: Request, res: Response) => {
     if (status) where.status = status;
     if (dateFrom || dateTo) {
       where.date = {};
-      if (dateFrom) {
-        const d = new Date(dateFrom as string);
-        d.setHours(0, 0, 0, 0);
-        d.setDate(d.getDate() - 1); // include UTC-offset dates
-        where.date.gte = d;
-      }
-      if (dateTo) {
-        const d = new Date(dateTo as string);
-        d.setHours(23, 59, 59, 999);
-        where.date.lte = d;
-      }
+      if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
+      if (dateTo) where.date.lte = parseLocalDateEnd(dateTo as string);
     }
 
     const [data, total] = await Promise.all([
@@ -148,7 +140,7 @@ router.get("/sessions/:id", async (req: Request, res: Response) => {
   try {
     const session = await prisma.talabatSession.findFirst({
       where: { id: req.params.id, tenantId: req.user!.tenantId },
-      include: { driver: true, complianceEvents: true },
+      include: { driver: true, complianceEvents: true, deliveryItems: { orderBy: { finishedAt: "desc" } } },
     });
     if (!session) { res.status(404).json({ error: "Session not found" }); return; }
     res.json(session);
@@ -184,6 +176,120 @@ router.put("/sessions/:id", async (req: Request, res: Response) => {
   }
 });
 
+// ─── Deliveries ────────────────────────────────────────────────────────────
+
+// GET /deliveries — List individual deliveries with filters, paginated
+router.get("/deliveries", async (req: Request, res: Response) => {
+  try {
+    const { skip, limit, page } = getPagination(req);
+    const tenantId = req.user!.tenantId;
+    const { driverId, sessionId, dateFrom, dateTo, status } = req.query;
+    const where: any = { tenantId };
+    if (driverId) where.driverId = driverId;
+    if (sessionId) where.sessionId = sessionId;
+    if (status) where.status = status;
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
+      if (dateTo) where.date.lte = parseLocalDateEnd(dateTo as string);
+    }
+
+    const [data, total] = await Promise.all([
+      prisma.talabatDelivery.findMany({
+        where, skip, take: limit,
+        orderBy: { finishedAt: "desc" },
+        include: {
+          driver: { select: { id: true, name: true, platform: true } },
+          session: { select: { id: true, sessionCode: true, zone: true } },
+        },
+      }),
+      prisma.talabatDelivery.count({ where }),
+    ]);
+    res.json(paginatedResponse(data, total, page, limit));
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /deliveries/summary — Aggregate stats for deliveries
+router.get("/deliveries/summary", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { dateFrom, dateTo, driverId } = req.query;
+    const where: any = { tenantId };
+    if (driverId) where.driverId = driverId;
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
+      if (dateTo) where.date.lte = parseLocalDateEnd(dateTo as string);
+    }
+
+    const [total, aggregates, byType] = await Promise.all([
+      prisma.talabatDelivery.count({ where }),
+      prisma.talabatDelivery.aggregate({
+        where,
+        _sum: { amount: true, tip: true, distanceKm: true },
+      }),
+      prisma.talabatDelivery.groupBy({
+        by: ["orderType"],
+        where,
+        _count: { id: true },
+      }),
+    ]);
+
+    res.json({
+      totalDeliveries: total,
+      totalAmount: Number(aggregates._sum.amount || 0),
+      totalTips: Number(aggregates._sum.tip || 0),
+      totalDistanceKm: Number(aggregates._sum.distanceKm || 0),
+      byType: byType.map((t) => ({ type: t.orderType, count: t._count.id })),
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /deliveries/:id — Single delivery
+router.get("/deliveries/:id", async (req: Request, res: Response) => {
+  try {
+    const delivery = await prisma.talabatDelivery.findFirst({
+      where: { id: req.params.id, tenantId: req.user!.tenantId },
+      include: { driver: true, session: true },
+    });
+    if (!delivery) { res.status(404).json({ error: "Delivery not found" }); return; }
+    res.json(delivery);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /deliveries — Create delivery
+router.post("/deliveries", async (req: Request, res: Response) => {
+  try {
+    const delivery = await prisma.talabatDelivery.create({
+      data: { ...req.body, tenantId: req.user!.tenantId },
+    });
+    res.status(201).json(delivery);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// PUT /deliveries/:id — Update delivery
+router.put("/deliveries/:id", async (req: Request, res: Response) => {
+  try {
+    const delivery = await prisma.talabatDelivery.updateMany({
+      where: { id: req.params.id, tenantId: req.user!.tenantId },
+      data: req.body,
+    });
+    if (delivery.count === 0) { res.status(404).json({ error: "Delivery not found" }); return; }
+    const updated = await prisma.talabatDelivery.findUnique({ where: { id: req.params.id } });
+    res.json(updated);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // ─── Compliance ─────────────────────────────────────────────────────────────
 
 // GET /compliance — List events with filters, paginated
@@ -198,8 +304,8 @@ router.get("/compliance", async (req: Request, res: Response) => {
     if (resolved !== undefined) where.resolved = resolved === "true";
     if (dateFrom || dateTo) {
       where.createdAt = {};
-      if (dateFrom) where.createdAt.gte = new Date(dateFrom as string);
-      if (dateTo) where.createdAt.lte = new Date(dateTo as string);
+      if (dateFrom) where.createdAt.gte = parseLocalDate(dateFrom as string);
+      if (dateTo) where.createdAt.lte = parseLocalDateEnd(dateTo as string);
     }
 
     const [data, total] = await Promise.all([
@@ -326,35 +432,60 @@ router.get("/drivers/summary", async (req: Request, res: Response) => {
 
 // ─── Order Summary ──────────────────────────────────────────────────────────
 
-// GET /orders/summary — Totals from TalabatSession with week-over-week comparison
+// GET /orders/summary — Totals from TalabatSession with week-over-week comparison + top earners
 router.get("/orders/summary", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
     const { dateFrom, dateTo } = req.query;
 
     const now = new Date();
-    const currentEnd = dateTo ? new Date(dateTo as string) : now;
+    const currentEnd = dateTo ? parseLocalDateEnd(dateTo as string) : now;
     const currentStart = dateFrom
-      ? new Date(dateFrom as string)
+      ? parseLocalDate(dateFrom as string)
       : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     const rangeDuration = currentEnd.getTime() - currentStart.getTime();
     const prevEnd = new Date(currentStart.getTime() - 1);
     const prevStart = new Date(prevEnd.getTime() - rangeDuration);
 
-    const [current, previous] = await Promise.all([
+    const currentWhere = { tenantId, date: { gte: currentStart, lte: currentEnd } };
+    const previousWhere = { tenantId, date: { gte: prevStart, lte: prevEnd } };
+
+    const [current, previous, topEarnersRaw] = await Promise.all([
       prisma.talabatSession.aggregate({
-        where: { tenantId, date: { gte: currentStart, lte: currentEnd } },
+        where: currentWhere,
         _sum: { deliveries: true, distanceKm: true, tips: true, cashCollected: true },
       }),
       prisma.talabatSession.aggregate({
-        where: { tenantId, date: { gte: prevStart, lte: prevEnd } },
+        where: previousWhere,
         _sum: { deliveries: true, distanceKm: true, tips: true, cashCollected: true },
+      }),
+      prisma.talabatSession.groupBy({
+        by: ["driverId"],
+        where: currentWhere,
+        _sum: { deliveries: true, cashCollected: true, tips: true },
+        orderBy: { _sum: { deliveries: "desc" } },
+        take: 5,
       }),
     ]);
 
-    const pctChange = (curr: number, prev: number) =>
-      prev === 0 ? (curr > 0 ? 100 : 0) : Math.round(((curr - prev) / prev) * 1000) / 10;
+    // Resolve driver names for top earners
+    const driverIds = topEarnersRaw.map((e) => e.driverId);
+    const drivers = driverIds.length > 0
+      ? await prisma.driver.findMany({
+          where: { id: { in: driverIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+    const driverMap = new Map(drivers.map((d) => [d.id, d.name]));
+
+    const topEarners = topEarnersRaw.map((e) => ({
+      driverId: e.driverId,
+      driverName: driverMap.get(e.driverId) || "Unknown",
+      deliveries: Number(e._sum.deliveries || 0),
+      cashKd: Number(e._sum.cashCollected || 0),
+      tipsKd: Number(e._sum.tips || 0),
+    }));
 
     const totalDeliveries = Number(current._sum.deliveries || 0);
     const totalDistanceKm = Number(current._sum.distanceKm || 0);
@@ -367,17 +498,67 @@ router.get("/orders/summary", async (req: Request, res: Response) => {
     const prevCash = Number(previous._sum.cashCollected || 0);
 
     res.json({
+      thisWeek: {
+        deliveries: totalDeliveries,
+        distanceKm: totalDistanceKm,
+        tipsKd: totalTips,
+        cashKd: totalCash,
+      },
+      lastWeek: {
+        deliveries: prevDeliveries,
+        distanceKm: prevDistanceKm,
+        tipsKd: prevTips,
+        cashKd: prevCash,
+      },
+      topEarners,
+      // Keep flat fields for backward compat
       totalDeliveries,
       totalDistanceKm,
       totalTips,
       totalCash,
-      weekOverWeek: {
-        deliveries: pctChange(totalDeliveries, prevDeliveries),
-        distanceKm: pctChange(totalDistanceKm, prevDistanceKm),
-        tips: pctChange(totalTips, prevTips),
-        cash: pctChange(totalCash, prevCash),
-      },
     });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Orders by Hour ────────────────────────────────────────────────────────
+
+// GET /orders/hourly — Deliveries grouped by hour of day
+router.get("/orders/hourly", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { dateFrom, dateTo } = req.query;
+
+    const where: any = { tenantId };
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
+      if (dateTo) where.date.lte = parseLocalDateEnd(dateTo as string);
+    }
+
+    const sessions = await prisma.talabatSession.findMany({
+      where,
+      select: { plannedStart: true, actualStart: true, deliveries: true },
+    });
+
+    // Group deliveries by hour of day (use actualStart if available, else plannedStart)
+    const hourlyMap: Record<number, number> = {};
+    for (let h = 0; h < 24; h++) hourlyMap[h] = 0;
+
+    for (const s of sessions) {
+      const startTime = s.actualStart || s.plannedStart;
+      if (!startTime) continue;
+      const hour = new Date(startTime).getHours();
+      hourlyMap[hour] += s.deliveries;
+    }
+
+    const hourly = Object.entries(hourlyMap).map(([hour, orders]) => ({
+      hour: Number(hour),
+      orders,
+    }));
+
+    res.json(hourly);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

@@ -12,6 +12,7 @@ router.get("/", async (req: Request, res: Response) => {
     const { skip, limit, page } = getPagination(req);
     const tenantId = req.user!.tenantId;
     const where: any = { tenantId };
+    if (req.query.platform) where.platform = req.query.platform;
 
     const [data, total] = await Promise.all([
       prisma.company.findMany({

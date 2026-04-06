@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   XCircle,
   WifiOff,
-  Battery,
   Signal,
 } from "lucide-react";
 
@@ -37,17 +36,6 @@ const STATUS_STYLES: Record<string, string> = {
   LOST: "bg-red-50 text-red-600",
   MAINTENANCE: "bg-orange-50 text-orange-600",
 };
-
-function BatteryIndicator({ level }: { level: number | null }) {
-  if (level == null) return <span className="text-xs text-secondary">—</span>;
-  const color = level < 20 ? "text-red-500" : level < 50 ? "text-yellow-600" : "text-green-600";
-  return (
-    <span className={cn("inline-flex items-center gap-1 text-xs font-medium", color)}>
-      <Battery size={13} />
-      {level}%
-    </span>
-  );
-}
 
 function OnlineIndicator({ online }: { online: boolean | null }) {
   if (online === null) return <span className="text-xs text-secondary">—</span>;
@@ -78,11 +66,6 @@ export default function AmericanaPhonePage() {
 
   const columns = [
     {
-      key: "deviceId",
-      label: "Device ID",
-      render: (v: string) => <span className="font-mono text-xs font-medium">{v || "—"}</span>,
-    },
-    {
       key: "imei",
       label: "IMEI",
       render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "—"}</span>,
@@ -109,14 +92,16 @@ export default function AmericanaPhonePage() {
       ),
     },
     {
+      key: "mobileNumber",
+      label: "Mobile Number",
+      render: (_: any, r: any) => (
+        <span className="font-mono text-xs text-secondary">{r.driver?.phone || "—"}</span>
+      ),
+    },
+    {
       key: "online",
       label: "Connectivity",
       render: (v: boolean) => <OnlineIndicator online={v ?? null} />,
-    },
-    {
-      key: "batteryLevel",
-      label: "Battery",
-      render: (v: number) => <BatteryIndicator level={v ?? null} />,
     },
     {
       key: "appVersion",
@@ -165,12 +150,6 @@ export default function AmericanaPhonePage() {
           icon={XCircle}
           highlight={(summary?.unassigned || 0) > 0}
         />
-        <StatCard
-          title="Low Battery"
-          value={summary?.lowBattery || devices.filter((d: any) => (d.batteryLevel ?? 100) < 20).length}
-          icon={Battery}
-          highlight={(summary?.lowBattery || 0) > 0}
-        />
       </div>
 
       {/* Filters */}
@@ -217,7 +196,6 @@ export default function AmericanaPhonePage() {
                 ["Store", selected.storeName],
                 ["Assigned Driver", selected.driver?.name || selected.assignedDriver || "Unassigned"],
                 ["Status", selected.status],
-                ["Battery", selected.batteryLevel != null ? `${selected.batteryLevel}%` : "—"],
                 ["Connectivity", selected.online ? "Online" : "Offline"],
                 ["Last Seen", selected.lastSeen ? new Date(selected.lastSeen).toLocaleString() : "—"],
                 ["Last Location", selected.lastLocation || "—"],

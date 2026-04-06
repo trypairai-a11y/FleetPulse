@@ -65,3 +65,4 @@ licenses/
 
 # Misc
 *.log
+.playwright-mcp/

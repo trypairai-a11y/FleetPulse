@@ -70,16 +70,18 @@ export class AuthService {
 
   static async sendOtp(phone: string) {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    await redis.set(`otp:${phone}`, code, "EX", 300);
+    if (redis) {
+      await redis.set(`otp:${phone}`, code, "EX", 300);
+    }
     console.log(`[DEV] OTP for ${phone}: ${code}`);
     return { message: "OTP sent" };
   }
 
   static async verifyOtp(phone: string, code: string) {
-    const stored = await redis.get(`otp:${phone}`);
+    const stored = redis ? await redis.get(`otp:${phone}`) : null;
     if (!stored || stored !== code) throw new Error("Invalid or expired OTP");
 
-    await redis.del(`otp:${phone}`);
+    if (redis) await redis.del(`otp:${phone}`);
 
     const user = await prisma.user.findFirst({ where: { phone } });
     if (!user) throw new Error("User not found");

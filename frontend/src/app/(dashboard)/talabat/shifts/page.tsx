@@ -8,13 +8,21 @@ import { cn } from "@/lib/cn";
 import {
   Clock, CheckCircle2, XCircle, AlertTriangle,
   ShieldCheck, Camera, MapPin, CalendarDays, ChevronRight,
+  Phone, UserCheck, UserX, Users,
 } from "lucide-react";
 
 const TALABAT_ZONES = [
   "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
 ];
 
-function VerifiedBadge({ value, label }: { value: boolean; label?: string }) {
+function VerifiedBadge({ value, label }: { value: boolean | "mismatch"; label?: string }) {
+  if (value === "mismatch") {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
+        <AlertTriangle size={11} /> {label ? `${label} Mismatch` : "Mismatch"}
+      </span>
+    );
+  }
   return value ? (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
       <CheckCircle2 size={11} /> {label || "Verified"}
@@ -26,37 +34,25 @@ function VerifiedBadge({ value, label }: { value: boolean; label?: string }) {
   );
 }
 
-function GpsBar({ compliance }: { compliance: number }) {
-  const pct = Math.min(100, Math.max(0, compliance));
-  const color = pct >= 90 ? "bg-green-400" : pct >= 70 ? "bg-amber-400" : "bg-red-400";
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 bg-gray-100 rounded-full h-1.5 w-20">
-        <div className={cn("h-1.5 rounded-full", color)} style={{ width: `${pct}%` }} />
-      </div>
-      <span className="text-xs text-secondary font-mono">{pct}%</span>
-    </div>
-  );
-}
-
 export default function TalabatShiftsPage() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
-  const [week, setWeek] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
 
-  const params = new URLSearchParams({ platform: "TALABAT", limit: "100" });
+  const params = new URLSearchParams({ platform: "TALABAT", date });
   if (filters.zone) params.set("zone", filters.zone);
   if (filters.batch) params.set("batchNumber", filters.batch);
-  if (filters.status) params.set("status", filters.status);
+  if (filters.bookingFilter) params.set("bookingFilter", filters.bookingFilter);
   if (filters.search) params.set("search", filters.search);
-  params.set("dateFrom", week);
 
+  const { data: bookingData } = useApiGet<any>(`/api/shifts/booking-status?${params}`);
   const { data: summary } = useApiGet<any>("/api/shifts/summary?platform=TALABAT");
-  const { data: shifts } = useApiGet<any>(`/api/shifts?${params}`);
-  const shiftList = shifts?.data || [];
+  const driverList = bookingData?.drivers || [];
 
-  const totalBooked = shiftList.reduce((s: number, r: any) => s + (r.bookedHours || 0), 0);
-  const totalActual = shiftList.reduce((s: number, r: any) => s + (r.actualHours || 0), 0);
+  const bookedCount = bookingData?.bookedCount || 0;
+  const notBookedCount = bookingData?.notBookedCount || 0;
+  const totalDrivers = bookingData?.totalDrivers || 0;
+  const bookingRate = totalDrivers > 0 ? Math.round((bookedCount / totalDrivers) * 100) : 0;
 
   return (
     <div className="space-y-6 max-w-7xl">
@@ -72,9 +68,19 @@ export default function TalabatShiftsPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-4">
-        <StatCard title="Shifts This Week" value={shiftList.length} icon={CalendarDays} />
-        <StatCard title="Booked Hours" value={`${totalBooked.toFixed(1)}h`} icon={Clock} />
-        <StatCard title="Actual Hours" value={`${totalActual.toFixed(1)}h`} icon={Clock} />
+        <StatCard title="Total Drivers" value={totalDrivers} icon={Users} />
+        <StatCard
+          title="Booked"
+          value={`${bookedCount} / ${totalDrivers}`}
+          icon={UserCheck}
+          trend={`${bookingRate}% booking rate`}
+        />
+        <StatCard
+          title="Not Booked"
+          value={notBookedCount}
+          icon={UserX}
+          highlight={notBookedCount > 0}
+        />
         <StatCard
           title="Face Fail Pre-Shift"
           value={summary?.faceFailCount || 0}
@@ -87,8 +93,8 @@ export default function TalabatShiftsPage() {
       <div className="flex gap-3 flex-wrap items-center">
         <input
           type="date"
-          value={week}
-          onChange={(e) => setWeek(e.target.value)}
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
           className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
         />
         <FilterBar
@@ -103,11 +109,9 @@ export default function TalabatShiftsPage() {
               options: ["Batch A", "Batch B", "Batch C", "Batch D"].map(b => ({ value: b, label: b })),
             },
             {
-              key: "status", type: "select", label: "All Statuses", options: [
-                { value: "COMPLETED", label: "Completed" },
-                { value: "IN_PROGRESS", label: "In Progress" },
-                { value: "MISSED", label: "Missed" },
-                { value: "CANCELLED", label: "Cancelled" },
+              key: "bookingFilter", type: "select", label: "All Drivers", options: [
+                { value: "BOOKED", label: "Booked" },
+                { value: "NOT_BOOKED", label: "Not Booked" },
               ],
             },
           ]}
@@ -116,95 +120,109 @@ export default function TalabatShiftsPage() {
         />
       </div>
 
-      {/* Shifts Table */}
+      {/* Drivers Table */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-50">
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Phone</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Batch</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Session</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Zone</th>
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Booking</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Booked</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Actual</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Face</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Equipment</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">GPS</th>
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">In</th>
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Out</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
                 <th className="px-5 py-3" />
               </tr>
             </thead>
             <tbody>
-              {shiftList.length === 0 ? (
+              {driverList.length === 0 ? (
                 <tr>
                   <td colSpan={11} className="px-5 py-12 text-center text-sm text-secondary">
-                    No shifts found for this period
+                    No drivers found
                   </td>
                 </tr>
               ) : (
-                shiftList.map((shift: any) => {
-                  const hoursMatch = !shift.bookedHours || !shift.actualHours || Math.abs(shift.bookedHours - shift.actualHours) < 0.5;
+                driverList.map((d: any) => {
+                  const hoursMatch = !d.bookedHours || !d.actualHours || Math.abs(d.bookedHours - d.actualHours) < 0.5;
                   return (
                     <tr
-                      key={shift.id}
-                      onClick={() => setSelected(shift)}
-                      className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50 transition-colors"
+                      key={d.driverId}
+                      onClick={() => setSelected(d)}
+                      className={cn(
+                        "border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50 transition-colors",
+                        !d.hasBooked && "bg-red-50/30"
+                      )}
                     >
-                      <td className="px-5 py-3 text-sm font-medium">{shift.driver?.name}</td>
                       <td className="px-5 py-3">
-                        <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-orange-50 text-orange-700">
-                          {shift.batchNumber || "—"}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <div className="font-mono text-xs text-foreground leading-tight">
-                          <span className="font-medium">{shift.zone}_{shift.vehicleType?.toLowerCase() || "car"}</span>
-                          <br />
-                          <span className="text-secondary">
-                            {shift.scheduledStart
-                              ? new Date(shift.scheduledStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                              : "—"}
-                            {shift.scheduledEnd
-                              ? `–${new Date(shift.scheduledEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-                              : ""}
-                            {shift.scheduledDuration ? ` (${shift.scheduledDuration})` : ""}
-                          </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{d.driverName}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-3 text-sm text-secondary">{shift.zone}</td>
+                      <td className="px-5 py-3">
+                        <a
+                          href={`tel:${d.phone}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-mono"
+                        >
+                          <Phone size={11} />
+                          {d.phone}
+                        </a>
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-orange-50 text-orange-700">
+                          {d.batchNumber || "—"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-sm text-secondary">{d.zone || "—"}</td>
+                      <td className="px-5 py-3">
+                        {d.hasBooked ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
+                            <CheckCircle2 size={11} /> Booked
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600">
+                            <XCircle size={11} /> Not Booked
+                          </span>
+                        )}
+                      </td>
                       <td className="px-5 py-3 text-sm font-mono text-secondary">
-                        {shift.bookedHours ? `${shift.bookedHours.toFixed(1)}h` : "—"}
+                        {d.bookedHours ? `${d.bookedHours.toFixed(1)}h` : "—"}
                       </td>
                       <td className="px-5 py-3">
                         <span className={cn(
                           "text-sm font-mono",
                           !hoursMatch ? "text-amber-600 font-medium" : "text-secondary"
                         )}>
-                          {shift.actualHours ? `${shift.actualHours.toFixed(1)}h` : "—"}
+                          {d.actualHours ? `${d.actualHours.toFixed(1)}h` : "—"}
                           {!hoursMatch && <AlertTriangle size={11} className="inline ml-1" />}
                         </span>
                       </td>
-                      <td className="px-5 py-3">
-                        <VerifiedBadge value={shift.faceVerified} />
+                      <td className="px-5 py-3 text-sm font-mono text-secondary">
+                        {d.actualStart
+                          ? new Date(d.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                          : "—"}
                       </td>
-                      <td className="px-5 py-3">
-                        <VerifiedBadge value={shift.equipmentVerified} label="Equip" />
-                      </td>
-                      <td className="px-5 py-3">
-                        {shift.gpsCompliance !== undefined
-                          ? <GpsBar compliance={shift.gpsCompliance} />
-                          : <span className="text-xs text-secondary">—</span>
-                        }
+                      <td className="px-5 py-3 text-sm font-mono text-secondary">
+                        {d.actualEnd
+                          ? new Date(d.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                          : "—"}
                       </td>
                       <td className="px-5 py-3">
                         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
-                          "bg-green-50 text-green-600": shift.status === "COMPLETED",
-                          "bg-blue-50 text-blue-600": shift.status === "IN_PROGRESS",
-                          "bg-red-50 text-red-600": shift.status === "MISSED",
-                          "bg-gray-100 text-gray-500": shift.status === "CANCELLED",
+                          "bg-green-50 text-green-600": d.status === "COMPLETED",
+                          "bg-blue-50 text-blue-600": d.status === "IN_PROGRESS",
+                          "bg-red-50 text-red-600": d.status === "MISSED",
+                          "bg-gray-100 text-gray-500": d.status === "CANCELLED",
+                          "bg-amber-50 text-amber-700 border border-amber-200": d.status === "NO_SHOW",
+                          "bg-gray-50 text-gray-400": d.status === "NOT_BOOKED",
+                          "bg-orange-50 text-orange-600": d.status === "BOOKED",
                         })}>
-                          {shift.status}
+                          {d.status === "NOT_BOOKED" ? "Not Booked" : d.status === "NO_SHOW" ? "No Show" : d.status}
                         </span>
                       </td>
                       <td className="px-5 py-3">
@@ -219,82 +237,94 @@ export default function TalabatShiftsPage() {
         </div>
       </div>
 
-      {/* Shift Detail Panel */}
+      {/* Detail Panel */}
       <SlidePanel
         open={!!selected}
         onClose={() => setSelected(null)}
-        title={selected?.driver?.name || "Shift Detail"}
-        subtitle={`Talabat Shift — ${selected?.batchNumber || ""}`}
+        title={selected?.driverName || "Driver Detail"}
+        subtitle={`Talabat — ${selected?.batchNumber || ""} · ${selected?.zone || ""}`}
       >
         {selected && (
           <div className="space-y-5">
-            {/* Session Info */}
-            <div className="p-4 bg-orange-50 rounded-xl border border-orange-100">
-              <p className="text-xs text-orange-600 font-medium uppercase tracking-wide mb-1">Session</p>
-              <p className="text-lg font-semibold text-orange-800 font-mono">
-                {selected.zone}_{selected.vehicleType?.toLowerCase() || "car"}
-              </p>
-              <p className="text-sm text-orange-600 font-mono mt-0.5">
-                {selected.scheduledStart
-                  ? new Date(selected.scheduledStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                  : "?"}
-                {selected.scheduledEnd
-                  ? `–${new Date(selected.scheduledEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-                  : ""}
-                {selected.scheduledDuration ? ` (${selected.scheduledDuration})` : ""}
-              </p>
-            </div>
-
-            {/* Hours Comparison */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-[10px] text-secondary uppercase font-medium">Booked Hours</p>
-                <p className="text-xl font-semibold mt-0.5 font-mono">{selected.bookedHours ? `${selected.bookedHours.toFixed(1)}h` : "—"}</p>
-              </div>
-              <div className={cn("rounded-xl p-3", Math.abs((selected.bookedHours || 0) - (selected.actualHours || 0)) > 0.5 ? "bg-amber-50" : "bg-gray-50")}>
-                <p className="text-[10px] text-secondary uppercase font-medium">Actual Hours</p>
-                <p className="text-xl font-semibold mt-0.5 font-mono">{selected.actualHours ? `${selected.actualHours.toFixed(1)}h` : "—"}</p>
-              </div>
-            </div>
-
-            {/* Verification Checks */}
-            <div className="space-y-2">
-              <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide">Pre-Shift Verification</h3>
-
-              <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <ShieldCheck size={15} className="text-secondary" /> Face Verification
-                </div>
-                <VerifiedBadge value={selected.faceVerified} />
-              </div>
-
-              <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Camera size={15} className="text-secondary" /> Equipment Check
-                </div>
-                <VerifiedBadge value={selected.equipmentVerified} label="Equip" />
-              </div>
-
-              <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <MapPin size={15} className="text-secondary" /> GPS Compliance
-                </div>
-                {selected.gpsCompliance !== undefined
-                  ? <GpsBar compliance={selected.gpsCompliance} />
-                  : <span className="text-xs text-secondary">—</span>
-                }
+            {/* Booking Status */}
+            <div className={cn(
+              "p-4 rounded-xl border",
+              selected.hasBooked ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"
+            )}>
+              <div className="flex items-center gap-2">
+                {selected.hasBooked ? (
+                  <>
+                    <CheckCircle2 size={18} className="text-green-600" />
+                    <div>
+                      <p className="text-sm font-semibold text-green-800">Shift Booked</p>
+                      <p className="text-xs text-green-600 font-mono mt-0.5">
+                        {selected.scheduledStart
+                          ? new Date(selected.scheduledStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                          : ""}
+                        {selected.scheduledEnd
+                          ? ` – ${new Date(selected.scheduledEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                          : ""}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <XCircle size={18} className="text-red-600" />
+                    <div>
+                      <p className="text-sm font-semibold text-red-800">No Shift Booked</p>
+                      <p className="text-xs text-red-600 mt-0.5">Driver hasn&apos;t booked a shift for this date</p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Additional Info */}
+            {/* Contact Info */}
+            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+              <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-2">Contact</p>
+              <a
+                href={`tel:${selected.phone}`}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+              >
+                <Phone size={14} />
+                Call {selected.phone}
+              </a>
+            </div>
+
+            {/* Hours Comparison (only if booked) */}
+            {selected.hasBooked && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-[10px] text-secondary uppercase font-medium">Booked Hours</p>
+                  <p className="text-xl font-semibold mt-0.5 font-mono">{selected.bookedHours ? `${selected.bookedHours.toFixed(1)}h` : "—"}</p>
+                </div>
+                <div className={cn("rounded-xl p-3", Math.abs((selected.bookedHours || 0) - (selected.actualHours || 0)) > 0.5 ? "bg-amber-50" : "bg-gray-50")}>
+                  <p className="text-[10px] text-secondary uppercase font-medium">Actual Hours</p>
+                  <p className="text-xl font-semibold mt-0.5 font-mono">{selected.actualHours ? `${selected.actualHours.toFixed(1)}h` : "—"}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Face Verification (only if booked) */}
+            {selected.hasBooked && selected.faceVerified !== null && (
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide">Pre-Shift Verification</h3>
+                <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <ShieldCheck size={15} className="text-secondary" /> Face Verification
+                  </div>
+                  <VerifiedBadge value={selected.faceVerified} />
+                </div>
+              </div>
+            )}
+
+            {/* Driver Info */}
             <div className="grid grid-cols-2 gap-3">
               {[
                 ["Batch", selected.batchNumber],
                 ["Zone", selected.zone],
                 ["Vehicle Type", selected.vehicleType],
-                ["Status", selected.status],
-                ["Date", selected.scheduledStart ? new Date(selected.scheduledStart).toLocaleDateString() : "—"],
-                ["Platform ID", selected.platformShiftId || "—"],
+                ["Status", selected.status === "NOT_BOOKED" ? "Not Booked" : selected.status],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
