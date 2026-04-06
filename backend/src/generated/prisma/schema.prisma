@@ -1,0 +1,1070 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ──────────────────────────────────────────────
+
+enum Platform {
+  KEETA
+  TALABAT
+  DELIVEROO
+  AMERICANA
+}
+
+enum UserRole {
+  ADMIN
+  OPS_MANAGER
+  SUPERVISOR
+  ACCOUNTANT
+  VIEWER
+}
+
+enum DriverStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  TERMINATED
+  LEAVE
+  TERMINATION
+}
+
+enum VehicleType {
+  MOTORCYCLE
+  CAR
+}
+
+enum VehicleStatus {
+  ACTIVE
+  MAINTENANCE
+  RETIRED
+}
+
+enum ShiftStatus {
+  BOOKED
+  IN_PROGRESS
+  COMPLETED
+  MISSED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  EARLY_LEAVE
+  EXCUSED
+}
+
+enum OrderSource {
+  MANUAL
+  SCREENSHOT_OCR
+  EXCEL_IMPORT
+  AGENT_CAPTURE
+  WHATSAPP
+}
+
+enum DepositMethod {
+  CASH
+  BANK_TRANSFER
+  AL_MUZAINI
+}
+
+enum CashStatus {
+  PENDING
+  PARTIALLY_PAID
+  SETTLED
+}
+
+enum LedgerStatus {
+  OPEN
+  CLOSED
+}
+
+enum InspectionStatus {
+  PASS
+  FAIL
+}
+
+enum MaintenanceCategory {
+  SCHEDULED
+  UNSCHEDULED
+  EMERGENCY
+}
+
+enum MaintenanceStatus {
+  REQUESTED
+  APPROVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum DeviceStatus {
+  ACTIVE
+  LOST
+  DECOMMISSIONED
+}
+
+enum DeviceCommandType {
+  LOCK
+  WIPE
+  INSTALL_APP
+  UNINSTALL_APP
+  SEND_MESSAGE
+  ENABLE_KIOSK
+  DISABLE_KIOSK
+  UPDATE_AGENT
+}
+
+enum CommandStatus {
+  PENDING
+  SENT
+  ACKNOWLEDGED
+  FAILED
+}
+
+enum ScoreTrend {
+  UP
+  DOWN
+  STABLE
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum RecruitmentStage {
+  AGENCY_REFERRAL
+  CV_DOCS
+  INTERVIEW
+  VISA_PROCESSING
+  FLIGHT_ARRANGEMENT
+  ARRIVAL
+  MEDICAL_EXAM
+  BANK_CARD
+  CIVIL_ID
+  RESIDENCY
+  LICENSE_TEST
+  PLATFORM_TRAINING
+  ROAD_SAFETY_TRAINING
+  FOOD_HANDLING_TRAINING
+  COMPANY_SOP_TRAINING
+  COMPLETED
+}
+
+enum InventoryItemType {
+  HELMET
+  TSHIRT
+  PANTS
+  COOLING_VEST
+  SAFETY_VEST
+  WATER_BOTTLE
+  GLOVES
+  SAFETY_KIT
+  BIG_BAG
+  SMALL_BAG
+  CAP
+  MOBILE_PHONE
+  SIM_CARD
+  PETROL_CARD
+}
+
+enum TicketCategory {
+  VEHICLE_REPAIR
+  EQUIPMENT_REQUEST
+  LEAVE_REQUEST
+  COMPLAINT
+  OTHER
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum SubmitterType {
+  DRIVER
+  USER
+}
+
+enum LeaveType {
+  SICK
+  VACATION
+  EMERGENCY
+  PERSONAL
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TalabatSessionStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum ComplianceEventType {
+  SELFIE_FAIL
+  GPS_OFF
+  EQUIPMENT_MISSING
+  SHIFT_NOT_BOOKED
+  ORDER_CLICK_THROUGH
+  LATE_CLOCK_IN
+  EARLY_CLOCK_OUT
+  ZONE_MISMATCH
+  OUT_OF_ZONE
+  CASH_THRESHOLD_EXCEEDED
+}
+
+// ─── Models ─────────────────────────────────────────────
+
+// 1. Tenant
+model Tenant {
+  id               String           @id @default(uuid())
+  name             String
+  subscriptionPlan SubscriptionPlan @default(FREE)
+  settings         Json?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  companies               Company[]
+  users                   User[]
+  drivers                 Driver[]
+  shifts                  Shift[]
+  attendanceRecords       AttendanceRecord[]
+  orderLogs               OrderLog[]
+  cashRecords             CashRecord[]
+  pendingDuesLedgers      PendingDuesLedger[]
+  vehicleInspections      VehicleInspection[]
+  maintenanceRecords      MaintenanceRecord[]
+  aiScores                AiScore[]
+  alerts                  Alert[]
+  aiDigests               AiDigest[]
+  auditLogs               AuditLog[]
+  tickets                 Ticket[]
+  leaveRequests           LeaveRequest[]
+  recruitmentPipeline     RecruitmentPipeline[]
+  vehicles                Vehicle[]
+  talabatSessions         TalabatSession[]
+  talabatComplianceEvents TalabatComplianceEvent[]
+  keetaDailyMetrics       KeetaDailyMetrics[]
+  americanaDailyOrders    AmericanaDailyOrders[]
+}
+
+// 2. Company
+model Company {
+  id           String   @id @default(uuid())
+  tenantId     String
+  name         String
+  platform     Platform
+  licenseCount Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant              Tenant                @relation(fields: [tenantId], references: [id])
+  drivers             Driver[]
+  vehicles            Vehicle[]
+  recruitmentPipeline RecruitmentPipeline[]
+  tickets             Ticket[]
+
+  @@index([tenantId])
+}
+
+// 3. User
+model User {
+  id           String    @id @default(uuid())
+  tenantId     String
+  email        String    @unique
+  phone        String?
+  passwordHash String
+  name         String
+  role         UserRole  @default(VIEWER)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  tenant             Tenant          @relation(fields: [tenantId], references: [id])
+  supervisedDrivers  Driver[]        @relation("DriverSupervisor")
+  issuedCommands     DeviceCommand[] @relation("CommandIssuer")
+  acknowledgedAlerts Alert[]         @relation("AlertAcknowledger")
+  reviewedLeaves     LeaveRequest[]  @relation("LeaveReviewer")
+  assignedTickets    Ticket[]        @relation("TicketAssignee")
+  submittedTickets   Ticket[]        @relation("TicketSubmitterUser")
+
+  @@index([tenantId])
+}
+
+// 4. Driver
+model Driver {
+  id               String       @id @default(uuid())
+  tenantId         String
+  companyId        String
+  name             String
+  phone            String
+  platform         Platform
+  platformDriverId String?
+  utr              String?
+  vehicleType      VehicleType
+  zone             String?
+  batchNumber      String?
+  status           DriverStatus @default(ACTIVE)
+  hireDate         DateTime
+  photoUrl         String?
+  supervisorId     String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  // Document expiry dates and statuses
+  healthCertExpiry       DateTime?
+  healthCertStatus       String? // VALID, EXPIRING, EXPIRED, MISSING
+  workPermitExpiry       DateTime?
+  workPermitStatus       String?
+  foodHandlingCertExpiry DateTime?
+  foodHandlingCertStatus String?
+  vehicleRegExpiry       DateTime?
+  vehicleRegStatus       String?
+  vehicleInsuranceExpiry DateTime?
+  vehicleInsuranceStatus String?
+  drivingLicenseExpiry   DateTime?
+  drivingLicenseStatus   String?
+  civilIdExpiry          DateTime?
+  civilIdStatus          String?
+
+  tenant     Tenant  @relation(fields: [tenantId], references: [id])
+  company    Company @relation(fields: [companyId], references: [id])
+  supervisor User?   @relation("DriverSupervisor", fields: [supervisorId], references: [id])
+
+  inventory               DriverInventory[]
+  shifts                  Shift[]
+  attendanceRecords       AttendanceRecord[]
+  orderLogs               OrderLog[]
+  cashRecords             CashRecord[]
+  pendingDuesLedgers      PendingDuesLedger[]
+  vehicleInspections      VehicleInspection[]
+  maintenanceRecords      MaintenanceRecord[]
+  aiScores                AiScore[]
+  alerts                  Alert[]
+  capturedOrders          CapturedOrder[]
+  locationLogs            LocationLog[]
+  appUsageLogs            AppUsageLog[]
+  device                  Device?
+  assignedVehicle         Vehicle?                 @relation("AssignedDriver")
+  leaveRequests           LeaveRequest[]
+  tickets                 Ticket[]                 @relation("TicketDriver")
+  submittedTickets        Ticket[]                 @relation("TicketSubmitterDriver")
+  talabatSessions         TalabatSession[]
+  talabatComplianceEvents TalabatComplianceEvent[]
+  keetaDailyMetrics       KeetaDailyMetrics[]
+  americanaDailyOrders    AmericanaDailyOrders[]
+  talabatDeliveries       TalabatDelivery[]
+
+  @@index([tenantId])
+  @@index([companyId])
+  @@index([platform])
+}
+
+// 5. DriverInventory
+model DriverInventory {
+  id           String            @id @default(uuid())
+  driverId     String
+  itemType     InventoryItemType
+  issued       Boolean           @default(false)
+  quantity     Int               @default(0)
+  issuedDate   DateTime?
+  returnedDate DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@index([driverId])
+}
+
+// 6. RecruitmentPipeline
+model RecruitmentPipeline {
+  id                String           @id @default(uuid())
+  tenantId          String
+  candidateName     String
+  phone             String
+  stage             RecruitmentStage @default(AGENCY_REFERRAL)
+  agency            String?
+  expectedDate      DateTime?
+  notes             String?
+  assignedCompanyId String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  assignedCompany Company? @relation(fields: [assignedCompanyId], references: [id])
+
+  @@index([tenantId])
+}
+
+// 7. Vehicle
+model Vehicle {
+  id                 String        @id @default(uuid())
+  tenantId           String
+  companyId          String
+  plateNumber        String        @unique
+  vehicleType        VehicleType
+  make               String
+  model              String
+  year               Int
+  color              String?
+  chassisNumber      String?
+  mileage            Int           @default(0)
+  fuelType           String        @default("Petrol")
+  status             VehicleStatus @default(ACTIVE)
+  assignedDriverId   String?       @unique
+  insuranceExpiry    DateTime
+  registrationExpiry DateTime
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  tenant         Tenant  @relation(fields: [tenantId], references: [id])
+  company        Company @relation(fields: [companyId], references: [id])
+  assignedDriver Driver? @relation("AssignedDriver", fields: [assignedDriverId], references: [id])
+
+  inspections        VehicleInspection[]
+  maintenanceRecords MaintenanceRecord[] @relation("VehicleMaintenance")
+  spareMaintenance   MaintenanceRecord[] @relation("SpareVehicle")
+  alerts             Alert[]
+  tickets            Ticket[]
+
+  @@index([tenantId])
+  @@index([companyId])
+}
+
+// 8. Shift
+model Shift {
+  id                  String      @id @default(uuid())
+  tenantId            String
+  driverId            String
+  date                DateTime
+  platform            Platform
+  zone                String?
+  scheduledStart      DateTime
+  scheduledEnd        DateTime
+  actualStart         DateTime?
+  actualEnd           DateTime?
+  status              ShiftStatus @default(BOOKED)
+  isValid             Boolean?
+  plannedHoursMinutes Int?
+  actualHoursMinutes  Int?
+  selfieUrl           String?
+  selfieLocation      Json?
+  clockInMethod       String?
+  clockOutMethod      String?
+  shiftScreenshotUrl  String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id])
+  driver            Driver             @relation(fields: [driverId], references: [id])
+  attendanceRecords AttendanceRecord[]
+  orderLogs         OrderLog[]
+  talabatSessions   TalabatSession[]
+
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([date])
+}
+
+// 9. AttendanceRecord
+model AttendanceRecord {
+  id          String           @id @default(uuid())
+  tenantId    String
+  driverId    String
+  shiftId     String?
+  date        DateTime
+  status      AttendanceStatus
+  lateMinutes Int              @default(0)
+  source      String           @default("manual")
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+  shift  Shift? @relation(fields: [shiftId], references: [id])
+
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([date])
+}
+
+// 10. OrderLog
+model OrderLog {
+  id            String      @id @default(uuid())
+  tenantId      String
+  driverId      String
+  shiftId       String?
+  date          DateTime
+  platform      Platform
+  orderCount    Int
+  distanceKm    Decimal?    @db.Decimal(10, 3)
+  cashCollected Decimal?    @db.Decimal(10, 3)
+  tips          Decimal?    @db.Decimal(10, 3)
+  totalAmount   Decimal?    @db.Decimal(10, 3)
+  orderNumber   String?
+  paymentSource String?
+  arrivalTime   DateTime?
+  screenshotUrl String?
+  source        OrderSource @default(MANUAL)
+  rawData       Json?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+  shift  Shift? @relation(fields: [shiftId], references: [id])
+
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([date])
+}
+
+// 11. CashRecord
+model CashRecord {
+  id                String         @id @default(uuid())
+  tenantId          String
+  driverId          String
+  date              DateTime
+  salesAmount       Decimal        @db.Decimal(10, 3)
+  collectionAmount  Decimal        @default(0) @db.Decimal(10, 3)
+  depositMethod     DepositMethod?
+  depositReceiptUrl String?
+  pendingDues       Decimal        @db.Decimal(10, 3)
+  status            CashStatus     @default(PENDING)
+  notes             String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([date])
+}
+
+// 12. PendingDuesLedger
+model PendingDuesLedger {
+  id               String       @id @default(uuid())
+  tenantId         String
+  driverId         String
+  month            DateTime
+  openingBalance   Decimal      @db.Decimal(10, 3)
+  totalSales       Decimal      @db.Decimal(10, 3)
+  totalCollection  Decimal      @db.Decimal(10, 3)
+  cashDeposits     Decimal      @db.Decimal(10, 3)
+  bankTransfers    Decimal      @db.Decimal(10, 3)
+  incentives       Decimal      @db.Decimal(10, 3)
+  adjustments      Decimal      @db.Decimal(10, 3)
+  closingBalance   Decimal      @db.Decimal(10, 3)
+  dailySales       Json
+  dailyCollections Json
+  status           LedgerStatus @default(OPEN)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@unique([tenantId, driverId, month], name: "tenantId_driverId_month")
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([month])
+}
+
+// 13. VehicleInspection
+model VehicleInspection {
+  id               String           @id @default(uuid())
+  tenantId         String
+  vehicleId        String
+  driverId         String
+  date             DateTime
+  status           InspectionStatus
+  photos           Json?
+  notes            String?
+  deductionApplied Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  driver  Driver  @relation(fields: [driverId], references: [id])
+
+  @@index([tenantId])
+  @@index([vehicleId])
+}
+
+// 14. MaintenanceRecord
+model MaintenanceRecord {
+  id             String              @id @default(uuid())
+  tenantId       String
+  vehicleId      String
+  driverId       String?
+  category       MaintenanceCategory
+  type           String
+  cost           Decimal             @db.Decimal(10, 3)
+  vendor         String?
+  receiptUrl     String?
+  spareVehicleId String?
+  status         MaintenanceStatus   @default(REQUESTED)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  vehicle      Vehicle  @relation("VehicleMaintenance", fields: [vehicleId], references: [id])
+  driver       Driver?  @relation(fields: [driverId], references: [id])
+  spareVehicle Vehicle? @relation("SpareVehicle", fields: [spareVehicleId], references: [id])
+
+  @@index([tenantId])
+  @@index([vehicleId])
+}
+
+// 15. Device
+model Device {
+  id            String       @id @default(uuid())
+  tenantId      String
+  driverId      String?      @unique
+  imei          String       @unique
+  model         String
+  osVersion     String
+  agentVersion  String?
+  lastSeen      DateTime?
+  batteryLevel  Int?
+  isOnline      Boolean      @default(false)
+  status        DeviceStatus @default(ACTIVE)
+  lastLatitude  Decimal?     @db.Decimal(10, 7)
+  lastLongitude Decimal?     @db.Decimal(10, 7)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  driver         Driver?         @relation(fields: [driverId], references: [id])
+  capturedOrders CapturedOrder[]
+  locationLogs   LocationLog[]
+  appUsageLogs   AppUsageLog[]
+  commands       DeviceCommand[]
+
+  @@index([driverId])
+}
+
+// 16. CapturedOrder
+model CapturedOrder {
+  id               String   @id @default(uuid())
+  deviceId         String
+  driverId         String
+  platform         Platform
+  notificationText String
+  parsedData       Json?
+  capturedAt       DateTime
+
+  device Device @relation(fields: [deviceId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@index([deviceId])
+  @@index([driverId])
+}
+
+// 17. LocationLog
+model LocationLog {
+  id         String   @id @default(uuid())
+  deviceId   String
+  driverId   String
+  latitude   Decimal  @db.Decimal(10, 7)
+  longitude  Decimal  @db.Decimal(10, 7)
+  accuracy   Decimal  @db.Decimal(10, 2)
+  speed      Decimal? @db.Decimal(10, 2)
+  capturedAt DateTime
+
+  device Device @relation(fields: [deviceId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@index([driverId, capturedAt])
+  @@index([deviceId])
+}
+
+// 18. AppUsageLog
+model AppUsageLog {
+  id              String   @id @default(uuid())
+  deviceId        String
+  driverId        String
+  appPackage      String
+  eventType       String
+  durationSeconds Int?
+  capturedAt      DateTime
+
+  device Device @relation(fields: [deviceId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@index([deviceId])
+  @@index([driverId])
+}
+
+// 19. DeviceCommand
+model DeviceCommand {
+  id             String            @id @default(uuid())
+  deviceId       String
+  command        DeviceCommandType
+  payload        Json?
+  status         CommandStatus     @default(PENDING)
+  issuedById     String
+  issuedAt       DateTime          @default(now())
+  acknowledgedAt DateTime?
+
+  device   Device @relation(fields: [deviceId], references: [id])
+  issuedBy User   @relation("CommandIssuer", fields: [issuedById], references: [id])
+
+  @@index([deviceId])
+}
+
+// 20. AiScore
+model AiScore {
+  id              String     @id @default(uuid())
+  tenantId        String
+  driverId        String
+  date            DateTime
+  compositeScore  Int
+  attendanceScore Int
+  deliveryScore   Int
+  financialScore  Int
+  equipmentScore  Int
+  platformScore   Int
+  breakdown       Json?
+  trend           ScoreTrend @default(STABLE)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([date])
+}
+
+// 21. Alert
+model Alert {
+  id               String        @id @default(uuid())
+  tenantId         String
+  type             String
+  severity         AlertSeverity
+  title            String
+  message          String
+  driverId         String?
+  vehicleId        String?
+  data             Json?
+  status           AlertStatus   @default(ACTIVE)
+  acknowledgedById String?
+  acknowledgedAt   DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  tenant         Tenant   @relation(fields: [tenantId], references: [id])
+  driver         Driver?  @relation(fields: [driverId], references: [id])
+  vehicle        Vehicle? @relation(fields: [vehicleId], references: [id])
+  acknowledgedBy User?    @relation("AlertAcknowledger", fields: [acknowledgedById], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+}
+
+// 22. AiDigest
+model AiDigest {
+  id          String   @id @default(uuid())
+  tenantId    String
+  date        DateTime
+  content     Json
+  generatedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, date])
+  @@index([tenantId])
+}
+
+// 23. AuditLog
+model AuditLog {
+  id         String   @id @default(uuid())
+  tenantId   String
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  changes    Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([entityType, entityId])
+}
+
+// 24. Ticket
+model Ticket {
+  id                String         @id @default(uuid())
+  tenantId          String
+  ticketNumber      String         @unique
+  category          TicketCategory
+  priority          TicketPriority @default(MEDIUM)
+  title             String
+  description       String
+  submitterType     SubmitterType
+  submitterDriverId String?
+  submitterUserId   String?
+  assignedToId      String?
+  status            TicketStatus   @default(OPEN)
+  photos            Json?
+  resolution        String?
+  resolvedAt        DateTime?
+  slaDeadline       DateTime?
+  platform          Platform?
+  companyId         String?
+  driverId          String?
+  vehicleId         String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  submitterDriver Driver?  @relation("TicketSubmitterDriver", fields: [submitterDriverId], references: [id])
+  submitterUser   User?    @relation("TicketSubmitterUser", fields: [submitterUserId], references: [id])
+  assignedTo      User?    @relation("TicketAssignee", fields: [assignedToId], references: [id])
+  company         Company? @relation(fields: [companyId], references: [id])
+  driver          Driver?  @relation("TicketDriver", fields: [driverId], references: [id])
+  vehicle         Vehicle? @relation(fields: [vehicleId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([priority])
+}
+
+// 25. LeaveRequest
+model LeaveRequest {
+  id           String      @id @default(uuid())
+  tenantId     String
+  driverId     String
+  type         LeaveType
+  startDate    DateTime
+  endDate      DateTime
+  reason       String?
+  status       LeaveStatus @default(PENDING)
+  reviewedById String?
+  reviewedAt   DateTime?
+  reviewNotes  String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  tenant     Tenant @relation(fields: [tenantId], references: [id])
+  driver     Driver @relation(fields: [driverId], references: [id])
+  reviewedBy User?  @relation("LeaveReviewer", fields: [reviewedById], references: [id])
+
+  @@index([tenantId])
+  @@index([driverId])
+}
+
+// 26. TalabatSession
+model TalabatSession {
+  id                String               @id @default(uuid())
+  tenantId          String
+  driverId          String
+  shiftId           String?
+  date              DateTime
+  zone              String
+  vehicleType       VehicleType
+  sessionCode       String
+  plannedStart      DateTime
+  plannedEnd        DateTime
+  approvedStart     DateTime?
+  approvedEnd       DateTime?
+  actualStart       DateTime?
+  actualEnd         DateTime?
+  plannedHours      Decimal              @db.Decimal(5, 2)
+  approvedHours     Decimal?             @db.Decimal(5, 2)
+  actualHours       Decimal?             @db.Decimal(5, 2)
+  deliveries        Int                  @default(0)
+  cashCollected     Decimal              @default(0) @db.Decimal(10, 3)
+  tips              Decimal              @default(0) @db.Decimal(10, 3)
+  distanceKm        Decimal?             @db.Decimal(10, 3)
+  status            TalabatSessionStatus @default(PLANNED)
+  faceVerified      Boolean              @default(false)
+  equipmentVerified Boolean              @default(false)
+  gpsCompliance     Int?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  tenant           Tenant                   @relation(fields: [tenantId], references: [id])
+  driver           Driver                   @relation(fields: [driverId], references: [id])
+  shift            Shift?                   @relation(fields: [shiftId], references: [id])
+  complianceEvents TalabatComplianceEvent[]
+  deliveryItems    TalabatDelivery[]
+
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([date])
+  @@index([zone, date])
+}
+
+// 27. TalabatComplianceEvent
+model TalabatComplianceEvent {
+  id          String              @id @default(uuid())
+  tenantId    String
+  driverId    String
+  sessionId   String?
+  type        ComplianceEventType
+  severity    AlertSeverity
+  description String
+  metadata    Json?
+  resolved    Boolean             @default(false)
+  resolvedAt  DateTime?
+  resolvedBy  String?
+  createdAt   DateTime            @default(now())
+
+  tenant  Tenant          @relation(fields: [tenantId], references: [id])
+  driver  Driver          @relation(fields: [driverId], references: [id])
+  session TalabatSession? @relation(fields: [sessionId], references: [id])
+
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// 28. TalabatDelivery — individual delivery items within a session
+model TalabatDelivery {
+  id              String    @id @default(uuid())
+  tenantId        String
+  driverId        String
+  sessionId       String
+  date            DateTime
+  platformOrderId String
+  shortCode       String
+  finishedAt      DateTime?
+  orderType       String    @default("food")
+  amount          Decimal   @default(0) @db.Decimal(10, 3)
+  tip             Decimal   @default(0) @db.Decimal(10, 3)
+  distanceKm      Decimal?  @db.Decimal(10, 3)
+  status          String    @default("COMPLETED")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  driver  Driver         @relation(fields: [driverId], references: [id])
+  session TalabatSession @relation(fields: [sessionId], references: [id])
+
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([sessionId])
+  @@index([date])
+}
+
+// 29. KeetaDailyMetrics — mirrors the 27-column Keeta dashboard export
+model KeetaDailyMetrics {
+  id                   String   @id @default(uuid())
+  tenantId             String
+  driverId             String
+  date                 DateTime
+  courierPlatformId    String?
+  supervisorName       String?
+  vehicleType          String?
+  onShift              Boolean  @default(false)
+  validDay             Boolean  @default(false)
+  onlineTime           Int      @default(0) // minutes
+  validOnlineTime      Int      @default(0) // minutes
+  peakOnlineMinutes    Int      @default(0)
+  acceptedTasks        Int      @default(0)
+  restaurantArrivals   Int      @default(0)
+  deliveredTasks       Int      @default(0)
+  largeOrdersCompleted Int      @default(0)
+  cancelledTasks       Int      @default(0)
+  rejectedTasks        Int      @default(0)
+  rejectedByCourier    Int      @default(0)
+  rejectedAuto         Int      @default(0)
+  cancellationRate     Decimal? @db.Decimal(5, 4)
+  completionRate       Decimal? @db.Decimal(5, 4)
+  onTimeRate           Decimal? @db.Decimal(5, 4)
+  largeOrderOnTimeRate Decimal? @db.Decimal(5, 4)
+  avgDeliveryMinutes   Decimal? @db.Decimal(6, 2)
+  over55minProportion  Decimal? @db.Decimal(5, 4)
+  overdueOrders        Int      @default(0)
+  severelyOverdue      Int      @default(0)
+  source               String   @default("MANUAL")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@unique([tenantId, driverId, date])
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([date])
+}
+
+// 29. AmericanaDailyOrders — daily order counts per driver per store
+model AmericanaDailyOrders {
+  id          String   @id @default(uuid())
+  tenantId    String
+  driverId    String
+  month       DateTime
+  chain       String?
+  empId       String?
+  storeName   String?
+  costCenter  String?
+  company     String?
+  position    String? // Car or Bike
+  dailyOrders Json // { "01": 19, "02": 20, ... "28": 30 }
+  totalOrders Int      @default(0)
+  source      String   @default("MANUAL")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@unique([tenantId, driverId, month])
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([month])
+}
