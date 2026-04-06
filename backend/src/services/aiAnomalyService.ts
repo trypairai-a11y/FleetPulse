@@ -1,5 +1,5 @@
 import { prisma } from "../config";
-import { AlertSeverity } from "@prisma/client";
+import { AlertSeverity } from "../generated/prisma";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

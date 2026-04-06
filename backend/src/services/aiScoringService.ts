@@ -1,5 +1,5 @@
 import { prisma } from "../config";
-import { ScoreTrend } from "@prisma/client";
+import { ScoreTrend } from "../generated/prisma";
 
 // ─── Scoring weights ──────────────────────────────────────────────────────────
 

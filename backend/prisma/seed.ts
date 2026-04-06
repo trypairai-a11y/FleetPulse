@@ -1,4 +1,4 @@
-import { PrismaClient, Platform, UserRole, DriverStatus, VehicleType, VehicleStatus, ShiftStatus, AttendanceStatus, OrderSource, CashStatus, DepositMethod, DeviceStatus, AlertSeverity, AlertStatus, ScoreTrend, TicketCategory, TicketPriority, TicketStatus, SubmitterType, LeaveType, LeaveStatus, RecruitmentStage, LedgerStatus, InspectionStatus, MaintenanceCategory, MaintenanceStatus, TalabatSessionStatus, ComplianceEventType } from "@prisma/client";
+import { PrismaClient, Platform, UserRole, DriverStatus, VehicleType, VehicleStatus, ShiftStatus, AttendanceStatus, OrderSource, CashStatus, DepositMethod, DeviceStatus, AlertSeverity, AlertStatus, ScoreTrend, TicketCategory, TicketPriority, TicketStatus, SubmitterType, LeaveType, LeaveStatus, RecruitmentStage, LedgerStatus, InspectionStatus, MaintenanceCategory, MaintenanceStatus, TalabatSessionStatus, ComplianceEventType } from "../src/generated/prisma";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient({

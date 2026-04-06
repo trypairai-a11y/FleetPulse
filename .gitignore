@@ -66,3 +66,4 @@ licenses/
 # Misc
 *.log
 .playwright-mcp/
+.vercel
