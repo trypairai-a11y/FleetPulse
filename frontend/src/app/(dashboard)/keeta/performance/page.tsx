@@ -96,7 +96,7 @@ export default function KeetaPerformancePage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-keeta" />
-        <h1 className="text-xl font-semibold">Keeta — Daily Performance</h1>
+        <h1 className="text-xl font-semibold">Keeta - Daily Performance</h1>
         <span className="text-sm text-secondary">Sidra</span>
       </div>
 
@@ -223,10 +223,10 @@ export default function KeetaPerformancePage() {
                     className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50 transition-colors"
                   >
                     <td className="px-5 py-3 text-sm font-medium">
-                      {row.driver?.name || row.driverName || "—"}
+                      {row.driver?.name || row.driverName || "-"}
                     </td>
                     <td className="px-5 py-3 text-sm text-secondary font-mono">
-                      {row.vehiclePlate || row.driver?.vehiclePlate || "—"}
+                      {row.vehiclePlate || row.driver?.vehiclePlate || "-"}
                     </td>
                     <td className="px-5 py-3">
                       <YesNoBadge value={!!row.onShift} />
@@ -238,10 +238,10 @@ export default function KeetaPerformancePage() {
                       {fmtMinutes(row.onlineMinutes)}
                     </td>
                     <td className="px-5 py-3 text-sm text-right font-mono font-medium">
-                      {row.deliveredTasks ?? "—"}
+                      {row.deliveredTasks ?? "-"}
                     </td>
                     <td className="px-5 py-3 text-sm text-right font-mono text-secondary">
-                      {row.acceptedTasks ?? "—"}
+                      {row.acceptedTasks ?? "-"}
                     </td>
                     <td className="px-5 py-3">
                       <OnTimeBar rate={row.onTimeRate} />
@@ -249,7 +249,7 @@ export default function KeetaPerformancePage() {
                     <td className="px-5 py-3 text-sm text-right font-mono text-secondary">
                       {row.avgDeliveryTime != null
                         ? `${n(row.avgDeliveryTime).toFixed(0)}m`
-                        : "—"}
+                        : "-"}
                     </td>
                     <td className="px-5 py-3 text-sm text-right font-mono">
                       <span
@@ -289,7 +289,7 @@ export default function KeetaPerformancePage() {
         open={!!selected}
         onClose={() => setSelected(null)}
         title={selected?.driver?.name || selected?.driverName || "Driver Detail"}
-        subtitle="Keeta / Sidra — Daily Performance"
+        subtitle="Keeta / Sidra - Daily Performance"
       >
         {selected && (
           <div className="space-y-5">
@@ -299,10 +299,10 @@ export default function KeetaPerformancePage() {
                 Driver
               </p>
               <p className="text-lg font-semibold text-yellow-800">
-                {selected.driver?.name || selected.driverName || "—"}
+                {selected.driver?.name || selected.driverName || "-"}
               </p>
               <p className="text-sm text-yellow-600 font-mono mt-0.5">
-                {selected.vehiclePlate || selected.driver?.vehiclePlate || "—"}{" "}
+                {selected.vehiclePlate || selected.driver?.vehiclePlate || "-"}{" "}
                 &middot; {date}
               </p>
             </div>
@@ -385,7 +385,7 @@ export default function KeetaPerformancePage() {
                   "Avg Delivery Time",
                   selected.avgDeliveryTime != null
                     ? `${n(selected.avgDeliveryTime).toFixed(0)} min`
-                    : "—",
+                    : "-",
                 ],
                 ["Rejected Tasks", selected.rejectedTasks ?? 0],
                 ["Overdue Tasks", selected.overdueTasks ?? 0],
@@ -393,13 +393,13 @@ export default function KeetaPerformancePage() {
                   "Completion Rate",
                   selected.completionRate != null
                     ? `${n(selected.completionRate).toFixed(1)}%`
-                    : "—",
+                    : "-",
                 ],
                 [
                   "Acceptance Rate",
                   selected.acceptanceRate != null
                     ? `${n(selected.acceptanceRate).toFixed(1)}%`
-                    : "—",
+                    : "-",
                 ],
                 ["Date", date],
               ].map(([label, val]) => (

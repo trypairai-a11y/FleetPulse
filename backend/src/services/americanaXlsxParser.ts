@@ -80,7 +80,7 @@ export function parseAmericanaXlsx(buffer: Buffer): AmericanaRow[] {
     if (!row || row.length === 0) continue;
 
     // Column mapping (0-indexed):
-    // 0: # (row number) — skip
+    // 0: # (row number) - skip
     // 1: Chain
     // 2: Emp ID
     // 3: Driver name

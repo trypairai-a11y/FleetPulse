@@ -47,15 +47,31 @@ router.get("/", async (req: Request, res: Response) => {
     ]);
 
     // Flatten TalabatSession fields into each shift for the frontend
+    const now = new Date();
     const mapped = data.map((s: any) => {
       const sess = s.talabatSessions?.[0];
       const { talabatSessions, ...rest } = s;
+
+      // Compute actual hours dynamically
+      let actualHours: number | null = null;
+      if (s.actualHoursMinutes) {
+        actualHours = Math.round(s.actualHoursMinutes / 60 * 10) / 10;
+      } else if (s.actualStart && s.actualEnd) {
+        const diffMs = new Date(s.actualEnd).getTime() - new Date(s.actualStart).getTime();
+        actualHours = Math.round(diffMs / 60000 / 60 * 10) / 10;
+      } else if (s.actualStart) {
+        const diffMs = now.getTime() - new Date(s.actualStart).getTime();
+        actualHours = Math.round(diffMs / 60000 / 60 * 10) / 10;
+      } else if (s.plannedHoursMinutes) {
+        actualHours = Math.round(s.plannedHoursMinutes / 60 * 10) / 10;
+      }
+
       return {
         ...rest,
         batchNumber: s.driver?.batchNumber || null,
         vehicleType: s.driver?.vehicleType || null,
         bookedHours: s.plannedHoursMinutes ? Math.round(s.plannedHoursMinutes / 60 * 10) / 10 : null,
-        actualHours: s.actualHoursMinutes ? Math.round(s.actualHoursMinutes / 60 * 10) / 10 : null,
+        actualHours,
         faceVerified: sess?.faceVerified ?? null,
         equipmentVerified: sess?.equipmentVerified ?? null,
         gpsCompliance: sess?.gpsCompliance ?? null,
@@ -73,11 +89,12 @@ router.get("/", async (req: Request, res: Response) => {
 router.get("/booking-status", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
-    const { platform, date, zone, batchNumber, search, bookingFilter } = req.query;
+    const { platform, date, zone, batchNumber, search, bookingFilter, companyId } = req.query;
 
     // Build driver filter
     const driverWhere: any = { tenantId, status: "ACTIVE" };
     if (platform) driverWhere.platform = platform;
+    if (companyId) driverWhere.companyId = companyId as string;
     if (zone) driverWhere.zone = zone;
     if (batchNumber) driverWhere.batchNumber = batchNumber as string;
     if (search) driverWhere.name = { contains: search as string, mode: "insensitive" };
@@ -92,7 +109,7 @@ router.get("/booking-status", async (req: Request, res: Response) => {
     // Get all active drivers for this platform
     const drivers = await prisma.driver.findMany({
       where: driverWhere,
-      select: { id: true, name: true, phone: true, zone: true, batchNumber: true, vehicleType: true, photoUrl: true },
+      select: { id: true, name: true, phone: true, zone: true, batchNumber: true, vehicleType: true, photoUrl: true, company: { select: { name: true } } },
       orderBy: { name: "asc" },
     });
 
@@ -117,12 +134,31 @@ router.get("/booking-status", async (req: Request, res: Response) => {
     }
 
     // Merge drivers with their shift data
+    const now = new Date();
     const result = drivers.map(d => {
       const shift = shiftByDriver.get(d.id);
       const sess = shift?.talabatSessions?.[0];
+
+      // Compute actual hours dynamically
+      let actualHours: number | null = null;
+      if (shift?.actualHoursMinutes) {
+        actualHours = Math.round(shift.actualHoursMinutes / 60 * 10) / 10;
+      } else if (shift?.actualStart && shift?.actualEnd) {
+        const diffMs = new Date(shift.actualEnd).getTime() - new Date(shift.actualStart).getTime();
+        actualHours = Math.round(diffMs / 60000 / 60 * 10) / 10;
+      } else if (shift?.actualStart) {
+        // Shift in progress - compute from actualStart to now
+        const diffMs = now.getTime() - new Date(shift.actualStart).getTime();
+        actualHours = Math.round(diffMs / 60000 / 60 * 10) / 10;
+      } else if (shift?.plannedHoursMinutes) {
+        // Booked but not started - show planned as actual
+        actualHours = Math.round(shift.plannedHoursMinutes / 60 * 10) / 10;
+      }
+
       return {
         driverId: d.id,
         driverName: d.name,
+        companyName: (d as any).company?.name || null,
         phone: d.phone,
         zone: d.zone,
         batchNumber: d.batchNumber,
@@ -136,7 +172,7 @@ router.get("/booking-status", async (req: Request, res: Response) => {
         actualStart: shift?.actualStart || null,
         actualEnd: shift?.actualEnd || null,
         bookedHours: shift?.plannedHoursMinutes ? Math.round(shift.plannedHoursMinutes / 60 * 10) / 10 : null,
-        actualHours: shift?.actualHoursMinutes ? Math.round(shift.actualHoursMinutes / 60 * 10) / 10 : null,
+        actualHours,
         faceVerified: sess?.faceVerified ?? null,
       };
     });
@@ -250,20 +286,108 @@ router.delete("/:id", async (req: Request, res: Response) => {
 // Clock in with selfie
 router.post("/:id/clock-in", upload.single("selfie"), async (req: Request, res: Response) => {
   try {
+    const tenantId = req.user!.tenantId;
     const { latitude, longitude } = req.body;
     const selfieUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
-    const shift = await prisma.shift.updateMany({
-      where: { id: req.params.id, tenantId: req.user!.tenantId },
+    const now = new Date();
+
+    // Fetch the shift first to get scheduledStart
+    const existingShift = await prisma.shift.findFirst({
+      where: { id: req.params.id, tenantId },
+      select: { id: true, driverId: true, date: true, platform: true, scheduledStart: true, zone: true },
+    });
+    if (!existingShift) { res.status(404).json({ error: "Shift not found" }); return; }
+
+    // Update the shift
+    await prisma.shift.update({
+      where: { id: existingShift.id },
       data: {
-        actualStart: new Date(),
+        actualStart: now,
         status: "IN_PROGRESS",
         selfieUrl,
         selfieLocation: latitude && longitude ? { latitude, longitude } : undefined,
         clockInMethod: "selfie",
       },
     });
-    if (shift.count === 0) { res.status(404).json({ error: "Shift not found" }); return; }
-    res.json({ message: "Clocked in" });
+
+    // Late detection: if clocked in even 1 minute after scheduledStart, mark as LATE
+    const lateMs = now.getTime() - new Date(existingShift.scheduledStart).getTime();
+    const lateMinutes = Math.floor(lateMs / 60000);
+    const isLate = lateMinutes >= 1;
+
+    // Auto-create attendance record
+    const attendanceDate = new Date(existingShift.date);
+    attendanceDate.setHours(0, 0, 0, 0);
+
+    await prisma.attendanceRecord.upsert({
+      where: {
+        tenantId_driverId_date: {
+          tenantId,
+          driverId: existingShift.driverId,
+          date: attendanceDate,
+        },
+      },
+      create: {
+        tenantId,
+        driverId: existingShift.driverId,
+        shiftId: existingShift.id,
+        date: attendanceDate,
+        status: isLate ? "LATE" : "PRESENT",
+        lateMinutes: isLate ? lateMinutes : 0,
+        source: "SYSTEM",
+      },
+      update: {
+        status: isLate ? "LATE" : "PRESENT",
+        lateMinutes: isLate ? lateMinutes : 0,
+        shiftId: existingShift.id,
+      },
+    });
+
+    // Create LATE_CLOCK_IN compliance event if late (for Talabat, or generic alert for others)
+    if (isLate) {
+      if (existingShift.platform === "TALABAT") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const existingEvent = await prisma.talabatComplianceEvent.findFirst({
+          where: {
+            tenantId,
+            driverId: existingShift.driverId,
+            type: "LATE_CLOCK_IN",
+            createdAt: { gte: today },
+          },
+        });
+        if (!existingEvent) {
+          await prisma.talabatComplianceEvent.create({
+            data: {
+              tenantId,
+              driverId: existingShift.driverId,
+              type: "LATE_CLOCK_IN",
+              description: `Driver clocked in ${lateMinutes} minute${lateMinutes > 1 ? "s" : ""} late (scheduled: ${new Date(existingShift.scheduledStart).toLocaleTimeString()})`,
+              metadata: { shiftId: existingShift.id, lateMinutes, scheduledStart: existingShift.scheduledStart },
+            },
+          });
+        }
+      } else {
+        // Generic alert for non-Talabat platforms
+        await prisma.alert.create({
+          data: {
+            tenantId,
+            type: "late_clock_in",
+            severity: lateMinutes >= 15 ? "HIGH" : "MEDIUM",
+            title: "Late Clock-In",
+            message: `Driver clocked in ${lateMinutes} minute${lateMinutes > 1 ? "s" : ""} late for ${existingShift.platform} shift`,
+            driverId: existingShift.driverId,
+            data: { shiftId: existingShift.id, lateMinutes, scheduledStart: existingShift.scheduledStart },
+          },
+        });
+      }
+    }
+
+    res.json({
+      message: "Clocked in",
+      isLate,
+      lateMinutes: isLate ? lateMinutes : 0,
+    });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }

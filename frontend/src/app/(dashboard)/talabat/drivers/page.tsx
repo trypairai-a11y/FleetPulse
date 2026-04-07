@@ -8,7 +8,7 @@ import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
 import AddDriverModal from "@/components/shared/AddDriverModal";
-import { Plus, Users, ShieldCheck, AlertTriangle, FileText, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Users, ShieldCheck, AlertTriangle, FileText, CheckCircle2, XCircle, TrendingUp, Package } from "lucide-react";
 
 const TALABAT_ZONES = [
   "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
@@ -55,15 +55,34 @@ export default function TalabatDriversPage() {
   const columns = [
     {
       key: "name",
-      label: "Driver Name",
+      label: "Name",
       render: (_: any, r: any) => {
         const raw = r.talabatDisplayName || r.name || "";
-        const cleanName = raw.replace(/\s+\d+[A-Z]?\s*[–—-]\s*\w+$/i, "").trim();
+        const cleanName = raw.replace(/\s+\d+[A-Z]?\s*[-\u2013\u2014]+\s*\w+$/i, "").trim();
         return (
           <span className="font-medium font-mono text-sm">
             {cleanName || raw}
           </span>
         );
+      },
+    },
+    {
+      key: "batchNumber",
+      label: "Batch",
+      render: (v: string) => (
+        <span className="font-medium text-sm tabular-nums">
+          {v ? v.replace(/[A-Za-z]/g, "") : "-"}
+        </span>
+      ),
+    },
+    {
+      key: "company",
+      label: "Company",
+      render: (_: any, r: any) => {
+        if (r.company?.name) return <span className="text-sm text-secondary">{r.company.name}</span>;
+        const raw = r.talabatDisplayName || r.name || "";
+        const m = raw.match(/\d+[A-Z]?\s*[-\u2013\u2014]+\s*(\w+)$/i);
+        return <span className="text-sm text-secondary">{m?.[1] || "-"}</span>;
       },
     },
     {
@@ -84,7 +103,7 @@ export default function TalabatDriversPage() {
           "text-yellow-600": v != null && v >= 0.5 && v < 1.0,
           "text-red-600": v != null && v < 0.5,
         })}>
-          {v != null ? v.toFixed(2) : "—"}
+          {v != null ? v.toFixed(2) : "-"}
         </span>
       ),
     },
@@ -96,20 +115,11 @@ export default function TalabatDriversPage() {
           "bg-blue-50 text-blue-600": v === "MOTORCYCLE",
           "bg-purple-50 text-purple-600": v === "CAR",
         })}>
-          {v === "MOTORCYCLE" ? "Bike" : v === "CAR" ? "Car" : v || "—"}
+          {v === "MOTORCYCLE" ? "Bike" : v === "CAR" ? "Car" : v || "-"}
         </span>
       ),
     },
     { key: "zone", label: "Zone" },
-    {
-      key: "batchNumber",
-      label: "Batch",
-      render: (v: string) => (
-        <span className="font-medium text-sm tabular-nums">
-          {v ? v.replace(/[A-Za-z]/g, "") : "—"}
-        </span>
-      ),
-    },
     {
       key: "faceVerified",
       label: "Face",
@@ -129,7 +139,7 @@ export default function TalabatDriversPage() {
             </span>
           )
         ) : (
-          <span className="text-xs text-secondary">—</span>
+          <span className="text-xs text-secondary">-</span>
         ),
     },
     {
@@ -137,7 +147,7 @@ export default function TalabatDriversPage() {
       label: "Phone",
       render: (v: string) => (
         <span className="font-mono text-sm text-secondary">
-          {v || "—"}
+          {v || "-"}
         </span>
       ),
     },
@@ -163,7 +173,7 @@ export default function TalabatDriversPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-talabat" />
-          <h1 className="text-xl font-semibold">Talabat — Drivers</h1>
+          <h1 className="text-xl font-semibold">Talabat - Drivers</h1>
         </div>
         <button
           onClick={() => setShowAdd(true)}
@@ -177,8 +187,8 @@ export default function TalabatDriversPage() {
       <div className="grid grid-cols-4 gap-4">
         <StatCard title="Total Drivers" value={summary?.total || drivers.length} icon={Users} />
         <StatCard title="Active" value={summary?.active || 0} icon={ShieldCheck} />
-        <StatCard title="Docs Expiring" value={summary?.docsExpiring || 0} icon={AlertTriangle} highlight={(summary?.docsExpiring || 0) > 0} onClick={() => router.push("/talabat/drivers/docs-expiring")} />
-        <StatCard title="Missing Docs" value={summary?.docsMissing || 0} icon={FileText} highlight={(summary?.docsMissing || 0) > 0} onClick={() => router.push("/talabat/drivers/missing-docs")} />
+        <StatCard title="Avg UTR Today" value={summary?.avgUtrToday ? Number(summary.avgUtrToday).toFixed(1) : "0.0"} icon={TrendingUp} />
+        <StatCard title="Total Orders Today" value={summary?.totalOrdersToday || 0} icon={Package} />
       </div>
 
       {/* Filters */}
@@ -207,8 +217,8 @@ export default function TalabatDriversPage() {
       <SlidePanel
         open={!!selected}
         onClose={() => setSelected(null)}
-        title={(selected?.talabatDisplayName || selected?.name || "").replace(/\s+\d+[A-Z]?\s*[–—-]\s*\w+$/i, "").trim()}
-        subtitle={`Talabat / ${selected?.company?.name || "—"}`}
+        title={(selected?.talabatDisplayName || selected?.name || "").replace(/\s+\d+[A-Z]?\s*[-\u2013\u2014]+\s*\w+$/i, "").trim()}
+        subtitle={`Talabat / ${selected?.company?.name || "-"}`}
       >
         {selected && (
           <div className="space-y-5">
@@ -222,12 +232,12 @@ export default function TalabatDriversPage() {
                 ["Status", selected.status],
                 ["Company Phone", selected.phone],
                 ["Personal Phone", selected.personalPhone],
-                ["Hire Date", selected.hireDate ? new Date(selected.hireDate).toLocaleDateString() : "—"],
+                ["Hire Date", selected.hireDate ? new Date(selected.hireDate).toLocaleDateString() : "-"],
                 ["Company Code", selected.companyCode || "WAHI"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                 </div>
               ))}
             </div>
@@ -274,7 +284,7 @@ export default function TalabatDriversPage() {
                   ].map(([label, val]) => (
                     <div key={label} className="bg-gray-50 rounded-xl p-3">
                       <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                      <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                      <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                     </div>
                   ))}
                 </div>

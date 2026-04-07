@@ -74,9 +74,10 @@ export default function DocsExpiringPage() {
     {
       key: "driverName",
       label: "Driver",
-      render: (_: any, r: DriverDoc) => (
-        <span className="font-medium text-sm">{r.driverName}</span>
-      ),
+      render: (_: any, r: DriverDoc) => {
+        const clean = r.driverName.replace(/\s+\d+[A-Za-z]?\s*[-–—]\s*\w+$/i, "").trim();
+        return <span className="font-medium text-sm">{clean || r.driverName}</span>;
+      },
     },
     { key: "platformDriverId", label: "Talabat ID" },
     {
@@ -84,7 +85,7 @@ export default function DocsExpiringPage() {
       label: "Batch",
       render: (v: string) => (
         <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-orange-50 text-orange-700">
-          {v || "—"}
+          {v || "-"}
         </span>
       ),
     },
@@ -94,13 +95,13 @@ export default function DocsExpiringPage() {
       key: "expiryDate",
       label: "Expiry Date",
       render: (v: string | null) =>
-        v ? new Date(v).toLocaleDateString() : "—",
+        v ? new Date(v).toLocaleDateString() : "-",
     },
     {
       key: "daysLeft",
       label: "Days Left",
       render: (v: number | null, r: DriverDoc) => {
-        if (v === null) return "—";
+        if (v === null) return "-";
         if (v < 0) return <span className="text-red-600 font-semibold">{Math.abs(v)}d overdue</span>;
         return <span className={cn("font-semibold", v <= 7 ? "text-red-600" : v <= 30 ? "text-yellow-600" : "text-green-600")}>{v}d</span>;
       },

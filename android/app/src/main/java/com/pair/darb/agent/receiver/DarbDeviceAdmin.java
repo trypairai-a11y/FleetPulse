@@ -11,8 +11,8 @@ import android.widget.Toast;
  *
  * Enables the following DevicePolicyManager capabilities when the user
  * grants device admin privileges:
- *   - lockNow()      — remote screen lock via {@link com.pair.darb.agent.worker.CommandPollWorker}
- *   - wipeData()     — remote wipe (optional future use)
+ *   - lockNow()      - remote screen lock via {@link com.pair.darb.agent.worker.CommandPollWorker}
+ *   - wipeData()     - remote wipe (optional future use)
  *
  * Registration in AndroidManifest:
  *

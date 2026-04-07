@@ -107,7 +107,7 @@ export default function OverviewPage() {
       <div className="grid grid-cols-4 gap-4">
         <StatCard title="Total Drivers" value={totalDrivers} icon={Users} />
         <StatCard title="Active Now" value={summaryData?.present || 0} icon={Activity} />
-        <StatCard title="Pending Cash" value={`KWD ${pendingCash.toFixed(0)}`} icon={DollarSign} highlight={pendingCash > 100} />
+        <StatCard title="Pending Cash" value={`KD ${pendingCash.toFixed(0)}`} icon={DollarSign} highlight={pendingCash > 0} />
         <StatCard
           title="Open Alerts"
           value={alerts.length}

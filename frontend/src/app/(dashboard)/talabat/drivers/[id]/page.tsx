@@ -8,10 +8,12 @@ import {
   ArrowLeft, CalendarClock, Package, Banknote, ShieldAlert,
   CheckCircle2, XCircle, AlertTriangle, Filter, X, Search,
   Calendar, ChevronLeft, ChevronRight, Phone, Truck,
+  Receipt, MapPin, Clock,
 } from "lucide-react";
 
 type Tab = "sessions" | "orders" | "violations";
 type PaymentFilter = "ALL" | "CASH" | "KNET";
+
 
 export default function TalabatDriverProfilePage() {
   const params = useParams();
@@ -19,12 +21,14 @@ export default function TalabatDriverProfilePage() {
   const driverId = params.id as string;
   const [tab, setTab] = useState<Tab>("sessions");
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("ALL");
-  const [dateFilter, setDateFilter] = useState<string>("");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [violationTypeFilter, setViolationTypeFilter] = useState<string>("ALL");
-  const [violationSeverityFilter, setViolationSeverityFilter] = useState<string>("ALL");
+
   const [violationSearch, setViolationSearch] = useState<string>("");
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [selectingRangeEnd, setSelectingRangeEnd] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() };
@@ -59,6 +63,12 @@ export default function TalabatDriverProfilePage() {
   );
   const violations = violationsData?.data || [];
 
+  // Active order check
+  const { data: activeOrderData } = useApiGet<any>(
+    `/api/talabat/deliveries?driverId=${driverId}&status=IN_PROGRESS&limit=1`
+  );
+  const activeOrder = activeOrderData?.data?.[0] || null;
+
   const { data: driverSummary } = useApiGet<any>(`/api/drivers/${driverId}/summary`);
 
   if (!driver && driverLoading) {
@@ -68,7 +78,7 @@ export default function TalabatDriverProfilePage() {
           <button onClick={() => router.push("/talabat/drivers")} className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
             <ArrowLeft size={18} />
           </button>
-          <span className="w-3 h-3 rounded-full bg-talabat" />
+          <span className="w-11 h-11 rounded-full bg-gray-200 animate-pulse" />
           <h1 className="text-xl font-semibold">Loading...</h1>
         </div>
       </div>
@@ -82,7 +92,7 @@ export default function TalabatDriverProfilePage() {
           <button onClick={() => router.push("/talabat/drivers")} className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
             <ArrowLeft size={18} />
           </button>
-          <span className="w-3 h-3 rounded-full bg-talabat" />
+          <span className="w-11 h-11 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-sm">?</span>
           <h1 className="text-xl font-semibold">Driver not found</h1>
         </div>
         <p className="text-sm text-secondary">This driver may have been removed or the link is invalid.</p>
@@ -99,9 +109,19 @@ export default function TalabatDriverProfilePage() {
         <button onClick={() => router.push("/talabat/drivers")} className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
           <ArrowLeft size={18} />
         </button>
-        <span className="w-3 h-3 rounded-full bg-talabat" />
+        {driver.photoUrl ? (
+          <img
+            src={driver.photoUrl}
+            alt={driver.name}
+            className="w-11 h-11 rounded-full object-cover border-2 border-orange-200"
+          />
+        ) : (
+          <span className="w-11 h-11 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-sm font-semibold">
+            {(driver.name || "?").split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()}
+          </span>
+        )}
         <div>
-          <h1 className="text-xl font-semibold">{(driver.talabatDisplayName || driver.name || "").replace(/\s+\d+[A-Z]?\s*[–—-]\s*\w+$/i, "").trim()}</h1>
+          <h1 className="text-xl font-semibold">{(driver.talabatDisplayName || driver.name || "").replace(/\s+\d+[A-Z]?\s*[–\u002D]\s*\w+$/i, "").trim()}</h1>
           <div className="flex items-center gap-2 mt-0.5">
             {driver.platformDriverId && (
               <span className="text-xs font-mono text-orange-700 bg-orange-50 px-2 py-0.5 rounded-md">ID: {driver.platformDriverId}</span>
@@ -146,7 +166,7 @@ export default function TalabatDriverProfilePage() {
           icon={CalendarClock}
         />
         <StatCard
-          title="Avg Deliveries/Day"
+          title="Avg Orders/Day"
           value={driverSummary?.avgDeliveriesPerDay != null ? driverSummary.avgDeliveriesPerDay.toFixed(1) : "0"}
           icon={Package}
         />
@@ -167,6 +187,47 @@ export default function TalabatDriverProfilePage() {
       </div>
 
       {/* Tabs */}
+      {/* Active Order Banner */}
+      {activeOrder && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-green-50 border border-green-200 rounded-2xl">
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
+          </span>
+          <div className="flex-1">
+            <span className="text-sm font-semibold text-green-800">Active Delivery</span>
+            <div className="flex items-center gap-3 mt-0.5 text-xs text-green-700">
+              {activeOrder.platformOrderId && (
+                <span className="flex items-center gap-1 font-mono">
+                  <Receipt size={11} /> #{activeOrder.platformOrderId}
+                </span>
+              )}
+              {activeOrder.shortCode && (
+                <span className="font-mono">#{activeOrder.shortCode}</span>
+              )}
+              {(activeOrder.amount != null) && (
+                <span className="flex items-center gap-1">
+                  <Banknote size={11} /> {Number(activeOrder.amount).toFixed(3)} KD
+                </span>
+              )}
+              {activeOrder.distanceKm != null && (
+                <span className="flex items-center gap-1">
+                  <MapPin size={11} /> {Number(activeOrder.distanceKm).toFixed(1)} km
+                </span>
+              )}
+              {activeOrder.createdAt && (
+                <span className="flex items-center gap-1">
+                  <Clock size={11} /> Started {new Date(activeOrder.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              )}
+            </div>
+          </div>
+          <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-green-100 text-green-700">
+            {activeOrder.orderType || "Delivery"}
+          </span>
+        </div>
+      )}
+
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
         {(["sessions", "orders", "violations"] as Tab[]).map((t) => (
           <button
@@ -193,17 +254,16 @@ export default function TalabatDriverProfilePage() {
                   <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Zone</th>
                   <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Planned</th>
                   <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Actual</th>
-                  <th className="text-right text-xs font-semibold text-secondary px-5 py-3">Deliveries</th>
+                  <th className="text-right text-xs font-semibold text-secondary px-5 py-3">Orders</th>
                   <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Face</th>
                   <th className="text-left text-xs font-semibold text-secondary px-5 py-3">In</th>
                   <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Out</th>
-                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {sessions.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-5 py-12 text-center text-sm text-secondary">
+                    <td colSpan={8} className="px-5 py-12 text-center text-sm text-secondary">
                       No working days found
                     </td>
                   </tr>
@@ -214,13 +274,13 @@ export default function TalabatDriverProfilePage() {
                       i % 2 === 1 && "bg-gray-50/30"
                     )}>
                       <td className="px-5 py-2.5 text-sm font-medium">
-                        {s.plannedStart ? new Date(s.plannedStart).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : <span className="text-gray-300">—</span>}
+                        {s.plannedStart ? new Date(s.plannedStart).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : <span className="text-gray-300">-</span>}
                       </td>
-                      <td className="px-5 py-2.5 text-sm text-secondary">{s.zone || <span className="text-gray-300">—</span>}</td>
+                      <td className="px-5 py-2.5 text-sm text-secondary">{s.zone || <span className="text-gray-300">-</span>}</td>
                       <td className="px-5 py-2.5 font-mono text-xs text-secondary">
                         {s.plannedStart
                           ? new Date(s.plannedStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                          : "—"}
+                          : "-"}
                         {s.plannedEnd
                           ? `–${new Date(s.plannedEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
                           : ""}
@@ -229,11 +289,11 @@ export default function TalabatDriverProfilePage() {
                         {s.actualHours != null ? (
                           <span className="font-medium">{Number(s.actualHours).toFixed(1)}<span className="text-secondary text-xs">h</span></span>
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-gray-300">-</span>
                         )}
                       </td>
                       <td className="px-5 py-2.5 text-sm text-right font-mono font-medium">
-                        {s.deliveries != null ? s.deliveries : <span className="text-gray-300">—</span>}
+                        {s.deliveries != null ? s.deliveries : <span className="text-gray-300">-</span>}
                       </td>
                       <td className="px-5 py-2.5">
                         {s.faceVerified !== undefined ? (
@@ -251,29 +311,18 @@ export default function TalabatDriverProfilePage() {
                             </span>
                           )
                         ) : (
-                          <span className="text-gray-300 text-xs">—</span>
+                          <span className="text-gray-300 text-xs">-</span>
                         )}
                       </td>
                       <td className="px-5 py-2.5 text-sm font-mono text-secondary">
                         {s.actualStart
                           ? new Date(s.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                          : <span className="text-gray-300">—</span>}
+                          : <span className="text-gray-300">-</span>}
                       </td>
                       <td className="px-5 py-2.5 text-sm font-mono text-secondary">
                         {s.actualEnd
                           ? new Date(s.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                          : <span className="text-gray-300">—</span>}
-                      </td>
-                      <td className="px-5 py-2.5">
-                        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
-                          "bg-green-50 text-green-600": s.status === "COMPLETED",
-                          "bg-blue-50 text-blue-600": s.status === "IN_PROGRESS",
-                          "bg-red-50 text-red-600": s.status === "MISSED",
-                          "bg-gray-100 text-gray-500": s.status === "CANCELLED",
-                          "bg-amber-50 text-amber-700 border border-amber-200": s.status === "NO_SHOW",
-                        })}>
-                          {s.status === "NO_SHOW" ? "No Show" : s.status}
-                        </span>
+                          : <span className="text-gray-300">-</span>}
                       </td>
                     </tr>
                   ))
@@ -294,16 +343,17 @@ export default function TalabatDriverProfilePage() {
         // Apply filters
         const filtered = orders.filter((o: any) => {
           if (paymentFilter !== "ALL" && o.paymentSource !== paymentFilter) return false;
-          if (dateFilter && o.date) {
+          if (o.date) {
             const oDate = new Date(o.date).toISOString().split("T")[0];
-            if (oDate !== dateFilter) return false;
+            if (dateFrom && oDate < dateFrom) return false;
+            if (dateTo && oDate > dateTo) return false;
           }
           if (searchQuery && o.orderNumber && !String(o.orderNumber).includes(searchQuery)) return false;
           return true;
         });
 
         const totalCash = filtered.reduce((sum: number, o: any) => sum + (o.cashCollected != null ? Number(o.cashCollected) : 0), 0);
-        const hasActiveFilters = paymentFilter !== "ALL" || dateFilter !== "" || searchQuery !== "";
+        const hasActiveFilters = paymentFilter !== "ALL" || dateFrom !== "" || dateTo !== "" || searchQuery !== "";
 
         // Group orders by date
         const grouped: { dateKey: string; dateLabel: string; orders: any[] }[] = [];
@@ -344,18 +394,18 @@ export default function TalabatDriverProfilePage() {
               ))}
             </div>
 
-            {/* Date filter (calendar) */}
+            {/* Date range filter (calendar) */}
             <div className="relative" ref={calendarRef}>
               <button
                 onClick={() => setCalendarOpen(!calendarOpen)}
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border bg-white focus:outline-none focus:ring-2 focus:ring-orange-200 transition-colors",
-                  dateFilter ? "border-orange-300 text-orange-600" : "border-gray-200 text-foreground"
+                  (dateFrom || dateTo) ? "border-orange-300 text-orange-600" : "border-gray-200 text-foreground"
                 )}
               >
                 <Calendar size={14} />
-                {dateFilter
-                  ? new Date(dateFilter + "T00:00:00").toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })
+                {dateFrom || dateTo
+                  ? `${dateFrom ? new Date(dateFrom + "T00:00:00").toLocaleDateString([], { month: "short", day: "numeric" }) : "Start"} → ${dateTo ? new Date(dateTo + "T00:00:00").toLocaleDateString([], { month: "short", day: "numeric" }) : "End"}`
                   : "All Dates"}
               </button>
 
@@ -373,6 +423,11 @@ export default function TalabatDriverProfilePage() {
 
                 return (
                   <div className="absolute top-full mt-1.5 left-0 z-50 bg-white rounded-xl shadow-lg border border-gray-200 p-3 w-64">
+                    {/* Range hint */}
+                    <div className="text-[10px] text-center text-secondary mb-2">
+                      {!dateFrom && !selectingRangeEnd ? "Select start date" : selectingRangeEnd ? "Select end date" : ""}
+                    </div>
+
                     {/* Month nav */}
                     <div className="flex items-center justify-between mb-2">
                       <button
@@ -402,7 +457,9 @@ export default function TalabatDriverProfilePage() {
                       {cells.map((day, i) => {
                         if (day === null) return <div key={`e${i}`} />;
                         const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-                        const isSelected = dateFilter === iso;
+                        const isFrom = dateFrom === iso;
+                        const isTo = dateTo === iso;
+                        const isInRange = dateFrom && dateTo && iso >= dateFrom && iso <= dateTo;
                         const isToday = iso === today;
                         const hasOrders = orderDatesSet.has(iso);
 
@@ -410,22 +467,42 @@ export default function TalabatDriverProfilePage() {
                           <button
                             key={iso}
                             onClick={() => {
-                              setDateFilter(isSelected ? "" : iso);
-                              if (!isSelected) setCalendarOpen(false);
+                              if (!selectingRangeEnd) {
+                                // First click: set start date
+                                setDateFrom(iso);
+                                setDateTo("");
+                                setSelectingRangeEnd(true);
+                              } else {
+                                // Second click: set end date
+                                if (iso < dateFrom) {
+                                  // If clicked before start, swap
+                                  setDateTo(dateFrom);
+                                  setDateFrom(iso);
+                                } else {
+                                  setDateTo(iso);
+                                }
+                                setSelectingRangeEnd(false);
+                                setCalendarOpen(false);
+                              }
                             }}
                             className={cn(
-                              "relative h-8 w-full text-xs rounded-md transition-colors",
-                              isSelected
-                                ? "bg-orange-500 text-white font-semibold"
-                                : isToday
-                                  ? "bg-orange-50 text-orange-600 font-semibold"
-                                  : hasOrders
-                                    ? "text-foreground font-medium hover:bg-gray-100"
-                                    : "text-gray-300"
+                              "relative h-8 w-full text-xs transition-colors",
+                              (isFrom || isTo)
+                                ? "bg-orange-500 text-white font-semibold rounded-md"
+                                : isInRange
+                                  ? "bg-orange-100 text-orange-700 font-medium"
+                                  : isToday
+                                    ? "bg-orange-50 text-orange-600 font-semibold rounded-md"
+                                    : hasOrders
+                                      ? "text-foreground font-medium hover:bg-gray-100 rounded-md"
+                                      : "text-gray-300 rounded-md",
+                              isFrom && dateTo && "rounded-r-none",
+                              isTo && dateFrom && "rounded-l-none",
+                              isInRange && !isFrom && !isTo && "rounded-none"
                             )}
                           >
                             {day}
-                            {hasOrders && !isSelected && (
+                            {hasOrders && !isFrom && !isTo && !isInRange && (
                               <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-orange-400" />
                             )}
                           </button>
@@ -434,9 +511,9 @@ export default function TalabatDriverProfilePage() {
                     </div>
 
                     {/* Quick actions */}
-                    {dateFilter && (
+                    {(dateFrom || dateTo) && (
                       <button
-                        onClick={() => { setDateFilter(""); setCalendarOpen(false); }}
+                        onClick={() => { setDateFrom(""); setDateTo(""); setSelectingRangeEnd(false); setCalendarOpen(false); }}
                         className="w-full mt-2 py-1.5 text-xs font-medium text-orange-600 hover:bg-orange-50 rounded-md transition-colors"
                       >
                         Clear date filter
@@ -462,7 +539,7 @@ export default function TalabatDriverProfilePage() {
             {/* Clear filters */}
             {hasActiveFilters && (
               <button
-                onClick={() => { setPaymentFilter("ALL"); setDateFilter(""); setSearchQuery(""); }}
+                onClick={() => { setPaymentFilter("ALL"); setDateFrom(""); setDateTo(""); setSelectingRangeEnd(false); setSearchQuery(""); }}
                 className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
               >
                 <X size={12} />
@@ -531,10 +608,10 @@ export default function TalabatDriverProfilePage() {
                                   <td className="px-5 py-2.5 text-sm text-secondary">
                                     {o.arrivalTime
                                       ? new Date(o.arrivalTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                                      : "—"}
+                                      : "-"}
                                   </td>
                                   <td className="px-5 py-2.5 text-sm font-mono">
-                                    {o.orderNumber || "—"}
+                                    {o.orderNumber || "-"}
                                   </td>
                                   <td className="px-5 py-2.5 text-sm text-center">
                                     {isCash ? (
@@ -542,14 +619,14 @@ export default function TalabatDriverProfilePage() {
                                     ) : isKnet ? (
                                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600">Knet</span>
                                     ) : (
-                                      <span className="text-gray-300">—</span>
+                                      <span className="text-gray-300">-</span>
                                     )}
                                   </td>
                                   <td className="px-5 py-2.5 text-sm text-right font-mono">
                                     {isCash && o.cashCollected != null ? (
                                       <span className="text-orange-600 font-medium">{Number(o.cashCollected).toFixed(3)}</span>
                                     ) : (
-                                      <span className="text-gray-300">—</span>
+                                      <span className="text-gray-300">-</span>
                                     )}
                                   </td>
                                 </tr>
@@ -583,7 +660,7 @@ export default function TalabatDriverProfilePage() {
 
         const filteredViolations = violations.filter((evt: any) => {
           if (violationTypeFilter !== "ALL" && evt.type !== violationTypeFilter) return false;
-          if (violationSeverityFilter !== "ALL" && evt.severity !== violationSeverityFilter) return false;
+
           if (violationSearch) {
             const q = violationSearch.toLowerCase();
             const matchDesc = (evt.description || "").toLowerCase().includes(q);
@@ -593,7 +670,7 @@ export default function TalabatDriverProfilePage() {
           return true;
         });
 
-        const hasActiveViolationFilters = violationTypeFilter !== "ALL" || violationSeverityFilter !== "ALL" || violationSearch !== "";
+        const hasActiveViolationFilters = violationTypeFilter !== "ALL" || violationSearch !== "";
 
         return (
           <>
@@ -619,24 +696,6 @@ export default function TalabatDriverProfilePage() {
               ))}
             </select>
 
-            {/* Severity filter */}
-            <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
-              {["ALL", "CRITICAL", "HIGH", "MEDIUM", "LOW"].map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setViolationSeverityFilter(s)}
-                  className={cn(
-                    "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
-                    violationSeverityFilter === s
-                      ? "bg-white text-foreground shadow-sm"
-                      : "text-secondary hover:text-foreground"
-                  )}
-                >
-                  {s === "ALL" ? "All Severity" : s.charAt(0) + s.slice(1).toLowerCase()}
-                </button>
-              ))}
-            </div>
-
             {/* Search */}
             <div className="relative">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -652,7 +711,7 @@ export default function TalabatDriverProfilePage() {
             {/* Clear filters */}
             {hasActiveViolationFilters && (
               <button
-                onClick={() => { setViolationTypeFilter("ALL"); setViolationSeverityFilter("ALL"); setViolationSearch(""); }}
+                onClick={() => { setViolationTypeFilter("ALL"); setViolationSearch(""); }}
                 className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
               >
                 <X size={12} />
@@ -675,15 +734,13 @@ export default function TalabatDriverProfilePage() {
                   <tr className="border-b border-gray-100 bg-gray-50/60">
                     <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Date / Time</th>
                     <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Type</th>
-                    <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Severity</th>
                     <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Description</th>
-                    <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredViolations.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-5 py-12 text-center text-sm text-secondary">
+                      <td colSpan={3} className="px-5 py-12 text-center text-sm text-secondary">
                         {hasActiveViolationFilters ? "No violations match your filters" : "No violations"}
                       </td>
                     </tr>
@@ -695,7 +752,7 @@ export default function TalabatDriverProfilePage() {
                       )}>
                         <td className="px-5 py-2.5 text-sm font-mono">
                           <span className="font-medium">
-                            {evt.createdAt ? new Date(evt.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                            {evt.createdAt ? new Date(evt.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "-"}
                           </span>
                           {evt.createdAt && (
                             <span className="text-xs text-secondary ml-1.5">
@@ -717,25 +774,7 @@ export default function TalabatDriverProfilePage() {
                             {(evt.type || "").replace(/_/g, " ")}
                           </span>
                         </td>
-                        <td className="px-5 py-2.5">
-                          <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
-                            "bg-gray-100 text-gray-500": evt.severity === "LOW",
-                            "bg-yellow-50 text-yellow-600": evt.severity === "MEDIUM",
-                            "bg-orange-50 text-orange-600": evt.severity === "HIGH",
-                            "bg-red-50 text-red-600": evt.severity === "CRITICAL",
-                          })}>
-                            {evt.severity}
-                          </span>
-                        </td>
-                        <td className="px-5 py-2.5 text-sm text-secondary max-w-xs truncate">{evt.description || (<span className="text-gray-300">—</span>)}</td>
-                        <td className="px-5 py-2.5">
-                          <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", evt.resolved
-                            ? "bg-green-50 text-green-600"
-                            : "bg-red-50 text-red-600"
-                          )}>
-                            {evt.resolved ? "RESOLVED" : "OPEN"}
-                          </span>
-                        </td>
+                        <td className="px-5 py-2.5 text-sm text-secondary max-w-xs truncate">{evt.description || (<span className="text-gray-300">-</span>)}</td>
                       </tr>
                     ))
                   )}

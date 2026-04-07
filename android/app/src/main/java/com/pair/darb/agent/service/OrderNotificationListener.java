@@ -57,7 +57,7 @@ public class OrderNotificationListener extends NotificationListenerService {
 
         String packageName = sbn.getPackageName();
         if (!WHITELIST.contains(packageName)) {
-            // Silently ignore — not a whitelisted courier app
+            // Silently ignore - not a whitelisted courier app
             return;
         }
 
@@ -93,7 +93,7 @@ public class OrderNotificationListener extends NotificationListenerService {
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
-        // Not needed — we only care about posting events
+        // Not needed - we only care about posting events
     }
 
     // ---------------------------------------------------------------------------

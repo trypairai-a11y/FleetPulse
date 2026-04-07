@@ -1,7 +1,8 @@
 import { prisma } from "../config";
+import { createViolationNotifications, getViolationSeverity } from "./notificationService";
 
 /**
- * Detect drivers with cash pending dues > 50 KWD for more than 3 days.
+ * Detect drivers with cash pending dues > 50 KD for more than 3 days.
  * Creates Alert records for new violations.
  */
 export async function detectCashOverdue(tenantId: string) {
@@ -42,16 +43,26 @@ export async function detectCashOverdue(tenantId: string) {
     });
     if (existing) continue;
 
-    await prisma.alert.create({
+    const alertMsg = `${ledger.driver.name} has KD ${Number(ledger.closingBalance).toFixed(3)} pending dues with no deposit in 3+ days`;
+    const alert = await prisma.alert.create({
       data: {
         tenantId,
         type: "cash_overdue",
         severity: "HIGH",
         title: "Cash Deposit Overdue",
-        message: `${ledger.driver.name} has KWD ${Number(ledger.closingBalance).toFixed(3)} pending dues with no deposit in 3+ days`,
+        message: alertMsg,
         driverId: ledger.driverId,
         data: { pendingDues: Number(ledger.closingBalance), ledgerId: ledger.id },
       },
+    });
+    await createViolationNotifications({
+      tenantId,
+      eventType: "cash_overdue",
+      severity: "HIGH",
+      title: "Cash Deposit Overdue",
+      message: alertMsg,
+      sourceId: alert.id,
+      metadata: { driverName: ledger.driver.name },
     });
     created++;
   }
@@ -98,15 +109,24 @@ export async function detectIncompleteShifts(tenantId: string) {
     });
     if (existing) continue;
 
-    await prisma.talabatComplianceEvent.create({
+    const shiftDesc = `${shift.driver.name} did not start their scheduled ${shift.zone || ""} session`;
+    const event = await prisma.talabatComplianceEvent.create({
       data: {
         tenantId,
         driverId: shift.driverId,
         type: "SHIFT_NOT_BOOKED",
-        severity: "HIGH",
-        description: `${shift.driver.name} did not start their scheduled ${shift.zone || ""} session`,
+        description: shiftDesc,
         metadata: { shiftId: shift.id, scheduledStart: shift.scheduledStart },
       },
+    });
+    await createViolationNotifications({
+      tenantId,
+      eventType: "SHIFT_NOT_BOOKED",
+      severity: getViolationSeverity("SHIFT_NOT_BOOKED"),
+      title: "Shift Not Booked",
+      message: shiftDesc,
+      sourceId: event.id,
+      metadata: { driverName: shift.driver.name },
     });
     created++;
   }
@@ -115,7 +135,7 @@ export async function detectIncompleteShifts(tenantId: string) {
 }
 
 /**
- * Talabat shift booking reminder — Tuesday 8-11 AM window.
+ * Talabat shift booking reminder - Tuesday 8-11 AM window.
  * Check which Talabat drivers have no booked shifts for the coming week.
  */
 export async function detectShiftBookingReminder(tenantId: string) {
@@ -160,15 +180,25 @@ export async function detectShiftBookingReminder(tenantId: string) {
     });
     if (existing) continue;
 
-    await prisma.alert.create({
+    const bookingMsg = `${driver.name} has not booked any shifts for next week`;
+    const alert = await prisma.alert.create({
       data: {
         tenantId,
         type: "shift_not_booked",
         severity: "HIGH",
         title: "Shift Not Booked",
-        message: `${driver.name} has not booked any shifts for next week`,
+        message: bookingMsg,
         driverId: driver.id,
       },
+    });
+    await createViolationNotifications({
+      tenantId,
+      eventType: "shift_not_booked",
+      severity: "HIGH",
+      title: "Shift Not Booked",
+      message: bookingMsg,
+      sourceId: alert.id,
+      metadata: { driverName: driver.name },
     });
     created++;
   }
@@ -177,7 +207,7 @@ export async function detectShiftBookingReminder(tenantId: string) {
 }
 
 /**
- * Detect drivers whose cumulative cash collected exceeds 100 KWD.
+ * Detect drivers whose cumulative cash collected exceeds 100 KD.
  * Creates a CASH_THRESHOLD_EXCEEDED compliance event.
  */
 export async function detectCashThresholdExceeded(tenantId: string) {
@@ -207,16 +237,25 @@ export async function detectCashThresholdExceeded(tenantId: string) {
     });
     if (existing) continue;
 
-    await prisma.talabatComplianceEvent.create({
+    const cashDesc = `Cash collected reached KD ${Number(session.cashCollected).toFixed(3)} - exceeds 100 KD threshold`;
+    const event = await prisma.talabatComplianceEvent.create({
       data: {
         tenantId,
         driverId: session.driverId,
         sessionId: session.id,
         type: "CASH_THRESHOLD_EXCEEDED",
-        severity: "CRITICAL",
-        description: `Cash collected reached KWD ${Number(session.cashCollected).toFixed(3)} — exceeds 100 KWD threshold`,
+        description: cashDesc,
         metadata: { cashCollected: Number(session.cashCollected), threshold: 100 },
       },
+    });
+    await createViolationNotifications({
+      tenantId,
+      eventType: "CASH_THRESHOLD_EXCEEDED",
+      severity: "CRITICAL",
+      title: "Cash Threshold Exceeded",
+      message: `${session.driver.name}: ${cashDesc}`,
+      sourceId: event.id,
+      metadata: { driverName: session.driver.name, cashCollected: Number(session.cashCollected) },
     });
     created++;
   }
@@ -225,14 +264,69 @@ export async function detectCashThresholdExceeded(tenantId: string) {
 }
 
 /**
+ * Detect drivers who clocked in late today but don't yet have an attendance record.
+ * Retroactive check - the real-time detection happens in the clock-in endpoint.
+ */
+export async function detectLateClockIns(tenantId: string) {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+  // Find shifts that started today where actualStart > scheduledStart
+  const shifts = await prisma.shift.findMany({
+    where: {
+      tenantId,
+      date: { gte: startOfDay, lt: endOfDay },
+      status: { in: ["IN_PROGRESS", "COMPLETED"] },
+      actualStart: { not: null },
+    },
+    include: { driver: { select: { id: true, name: true } } },
+  });
+
+  let flagged = 0;
+  for (const shift of shifts) {
+    if (!shift.actualStart || !shift.scheduledStart) continue;
+    const lateMs = shift.actualStart.getTime() - shift.scheduledStart.getTime();
+    const lateMinutes = Math.floor(lateMs / 60000);
+    if (lateMinutes < 1) continue;
+
+    // Check if attendance record already exists
+    const existing = await prisma.attendanceRecord.findFirst({
+      where: {
+        tenantId,
+        driverId: shift.driverId,
+        date: { gte: startOfDay, lt: endOfDay },
+      },
+    });
+    if (existing) continue;
+
+    await prisma.attendanceRecord.create({
+      data: {
+        tenantId,
+        driverId: shift.driverId,
+        shiftId: shift.id,
+        date: startOfDay,
+        status: "LATE",
+        lateMinutes,
+        source: "SYSTEM",
+      },
+    });
+    flagged++;
+  }
+
+  return { checked: shifts.length, flagged };
+}
+
+/**
  * Run all rule checks for a tenant.
  */
 export async function runAllRules(tenantId: string) {
-  const [cashResult, shiftResult, bookingResult, cashThresholdResult] = await Promise.all([
+  const [cashResult, shiftResult, bookingResult, cashThresholdResult, lateResult] = await Promise.all([
     detectCashOverdue(tenantId),
     detectIncompleteShifts(tenantId),
     detectShiftBookingReminder(tenantId),
     detectCashThresholdExceeded(tenantId),
+    detectLateClockIns(tenantId),
   ]);
 
   return {
@@ -240,6 +334,7 @@ export async function runAllRules(tenantId: string) {
     incompleteShifts: shiftResult,
     bookingReminder: bookingResult,
     cashThresholdExceeded: cashThresholdResult,
+    lateClockIns: lateResult,
     timestamp: new Date().toISOString(),
   };
 }

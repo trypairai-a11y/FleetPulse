@@ -172,7 +172,7 @@ export default function AnalyticsPage() {
         />
         <StatCard
           title="Cash Pending"
-          value={`KWD ${Number(overview?.cashPending?.total || 0).toFixed(0)}`}
+          value={`KD ${Number(overview?.cashPending?.total || 0).toFixed(0)}`}
           icon={DollarSign}
           highlight={(overview?.cashPending?.total || 0) > 1000}
         />

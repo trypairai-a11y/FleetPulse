@@ -33,7 +33,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8 flex flex-col items-center">
           <div className="overflow-hidden" style={{ maxWidth: 210 }}>
-            <Image src="/logo.png" alt="Darb — Fleet Operating System" width={220} height={80} className="object-contain" priority />
+            <Image src="/logo.png" alt="Darb - Fleet Operating System" width={220} height={80} className="object-contain" priority />
           </div>
         </div>
 

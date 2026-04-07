@@ -212,7 +212,7 @@
                         android:id="@+id/tvLastSync"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="—"
+                        android:text="-"
                         android:textSize="14sp"
                         android:textColor="#1D1D1F" />
                 </LinearLayout>

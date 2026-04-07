@@ -19,7 +19,7 @@ export class AiDigestService {
    */
   static async generateDailyDigest(tenantId: string): Promise<DigestSection | null> {
     if (!env.ANTHROPIC_API_KEY) {
-      console.warn("[AiDigestService] ANTHROPIC_API_KEY is not set — skipping digest");
+      console.warn("[AiDigestService] ANTHROPIC_API_KEY is not set - skipping digest");
       return null;
     }
 
@@ -164,7 +164,7 @@ Analyze the operational summary provided and respond ONLY with valid JSON in thi
 }
 
 Include ticket-related alerts when there are open, overdue, or high-volume tickets. Highlight overdue tickets and unresolved complaints.
-Be concise, data-driven, and actionable. Currency is KWD (Kuwaiti Dinar).`;
+Be concise, data-driven, and actionable. Currency is KD (Kuwaiti Dinar).`;
 
     const userMessage = `Here is yesterday's operational data for ${yesterdayStart.toISOString().split("T")[0]}:\n\n${JSON.stringify(summaryPayload, null, 2)}\n\nGenerate the daily digest JSON.`;
 

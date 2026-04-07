@@ -45,7 +45,7 @@ function PositionBadge({ position }: { position: string }) {
       )}
     >
       {isCar ? <Car size={11} /> : <Bike size={11} />}
-      {position || "—"}
+      {position || "-"}
     </span>
   );
 }
@@ -100,7 +100,7 @@ export default function AmericanaPerformancePage() {
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-americana" />
         <h1 className="text-xl font-semibold">
-          Americana — Store Performance
+          Americana - Store Performance
         </h1>
         <span className="text-sm text-secondary">Al Hazm Express</span>
       </div>
@@ -218,28 +218,28 @@ export default function AmericanaPerformancePage() {
                     className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50 transition-colors"
                   >
                     <td className="px-5 py-3 text-sm font-medium">
-                      {row.driver?.name || row.driverName || "—"}
+                      {row.driver?.name || row.driverName || "-"}
                     </td>
                     <td className="px-5 py-3">
                       <span className="font-mono text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
-                        {row.employeeId || row.driver?.employeeId || "—"}
+                        {row.employeeId || row.driver?.employeeId || "-"}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-sm text-secondary">
-                      {row.storeName || row.store || "—"}
+                      {row.storeName || row.store || "-"}
                     </td>
                     <td className="px-5 py-3">
-                      <PositionBadge position={row.position || row.vehicleType || "—"} />
+                      <PositionBadge position={row.position || row.vehicleType || "-"} />
                     </td>
                     <td className="px-5 py-3 text-sm text-right font-mono font-semibold">
-                      {row.totalOrders ?? "—"}
+                      {row.totalOrders ?? "-"}
                     </td>
                     <td className="px-5 py-3 text-sm text-right font-mono text-secondary">
                       {row.dailyAverage != null
                         ? n(row.dailyAverage).toFixed(1)
                         : row.totalOrders != null
                           ? (n(row.totalOrders) / daysInMonth(month)).toFixed(1)
-                          : "—"}
+                          : "-"}
                     </td>
                     <td className="px-5 py-3">
                       <ChevronRight size={15} className="text-gray-300" />
@@ -286,7 +286,7 @@ export default function AmericanaPerformancePage() {
         title={
           selected?.driver?.name || selected?.driverName || "Driver Detail"
         }
-        subtitle="Americana / Al Hazm Express — Store Performance"
+        subtitle="Americana / Al Hazm Express - Store Performance"
       >
         {selected && (
           <div className="space-y-5">
@@ -296,14 +296,14 @@ export default function AmericanaPerformancePage() {
                 Driver
               </p>
               <p className="text-lg font-semibold text-blue-800">
-                {selected.driver?.name || selected.driverName || "—"}
+                {selected.driver?.name || selected.driverName || "-"}
               </p>
               <p className="text-sm text-blue-600 font-mono mt-0.5">
-                {selected.employeeId || selected.driver?.employeeId || "—"}{" "}
-                &middot; {selected.storeName || selected.store || "—"}{" "}
+                {selected.employeeId || selected.driver?.employeeId || "-"}{" "}
+                &middot; {selected.storeName || selected.store || "-"}{" "}
                 &middot;{" "}
                 <span className="capitalize">
-                  {selected.position || selected.vehicleType || "—"}
+                  {selected.position || selected.vehicleType || "-"}
                 </span>
               </p>
             </div>
@@ -336,7 +336,7 @@ export default function AmericanaPerformancePage() {
             {selected.dailyOrders && (
               <div>
                 <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide mb-3">
-                  Daily Orders — {month}
+                  Daily Orders - {month}
                 </h3>
                 <div className="grid grid-cols-7 gap-1.5">
                   {/* Day labels */}
@@ -458,9 +458,9 @@ export default function AmericanaPerformancePage() {
             {/* Additional Info */}
             <div className="grid grid-cols-2 gap-3">
               {[
-                ["Store", selected.storeName || selected.store || "—"],
-                ["Position", selected.position || selected.vehicleType || "—"],
-                ["Emp ID", selected.employeeId || selected.driver?.employeeId || "—"],
+                ["Store", selected.storeName || selected.store || "-"],
+                ["Position", selected.position || selected.vehicleType || "-"],
+                ["Emp ID", selected.employeeId || selected.driver?.employeeId || "-"],
                 ["Month", month],
               ].map(([label, val]) => (
                 <div key={label as string} className="bg-gray-50 rounded-xl p-3">

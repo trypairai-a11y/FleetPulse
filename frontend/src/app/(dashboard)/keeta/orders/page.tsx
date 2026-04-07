@@ -47,28 +47,28 @@ export default function KeetaOrdersPage() {
       key: "date",
       label: "Date",
       render: (v: string) => (
-        <span className="text-sm">{v ? new Date(v).toLocaleDateString() : "—"}</span>
+        <span className="text-sm">{v ? new Date(v).toLocaleDateString() : "-"}</span>
       ),
     },
     {
       key: "driver",
       label: "Driver",
       render: (_: any, r: any) => (
-        <span className="font-medium text-sm">{r.driver?.name || r.driverName || "—"}</span>
+        <span className="font-medium text-sm">{r.driver?.name || r.driverName || "-"}</span>
       ),
     },
     {
       key: "zone",
       label: "Zone",
       render: (_: any, r: any) => (
-        <span className="text-sm text-secondary">{r.driver?.zone || r.zone || "—"}</span>
+        <span className="text-sm text-secondary">{r.driver?.zone || r.zone || "-"}</span>
       ),
     },
     {
       key: "orderCount",
       label: "Orders",
       render: (_: any, r: any) => (
-        <span className="text-sm font-semibold">{r.orderCount ?? r.orders ?? "—"}</span>
+        <span className="text-sm font-semibold">{r.orderCount ?? r.orders ?? "-"}</span>
       ),
     },
     {
@@ -76,7 +76,7 @@ export default function KeetaOrdersPage() {
       label: "Distance",
       render: (_: any, r: any) => {
         const d = r.distanceKm ?? r.distance;
-        return <span className="text-sm text-secondary">{d != null ? `${Number(d).toFixed(1)} km` : "—"}</span>;
+        return <span className="text-sm text-secondary">{d != null ? `${Number(d).toFixed(1)} km` : "-"}</span>;
       },
     },
     {
@@ -107,7 +107,7 @@ export default function KeetaOrdersPage() {
           "bg-purple-50 text-purple-600": v === "SCREENSHOT",
           "bg-gray-100 text-gray-500": !v,
         })}>
-          {v || "—"}
+          {v || "-"}
         </span>
       ),
     },
@@ -119,7 +119,7 @@ export default function KeetaOrdersPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-keeta" />
-          <h1 className="text-xl font-semibold">Keeta — Orders</h1>
+          <h1 className="text-xl font-semibold">Keeta - Orders</h1>
           <span className="text-sm text-secondary">Sidra</span>
         </div>
         {/* Import buttons */}
@@ -231,12 +231,12 @@ export default function KeetaOrdersPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {[
-                ["Date", selected.date ? new Date(selected.date).toLocaleDateString() : "—"],
-                ["Zone", selected.driver?.zone || selected.zone || "—"],
-                ["Order Count", selected.orderCount ?? selected.orders ?? "—"],
-                ["Distance", selected.distanceKm != null ? `${Number(selected.distanceKm).toFixed(1)} km` : "—"],
-                ["On-Time Rate", selected.onTimeRate != null ? `${selected.onTimeRate}%` : "—"],
-                ["Source", selected.source || "—"],
+                ["Date", selected.date ? new Date(selected.date).toLocaleDateString() : "-"],
+                ["Zone", selected.driver?.zone || selected.zone || "-"],
+                ["Order Count", selected.orderCount ?? selected.orders ?? "-"],
+                ["Distance", selected.distanceKm != null ? `${Number(selected.distanceKm).toFixed(1)} km` : "-"],
+                ["On-Time Rate", selected.onTimeRate != null ? `${selected.onTimeRate}%` : "-"],
+                ["Source", selected.source || "-"],
                 ["Platform", "KEETA"],
                 ["Payment", "Digital (Cashless)"],
               ].map(([label, val]) => (

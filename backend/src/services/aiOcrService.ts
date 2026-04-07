@@ -42,7 +42,7 @@ export interface DeliverooOcrResult {
 export interface AmericanaOcrResult {
   platform: "AMERICANA";
   totalOrders: number | null;
-  totalAmountKWD: number | null;
+  totalAmountKD: number | null;
   paymentBreakdown: {
     COD: number | null;
     CCOD: number | null;
@@ -66,7 +66,7 @@ export type OcrResult =
 const SYSTEM_PROMPT = `You are a precise OCR extraction assistant specializing in delivery app screenshots from Kuwait.
 
 Context:
-- Currency: Kuwaiti Dinar (KWD), always 3 decimal places (e.g., 1.500 KD)
+- Currency: Kuwaiti Dinar (KD), always 3 decimal places (e.g., 1.500 KD)
 - Apps may show text in Arabic, English, or bilingual
 - Extract all visible numeric and text data accurately
 - If a value is not visible or unclear, return null for that field
@@ -119,7 +119,7 @@ AMERICANA:
 {
   "platform": "AMERICANA",
   "totalOrders": number or null,
-  "totalAmountKWD": number (3 decimal places) or null,
+  "totalAmountKD": number (3 decimal places) or null,
   "paymentBreakdown": {
     "COD": number or null,
     "CCOD": number or null,
@@ -152,7 +152,7 @@ export class AiOcrService {
     platform: string
   ): Promise<OcrResult | null> {
     if (!env.ANTHROPIC_API_KEY) {
-      console.warn("[AiOcrService] ANTHROPIC_API_KEY is not set — skipping OCR");
+      console.warn("[AiOcrService] ANTHROPIC_API_KEY is not set - skipping OCR");
       return null;
     }
 

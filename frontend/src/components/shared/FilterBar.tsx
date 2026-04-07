@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Search, Check } from "lucide-react";
+import { ChevronDown, Search, Check, X } from "lucide-react";
+import DateRangePicker from "./DateRangePicker";
 
 interface FilterOption {
   value: string;
@@ -10,15 +11,19 @@ interface FilterOption {
 interface Filter {
   key: string;
   label: string;
-  type: "select" | "date" | "search" | "multi-select";
+  type: "select" | "date" | "search" | "multi-select" | "time" | "dateRange";
   options?: FilterOption[];
   placeholder?: string;
+  /** For dateRange type: key used for the end date value */
+  toKey?: string;
 }
 
 interface FilterBarProps {
   filters: Filter[];
   values: Record<string, string>;
   onChange: (key: string, value: string) => void;
+  onClear?: () => void;
+  defaultValues?: Record<string, string>;
 }
 
 function MultiSelectFilter({
@@ -106,7 +111,12 @@ function MultiSelectFilter({
   );
 }
 
-export default function FilterBar({ filters, values, onChange }: FilterBarProps) {
+export default function FilterBar({ filters, values, onChange, onClear, defaultValues }: FilterBarProps) {
+  const hasActiveFilters = onClear && Object.keys(values).some((k) => {
+    const defaultVal = defaultValues?.[k] || "";
+    return values[k] && values[k] !== defaultVal;
+  });
+
   return (
     <div className="flex gap-3 flex-wrap items-center">
       {filters.map((filter) => {
@@ -124,11 +134,36 @@ export default function FilterBar({ filters, values, onChange }: FilterBarProps)
             </div>
           );
         }
+        if (filter.type === "dateRange") {
+          const toKey = filter.toKey || "dateTo";
+          return (
+            <DateRangePicker
+              key={filter.key}
+              dateFrom={values[filter.key] || ""}
+              dateTo={values[toKey] || ""}
+              onChange={(from, to) => {
+                onChange(filter.key, from);
+                onChange(toKey, to);
+              }}
+            />
+          );
+        }
         if (filter.type === "date") {
           return (
             <input
               key={filter.key}
               type="date"
+              value={values[filter.key] || ""}
+              onChange={(e) => onChange(filter.key, e.target.value)}
+              className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          );
+        }
+        if (filter.type === "time") {
+          return (
+            <input
+              key={filter.key}
+              type="time"
               value={values[filter.key] || ""}
               onChange={(e) => onChange(filter.key, e.target.value)}
               className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -161,6 +196,16 @@ export default function FilterBar({ filters, values, onChange }: FilterBarProps)
           </div>
         );
       })}
+      {hasActiveFilters && (
+        <button
+          type="button"
+          onClick={onClear}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+        >
+          <X size={14} />
+          Clear Filters
+        </button>
+      )}
     </div>
   );
 }

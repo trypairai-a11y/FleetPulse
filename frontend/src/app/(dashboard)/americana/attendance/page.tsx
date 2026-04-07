@@ -52,7 +52,7 @@ const SHIFT_SLOT_STYLES: Record<ShiftSlot, string> = {
 };
 
 function ShiftSlotBadge({ slot }: { slot: ShiftSlot | null }) {
-  if (!slot) return <span className="text-xs text-secondary">—</span>;
+  if (!slot) return <span className="text-xs text-secondary">-</span>;
   return (
     <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", SHIFT_SLOT_STYLES[slot])}>
       {slot}
@@ -61,7 +61,7 @@ function ShiftSlotBadge({ slot }: { slot: ShiftSlot | null }) {
 }
 
 function GPSVerification({ valid }: { valid: boolean | null }) {
-  if (valid === null) return <span className="text-xs text-secondary">—</span>;
+  if (valid === null) return <span className="text-xs text-secondary">-</span>;
   return valid ? (
     <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
       <CheckCircle2 size={13} /> At Store
@@ -118,13 +118,13 @@ export default function AmericanaAttendancePage() {
     {
       key: "driver",
       label: "Driver",
-      render: (_: any, r: any) => <span className="font-medium text-sm">{r.driver?.name || "—"}</span>,
+      render: (_: any, r: any) => <span className="font-medium text-sm">{r.driver?.name || "-"}</span>,
     },
     {
       key: "store",
       label: "Store",
       render: (_: any, r: any) => (
-        <span className="text-sm text-secondary">{r.driver?.storeName || r.storeName || "—"}</span>
+        <span className="text-sm text-secondary">{r.driver?.storeName || r.storeName || "-"}</span>
       ),
     },
     {
@@ -141,7 +141,7 @@ export default function AmericanaAttendancePage() {
             {new Date(r.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
         ) : (
-          <span className="text-secondary text-sm">—</span>
+          <span className="text-secondary text-sm">-</span>
         ),
     },
     {
@@ -153,7 +153,7 @@ export default function AmericanaAttendancePage() {
             {new Date(r.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
         ) : (
-          <span className="text-secondary text-sm">—</span>
+          <span className="text-secondary text-sm">-</span>
         ),
     },
     {
@@ -180,7 +180,7 @@ export default function AmericanaAttendancePage() {
             </span>
           )
         ) : (
-          <span className="text-xs text-secondary">—</span>
+          <span className="text-xs text-secondary">-</span>
         ),
     },
     {
@@ -199,7 +199,7 @@ export default function AmericanaAttendancePage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-americana" />
-        <h1 className="text-xl font-semibold">Americana — Attendance</h1>
+        <h1 className="text-xl font-semibold">Americana - Attendance</h1>
         <span className="text-sm text-secondary">Al Hazm Express</span>
       </div>
 
@@ -209,7 +209,7 @@ export default function AmericanaAttendancePage() {
         <div>
           <p className="text-sm font-medium text-blue-800">Americana Clock-In</p>
           <p className="text-xs text-blue-600 mt-0.5">
-            Americana's native app uses a simple Start Shift toggle — no face verification.
+            Americana's native app uses a simple Start Shift toggle - no face verification.
             Darb adds <span className="font-semibold">face verification + GPS store check</span> via the Android agent at clock-in.
           </p>
         </div>
@@ -219,7 +219,7 @@ export default function AmericanaAttendancePage() {
       <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-start gap-3">
         <Moon size={18} className="text-amber-600 mt-0.5 shrink-0" />
         <p className="text-sm text-amber-800">
-          <span className="font-semibold">Ramadan Schedule Active</span> — drivers must stay until all orders are delivered after 4:00 AM.
+          <span className="font-semibold">Ramadan Schedule Active</span> - drivers must stay until all orders are delivered after 4:00 AM.
         </p>
       </div>
 
@@ -293,7 +293,7 @@ export default function AmericanaAttendancePage() {
         <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">
-              Monthly Summary — {new Date().toLocaleString("default", { month: "long", year: "numeric" })}
+              Monthly Summary - {new Date().toLocaleString("default", { month: "long", year: "numeric" })}
             </h2>
             <select className="px-3 py-1.5 rounded-xl border border-gray-200 text-sm focus:outline-none">
               <option>All Stores</option>
@@ -317,21 +317,21 @@ export default function AmericanaAttendancePage() {
                 {attendanceList.length === 0 ? (
                   <tr>
                     <td colSpan={35} className="px-3 py-10 text-center text-sm text-secondary">
-                      No data — select a date range to view monthly summary
+                      No data - select a date range to view monthly summary
                     </td>
                   </tr>
                 ) : (
                   attendanceList.map((r: any) => (
                     <tr key={r.id} className="border-b border-gray-50 last:border-0">
                       <td className="px-3 py-2 font-medium">{r.driver?.name}</td>
-                      <td className="px-3 py-2 text-secondary">{r.driver?.storeName || "—"}</td>
+                      <td className="px-3 py-2 text-secondary">{r.driver?.storeName || "-"}</td>
                       {MONTH_DAYS.map((d) => (
                         <td key={d} className="px-1 py-2 text-center">
                           <span className="w-5 h-5 rounded-full inline-flex items-center justify-center bg-gray-100 text-gray-400">·</span>
                         </td>
                       ))}
-                      <td className="px-3 py-2 text-right font-medium">—</td>
-                      <td className="px-3 py-2 text-right font-medium">—</td>
+                      <td className="px-3 py-2 text-right font-medium">-</td>
+                      <td className="px-3 py-2 text-right font-medium">-</td>
                     </tr>
                   ))
                 )}
@@ -374,11 +374,11 @@ export default function AmericanaAttendancePage() {
                   return (
                     <tr key={leave.id} className="border-b border-gray-50 last:border-0">
                       <td className="px-5 py-3 text-sm font-medium">{leave.driver?.name}</td>
-                      <td className="px-5 py-3 text-sm text-secondary">{leave.driver?.storeName || "—"}</td>
+                      <td className="px-5 py-3 text-sm text-secondary">{leave.driver?.storeName || "-"}</td>
                       <td className="px-5 py-3 text-sm text-secondary">{leave.type}</td>
                       <td className="px-5 py-3 text-sm text-secondary">{new Date(leave.startDate).toLocaleDateString()}</td>
                       <td className="px-5 py-3 text-sm text-secondary">{new Date(leave.endDate).toLocaleDateString()}</td>
-                      <td className="px-5 py-3 text-sm text-secondary">{leave.days || "—"}</td>
+                      <td className="px-5 py-3 text-sm text-secondary">{leave.days || "-"}</td>
                       <td className="px-5 py-3">
                         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
                           "bg-yellow-50 text-yellow-700": actionTaken === "PENDING",
@@ -427,16 +427,16 @@ export default function AmericanaAttendancePage() {
             <div className="grid grid-cols-2 gap-3">
               {[
                 ["Date", filters.date],
-                ["Store", selected.driver?.storeName || selected.storeName || "—"],
-                ["Shift Slot", selected.shiftSlot || "—"],
+                ["Store", selected.driver?.storeName || selected.storeName || "-"],
+                ["Shift Slot", selected.shiftSlot || "-"],
                 ["Status", selected.status],
-                ["Clock In", selected.shift?.actualStart ? new Date(selected.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"],
-                ["Clock Out", selected.shift?.actualEnd ? new Date(selected.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"],
-                ["Late (min)", selected.lateMinutes ?? "—"],
-                ["GPS @ Store", selected.gpsAtStore === true ? "Yes — at assigned store" : selected.gpsAtStore === false ? "No — off-site" : "—"],
-                ["Face Verified (Darb)", selected.faceVerified === true ? "Passed" : selected.faceVerified === false ? "Failed" : "—"],
-                ["Face Mismatch", selected.faceMismatch === true ? "Mismatch — different person detected" : selected.faceMismatch === false ? "Match — identity confirmed" : "—"],
-                ["GPS Location", selected.gpsLocation || "—"],
+                ["Clock In", selected.shift?.actualStart ? new Date(selected.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
+                ["Clock Out", selected.shift?.actualEnd ? new Date(selected.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
+                ["Late (min)", selected.lateMinutes ?? "-"],
+                ["GPS @ Store", selected.gpsAtStore === true ? "Yes - at assigned store" : selected.gpsAtStore === false ? "No - off-site" : "-"],
+                ["Face Verified (Darb)", selected.faceVerified === true ? "Passed" : selected.faceVerified === false ? "Failed" : "-"],
+                ["Face Mismatch", selected.faceMismatch === true ? "Mismatch - different person detected" : selected.faceMismatch === false ? "Match - identity confirmed" : "-"],
+                ["GPS Location", selected.gpsLocation || "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>

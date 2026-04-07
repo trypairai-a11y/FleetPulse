@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useApiGet } from "@/hooks/useApi";
+import api from "@/lib/api";
 import DataTable from "@/components/shared/DataTable";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
@@ -16,6 +17,7 @@ import {
   Clock,
   Hash,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 
 const ZONES = ["Al Hazm", "Madinat Al Hareer", "Abu Halifa", "Mangaf", "Fahaheel"];
@@ -32,14 +34,18 @@ export default function DeliverooPhonesPage() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [addForm, setAddForm] = useState({ imei: "", model: "", osVersion: "", driverId: "" });
+  const [addError, setAddError] = useState("");
+  const [adding, setAdding] = useState(false);
 
   const params = new URLSearchParams({ platform: "DELIVEROO", limit: "100" });
   if (filters.status) params.set("status", filters.status);
   if (filters.zone) params.set("zone", filters.zone);
   if (filters.search) params.set("search", filters.search);
 
-  const { data } = useApiGet<any>(`/api/devices?${params}`);
+  const { data, refetch } = useApiGet<any>(`/api/devices?${params}`);
   const { data: summary } = useApiGet<any>("/api/devices/summary?platform=DELIVEROO");
+  const { data: driversData } = useApiGet<any>("/api/drivers?platform=DELIVEROO&limit=500");
   const devices: any[] = data?.data || [];
 
   const columns = [
@@ -52,8 +58,8 @@ export default function DeliverooPhonesPage() {
             <Smartphone size={14} className="text-teal-600" />
           </div>
           <div>
-            <p className="text-sm font-medium">{r.deviceName || r.model || "—"}</p>
-            <p className="text-[10px] text-secondary font-mono">{r.imei || r.serialNumber || "—"}</p>
+            <p className="text-sm font-medium">{r.deviceName || r.model || "-"}</p>
+            <p className="text-[10px] text-secondary font-mono">{r.imei || r.serialNumber || "-"}</p>
           </div>
         </div>
       ),
@@ -72,19 +78,10 @@ export default function DeliverooPhonesPage() {
       key: "mobileNumber",
       label: "Mobile Number",
       render: (_: any, r: any) => (
-        <span className="font-mono text-xs text-secondary">{r.driver?.phone || "—"}</span>
+        <span className="font-mono text-xs text-secondary">{r.driver?.phone || "-"}</span>
       ),
     },
     { key: "zone", label: "Zone" },
-    {
-      key: "status",
-      label: "Status",
-      render: (v: string) => (
-        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", STATUS_STYLES[v] || "bg-gray-100 text-gray-500")}>
-          {v}
-        </span>
-      ),
-    },
     {
       key: "isOnline",
       label: "Connection",
@@ -99,7 +96,7 @@ export default function DeliverooPhonesPage() {
       key: "agentVersion",
       label: "Agent",
       render: (v: string) => (
-        <span className="text-[10px] font-mono text-secondary">{v || "—"}</span>
+        <span className="text-[10px] font-mono text-secondary">{v || "-"}</span>
       ),
     },
     {
@@ -107,7 +104,7 @@ export default function DeliverooPhonesPage() {
       label: "Last Seen",
       render: (v: string) => (
         <span className="text-xs text-secondary">
-          {v ? new Date(v).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}
+          {v ? new Date(v).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "-"}
         </span>
       ),
     },
@@ -119,7 +116,7 @@ export default function DeliverooPhonesPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-teal-500" />
-          <h1 className="text-xl font-semibold">Deliveroo — Phones</h1>
+          <h1 className="text-xl font-semibold">Deliveroo - Phones</h1>
           <span className="text-sm text-secondary">Al Hazm</span>
         </div>
         <button
@@ -198,8 +195,8 @@ export default function DeliverooPhonesPage() {
                 <Smartphone size={20} className="text-teal-600" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold">{selected.deviceName || selected.model || "—"}</p>
-                <p className="text-xs text-secondary">{selected.manufacturer || "—"}</p>
+                <p className="text-sm font-semibold">{selected.deviceName || selected.model || "-"}</p>
+                <p className="text-xs text-secondary">{selected.manufacturer || "-"}</p>
               </div>
               <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", STATUS_STYLES[selected.status] || "bg-gray-100 text-gray-500")}>
                 {selected.status}
@@ -217,7 +214,7 @@ export default function DeliverooPhonesPage() {
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5 font-mono text-xs">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5 font-mono text-xs">{val || "-"}</p>
                 </div>
               ))}
             </div>
@@ -242,7 +239,7 @@ export default function DeliverooPhonesPage() {
                 <span className="text-xs text-secondary">
                   {selected.lastSeenAt
                     ? new Date(selected.lastSeenAt).toLocaleString()
-                    : "—"}
+                    : "-"}
                 </span>
               </div>
 
@@ -272,16 +269,91 @@ export default function DeliverooPhonesPage() {
           <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold">Add Deliveroo Device</h2>
-              <button
-                onClick={() => setShowAdd(false)}
-                className="p-1 hover:bg-gray-50 rounded-lg"
-              >
+              <button onClick={() => { setShowAdd(false); setAddError(""); }} className="p-1 hover:bg-gray-50 rounded-lg">
                 <X size={18} />
               </button>
             </div>
-            <p className="text-sm text-secondary">
-              Device form — connects to POST /api/devices with platform=DELIVEROO
-            </p>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setAddError("");
+                setAdding(true);
+                try {
+                  await api.post("/api/devices", {
+                    imei: addForm.imei,
+                    model: addForm.model,
+                    osVersion: addForm.osVersion,
+                    driverId: addForm.driverId || undefined,
+                  });
+                  setShowAdd(false);
+                  setAddForm({ imei: "", model: "", osVersion: "", driverId: "" });
+                  refetch();
+                } catch (err: any) {
+                  setAddError(err.response?.data?.error || "Failed to add device");
+                } finally {
+                  setAdding(false);
+                }
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1">IMEI *</label>
+                <input
+                  type="text"
+                  required
+                  value={addForm.imei}
+                  onChange={(e) => setAddForm({ ...addForm, imei: e.target.value })}
+                  placeholder="e.g. 353456789012345"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1">Model *</label>
+                <input
+                  type="text"
+                  required
+                  value={addForm.model}
+                  onChange={(e) => setAddForm({ ...addForm, model: e.target.value })}
+                  placeholder="e.g. Samsung Galaxy A14"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1">OS Version *</label>
+                <input
+                  type="text"
+                  required
+                  value={addForm.osVersion}
+                  onChange={(e) => setAddForm({ ...addForm, osVersion: e.target.value })}
+                  placeholder="e.g. Android 14"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1">Assign to Driver</label>
+                <select
+                  value={addForm.driverId}
+                  onChange={(e) => setAddForm({ ...addForm, driverId: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white"
+                >
+                  <option value="">Unassigned</option>
+                  {(driversData?.data || []).map((d: any) => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
+              {addError && (
+                <p className="text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2">{addError}</p>
+              )}
+              <button
+                type="submit"
+                disabled={adding}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-teal-600 text-white text-sm font-medium rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-50"
+              >
+                {adding && <Loader2 size={14} className="animate-spin" />}
+                {adding ? "Adding..." : "Add Device"}
+              </button>
+            </form>
           </div>
         </div>
       )}

@@ -3,7 +3,7 @@ import { prisma } from "../config";
 
 const router = Router();
 
-// Agent endpoints don't use standard auth — they use device-based auth
+// Agent endpoints don't use standard auth - they use device-based auth
 router.post("/register", async (req: Request, res: Response) => {
   try {
     const { enrollmentCode, imei, model, osVersion } = req.body;

@@ -48,7 +48,7 @@ export default function AmericanaVehiclesPage() {
     {
       key: "plateNumber",
       label: "Plate",
-      render: (v: string) => <span className="font-mono font-semibold text-sm">{v || "—"}</span>,
+      render: (v: string) => <span className="font-mono font-semibold text-sm">{v || "-"}</span>,
     },
     {
       key: "type",
@@ -65,17 +65,17 @@ export default function AmericanaVehiclesPage() {
       key: "make",
       label: "Model",
       render: (_: any, r: any) => (
-        <span className="text-sm">{[r.make, r.model].filter(Boolean).join(" ") || "—"}</span>
+        <span className="text-sm">{[r.make, r.model].filter(Boolean).join(" ") || "-"}</span>
       ),
     },
-    { key: "year", label: "Year", render: (v: string) => <span className="text-sm text-secondary">{v || "—"}</span> },
-    { key: "color", label: "Color", render: (v: string) => <span className="text-sm text-secondary">{v || "—"}</span> },
+    { key: "year", label: "Year", render: (v: string) => <span className="text-sm text-secondary">{v || "-"}</span> },
+    { key: "color", label: "Color", render: (v: string) => <span className="text-sm text-secondary">{v || "-"}</span> },
     {
       key: "storeName",
       label: "Store",
       render: (v: string) => (
         <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700">
-          {v || "—"}
+          {v || "-"}
         </span>
       ),
     },
@@ -91,7 +91,7 @@ export default function AmericanaVehiclesPage() {
       label: "Status",
       render: (v: string) => (
         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", STATUS_STYLES[v] || "bg-gray-100 text-gray-600")}>
-          {v || "—"}
+          {v || "-"}
         </span>
       ),
     },
@@ -99,7 +99,7 @@ export default function AmericanaVehiclesPage() {
       key: "insuranceExpiry",
       label: "Insurance",
       render: (v: string) => {
-        if (!v) return <span className="text-xs text-secondary">—</span>;
+        if (!v) return <span className="text-xs text-secondary">-</span>;
         const date = new Date(v);
         const daysLeft = Math.ceil((date.getTime() - Date.now()) / 86400000);
         const style = daysLeft < 0
@@ -118,7 +118,7 @@ export default function AmericanaVehiclesPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-americana" />
-          <h1 className="text-xl font-semibold">Americana — Vehicles</h1>
+          <h1 className="text-xl font-semibold">Americana - Vehicles</h1>
           <span className="text-sm text-secondary">Al Hazm Express</span>
         </div>
         <button
@@ -183,20 +183,20 @@ export default function AmericanaVehiclesPage() {
               {[
                 ["Plate", selected.plateNumber],
                 ["Type", selected.type === "MOTORCYCLE" ? "Bike" : "Car"],
-                ["Make", selected.make],
+                ["Brand", selected.make],
                 ["Model", selected.model],
                 ["Color", selected.color],
                 ["Year", selected.year],
                 ["Store", selected.storeName],
                 ["Assigned Driver", selected.driver?.name || selected.driverName || "Unassigned"],
                 ["Status", selected.status],
-                ["Insurance Expiry", selected.insuranceExpiry ? new Date(selected.insuranceExpiry).toLocaleDateString() : "—"],
-                ["Registration Expiry", selected.registrationExpiry ? new Date(selected.registrationExpiry).toLocaleDateString() : "—"],
-                ["Mileage", selected.mileage ? `${selected.mileage.toLocaleString()} km` : "—"],
+                ["Insurance Expiry", selected.insuranceExpiry ? new Date(selected.insuranceExpiry).toLocaleDateString() : "-"],
+                ["Registration Expiry", selected.registrationExpiry ? new Date(selected.registrationExpiry).toLocaleDateString() : "-"],
+                ["Mileage", selected.mileage ? `${selected.mileage.toLocaleString()} km` : "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                 </div>
               ))}
             </div>
@@ -221,7 +221,7 @@ export default function AmericanaVehiclesPage() {
                 <X size={18} />
               </button>
             </div>
-            <p className="text-sm text-secondary">Vehicle form — connects to POST /api/vehicles with platform=AMERICANA</p>
+            <p className="text-sm text-secondary">Vehicle form - connects to POST /api/vehicles with platform=AMERICANA</p>
           </div>
         </div>
       )}

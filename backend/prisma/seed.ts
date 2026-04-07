@@ -26,6 +26,9 @@ const SOUTH_ASIAN_NAMES = [
   "Tarun Bajaj", "Uttam Kumar", "Venkat Raman", "Waqar Younis", "Yashpal Arora",
   "Adil Rashid", "Babar Azam", "Chirag Patel", "Danish Kaneria", "Ejaz Chaudhry",
   "Fahad Mustafa", "Ghulam Abbas", "Hamza Malik", "Ismail Khan", "Javed Miandad",
+  "Kamran Akmal", "Latif Dogar", "Moeen Ali", "Nabeel Akhtar", "Omar Farooq",
+  "Pervez Alam", "Qadir Baloch", "Rizwan Ahmed", "Saeed Anwar", "Tahir Nawaz",
+  "Umar Gul", "Wahab Riaz", "Yasir Shah", "Zulfiqar Ali", "Asad Shafiq",
 ];
 
 const KUWAIT_COORDS = [
@@ -45,10 +48,10 @@ async function main() {
   console.log("Seeding Darb database...");
 
   // Clean existing data
-  // Clean existing data — safe to skip on fresh DB
+  // Clean existing data - safe to skip on fresh DB
   try {
-    await prisma.$executeRawUnsafe(`TRUNCATE TABLE "TalabatDelivery", "AmericanaDailyOrders", "KeetaDailyMetrics", "TalabatComplianceEvent", "TalabatSession", "AuditLog", "AiDigest", "Alert", "AiScore", "DeviceCommand", "AppUsageLog", "LocationLog", "CapturedOrder", "Device", "VehicleInspection", "MaintenanceRecord", "PendingDuesLedger", "CashRecord", "OrderLog", "AttendanceRecord", "Shift", "DriverInventory", "LeaveRequest", "Ticket", "RecruitmentPipeline", "Vehicle", "Driver", "User", "Company", "Tenant" CASCADE`);
-  } catch { console.log("Skipping truncate (tables may not exist yet)"); }
+    await prisma.$executeRawUnsafe(`TRUNCATE TABLE "TalabatDelivery", "AmericanaDailyOrders", "KeetaDailyMetrics", "TalabatComplianceEvent", "TalabatSession", "AuditLog", "AiDigest", "Alert", "AiScore", "DeviceCommand", "AppUsageLog", "LocationLog", "CapturedOrder", "Device", "VehicleInspection", "MaintenanceRecord", "PendingDuesLedger", "CashRecord", "CashTransaction", "OrderLog", "AttendanceRecord", "Shift", "DriverInventory", "LeaveRequest", "Ticket", "RecruitmentPipeline", "KpiRecord", "KpiDefinition", "PlatformSettings", "CompanyInventory", "Notification", "NotificationRule", "Vehicle", "Driver", "User", "Company", "Tenant" CASCADE`);
+  } catch (e: any) { console.log("Truncate issue:", e.message?.slice(0, 200)); }
 
   // 1. Tenant
   const tenant = await prisma.tenant.create({
@@ -59,6 +62,7 @@ async function main() {
   // 2. Companies
   const sidra = await prisma.company.create({ data: { tenantId: tid, name: "Sidra", platform: "KEETA", licenseCount: 4 } });
   const wahoo = await prisma.company.create({ data: { tenantId: tid, name: "Wahoo International", platform: "TALABAT" } });
+  const alhazim = await prisma.company.create({ data: { tenantId: tid, name: "Alhazim", platform: "TALABAT" } });
   const alHazm = await prisma.company.create({ data: { tenantId: tid, name: "Al Hazm", platform: "DELIVEROO" } });
   const alHazmExp = await prisma.company.create({ data: { tenantId: tid, name: "Al Hazm Express", platform: "AMERICANA" } });
 
@@ -83,7 +87,8 @@ async function main() {
     const vt: VehicleType = Math.random() < 0.7 ? "MOTORCYCLE" : "CAR";
     const d = await prisma.driver.create({
       data: {
-        tenantId: tid, companyId: sidra.id, name: SOUTH_ASIAN_NAMES[nameIdx++],
+        tenantId: tid, companyId: sidra.id, name: SOUTH_ASIAN_NAMES[nameIdx],
+        photoUrl: `https://i.pravatar.cc/150?u=driver${nameIdx++}`,
         phone: `+965${rand(50000000, 99999999)}`, platform: "KEETA",
         platformDriverId: `KC${rand(100000, 999999)}`, vehicleType: vt,
         zone: pick(keetaZones), status: "ACTIVE",
@@ -96,12 +101,34 @@ async function main() {
 
   // Talabat/Wahoo - 25 drivers
   for (let i = 0; i < 25; i++) {
-    const name = SOUTH_ASIAN_NAMES[nameIdx++];
+    const name = SOUTH_ASIAN_NAMES[nameIdx];
+    const photoIdx = nameIdx++;
     const batch = `${rand(1, 4)}`;
     const d = await prisma.driver.create({
       data: {
         tenantId: tid, companyId: wahoo.id,
         name: `${name.toUpperCase()} ${batch} - WAHI`,
+        photoUrl: `https://i.pravatar.cc/150?u=driver${photoIdx}`,
+        phone: `+965${rand(50000000, 99999999)}`, platform: "TALABAT",
+        platformDriverId: `TB${rand(100000, 999999)}`, vehicleType: Math.random() < 0.7 ? "MOTORCYCLE" : "CAR",
+        zone: pick(talabatZones), batchNumber: batch, status: "ACTIVE",
+        hireDate: new Date(2025, rand(0, 11), rand(1, 28)),
+        supervisorId: users[3].id,
+      },
+    });
+    allDrivers.push(d);
+  }
+
+  // Talabat/Alhazim - 15 drivers
+  for (let i = 0; i < 15; i++) {
+    const name = SOUTH_ASIAN_NAMES[nameIdx];
+    const photoIdx = nameIdx++;
+    const batch = `${rand(1, 4)}`;
+    const d = await prisma.driver.create({
+      data: {
+        tenantId: tid, companyId: alhazim.id,
+        name: `${name.toUpperCase()} ${batch} - ALHZ`,
+        photoUrl: `https://i.pravatar.cc/150?u=driver${photoIdx}`,
         phone: `+965${rand(50000000, 99999999)}`, platform: "TALABAT",
         platformDriverId: `TB${rand(100000, 999999)}`, vehicleType: Math.random() < 0.7 ? "MOTORCYCLE" : "CAR",
         zone: pick(talabatZones), batchNumber: batch, status: "ACTIVE",
@@ -116,7 +143,8 @@ async function main() {
   for (let i = 0; i < 12; i++) {
     const d = await prisma.driver.create({
       data: {
-        tenantId: tid, companyId: alHazm.id, name: SOUTH_ASIAN_NAMES[nameIdx++],
+        tenantId: tid, companyId: alHazm.id, name: SOUTH_ASIAN_NAMES[nameIdx],
+        photoUrl: `https://i.pravatar.cc/150?u=driver${nameIdx++}`,
         phone: `+965${rand(50000000, 99999999)}`, platform: "DELIVEROO",
         platformDriverId: `#${rand(100000, 999999)}`, vehicleType: "MOTORCYCLE",
         zone: "Hawally", status: "ACTIVE",
@@ -131,7 +159,8 @@ async function main() {
   for (let i = 0; i < 8; i++) {
     const d = await prisma.driver.create({
       data: {
-        tenantId: tid, companyId: alHazmExp.id, name: SOUTH_ASIAN_NAMES[nameIdx++],
+        tenantId: tid, companyId: alHazmExp.id, name: SOUTH_ASIAN_NAMES[nameIdx],
+        photoUrl: `https://i.pravatar.cc/150?u=driver${nameIdx++}`,
         phone: `+965${rand(50000000, 99999999)}`, platform: "AMERICANA",
         platformDriverId: `${rand(60000, 69999)}`, vehicleType: Math.random() < 0.5 ? "MOTORCYCLE" : "CAR",
         zone: pick(stores), status: "ACTIVE",
@@ -145,7 +174,7 @@ async function main() {
 
   // 5. Vehicles (60)
   const vehicleData: any[] = [];
-  const companies = [sidra, wahoo, alHazm, alHazmExp];
+  const companies = [sidra, wahoo, alhazim, alHazm, alHazmExp];
   for (let i = 0; i < 60; i++) {
     const comp = companies[Math.min(Math.floor(i / 18), 3)];
     const vt: VehicleType = i < 42 ? "MOTORCYCLE" : "CAR";
@@ -194,19 +223,23 @@ async function main() {
     });
   }
 
-  // 7. Shifts, Attendance, Orders (30 days)
+  // 7. Shifts, Attendance, Orders (30 days past + 3 future)
   const today = new Date();
+  const nowHour = today.getHours();
   const keetaDrivers = allDrivers.filter(d => d.platform === "KEETA");
   const talabatDrivers = allDrivers.filter(d => d.platform === "TALABAT");
   const deliverooDrivers = allDrivers.filter(d => d.platform === "DELIVEROO");
   const americanaDrivers = allDrivers.filter(d => d.platform === "AMERICANA");
 
-  for (let dayOffset = 29; dayOffset >= 0; dayOffset--) {
+  for (let dayOffset = 29; dayOffset >= -3; dayOffset--) {
     const date = new Date(today);
     date.setDate(date.getDate() - dayOffset);
     date.setHours(0, 0, 0, 0);
+    const isToday = dayOffset === 0;
+    const isFuture = dayOffset < 0;
 
-    // Keeta shifts (4-hour blocks)
+    // Keeta shifts (4-hour blocks) - skip future days
+    if (!isFuture)
     for (const driver of keetaDrivers) {
       const numShifts = rand(1, 2);
       for (let s = 0; s < numShifts; s++) {
@@ -232,11 +265,13 @@ async function main() {
           },
         });
 
-        // Attendance
-        const attStatus: AttendanceStatus = missed ? "ABSENT" : lateMin > 0 ? "LATE" : "PRESENT";
-        await prisma.attendanceRecord.create({
-          data: { tenantId: tid, driverId: driver.id, shiftId: shift.id, date, status: attStatus, lateMinutes: lateMin, source: "system" },
-        });
+        // Attendance - only for first shift of the day (unique constraint on tenantId+driverId+date)
+        if (s === 0) {
+          const attStatus: AttendanceStatus = missed ? "ABSENT" : lateMin > 0 ? "LATE" : "PRESENT";
+          await prisma.attendanceRecord.create({
+            data: { tenantId: tid, driverId: driver.id, shiftId: shift.id, date, status: attStatus, lateMinutes: lateMin, source: "system" },
+          });
+        }
 
         // Orders (Keeta)
         if (!missed) {
@@ -252,16 +287,61 @@ async function main() {
     }
 
     // Talabat shifts
-    for (const driver of talabatDrivers) {
+    for (let driverIdx = 0; driverIdx < talabatDrivers.length; driverIdx++) {
+      const driver = talabatDrivers[driverIdx];
+
+      // Today: ~3 drivers get no shift (NOT_BOOKED) - deterministic via index
+      if (isToday && driverIdx % 7 === 0) continue;
+      // Future: all get BOOKED shifts
+      // Past: existing COMPLETED/MISSED logic
+
       const startHour = rand(8, 16);
       const duration = rand(8, 13);
+      const endHour = startHour + duration;
       const start = new Date(date); start.setHours(startHour);
-      const end = new Date(date); end.setHours(startHour + duration);
-      const missed = Math.random() < 0.05;
-      const lateMin = !missed && Math.random() < 0.1 ? rand(5, 30) : 0;
+      const end = new Date(date); end.setHours(endHour);
 
-      const actualStartTime = missed ? null : new Date(start.getTime() + lateMin * 60000);
-      const actualEndTime = missed ? null : new Date(end.getTime() + rand(-30, 30) * 60000);
+      // Determine status based on day type and time
+      let shiftStatus: ShiftStatus;
+      let sessStatus: TalabatSessionStatus;
+      let missed = false;
+      let lateMin = 0;
+
+      if (isFuture) {
+        shiftStatus = "BOOKED";
+        sessStatus = "PLANNED";
+      } else if (isToday) {
+        if (endHour <= nowHour) {
+          // Shift already ended
+          if (Math.random() < 0.08) {
+            missed = true; shiftStatus = "MISSED"; sessStatus = "NO_SHOW";
+          } else {
+            shiftStatus = "COMPLETED"; sessStatus = "COMPLETED";
+            lateMin = Math.random() < 0.15 ? rand(3, 25) : 0;
+          }
+        } else if (startHour <= nowHour) {
+          // Shift in progress
+          shiftStatus = "IN_PROGRESS"; sessStatus = "ACTIVE";
+          lateMin = Math.random() < 0.1 ? rand(3, 15) : 0;
+        } else {
+          // Shift hasn't started yet
+          shiftStatus = "BOOKED"; sessStatus = "PLANNED";
+        }
+      } else {
+        // Past days - existing logic
+        missed = Math.random() < 0.05;
+        lateMin = !missed && Math.random() < 0.1 ? rand(5, 30) : 0;
+        shiftStatus = missed ? "MISSED" : "COMPLETED";
+        sessStatus = missed ? "NO_SHOW" : "COMPLETED";
+      }
+
+      const isCompleted = shiftStatus === "COMPLETED";
+      const isInProgress = shiftStatus === "IN_PROGRESS";
+      const isBooked = shiftStatus === "BOOKED";
+      const hasStarted = isCompleted || isInProgress;
+
+      const actualStartTime = hasStarted ? new Date(start.getTime() + lateMin * 60000) : null;
+      const actualEndTime = isCompleted ? new Date(end.getTime() + rand(-30, 30) * 60000) : null;
       const actualMins = actualStartTime && actualEndTime ? Math.round((actualEndTime.getTime() - actualStartTime.getTime()) / 60000) : null;
 
       const shift = await prisma.shift.create({
@@ -270,20 +350,25 @@ async function main() {
           zone: driver.zone, scheduledStart: start, scheduledEnd: end,
           actualStart: actualStartTime,
           actualEnd: actualEndTime,
-          status: missed ? "MISSED" : "COMPLETED",
+          status: shiftStatus,
           plannedHoursMinutes: duration * 60,
           actualHoursMinutes: actualMins,
         },
       });
 
-      const attStatus: AttendanceStatus = missed ? "ABSENT" : lateMin > 0 ? "LATE" : "PRESENT";
-      await prisma.attendanceRecord.create({
-        data: { tenantId: tid, driverId: driver.id, shiftId: shift.id, date, status: attStatus, lateMinutes: lateMin, source: "system" },
-      });
+      // Attendance - only if shift has started or was missed
+      if (hasStarted || missed) {
+        const attStatus: AttendanceStatus = missed ? "ABSENT" : lateMin > 0 ? "LATE" : "PRESENT";
+        await prisma.attendanceRecord.create({
+          data: { tenantId: tid, driverId: driver.id, shiftId: shift.id, date, status: attStatus, lateMinutes: lateMin, source: "system" },
+        });
+      }
 
-      if (!missed) {
-        // Create individual order entries for each delivery (batched)
-        const numOrders = rand(15, 25);
+      // Orders & cash - only for completed or in-progress shifts
+      if (isCompleted || isInProgress) {
+        const numOrders = isInProgress
+          ? Math.max(1, Math.round(rand(15, 25) * Math.max(0.1, (nowHour - startHour) / duration)))
+          : rand(15, 25);
         const shiftStartHour = startHour;
         let totalCash = 0;
         const orderBatch: any[] = [];
@@ -292,7 +377,7 @@ async function main() {
           const isCash = Math.random() < 0.4;
           const orderCash = isCash ? decimal(0.5, 5) : 0;
           totalCash += orderCash;
-          const finishHour = shiftStartHour + Math.floor((oi / numOrders) * duration);
+          const finishHour = shiftStartHour + Math.floor((oi / numOrders) * (isInProgress ? (nowHour - startHour) : duration));
           const finishMin = rand(0, 59);
           const finishTime = new Date(date);
           finishTime.setHours(finishHour, finishMin, 0, 0);
@@ -314,20 +399,31 @@ async function main() {
         const cash = totalCash || decimal(30, 60);
 
         // Cash record
-        const deposited = Math.random() < 0.8;
-        await prisma.cashRecord.create({
-          data: {
-            tenantId: tid, driverId: driver.id, date,
-            salesAmount: cash, collectionAmount: deposited ? cash : 0,
-            depositMethod: deposited ? pick(["CASH", "BANK_TRANSFER", "AL_MUZAINI"]) as DepositMethod : null,
-            pendingDues: deposited ? 0 : cash,
-            status: deposited ? "SETTLED" : "PENDING",
-          },
-        });
+        if (isCompleted) {
+          const deposited = Math.random() < 0.8;
+          await prisma.cashRecord.create({
+            data: {
+              tenantId: tid, driverId: driver.id, date,
+              salesAmount: cash, collectionAmount: deposited ? cash : 0,
+              depositMethod: deposited ? pick(["CASH", "BANK_TRANSFER", "AL_MUZAINI"]) as DepositMethod : null,
+              pendingDues: deposited ? 0 : cash,
+              status: deposited ? "SETTLED" : "PENDING",
+            },
+          });
+        } else {
+          // In progress - pending cash
+          await prisma.cashRecord.create({
+            data: {
+              tenantId: tid, driverId: driver.id, date,
+              salesAmount: cash, collectionAmount: 0,
+              pendingDues: cash, status: "PENDING",
+            },
+          });
+        }
       }
 
-      // TalabatSession(s) — 1 or 2 sessions per day
-      const numSessions = Math.random() < 0.3 ? 2 : 1;
+      // TalabatSession(s)
+      const numSessions = isBooked || isFuture ? 1 : Math.random() < 0.3 ? 2 : 1;
       const vt = driver.vehicleType as VehicleType;
       const sessionZone = driver.zone || "Sabah";
       const code = `${sessionZone}_${vt.toLowerCase()}`;
@@ -337,31 +433,31 @@ async function main() {
         const sessEnd = new Date(date);
         if (numSessions === 1) {
           sessStart.setHours(startHour);
-          sessEnd.setHours(startHour + duration);
+          sessEnd.setHours(endHour);
         } else {
           sessStart.setHours(si === 0 ? startHour : startHour + Math.ceil(duration / 2) + 1);
-          sessEnd.setHours(si === 0 ? startHour + Math.ceil(duration / 2) : startHour + duration);
+          sessEnd.setHours(si === 0 ? startHour + Math.ceil(duration / 2) : endHour);
         }
         const sessPlannedHrs = (sessEnd.getTime() - sessStart.getTime()) / 3600000;
-        const faceOk = Math.random() < 0.9;
-        const equipOk = Math.random() < 0.95;
-        const gps = rand(70, 100);
-        const approvedHrs = missed ? null : sessPlannedHrs - decimal(0, 0.5);
-        const actualHrs = missed ? null : sessPlannedHrs + decimal(-1, 0.5);
-        const sessDeliveries = missed ? 0 : rand(6, 14);
-        const sessCash = missed ? 0 : decimal(15, 35);
-        const sessTips = missed ? 0 : decimal(0, 1.5);
-        const sessDist = missed ? null : decimal(30, 80);
+        const faceOk = isBooked ? false : Math.random() < 0.9;
+        const equipOk = isBooked ? false : Math.random() < 0.95;
+        const gps = isBooked ? null : rand(70, 100);
+        const approvedHrs = hasStarted ? sessPlannedHrs - decimal(0, 0.5) : null;
+        const actualHrs = isCompleted ? sessPlannedHrs + decimal(-1, 0.5) : null;
+        const sessDeliveries = isCompleted ? rand(6, 14) : isInProgress ? Math.max(1, rand(2, 8)) : 0;
+        const sessCash = (isCompleted || isInProgress) ? decimal(15, 35) : 0;
+        const sessTips = (isCompleted || isInProgress) ? decimal(0, 1.5) : 0;
+        const sessDist = (isCompleted || isInProgress) ? decimal(30, 80) : null;
 
         const session = await prisma.talabatSession.create({
           data: {
             tenantId: tid, driverId: driver.id, shiftId: shift.id, date,
             zone: sessionZone, vehicleType: vt, sessionCode: code,
             plannedStart: sessStart, plannedEnd: sessEnd,
-            approvedStart: missed ? null : new Date(sessStart.getTime() + rand(0, 10) * 60000),
-            approvedEnd: missed ? null : new Date(sessEnd.getTime() + rand(-15, 5) * 60000),
-            actualStart: missed ? null : new Date(sessStart.getTime() + lateMin * 60000),
-            actualEnd: missed ? null : new Date(sessEnd.getTime() + rand(-30, 15) * 60000),
+            approvedStart: hasStarted ? new Date(sessStart.getTime() + rand(0, 10) * 60000) : null,
+            approvedEnd: isCompleted ? new Date(sessEnd.getTime() + rand(-15, 5) * 60000) : null,
+            actualStart: hasStarted ? new Date(sessStart.getTime() + lateMin * 60000) : null,
+            actualEnd: isCompleted ? new Date(sessEnd.getTime() + rand(-30, 15) * 60000) : null,
             plannedHours: sessPlannedHrs,
             approvedHours: approvedHrs,
             actualHours: actualHrs,
@@ -369,15 +465,15 @@ async function main() {
             cashCollected: sessCash,
             tips: sessTips,
             distanceKm: sessDist,
-            status: missed ? "NO_SHOW" : "COMPLETED",
-            faceVerified: faceOk,
-            equipmentVerified: equipOk,
+            status: sessStatus,
+            faceVerified: isBooked ? false : faceOk,
+            equipmentVerified: isBooked ? false : equipOk,
             gpsCompliance: gps,
           },
         });
 
-        // Individual deliveries for this session (batched)
-        if (!missed && sessDeliveries > 0) {
+        // Individual deliveries - only for completed/in-progress
+        if ((isCompleted || isInProgress) && sessDeliveries > 0) {
           const orderTypes = ["food", "food", "food", "grocery", "express"];
           const baseOrderId = 3530000000 + rand(0, 9999999);
           const deliveryBatch: any[] = [];
@@ -404,31 +500,31 @@ async function main() {
           await prisma.talabatDelivery.createMany({ data: deliveryBatch });
         }
 
-        // Compliance events for ~10% of sessions
-        if (!faceOk) {
+        // Compliance events - only for started/missed sessions
+        if (!isBooked && !faceOk) {
           await prisma.talabatComplianceEvent.create({
             data: {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
-              type: "SELFIE_FAIL", severity: "MEDIUM",
-              description: `Selfie verification failed — ${pick(["Helmet covering face", "Mask detected", "Sunglasses on", "Image too dark"])}`,
+              type: "SELFIE_FAIL",
+              description: `Selfie verification failed - ${pick(["Helmet covering face", "Mask detected", "Sunglasses on", "Image too dark"])}`,
               metadata: { reason: pick(["HELMET", "MASK", "SUNGLASSES", "LOW_QUALITY"]) },
             },
           });
         }
-        if (!equipOk) {
+        if (!isBooked && !equipOk) {
           await prisma.talabatComplianceEvent.create({
             data: {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
-              type: "EQUIPMENT_MISSING", severity: "MEDIUM",
-              description: `Equipment photo check failed — ${pick(["Delivery bag not visible", "Phone holder missing", "Vehicle photo unclear"])}`,
+              type: "EQUIPMENT_MISSING",
+              description: `Equipment photo check failed - ${pick(["Delivery bag not visible", "Phone holder missing", "Vehicle photo unclear"])}`,
             },
           });
         }
-        if (gps < 80 && Math.random() < 0.4) {
+        if (!isBooked && gps && gps < 80 && Math.random() < 0.4) {
           await prisma.talabatComplianceEvent.create({
             data: {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
-              type: "GPS_OFF", severity: "HIGH",
+              type: "GPS_OFF",
               description: `GPS turned off for ${rand(5, 45)} minutes during shift`,
               metadata: { offDurationMinutes: rand(5, 45) },
             },
@@ -438,31 +534,44 @@ async function main() {
           await prisma.talabatComplianceEvent.create({
             data: {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
-              type: "SHIFT_NOT_BOOKED", severity: "HIGH",
+              type: "SHIFT_NOT_BOOKED",
               description: "Driver did not show up for scheduled session",
             },
           });
         }
-        // Out of zone ~15% of sessions
-        if (Math.random() < 0.15) {
-          const zone = pick(["WAHI", "HAWALLY", "SALMIYA", "FARWANIYA"]);
+        // Out of zone ~15% of completed/active sessions
+        if ((isCompleted || isInProgress) && Math.random() < 0.15) {
+          const assignedZone = pick(["AHMADI", "HAWALLY", "SALMIYA", "FARWANIYA"]);
+          const detectedZone = pick(["JAHRA", "MANGAF", "FINTAS", "KHAITAN"].filter(z => z !== assignedZone));
           await prisma.talabatComplianceEvent.create({
             data: {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
-              type: "OUT_OF_ZONE", severity: "HIGH",
-              description: `Driver detected outside assigned zone (${zone})`,
-              metadata: { assignedZone: zone, detectedZone: pick(["JAHRA", "MANGAF", "FINTAS", "KHAITAN"].filter(z => z !== zone)) },
+              type: "OUT_OF_ZONE",
+              description: `Assigned: ${assignedZone} → Detected: ${detectedZone}`,
+              metadata: { assignedZone, detectedZone },
             },
           });
         }
-        // Cash threshold exceeded ~8% of sessions
-        if (Number(session.cashCollected) > 100 || Math.random() < 0.08) {
+        // Late clock in ~10% of started sessions
+        if (!isBooked && !missed && Math.random() < 0.1) {
+          const lateMinutes = rand(2, 25);
+          await prisma.talabatComplianceEvent.create({
+            data: {
+              tenantId: tid, driverId: driver.id, sessionId: session.id,
+              type: "LATE_CLOCK_IN",
+              description: `Driver clocked in ${lateMinutes} minutes late`,
+              metadata: { lateMinutes },
+            },
+          });
+        }
+        // Cash threshold exceeded ~8% of completed sessions
+        if (isCompleted && (Number(session.cashCollected) > 100 || Math.random() < 0.08)) {
           const cashAmt = Number(session.cashCollected) > 100 ? Number(session.cashCollected) : rand(101, 250);
           await prisma.talabatComplianceEvent.create({
             data: {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
-              type: "CASH_THRESHOLD_EXCEEDED", severity: "CRITICAL",
-              description: `Cash collected reached KWD ${cashAmt.toFixed(3)} — exceeds 100 KWD threshold`,
+              type: "CASH_THRESHOLD_EXCEEDED",
+              description: `Cash collected reached KD ${cashAmt.toFixed(3)} - exceeds 100 KD threshold`,
               metadata: { cashCollected: cashAmt, threshold: 100 },
             },
           });
@@ -470,7 +579,8 @@ async function main() {
       }
     }
 
-    // Deliveroo shifts
+    // Deliveroo shifts - skip future days
+    if (!isFuture)
     for (const driver of deliverooDrivers) {
       const start = new Date(date); start.setHours(rand(6, 10));
       const end = new Date(date); end.setHours(start.getHours() + rand(10, 14));
@@ -502,7 +612,8 @@ async function main() {
       }
     }
 
-    // Americana shifts
+    // Americana shifts - skip future days
+    if (!isFuture)
     for (const driver of americanaDrivers) {
       if (Math.random() < 0.14) continue; // ~1 day off per week
       const start = new Date(date); start.setHours(10);
@@ -530,7 +641,7 @@ async function main() {
     }
   }
 
-  console.log("Created 30 days of shifts, attendance, orders");
+  console.log("Created 33 days of shifts, attendance, orders (30 past + today + 3 future)");
 
   // 7b. Document expiry data for Talabat drivers
   const DOC_EXPIRY_FIELDS = [
@@ -597,7 +708,7 @@ async function main() {
     });
   }
 
-  // 8b. Pending Dues Ledger (April 2026 — current month for Talabat)
+  // 8b. Pending Dues Ledger (April 2026 - current month for Talabat)
   for (const driver of talabatDrivers) {
     const dailySales2: Record<string, number> = {};
     const dailyCollections2: Record<string, number> = {};
@@ -737,7 +848,7 @@ async function main() {
       data: {
         tenantId: tid, ticketNumber: `TK-${String(i + 1).padStart(4, "0")}`,
         category, priority, title: ticketTitles[i],
-        description: `${ticketTitles[i]} — reported by driver ${driver.name}`,
+        description: `${ticketTitles[i]} - reported by driver ${driver.name}`,
         submitterType: "DRIVER", submitterDriverId: driver.id, driverId: driver.id,
         status: pick(statuses),
         assignedToId: Math.random() < 0.7 ? pick(users.slice(1, 4)).id : null,
@@ -755,7 +866,7 @@ async function main() {
         content: {
           summary: `Fleet operated at ${rand(85, 95)}% capacity. ${rand(70, 78)} drivers active across all platforms.`,
           alerts: [
-            `${rand(2, 5)} drivers have pending cash deposits exceeding KWD 50`,
+            `${rand(2, 5)} drivers have pending cash deposits exceeding KD 50`,
             `${rand(1, 3)} vehicles due for inspection this week`,
             `${rand(2, 4)} devices showing outdated agent version`,
           ],
@@ -770,7 +881,7 @@ async function main() {
     });
   }
 
-  // 14b. KeetaDailyMetrics — 30 days for each Keeta driver
+  // 14b. KeetaDailyMetrics - 30 days for each Keeta driver
   for (let dayOffset = 29; dayOffset >= 0; dayOffset--) {
     const date = new Date(today);
     date.setDate(date.getDate() - dayOffset);
@@ -815,7 +926,7 @@ async function main() {
   }
   console.log("Created Keeta daily metrics (30 days x 35 drivers)");
 
-  // 14c. AmericanaDailyOrders — current month for each Americana driver
+  // 14c. AmericanaDailyOrders - current month for each Americana driver
   const amStores = ["KFC Audiliya", "KFC Salwa", "Hardees Salmiya"];
   for (const driver of americanaDrivers) {
     const dailyOrders: Record<string, number> = {};
@@ -846,7 +957,7 @@ async function main() {
   }
   console.log("Created Americana daily orders");
 
-  // 15. Driver Inventory — equip every driver with realistic items
+  // 15. Driver Inventory - equip every driver with realistic items
   const inventoryItems: { type: any; hasQty: boolean }[] = [
     { type: "HELMET", hasQty: false },
     { type: "TSHIRT", hasQty: true },
@@ -881,7 +992,7 @@ async function main() {
   }
   console.log("Created driver inventory");
 
-  // 16. Vehicle Inspections — last 2 inspections per vehicle
+  // 16. Vehicle Inspections - last 2 inspections per vehicle
   const vehicleList = await prisma.vehicle.findMany({ where: { tenantId: tid }, select: { id: true, assignedDriverId: true } });
   for (const v of vehicleList) {
     for (let i = 0; i < 2; i++) {
@@ -902,7 +1013,7 @@ async function main() {
   }
   console.log("Created vehicle inspections");
 
-  // 17. Maintenance Records — 20 records
+  // 17. Maintenance Records - 20 records
   const maintenanceTypes = [
     "Oil Change", "Brake Pad Replacement", "Tire Replacement", "Chain & Sprocket",
     "Battery Replacement", "Engine Tune-up", "Clutch Repair", "Light Replacement",
@@ -966,7 +1077,7 @@ async function main() {
         agency: pick(["Gulf Manpower", "Al Sayer Recruitment", "KGL Logistics", "Hala Recruitment", "Wafra Manpower"]),
         expectedDate: new Date(2026, rand(3, 7), rand(1, 28)),
         assignedCompanyId: pick([sidra.id, wahoo.id, alHazm.id, alHazmExp.id]),
-        notes: pick(["Fast-track candidate", "Experienced rider — 3 years", "Referred by existing driver", "Agency premium candidate", null]),
+        notes: pick(["Fast-track candidate", "Experienced rider - 3 years", "Referred by existing driver", "Agency premium candidate", null]),
       },
     });
   }
@@ -974,10 +1085,10 @@ async function main() {
 
   // 20. More tickets to fill the system
   const moreTicketTitles = [
-    "Water bottle holder broken", "Phone charger not working", "Uniform too small — need replacement",
+    "Water bottle holder broken", "Phone charger not working", "Uniform too small - need replacement",
     "Request zone change to Salmiya", "Petrol card declined at station", "SIM card data limit reached",
-    "App shows wrong shift schedule", "Cannot clock in — selfie rejected", "Delivery bag zipper stuck",
-    "Lost ID badge — need replacement", "Vehicle odometer not working", "Accident report — minor fender bender",
+    "App shows wrong shift schedule", "Cannot clock in - selfie rejected", "Delivery bag zipper stuck",
+    "Lost ID badge - need replacement", "Vehicle odometer not working", "Accident report - minor fender bender",
     "Request early leave for medical", "Phone overheating during shift", "Request motorcycle upgrade to car",
   ];
   for (let i = 0; i < 15; i++) {
@@ -991,7 +1102,7 @@ async function main() {
       data: {
         tenantId: tid, ticketNumber: `TK-${String(26 + i).padStart(4, "0")}`,
         category, priority, title: moreTicketTitles[i],
-        description: `${moreTicketTitles[i]} — reported by driver ${driver.name}`,
+        description: `${moreTicketTitles[i]} - reported by driver ${driver.name}`,
         submitterType: "DRIVER", submitterDriverId: driver.id, driverId: driver.id,
         status: pick(["OPEN", "OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED"]) as TicketStatus,
         assignedToId: Math.random() < 0.7 ? pick(users.slice(1, 4)).id : null,
@@ -1009,16 +1120,16 @@ async function main() {
         data: {
           tenantId: tid, date: date2,
           content: {
-            summary: `Fleet operated at ${rand(82, 96)}% capacity with ${rand(68, 78)} active drivers. Talabat delivered ${rand(400, 550)} orders, Keeta ${rand(350, 500)}, Americana ${rand(100, 200)}. Total cash collected: KWD ${decimal(2000, 4000, 0)}.`,
+            summary: `Fleet operated at ${rand(82, 96)}% capacity with ${rand(68, 78)} active drivers. Talabat delivered ${rand(400, 550)} orders, Keeta ${rand(350, 500)}, Americana ${rand(100, 200)}. Total cash collected: KD ${decimal(2000, 4000, 0)}.`,
             alerts: [
-              `${rand(2, 6)} Talabat drivers have pending cash > KWD 50 — oldest overdue ${rand(2, 5)} days`,
-              `${rand(1, 4)} vehicles failed inspection this week — brake and tire issues`,
-              `${rand(2, 5)} devices running agent version 0.9.8 — push update needed`,
+              `${rand(2, 6)} Talabat drivers have pending cash > KD 50 - oldest overdue ${rand(2, 5)} days`,
+              `${rand(1, 4)} vehicles failed inspection this week - brake and tire issues`,
+              `${rand(2, 5)} devices running agent version 0.9.8 - push update needed`,
               `${rand(1, 3)} drivers missed Tuesday shift booking window`,
               `${rand(0, 2)} drivers flagged for GPS zone mismatch during shift`,
             ],
             recommendations: [
-              "Prioritize cash collection from drivers with >KWD 50 pending dues",
+              "Prioritize cash collection from drivers with >KD 50 pending dues",
               "Schedule tire replacement for motorcycles KW-" + rand(10000, 99999),
               "Consider moving underperforming Talabat drivers to Keeta shifts",
               "Review zone assignments for flagged drivers",
@@ -1030,6 +1141,397 @@ async function main() {
     } catch { /* skip duplicates */ }
   }
   console.log("Created more AI digests");
+
+  // ─── Notification Rules (violation type → role mapping) ───
+  const notificationRules = [
+    // CRITICAL violations → ADMIN + OPS_MANAGER
+    { eventType: "CASH_THRESHOLD_EXCEEDED", role: UserRole.ADMIN },
+    { eventType: "CASH_THRESHOLD_EXCEEDED", role: UserRole.OPS_MANAGER },
+    { eventType: "CASH_THRESHOLD_EXCEEDED", role: UserRole.ACCOUNTANT },
+    // HIGH violations → ADMIN + OPS_MANAGER + SUPERVISOR
+    { eventType: "GPS_OFF", role: UserRole.ADMIN },
+    { eventType: "GPS_OFF", role: UserRole.OPS_MANAGER },
+    { eventType: "GPS_OFF", role: UserRole.SUPERVISOR },
+    { eventType: "OUT_OF_ZONE", role: UserRole.ADMIN },
+    { eventType: "OUT_OF_ZONE", role: UserRole.OPS_MANAGER },
+    { eventType: "OUT_OF_ZONE", role: UserRole.SUPERVISOR },
+    { eventType: "ZONE_MISMATCH", role: UserRole.ADMIN },
+    { eventType: "ZONE_MISMATCH", role: UserRole.OPS_MANAGER },
+    { eventType: "SELFIE_FAIL", role: UserRole.ADMIN },
+    { eventType: "SELFIE_FAIL", role: UserRole.OPS_MANAGER },
+    { eventType: "SELFIE_FAIL", role: UserRole.SUPERVISOR },
+    { eventType: "SHIFT_NOT_BOOKED", role: UserRole.ADMIN },
+    { eventType: "SHIFT_NOT_BOOKED", role: UserRole.OPS_MANAGER },
+    { eventType: "SHIFT_NOT_BOOKED", role: UserRole.SUPERVISOR },
+    // MEDIUM violations → OPS_MANAGER + SUPERVISOR
+    { eventType: "LATE_CLOCK_IN", role: UserRole.OPS_MANAGER },
+    { eventType: "LATE_CLOCK_IN", role: UserRole.SUPERVISOR },
+    { eventType: "EARLY_CLOCK_OUT", role: UserRole.OPS_MANAGER },
+    { eventType: "EARLY_CLOCK_OUT", role: UserRole.SUPERVISOR },
+    { eventType: "EQUIPMENT_MISSING", role: UserRole.OPS_MANAGER },
+    { eventType: "EQUIPMENT_MISSING", role: UserRole.SUPERVISOR },
+    { eventType: "ORDER_CLICK_THROUGH", role: UserRole.OPS_MANAGER },
+    { eventType: "ORDER_CLICK_THROUGH", role: UserRole.SUPERVISOR },
+    // Alert-based events → ADMIN + relevant roles
+    { eventType: "cash_overdue", role: UserRole.ADMIN },
+    { eventType: "cash_overdue", role: UserRole.ACCOUNTANT },
+    { eventType: "cash_overdue", role: UserRole.OPS_MANAGER },
+    { eventType: "shift_not_booked", role: UserRole.ADMIN },
+    { eventType: "shift_not_booked", role: UserRole.OPS_MANAGER },
+  ];
+
+  for (const rule of notificationRules) {
+    await prisma.notificationRule.upsert({
+      where: {
+        tenantId_eventType_role: {
+          tenantId: tenant.id,
+          eventType: rule.eventType,
+          role: rule.role,
+        },
+      },
+      update: {},
+      create: {
+        tenantId: tenant.id,
+        eventType: rule.eventType,
+        role: rule.role,
+        enabled: true,
+      },
+    });
+  }
+  console.log(`Created ${notificationRules.length} notification rules`);
+
+  // ─── 22. KPI Definitions ──────────────────────────────────────────────────────
+  const kpiDefs = [
+    { name: "On-Time Attendance", description: "Percentage of shifts where driver clocked in on time", category: "ATTENDANCE" as const, unit: "PERCENTAGE" as const, platform: null, target: 95, sortOrder: 1 },
+    { name: "Daily Orders", description: "Number of orders completed per day", category: "ORDERS" as const, unit: "COUNT" as const, platform: null, target: 15, sortOrder: 2 },
+    { name: "Delivery Efficiency", description: "Average delivery time in minutes", category: "DELIVERY_EFFICIENCY" as const, unit: "MINUTES" as const, platform: null, target: 30, sortOrder: 3 },
+    { name: "GPS Compliance", description: "Percentage of time GPS was active during shift", category: "COMPLIANCE" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 98, sortOrder: 10 },
+    { name: "Face Verification Rate", description: "Percentage of sessions with successful face verification", category: "COMPLIANCE" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 100, sortOrder: 11 },
+    { name: "Cash Collection Rate", description: "Percentage of cash collected vs sales amount", category: "FINANCIAL" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 100, sortOrder: 12 },
+    { name: "Zone Compliance", description: "Percentage of deliveries within assigned zone", category: "COMPLIANCE" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 95, sortOrder: 13 },
+    { name: "Completion Rate", description: "Percentage of accepted tasks completed", category: "ORDERS" as const, unit: "PERCENTAGE" as const, platform: "KEETA" as const, target: 95, sortOrder: 20 },
+    { name: "On-Time Delivery Rate", description: "Percentage of deliveries on time", category: "DELIVERY_EFFICIENCY" as const, unit: "PERCENTAGE" as const, platform: "KEETA" as const, target: 90, sortOrder: 21 },
+    { name: "Online Hours", description: "Hours online per day", category: "ATTENDANCE" as const, unit: "HOURS" as const, platform: "KEETA" as const, target: 8, sortOrder: 22 },
+    { name: "Rejection Rate", description: "Percentage of tasks rejected (lower is better)", category: "ORDERS" as const, unit: "PERCENTAGE" as const, platform: "KEETA" as const, target: 5, sortOrder: 23 },
+    { name: "Order Accuracy", description: "Percentage of orders delivered without issues", category: "ORDERS" as const, unit: "PERCENTAGE" as const, platform: "DELIVEROO" as const, target: 98, sortOrder: 30 },
+    { name: "Orders Per Shift", description: "Average orders per shift", category: "ORDERS" as const, unit: "COUNT" as const, platform: "AMERICANA" as const, target: 20, sortOrder: 40 },
+  ];
+
+  const createdDefs: any[] = [];
+  for (const def of kpiDefs) {
+    const created = await prisma.kpiDefinition.create({
+      data: { ...def, tenantId: tid, target: def.target },
+    });
+    createdDefs.push(created);
+  }
+  console.log(`Created ${createdDefs.length} KPI definitions`);
+
+  // ─── 23. KPI Records (7 days for all drivers) ────────────────────────────────
+  let kpiRecordCount = 0;
+  for (let dayOffset = 6; dayOffset >= 0; dayOffset--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - dayOffset);
+    date.setHours(0, 0, 0, 0);
+
+    for (const driver of allDrivers) {
+      for (const def of createdDefs) {
+        // Skip platform-specific KPIs for wrong platform
+        if (def.platform && def.platform !== driver.platform) continue;
+
+        let value: number;
+        const target = Number(def.target);
+
+        switch (def.name) {
+          case "On-Time Attendance":
+            value = Math.random() < 0.85 ? 100 : rand(60, 95);
+            break;
+          case "Daily Orders":
+            value = driver.platform === "AMERICANA" ? rand(12, 35) : driver.platform === "KEETA" ? rand(10, 25) : rand(14, 28);
+            break;
+          case "Delivery Efficiency":
+            value = decimal(18, 42, 1);
+            break;
+          case "GPS Compliance":
+            value = decimal(85, 100, 1);
+            break;
+          case "Face Verification Rate":
+            value = Math.random() < 0.9 ? 100 : rand(0, 100);
+            break;
+          case "Cash Collection Rate":
+            value = decimal(80, 100, 1);
+            break;
+          case "Zone Compliance":
+            value = decimal(82, 100, 1);
+            break;
+          case "Completion Rate":
+            value = decimal(85, 100, 2);
+            break;
+          case "On-Time Delivery Rate":
+            value = decimal(75, 98, 1);
+            break;
+          case "Online Hours":
+            value = decimal(4, 10, 1);
+            break;
+          case "Rejection Rate":
+            value = decimal(0, 12, 1);
+            break;
+          case "Order Accuracy":
+            value = decimal(92, 100, 1);
+            break;
+          case "Orders Per Shift":
+            value = rand(12, 35);
+            break;
+          default:
+            continue;
+        }
+
+        const isLowerBetter = def.name === "Delivery Efficiency" || def.name === "Rejection Rate";
+        const rawScore = isLowerBetter
+          ? (target / Math.max(value, 0.5)) * 100
+          : (value / target) * 100;
+        const score = Math.min(999.99, Math.round(rawScore * 100) / 100);
+
+        try {
+          await prisma.kpiRecord.upsert({
+            where: { tenantId_driverId_kpiDefinitionId_date: { tenantId: tid, driverId: driver.id, kpiDefinitionId: def.id, date } },
+            create: { tenantId: tid, driverId: driver.id, kpiDefinitionId: def.id, date, value, target, score, source: "COMPUTED" },
+            update: {},
+          });
+          kpiRecordCount++;
+        } catch (e: any) {
+          if (kpiRecordCount === 0) console.error(`KPI record error: tid=${tid}, driverId=${driver.id}, defId=${def.id}`, e.message);
+        }
+      }
+    }
+  }
+  console.log(`Created ${kpiRecordCount} KPI records`);
+
+  // ─── 24. Company Inventory ────────────────────────────────────────────────────
+  const inventoryItemTypes = [
+    "HELMET", "TSHIRT", "PANTS", "COOLING_VEST", "SAFETY_VEST",
+    "BIG_BAG", "SMALL_BAG", "GLOVES", "CAP", "MOBILE_PHONE",
+    "SIM_CARD", "PETROL_CARD", "WATER_BOTTLE", "SAFETY_KIT",
+  ];
+  for (const comp of companies) {
+    const driverCount = allDrivers.filter(d => d.companyId === comp.id).length;
+    for (const itemType of inventoryItemTypes) {
+      const total = driverCount + rand(2, 8);
+      const issued = Math.min(driverCount - rand(0, 3), total);
+      await prisma.companyInventory.upsert({
+        where: { companyId_itemType: { companyId: comp.id, itemType: itemType as any } },
+        create: {
+          tenantId: tid, companyId: comp.id, itemType: itemType as any,
+          total, issued: Math.max(0, issued), available: total - Math.max(0, issued),
+          minStock: Math.max(2, Math.floor(driverCount * 0.2)),
+        },
+        update: {},
+      });
+    }
+  }
+  console.log("Created company inventory");
+
+  // ─── 25. Platform Settings (persisted records) ────────────────────────────────
+  const platformConfigs: { platform: any; targets: any; kpis: any; shiftRules: any; zones: any }[] = [
+    {
+      platform: "TALABAT",
+      targets: {
+        mainTarget: { name: "Orders per Day", key: "ordersPerDay", value: 18, unit: "orders", description: "Target number of orders per shift" },
+        subTargets: [
+          { name: "Batch Number", key: "batchNumber", value: 1, unit: "batch", description: "Target batch number (1 = best, 7 = worst)" },
+          { name: "Daily Hours", key: "dailyHours", value: 12, unit: "hours", description: "Expected hours per shift" },
+          { name: "UTR", key: "utr", value: 100, unit: "%", description: "Utilization rate target" },
+        ],
+      },
+      kpis: {
+        gradingScale: [
+          { label: "Excellent", minPercent: 90, maxPercent: 100, color: "#22c55e" },
+          { label: "Good", minPercent: 70, maxPercent: 89, color: "#3b82f6" },
+          { label: "Average", minPercent: 50, maxPercent: 69, color: "#f59e0b" },
+          { label: "Below Average", minPercent: 30, maxPercent: 49, color: "#f97316" },
+          { label: "Failed", minPercent: 0, maxPercent: 29, color: "#ef4444" },
+        ],
+        weights: { ordersPerDay: 40, batchNumber: 30, attendance: 20, compliance: 10 },
+        thresholds: { ordersExcellent: 18, ordersGood: 12, ordersMinimum: 8, batchBest: 1, batchWorst: 7 },
+      },
+      shiftRules: { defaultHoursPerShift: 12, maxLateMinutes: 1, earlyClockOutMinutes: 15, maxCashHoldKD: 50 },
+      zones: ["Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem"],
+    },
+    {
+      platform: "KEETA",
+      targets: {
+        mainTarget: { name: "Daily Hours", key: "dailyHours", value: 10, unit: "hours", description: "Target online hours per day" },
+        subTargets: [
+          { name: "On-time Login", key: "onTimeLogin", value: 100, unit: "%", description: "Login at scheduled time" },
+          { name: "Number of Orders", key: "ordersPerDay", value: 15, unit: "orders", description: "Target deliveries per day" },
+          { name: "Delivery On Time", key: "deliveryOnTime", value: 95, unit: "%", description: "On-time delivery rate" },
+          { name: "Completion Rate", key: "completionRate", value: 98, unit: "%", description: "Order completion rate" },
+        ],
+      },
+      kpis: {
+        gradingScale: [
+          { label: "Excellent", minPercent: 90, maxPercent: 100, color: "#22c55e" },
+          { label: "Good", minPercent: 70, maxPercent: 89, color: "#3b82f6" },
+          { label: "Average", minPercent: 50, maxPercent: 69, color: "#f59e0b" },
+          { label: "Below Average", minPercent: 30, maxPercent: 49, color: "#f97316" },
+          { label: "Failed", minPercent: 0, maxPercent: 29, color: "#ef4444" },
+        ],
+        weights: { dailyHours: 30, onTimeLogin: 25, ordersPerDay: 20, deliveryOnTime: 15, completionRate: 10 },
+      },
+      shiftRules: { defaultHoursPerShift: 10, maxLateMinutes: 1, earlyClockOutMinutes: 15, maxCashHoldKD: 50 },
+      zones: ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"],
+    },
+    {
+      platform: "DELIVEROO",
+      targets: {
+        mainTarget: { name: "Orders per Day", key: "ordersPerDay", value: 15, unit: "orders", description: "Target orders per day" },
+        subTargets: [
+          { name: "Daily Hours", key: "dailyHours", value: 10, unit: "hours", description: "Target online hours" },
+        ],
+      },
+      kpis: {
+        gradingScale: [
+          { label: "Excellent", minPercent: 90, maxPercent: 100, color: "#22c55e" },
+          { label: "Good", minPercent: 70, maxPercent: 89, color: "#3b82f6" },
+          { label: "Average", minPercent: 50, maxPercent: 69, color: "#f59e0b" },
+          { label: "Failed", minPercent: 0, maxPercent: 49, color: "#ef4444" },
+        ],
+        weights: { ordersPerDay: 50, attendance: 30, compliance: 20 },
+      },
+      shiftRules: { defaultHoursPerShift: 10, maxLateMinutes: 1, earlyClockOutMinutes: 15, maxCashHoldKD: 50 },
+      zones: ["Hawally"],
+    },
+    {
+      platform: "AMERICANA",
+      targets: {
+        mainTarget: { name: "Orders per Day", key: "ordersPerDay", value: 20, unit: "orders", description: "Target orders per day" },
+        subTargets: [
+          { name: "Arrive on Time", key: "arriveOnTime", value: 100, unit: "%", description: "Arrive to store on time" },
+        ],
+      },
+      kpis: {
+        gradingScale: [
+          { label: "Excellent", minPercent: 90, maxPercent: 100, color: "#22c55e" },
+          { label: "Good", minPercent: 70, maxPercent: 89, color: "#3b82f6" },
+          { label: "Average", minPercent: 50, maxPercent: 69, color: "#f59e0b" },
+          { label: "Failed", minPercent: 0, maxPercent: 49, color: "#ef4444" },
+        ],
+        weights: { ordersPerDay: 50, attendance: 30, compliance: 20 },
+      },
+      shiftRules: { defaultHoursPerShift: 12, maxLateMinutes: 1, earlyClockOutMinutes: 15, maxCashHoldKD: 50 },
+      zones: ["KFC Audiliya", "KFC Salwa", "Hardees Salmiya"],
+    },
+  ];
+
+  for (const cfg of platformConfigs) {
+    await prisma.platformSettings.upsert({
+      where: { tenantId_platform: { tenantId: tid, platform: cfg.platform } },
+      create: { tenantId: tid, platform: cfg.platform, targets: cfg.targets, kpis: cfg.kpis, shiftRules: cfg.shiftRules, zones: cfg.zones },
+      update: {},
+    });
+  }
+  console.log("Created platform settings");
+
+  // ─── 26. Notifications (for admin and ops users) ──────────────────────────────
+  const notifTemplates = [
+    { title: "Cash Threshold Exceeded", type: "CASH_THRESHOLD_EXCEEDED", severity: "HIGH", message: (d: string) => `Driver ${d} exceeded KD 100 cash threshold` },
+    { title: "GPS Off Detected", type: "GPS_OFF", severity: "MEDIUM", message: (d: string) => `GPS turned off for driver ${d} during shift` },
+    { title: "Selfie Verification Failed", type: "SELFIE_FAIL", severity: "MEDIUM", message: (d: string) => `Driver ${d} failed selfie verification` },
+    { title: "Shift Not Booked", type: "SHIFT_NOT_BOOKED", severity: "HIGH", message: (d: string) => `Driver ${d} has no shift booked for tomorrow` },
+    { title: "Out of Zone", type: "OUT_OF_ZONE", severity: "MEDIUM", message: (d: string) => `Driver ${d} detected outside assigned zone` },
+    { title: "Late Clock-In", type: "LATE_CLOCK_IN", severity: "LOW", message: (d: string) => `Driver ${d} clocked in ${rand(2, 15)} minutes late` },
+    { title: "Equipment Missing", type: "EQUIPMENT_MISSING", severity: "MEDIUM", message: (d: string) => `Driver ${d} missing required equipment` },
+    { title: "Cash Deposit Overdue", type: "cash_overdue", severity: "HIGH", message: (d: string) => `Cash deposit for driver ${d} overdue by ${rand(1, 3)} days` },
+  ];
+
+  const notifUsers = [users[0], users[1], users[2]]; // admin, ops_manager, supervisor
+  for (const user of notifUsers) {
+    const count = user.role === "ADMIN" ? 15 : user.role === "OPS_MANAGER" ? 10 : 6;
+    for (let i = 0; i < count; i++) {
+      const tmpl = pick(notifTemplates);
+      const driver = pick(allDrivers);
+      const hoursAgo = rand(0, 72);
+      await prisma.notification.create({
+        data: {
+          tenantId: tid, userId: user.id,
+          title: tmpl.title, message: tmpl.message(driver.name),
+          type: tmpl.type, severity: tmpl.severity,
+          sourceId: driver.id,
+          read: hoursAgo > 24 ? Math.random() < 0.7 : Math.random() < 0.2,
+          readAt: hoursAgo > 48 ? new Date(Date.now() - (hoursAgo - rand(1, 12)) * 3600000) : null,
+          createdAt: new Date(Date.now() - hoursAgo * 3600000),
+        },
+      });
+    }
+  }
+  console.log("Created notifications");
+
+  // ─── 27. Cash Transactions (individual transactions for last 7 days) ──────────
+  let cashTxCount = 0;
+  for (let dayOffset = 6; dayOffset >= 0; dayOffset--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - dayOffset);
+    date.setHours(0, 0, 0, 0);
+
+    for (const driver of talabatDrivers.slice(0, 15)) {
+      const numOrders = rand(8, 18);
+      let runningBalance = decimal(5, 30);
+      const txBatch: any[] = [];
+
+      for (let oi = 0; oi < numOrders; oi++) {
+        const isCash = Math.random() < 0.4;
+        if (isCash) {
+          const amount = decimal(0.5, 4.5);
+          runningBalance += amount;
+          txBatch.push({
+            tenantId: tid, driverId: driver.id,
+            date, type: "COLLECTION" as const,
+            amount, orderNumber: `${3538000000 + rand(0, 999999)}`,
+            description: "Cash order collection",
+            runningBalance: Math.round(runningBalance * 1000) / 1000,
+          });
+        }
+      }
+      // Cash deposit
+      if (Math.random() < 0.7 && runningBalance > 10) {
+        const depositAmt = Math.round(runningBalance * decimal(0.6, 1.0) * 1000) / 1000;
+        runningBalance -= depositAmt;
+        txBatch.push({
+          tenantId: tid, driverId: driver.id,
+          date, type: "CASH_OUT" as const,
+          amount: depositAmt, description: pick(["Cash deposit at office", "Bank transfer", "Al Muzaini deposit"]),
+          runningBalance: Math.round(runningBalance * 1000) / 1000,
+        });
+      }
+      if (txBatch.length > 0) {
+        await prisma.cashTransaction.createMany({ data: txBatch });
+        cashTxCount += txBatch.length;
+      }
+    }
+  }
+  console.log(`Created ${cashTxCount} cash transactions`);
+
+  // ─── 28. Location Logs (for map trails - last 2 hours for online drivers) ─────
+  const onlineDrivers = allDrivers.slice(0, 20);
+  let locCount = 0;
+  for (const driver of onlineDrivers) {
+    const base = pick(KUWAIT_COORDS);
+    for (let minAgo = 120; minAgo >= 0; minAgo -= rand(3, 8)) {
+      const device = await prisma.device.findFirst({ where: { driverId: driver.id } });
+      if (!device) continue;
+      await prisma.locationLog.create({
+        data: {
+          deviceId: device.id, driverId: driver.id,
+          latitude: base.lat + decimal(-0.01, 0.01) + (minAgo * 0.00001),
+          longitude: base.lng + decimal(-0.01, 0.01) + (minAgo * 0.00001),
+          accuracy: decimal(3, 15, 1),
+          speed: decimal(0, 45, 1),
+          capturedAt: new Date(Date.now() - minAgo * 60000),
+        },
+      });
+      locCount++;
+    }
+  }
+  console.log(`Created ${locCount} location logs`);
 
   console.log("\nSeed complete!");
   console.log("Login: osama@fleet.kw / demo123");

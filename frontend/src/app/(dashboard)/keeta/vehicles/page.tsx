@@ -37,7 +37,7 @@ function VehicleTypeIcon({ type }: { type: string }) {
 }
 
 function InspectionDue({ date }: { date: string | null }) {
-  if (!date) return <span className="text-secondary text-sm">—</span>;
+  if (!date) return <span className="text-secondary text-sm">-</span>;
   const d = new Date(date);
   const now = new Date();
   const daysLeft = Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -61,7 +61,7 @@ export default function KeetaVehiclesPage() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
 
-  const params = new URLSearchParams({ company: "KEETA", limit: "100" });
+  const params = new URLSearchParams({ platform: "KEETA", limit: "100" });
   if (filters.type) params.set("vehicleType", filters.type);
   if (filters.status) params.set("status", filters.status);
   if (filters.search) params.set("search", filters.search);
@@ -89,7 +89,7 @@ export default function KeetaVehiclesPage() {
     {
       key: "plateNumber",
       label: "Plate",
-      render: (v: string) => <span className="font-mono font-semibold text-sm">{v || "—"}</span>,
+      render: (v: string) => <span className="font-mono font-semibold text-sm">{v || "-"}</span>,
     },
     {
       key: "type",
@@ -98,13 +98,13 @@ export default function KeetaVehiclesPage() {
     },
     {
       key: "make",
-      label: "Make",
-      render: (v: string) => <span className="text-sm">{v || "—"}</span>,
+      label: "Brand",
+      render: (v: string) => <span className="text-sm">{v || "-"}</span>,
     },
     {
       key: "model",
       label: "Model",
-      render: (v: string) => <span className="text-sm">{v || "—"}</span>,
+      render: (v: string) => <span className="text-sm">{v || "-"}</span>,
     },
     {
       key: "driver",
@@ -118,7 +118,7 @@ export default function KeetaVehiclesPage() {
       label: "Status",
       render: (v: string) => (
         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", STATUS_STYLES[v] || "bg-gray-100 text-gray-500")}>
-          {v || "—"}
+          {v || "-"}
         </span>
       ),
     },
@@ -134,7 +134,7 @@ export default function KeetaVehiclesPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-keeta" />
-        <h1 className="text-xl font-semibold">Keeta — Vehicles</h1>
+        <h1 className="text-xl font-semibold">Keeta - Vehicles</h1>
         <span className="text-sm text-secondary">Sidra</span>
       </div>
 
@@ -153,11 +153,11 @@ export default function KeetaVehiclesPage() {
           <div className="flex items-center gap-4 text-xs text-secondary">
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-orange-400" />
-              Motorcycle — {motorcycles} ({motoPercent}%)
+              Motorcycle - {motorcycles} ({motoPercent}%)
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-blue-400" />
-              Car — {cars} ({carPercent}%)
+              Car - {cars} ({carPercent}%)
             </span>
           </div>
         </div>
@@ -235,18 +235,18 @@ export default function KeetaVehiclesPage() {
               {[
                 ["Plate Number", selected.plateNumber],
                 ["Type", selected.type],
-                ["Make", selected.make],
+                ["Brand", selected.make],
                 ["Model", selected.model],
                 ["Year", selected.year],
                 ["Color", selected.color],
                 ["Status", selected.status],
                 ["Assigned Driver", selected.driver?.name || selected.assignedDriverName || "Unassigned"],
-                ["Next Inspection", selected.nextInspectionDate ? new Date(selected.nextInspectionDate).toLocaleDateString() : "—"],
-                ["Insurance Expiry", selected.insuranceExpiry ? new Date(selected.insuranceExpiry).toLocaleDateString() : "—"],
+                ["Next Inspection", selected.nextInspectionDate ? new Date(selected.nextInspectionDate).toLocaleDateString() : "-"],
+                ["Insurance Expiry", selected.insuranceExpiry ? new Date(selected.insuranceExpiry).toLocaleDateString() : "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                 </div>
               ))}
             </div>
@@ -288,7 +288,7 @@ export default function KeetaVehiclesPage() {
                       <Wrench size={14} className="text-secondary mt-0.5 shrink-0" />
                       <div className="flex-1">
                         <p className="text-sm font-medium">{m.type || m.description || "Service"}</p>
-                        <p className="text-xs text-secondary">{new Date(m.date).toLocaleDateString()} · {m.cost ? `KWD ${m.cost}` : ""}</p>
+                        <p className="text-xs text-secondary">{new Date(m.date).toLocaleDateString()} · {m.cost ? `KD ${m.cost}` : ""}</p>
                       </div>
                     </div>
                   ))}

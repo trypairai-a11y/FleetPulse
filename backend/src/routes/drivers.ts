@@ -190,7 +190,19 @@ router.get("/summary", async (req: Request, res: Response) => {
       where.companyId = ids.length === 1 ? ids[0] : { in: ids };
     }
 
-    const [total, active, inactive, suspended, drivers] = await Promise.all([
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+
+    const sessionWhere: any = { tenantId, date: { gte: startOfToday, lte: endOfToday } };
+    if (platform) sessionWhere.driver = { platform };
+    if (companyId) {
+      const ids = (companyId as string).split(",").filter(Boolean);
+      sessionWhere.driver = { ...sessionWhere.driver, companyId: ids.length === 1 ? ids[0] : { in: ids } };
+    }
+
+    const [total, active, inactive, suspended, drivers, todaySessions] = await Promise.all([
       prisma.driver.count({ where }),
       prisma.driver.count({ where: { ...where, status: "ACTIVE" } }),
       prisma.driver.count({ where: { ...where, status: "INACTIVE" } }),
@@ -201,6 +213,10 @@ router.get("/summary", async (req: Request, res: Response) => {
           healthCertStatus: true, workPermitStatus: true, foodHandlingCertStatus: true,
           vehicleRegStatus: true, vehicleInsuranceStatus: true, drivingLicenseStatus: true, civilIdStatus: true,
         },
+      }),
+      prisma.talabatSession.findMany({
+        where: sessionWhere,
+        select: { deliveries: true, actualHours: true },
       }),
     ]);
 
@@ -219,7 +235,18 @@ router.get("/summary", async (req: Request, res: Response) => {
     docsExpiring = expiringDrivers.size;
     docsMissing = missingDrivers.size;
 
-    res.json({ total, active, inactive, suspended, docsExpiring, docsMissing });
+    // Calculate today's orders and avg UTR
+    let totalOrdersToday = 0;
+    let totalHoursToday = 0;
+    for (const s of todaySessions) {
+      totalOrdersToday += s.deliveries || 0;
+      totalHoursToday += Number(s.actualHours || 0);
+    }
+    const avgUtrToday = totalHoursToday > 0
+      ? Math.round((totalOrdersToday / totalHoursToday) * 10) / 10
+      : 0;
+
+    res.json({ total, active, inactive, suspended, docsExpiring, docsMissing, avgUtrToday, totalOrdersToday });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

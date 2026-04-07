@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 function fmt(n: number) {
-  return n?.toFixed(3) ?? "—";
+  return n?.toFixed(3) ?? "-";
 }
 
 function OrderRow({ order }: { order: any }) {
@@ -33,17 +33,17 @@ function OrderRow({ order }: { order: any }) {
 
   return (
     <tr className="border-b border-gray-50 last:border-0 hover:bg-gray-50/40">
-      <td className="px-4 py-2.5 text-xs text-secondary font-mono">{order.orderNumber || "—"}</td>
-      <td className="px-4 py-2.5 text-xs font-medium">{order.restaurantName || "—"}</td>
+      <td className="px-4 py-2.5 text-xs text-secondary font-mono">{order.orderNumber || "-"}</td>
+      <td className="px-4 py-2.5 text-xs font-medium">{order.restaurantName || "-"}</td>
       <td className="px-4 py-2.5 text-xs text-secondary">
         {order.assignedAt
           ? new Date(order.assignedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-          : "—"}
+          : "-"}
       </td>
       <td className="px-4 py-2.5 text-xs text-secondary">
         {order.deliveredAt
           ? new Date(order.deliveredAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-          : "—"}
+          : "-"}
       </td>
       <td className="px-4 py-2.5 text-xs">
         {duration !== null ? (
@@ -51,7 +51,7 @@ function OrderRow({ order }: { order: any }) {
             {duration}m
           </span>
         ) : (
-          "—"
+          "-"
         )}
       </td>
       <td className="px-4 py-2.5 text-xs text-secondary">{fmt(order.cashAmount)} KD</td>
@@ -93,7 +93,7 @@ function DriverCard({ driver, date }: { driver: any; date: string }) {
           </div>
           <div className="text-center">
             <p className="text-xs text-secondary">Orders</p>
-            <p className="text-sm font-semibold">{driver.deliveriesCount ?? "—"}</p>
+            <p className="text-sm font-semibold">{driver.deliveriesCount ?? "-"}</p>
           </div>
           {(driver.unassignedOrders || 0) > 0 && (
             <span className="flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-600 rounded-md text-xs font-medium">
@@ -234,7 +234,7 @@ function CashDepositSection({ date }: { date: string }) {
                       <ImageIcon size={11} /> View
                     </a>
                   ) : (
-                    <span className="text-xs text-secondary">—</span>
+                    <span className="text-xs text-secondary">-</span>
                   )}
                 </td>
                 <td className="py-2.5">
@@ -294,7 +294,7 @@ export default function DeliverooOrdersCashPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-teal-500" />
-          <h1 className="text-xl font-semibold">Deliveroo — Orders & Cash</h1>
+          <h1 className="text-xl font-semibold">Deliveroo - Orders & Cash</h1>
           <span className="text-sm text-secondary">Al Hazm</span>
         </div>
         <div className="flex items-center gap-3">
@@ -335,7 +335,7 @@ export default function DeliverooOrdersCashPage() {
       <div className="flex items-start gap-3 bg-teal-50 border border-teal-100 rounded-2xl px-4 py-3">
         <ImageIcon size={15} className="text-teal-500 mt-0.5 shrink-0" />
         <p className="text-xs text-teal-700">
-          Deliveroo shows orders and cash together in one screenshot. Upload the combined screenshot above — Darb will extract cash collected, tips, and delivery counts automatically.
+          Deliveroo shows orders and cash together in one screenshot. Upload the combined screenshot above - Darb will extract cash collected, tips, and delivery counts automatically.
         </p>
         {screenshotUploaded && (
           <span className="ml-auto flex items-center gap-1 text-xs text-green-600 font-medium shrink-0">
@@ -358,7 +358,7 @@ export default function DeliverooOrdersCashPage() {
         />
         <StatCard
           title="Total Orders"
-          value={summary?.totalOrders ?? "—"}
+          value={summary?.totalOrders ?? "-"}
           icon={ShoppingBag}
         />
         <StatCard

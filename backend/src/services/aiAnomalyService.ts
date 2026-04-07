@@ -22,7 +22,7 @@ export class AiAnomalyService {
    * Checks performed:
    *  1. Driver with orders < 50% of their 7-day average
    *  2. Cash collected but not deposited for 3+ days
-   *  3. Driver GPS not in assigned zone during shift (placeholder — requires zone geometry)
+   *  3. Driver GPS not in assigned zone during shift (placeholder - requires zone geometry)
    *  4. Online hours < 70% of planned hours
    *  5. Multiple failed face verifications (attendance source = "face_fail")
    */
@@ -114,7 +114,7 @@ export class AiAnomalyService {
       orderBy: { date: "asc" },
     });
 
-    // Group by driver — report once per driver with oldest pending date
+    // Group by driver - report once per driver with oldest pending date
     const pendingByDriver = new Map<string, { driverName: string; oldestDate: Date; totalDues: number }>();
     for (const record of pendingCash) {
       const existing = pendingByDriver.get(record.driverId);
@@ -139,10 +139,10 @@ export class AiAnomalyService {
         type: "CASH_NOT_DEPOSITED",
         severity: daysPending >= 7 ? "HIGH" : "MEDIUM",
         title: "Cash Not Deposited",
-        message: `Driver ${info.driverName} has undeposited cash of ${info.totalDues.toFixed(3)} KWD outstanding for ${daysPending} days.`,
+        message: `Driver ${info.driverName} has undeposited cash of ${info.totalDues.toFixed(3)} KD outstanding for ${daysPending} days.`,
         driverId,
         data: {
-          totalPendingKWD: parseFloat(info.totalDues.toFixed(3)),
+          totalPendingKD: parseFloat(info.totalDues.toFixed(3)),
           oldestPendingDate: info.oldestDate.toISOString().split("T")[0],
           daysPending,
         },

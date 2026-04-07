@@ -114,7 +114,7 @@ export default function KeetaShiftsPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-keeta" />
-        <h1 className="text-xl font-semibold">Keeta — Shifts</h1>
+        <h1 className="text-xl font-semibold">Keeta - Shifts</h1>
         <span className="text-sm text-secondary">Sidra</span>
       </div>
 
@@ -230,10 +230,10 @@ export default function KeetaShiftsPage() {
                           )}
                         >
                           <div className="flex items-center gap-1 justify-between">
-                            <span className="font-semibold truncate max-w-[70px]">{shift.driver?.name?.split(" ")[0] || "—"}</span>
+                            <span className="font-semibold truncate max-w-[70px]">{shift.driver?.name?.split(" ")[0] || "-"}</span>
                             <ShiftValidity valid={shift.isValid ?? null} />
                           </div>
-                          <div className="text-[10px] opacity-70 truncate">{shift.driver?.zone || shift.zone || "—"}</div>
+                          <div className="text-[10px] opacity-70 truncate">{shift.driver?.zone || shift.zone || "-"}</div>
                         </button>
                       ))
                     )}
@@ -273,15 +273,15 @@ export default function KeetaShiftsPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {[
-                ["Date", selected.date ? new Date(selected.date).toLocaleDateString() : "—"],
-                ["Zone", selected.driver?.zone || selected.zone || "—"],
-                ["Slot", KEETA_SLOTS.find((s) => selected.startTime?.includes(s.start))?.label || "—"],
+                ["Date", selected.date ? new Date(selected.date).toLocaleDateString() : "-"],
+                ["Zone", selected.driver?.zone || selected.zone || "-"],
+                ["Slot", KEETA_SLOTS.find((s) => selected.startTime?.includes(s.start))?.label || "-"],
                 ["Status", selected.status],
-                ["Validity", selected.isValid === true ? "Valid" : selected.isValid === false ? "Invalid" : "—"],
+                ["Validity", selected.isValid === true ? "Valid" : selected.isValid === false ? "Invalid" : "-"],
                 ["Planned Hours", `${selected.plannedHours || 4}h`],
-                ["Actual Hours", selected.actualHours ? `${selected.actualHours}h` : "—"],
-                ["Actual Start", selected.actualStart ? new Date(selected.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"],
-                ["Actual End", selected.actualEnd ? new Date(selected.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"],
+                ["Actual Hours", selected.actualHours ? `${selected.actualHours}h` : "-"],
+                ["Actual Start", selected.actualStart ? new Date(selected.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
+                ["Actual End", selected.actualEnd ? new Date(selected.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>

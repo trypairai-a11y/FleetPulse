@@ -120,14 +120,14 @@ export default function AttendancePage() {
                       <td className="px-5 py-3 text-sm text-secondary">
                         {record.shift?.actualStart
                           ? new Date(record.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                          : "—"}
+                          : "-"}
                       </td>
                       <td className="px-5 py-3 text-sm text-secondary">
                         {record.shift?.actualEnd
                           ? new Date(record.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                          : "—"}
+                          : "-"}
                       </td>
-                      <td className="px-5 py-3 text-sm text-secondary">{record.lateMinutes || "—"}</td>
+                      <td className="px-5 py-3 text-sm text-secondary">{record.lateMinutes || "-"}</td>
                     </tr>
                   ))
                 )}
@@ -139,7 +139,7 @@ export default function AttendancePage() {
 
       {tab === "monthly" && (
         <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-          <p className="text-sm text-secondary">Monthly calendar heatmap — populated with data in Prompt 5</p>
+          <p className="text-sm text-secondary">Monthly calendar heatmap - populated with data in Prompt 5</p>
         </div>
       )}
 

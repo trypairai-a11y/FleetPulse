@@ -156,6 +156,85 @@ router.get("/ledger/export", async (req: Request, res: Response) => {
   }
 });
 
+// ─── Cash Transactions (granular per-order log) ────────────────
+// NOTE: These must be above /:id to prevent Express matching "transactions" as an id
+
+router.get("/transactions", async (req: Request, res: Response) => {
+  try {
+    const { skip, limit, page } = getPagination(req);
+    const tenantId = req.user!.tenantId;
+    const { driverId, dateFrom, dateTo, type } = req.query;
+    const where: any = { tenantId };
+    if (driverId) where.driverId = driverId;
+    if (type) where.type = type;
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = new Date(dateFrom as string);
+      if (dateTo) {
+        const end = new Date(dateTo as string);
+        end.setHours(23, 59, 59, 999);
+        where.date.lte = end;
+      }
+    }
+
+    const [data, total] = await Promise.all([
+      prisma.cashTransaction.findMany({
+        where, skip, take: limit,
+        orderBy: { date: "desc" },
+        include: { driver: { select: { id: true, name: true, platformDriverId: true } } },
+      }),
+      prisma.cashTransaction.count({ where }),
+    ]);
+    res.json(paginatedResponse(data, total, page, limit));
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get("/transactions/daily-summary", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { driverId, dateFrom, dateTo } = req.query;
+    if (!driverId) { res.status(400).json({ error: "driverId is required" }); return; }
+
+    const where: any = { tenantId, driverId: driverId as string };
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = new Date(dateFrom as string);
+      if (dateTo) {
+        const end = new Date(dateTo as string);
+        end.setHours(23, 59, 59, 999);
+        where.date.lte = end;
+      }
+    }
+
+    const transactions = await prisma.cashTransaction.findMany({
+      where,
+      orderBy: { date: "desc" },
+    });
+
+    // Group by date
+    const grouped: Record<string, { date: string; totalCash: number; transactions: any[] }> = {};
+    for (const tx of transactions) {
+      const dateKey = tx.date.toISOString().split("T")[0];
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = { date: dateKey, totalCash: 0, transactions: [] };
+      }
+      grouped[dateKey].transactions.push(tx);
+      if (tx.type === "COLLECTION") {
+        grouped[dateKey].totalCash += Number(tx.amount);
+      } else {
+        grouped[dateKey].totalCash -= Number(tx.amount);
+      }
+    }
+
+    const days = Object.values(grouped).sort((a, b) => b.date.localeCompare(a.date));
+    res.json({ data: days });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const record = await prisma.cashRecord.findFirst({
@@ -327,6 +406,86 @@ router.put("/ledger/:id", async (req: Request, res: Response) => {
       data: req.body,
     });
     res.json(updated);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.post("/transactions", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { driverId, date, type, amount, orderNumber, description } = req.body;
+
+    if (!driverId || !type || amount == null) {
+      res.status(400).json({ error: "driverId, type, and amount are required" });
+      return;
+    }
+
+    // Calculate running balance from latest transaction
+    const lastTx = await prisma.cashTransaction.findFirst({
+      where: { tenantId, driverId },
+      orderBy: { date: "desc" },
+    });
+    const prevBalance = lastTx ? Number(lastTx.runningBalance) : 0;
+    const txAmount = Number(amount);
+    const runningBalance = type === "COLLECTION"
+      ? prevBalance + txAmount
+      : prevBalance - txAmount;
+
+    const tx = await prisma.cashTransaction.create({
+      data: {
+        tenantId,
+        driverId,
+        date: date ? new Date(date) : new Date(),
+        type,
+        amount: txAmount,
+        orderNumber: orderNumber || null,
+        description: description || null,
+        runningBalance,
+      },
+    });
+    res.status(201).json(tx);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.post("/transactions/bulk", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { driverId, transactions: txList } = req.body;
+
+    if (!driverId || !Array.isArray(txList) || txList.length === 0) {
+      res.status(400).json({ error: "driverId and transactions array are required" });
+      return;
+    }
+
+    const lastTx = await prisma.cashTransaction.findFirst({
+      where: { tenantId, driverId },
+      orderBy: { date: "desc" },
+    });
+    let balance = lastTx ? Number(lastTx.runningBalance) : 0;
+
+    const created = [];
+    for (const item of txList) {
+      const txAmount = Number(item.amount);
+      balance = item.type === "COLLECTION" ? balance + txAmount : balance - txAmount;
+
+      const tx = await prisma.cashTransaction.create({
+        data: {
+          tenantId,
+          driverId,
+          date: item.date ? new Date(item.date) : new Date(),
+          type: item.type,
+          amount: txAmount,
+          orderNumber: item.orderNumber || null,
+          description: item.description || null,
+          runningBalance: balance,
+        },
+      });
+      created.push(tx);
+    }
+    res.status(201).json({ created: created.length, data: created });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }

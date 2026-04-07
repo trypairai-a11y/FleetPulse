@@ -24,6 +24,8 @@ const DOC_STATUS_COLORS: Record<string, string> = {
   MISSING: "bg-gray-100 text-gray-500",
 };
 
+const OWNER_COMPANIES = ["Wahoo", "Alhazm", "Sidra", "Alhazm Express", "Rent Office"];
+
 const INITIAL_FORM = {
   plateNumber: "",
   vehicleType: "MOTORCYCLE" as "MOTORCYCLE" | "CAR",
@@ -31,6 +33,8 @@ const INITIAL_FORM = {
   model: "",
   year: new Date().getFullYear(),
   fuelType: "Petrol",
+  ownerCompany: "",
+  driverIqama: "",
   insuranceExpiry: "",
   registrationExpiry: "",
 };
@@ -102,10 +106,10 @@ function AddVehicleModal({ onClose, onSuccess }: { onClose: () => void; onSucces
             </div>
           </div>
 
-          {/* Make + Model row */}
+          {/* Brand + Model row */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelClass}>Make *</label>
+              <label className={labelClass}>Brand *</label>
               <input required className={inputClass} placeholder="Honda" value={form.make} onChange={(e) => set("make", e.target.value)} />
             </div>
             <div>
@@ -127,6 +131,23 @@ function AddVehicleModal({ onClose, onSuccess }: { onClose: () => void; onSucces
                 <option value="Diesel">Diesel</option>
                 <option value="Electric">Electric</option>
               </select>
+            </div>
+          </div>
+
+          {/* Owner Company + Driver Iqama row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Car Belongs to Company *</label>
+              <select required className={inputClass} value={form.ownerCompany} onChange={(e) => set("ownerCompany", e.target.value)}>
+                <option value="">Select company</option>
+                {OWNER_COMPANIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>Driver Iqama *</label>
+              <input required className={inputClass} placeholder="e.g. 2400000000" value={form.driverIqama} onChange={(e) => set("driverIqama", e.target.value)} />
             </div>
           </div>
 
@@ -197,7 +218,7 @@ export default function TalabatVehiclesPage() {
     {
       key: "plateNumber",
       label: "Plate",
-      render: (v: string) => <span className="font-mono font-medium">{v || "—"}</span>,
+      render: (v: string) => <span className="font-mono font-medium">{v || "-"}</span>,
     },
     {
       key: "makeModel",
@@ -231,19 +252,19 @@ export default function TalabatVehiclesPage() {
           "bg-red-50 text-red-600": v === "INACTIVE" || v === "RETIRED",
           "bg-gray-100 text-gray-500": !v,
         })}>
-          {v || "—"}
+          {v || "-"}
         </span>
       ),
     },
   ];
 
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-talabat" />
-          <h1 className="text-xl font-semibold">Talabat — Vehicles</h1>
+          <h1 className="text-xl font-semibold">Talabat - Vehicles</h1>
           <span className="text-sm text-secondary">Wahoo International</span>
         </div>
         <button
@@ -310,7 +331,7 @@ export default function TalabatVehiclesPage() {
             <div className="grid grid-cols-2 gap-3">
               {[
                 ["Plate Number", selected.plateNumber],
-                ["Make", selected.make],
+                ["Brand", selected.make],
                 ["Model", selected.model],
                 ["Year", selected.year],
                 ["Color", selected.color],
@@ -318,11 +339,13 @@ export default function TalabatVehiclesPage() {
                 ["Zone", selected.zone],
                 ["Status", selected.status],
                 ["Assigned Driver", selected.driver?.name || "Unassigned"],
-                ["Chassis No.", selected.chassisNumber || "—"],
+                ["Owner Company", selected.ownerCompany || "-"],
+                ["Driver Iqama", selected.driverIqama || "-"],
+                ["Chassis No.", selected.chassisNumber || "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                 </div>
               ))}
             </div>

@@ -69,6 +69,11 @@ export type OrderLog = $Result.DefaultSelection<Prisma.$OrderLogPayload>
  */
 export type CashRecord = $Result.DefaultSelection<Prisma.$CashRecordPayload>
 /**
+ * Model CashTransaction
+ * 
+ */
+export type CashTransaction = $Result.DefaultSelection<Prisma.$CashTransactionPayload>
+/**
  * Model PendingDuesLedger
  * 
  */
@@ -159,10 +164,40 @@ export type TalabatDelivery = $Result.DefaultSelection<Prisma.$TalabatDeliveryPa
  */
 export type KeetaDailyMetrics = $Result.DefaultSelection<Prisma.$KeetaDailyMetricsPayload>
 /**
+ * Model PlatformSettings
+ * 
+ */
+export type PlatformSettings = $Result.DefaultSelection<Prisma.$PlatformSettingsPayload>
+/**
+ * Model CompanyInventory
+ * 
+ */
+export type CompanyInventory = $Result.DefaultSelection<Prisma.$CompanyInventoryPayload>
+/**
  * Model AmericanaDailyOrders
  * 
  */
 export type AmericanaDailyOrders = $Result.DefaultSelection<Prisma.$AmericanaDailyOrdersPayload>
+/**
+ * Model KpiDefinition
+ * 
+ */
+export type KpiDefinition = $Result.DefaultSelection<Prisma.$KpiDefinitionPayload>
+/**
+ * Model KpiRecord
+ * 
+ */
+export type KpiRecord = $Result.DefaultSelection<Prisma.$KpiRecordPayload>
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = $Result.DefaultSelection<Prisma.$NotificationPayload>
+/**
+ * Model NotificationRule
+ * 
+ */
+export type NotificationRule = $Result.DefaultSelection<Prisma.$NotificationRulePayload>
 
 /**
  * Enums
@@ -318,6 +353,15 @@ export const CashStatus: {
 };
 
 export type CashStatus = (typeof CashStatus)[keyof typeof CashStatus]
+
+
+export const CashTransactionType: {
+  COLLECTION: 'COLLECTION',
+  CASH_OUT: 'CASH_OUT',
+  INVOICE_DEDUCTION: 'INVOICE_DEDUCTION'
+};
+
+export type CashTransactionType = (typeof CashTransactionType)[keyof typeof CashTransactionType]
 
 
 export const LedgerStatus: {
@@ -502,6 +546,30 @@ export const ComplianceEventType: {
 
 export type ComplianceEventType = (typeof ComplianceEventType)[keyof typeof ComplianceEventType]
 
+
+export const KpiCategory: {
+  ATTENDANCE: 'ATTENDANCE',
+  ORDERS: 'ORDERS',
+  DELIVERY_EFFICIENCY: 'DELIVERY_EFFICIENCY',
+  FINANCIAL: 'FINANCIAL',
+  COMPLIANCE: 'COMPLIANCE',
+  CUSTOM: 'CUSTOM'
+};
+
+export type KpiCategory = (typeof KpiCategory)[keyof typeof KpiCategory]
+
+
+export const KpiUnit: {
+  PERCENTAGE: 'PERCENTAGE',
+  COUNT: 'COUNT',
+  MINUTES: 'MINUTES',
+  HOURS: 'HOURS',
+  CURRENCY: 'CURRENCY',
+  SCORE: 'SCORE'
+};
+
+export type KpiUnit = (typeof KpiUnit)[keyof typeof KpiUnit]
+
 }
 
 export type SubscriptionPlan = $Enums.SubscriptionPlan
@@ -555,6 +623,10 @@ export const DepositMethod: typeof $Enums.DepositMethod
 export type CashStatus = $Enums.CashStatus
 
 export const CashStatus: typeof $Enums.CashStatus
+
+export type CashTransactionType = $Enums.CashTransactionType
+
+export const CashTransactionType: typeof $Enums.CashTransactionType
 
 export type LedgerStatus = $Enums.LedgerStatus
 
@@ -627,6 +699,14 @@ export const TalabatSessionStatus: typeof $Enums.TalabatSessionStatus
 export type ComplianceEventType = $Enums.ComplianceEventType
 
 export const ComplianceEventType: typeof $Enums.ComplianceEventType
+
+export type KpiCategory = $Enums.KpiCategory
+
+export const KpiCategory: typeof $Enums.KpiCategory
+
+export type KpiUnit = $Enums.KpiUnit
+
+export const KpiUnit: typeof $Enums.KpiUnit
 
 /**
  * ##  Prisma Client ʲˢ
@@ -862,6 +942,16 @@ export class PrismaClient<
   get cashRecord(): Prisma.CashRecordDelegate<ExtArgs>;
 
   /**
+   * `prisma.cashTransaction`: Exposes CRUD operations for the **CashTransaction** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CashTransactions
+    * const cashTransactions = await prisma.cashTransaction.findMany()
+    * ```
+    */
+  get cashTransaction(): Prisma.CashTransactionDelegate<ExtArgs>;
+
+  /**
    * `prisma.pendingDuesLedger`: Exposes CRUD operations for the **PendingDuesLedger** model.
     * Example usage:
     * ```ts
@@ -1042,6 +1132,26 @@ export class PrismaClient<
   get keetaDailyMetrics(): Prisma.KeetaDailyMetricsDelegate<ExtArgs>;
 
   /**
+   * `prisma.platformSettings`: Exposes CRUD operations for the **PlatformSettings** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PlatformSettings
+    * const platformSettings = await prisma.platformSettings.findMany()
+    * ```
+    */
+  get platformSettings(): Prisma.PlatformSettingsDelegate<ExtArgs>;
+
+  /**
+   * `prisma.companyInventory`: Exposes CRUD operations for the **CompanyInventory** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CompanyInventories
+    * const companyInventories = await prisma.companyInventory.findMany()
+    * ```
+    */
+  get companyInventory(): Prisma.CompanyInventoryDelegate<ExtArgs>;
+
+  /**
    * `prisma.americanaDailyOrders`: Exposes CRUD operations for the **AmericanaDailyOrders** model.
     * Example usage:
     * ```ts
@@ -1050,6 +1160,46 @@ export class PrismaClient<
     * ```
     */
   get americanaDailyOrders(): Prisma.AmericanaDailyOrdersDelegate<ExtArgs>;
+
+  /**
+   * `prisma.kpiDefinition`: Exposes CRUD operations for the **KpiDefinition** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more KpiDefinitions
+    * const kpiDefinitions = await prisma.kpiDefinition.findMany()
+    * ```
+    */
+  get kpiDefinition(): Prisma.KpiDefinitionDelegate<ExtArgs>;
+
+  /**
+   * `prisma.kpiRecord`: Exposes CRUD operations for the **KpiRecord** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more KpiRecords
+    * const kpiRecords = await prisma.kpiRecord.findMany()
+    * ```
+    */
+  get kpiRecord(): Prisma.KpiRecordDelegate<ExtArgs>;
+
+  /**
+   * `prisma.notification`: Exposes CRUD operations for the **Notification** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Notifications
+    * const notifications = await prisma.notification.findMany()
+    * ```
+    */
+  get notification(): Prisma.NotificationDelegate<ExtArgs>;
+
+  /**
+   * `prisma.notificationRule`: Exposes CRUD operations for the **NotificationRule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more NotificationRules
+    * const notificationRules = await prisma.notificationRule.findMany()
+    * ```
+    */
+  get notificationRule(): Prisma.NotificationRuleDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -1502,6 +1652,7 @@ export namespace Prisma {
     AttendanceRecord: 'AttendanceRecord',
     OrderLog: 'OrderLog',
     CashRecord: 'CashRecord',
+    CashTransaction: 'CashTransaction',
     PendingDuesLedger: 'PendingDuesLedger',
     VehicleInspection: 'VehicleInspection',
     MaintenanceRecord: 'MaintenanceRecord',
@@ -1520,7 +1671,13 @@ export namespace Prisma {
     TalabatComplianceEvent: 'TalabatComplianceEvent',
     TalabatDelivery: 'TalabatDelivery',
     KeetaDailyMetrics: 'KeetaDailyMetrics',
-    AmericanaDailyOrders: 'AmericanaDailyOrders'
+    PlatformSettings: 'PlatformSettings',
+    CompanyInventory: 'CompanyInventory',
+    AmericanaDailyOrders: 'AmericanaDailyOrders',
+    KpiDefinition: 'KpiDefinition',
+    KpiRecord: 'KpiRecord',
+    Notification: 'Notification',
+    NotificationRule: 'NotificationRule'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1536,7 +1693,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "company" | "user" | "driver" | "driverInventory" | "recruitmentPipeline" | "vehicle" | "shift" | "attendanceRecord" | "orderLog" | "cashRecord" | "pendingDuesLedger" | "vehicleInspection" | "maintenanceRecord" | "device" | "capturedOrder" | "locationLog" | "appUsageLog" | "deviceCommand" | "aiScore" | "alert" | "aiDigest" | "auditLog" | "ticket" | "leaveRequest" | "talabatSession" | "talabatComplianceEvent" | "talabatDelivery" | "keetaDailyMetrics" | "americanaDailyOrders"
+      modelProps: "tenant" | "company" | "user" | "driver" | "driverInventory" | "recruitmentPipeline" | "vehicle" | "shift" | "attendanceRecord" | "orderLog" | "cashRecord" | "cashTransaction" | "pendingDuesLedger" | "vehicleInspection" | "maintenanceRecord" | "device" | "capturedOrder" | "locationLog" | "appUsageLog" | "deviceCommand" | "aiScore" | "alert" | "aiDigest" | "auditLog" | "ticket" | "leaveRequest" | "talabatSession" | "talabatComplianceEvent" | "talabatDelivery" | "keetaDailyMetrics" | "platformSettings" | "companyInventory" | "americanaDailyOrders" | "kpiDefinition" | "kpiRecord" | "notification" | "notificationRule"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2307,6 +2464,76 @@ export namespace Prisma {
           count: {
             args: Prisma.CashRecordCountArgs<ExtArgs>
             result: $Utils.Optional<CashRecordCountAggregateOutputType> | number
+          }
+        }
+      }
+      CashTransaction: {
+        payload: Prisma.$CashTransactionPayload<ExtArgs>
+        fields: Prisma.CashTransactionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CashTransactionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CashTransactionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CashTransactionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CashTransactionPayload>
+          }
+          findFirst: {
+            args: Prisma.CashTransactionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CashTransactionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CashTransactionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CashTransactionPayload>
+          }
+          findMany: {
+            args: Prisma.CashTransactionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CashTransactionPayload>[]
+          }
+          create: {
+            args: Prisma.CashTransactionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CashTransactionPayload>
+          }
+          createMany: {
+            args: Prisma.CashTransactionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CashTransactionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CashTransactionPayload>[]
+          }
+          delete: {
+            args: Prisma.CashTransactionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CashTransactionPayload>
+          }
+          update: {
+            args: Prisma.CashTransactionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CashTransactionPayload>
+          }
+          deleteMany: {
+            args: Prisma.CashTransactionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CashTransactionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.CashTransactionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CashTransactionPayload>
+          }
+          aggregate: {
+            args: Prisma.CashTransactionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCashTransaction>
+          }
+          groupBy: {
+            args: Prisma.CashTransactionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CashTransactionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CashTransactionCountArgs<ExtArgs>
+            result: $Utils.Optional<CashTransactionCountAggregateOutputType> | number
           }
         }
       }
@@ -3570,6 +3797,146 @@ export namespace Prisma {
           }
         }
       }
+      PlatformSettings: {
+        payload: Prisma.$PlatformSettingsPayload<ExtArgs>
+        fields: Prisma.PlatformSettingsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PlatformSettingsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSettingsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PlatformSettingsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSettingsPayload>
+          }
+          findFirst: {
+            args: Prisma.PlatformSettingsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSettingsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PlatformSettingsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSettingsPayload>
+          }
+          findMany: {
+            args: Prisma.PlatformSettingsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSettingsPayload>[]
+          }
+          create: {
+            args: Prisma.PlatformSettingsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSettingsPayload>
+          }
+          createMany: {
+            args: Prisma.PlatformSettingsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PlatformSettingsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSettingsPayload>[]
+          }
+          delete: {
+            args: Prisma.PlatformSettingsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSettingsPayload>
+          }
+          update: {
+            args: Prisma.PlatformSettingsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSettingsPayload>
+          }
+          deleteMany: {
+            args: Prisma.PlatformSettingsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PlatformSettingsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PlatformSettingsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSettingsPayload>
+          }
+          aggregate: {
+            args: Prisma.PlatformSettingsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePlatformSettings>
+          }
+          groupBy: {
+            args: Prisma.PlatformSettingsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PlatformSettingsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PlatformSettingsCountArgs<ExtArgs>
+            result: $Utils.Optional<PlatformSettingsCountAggregateOutputType> | number
+          }
+        }
+      }
+      CompanyInventory: {
+        payload: Prisma.$CompanyInventoryPayload<ExtArgs>
+        fields: Prisma.CompanyInventoryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CompanyInventoryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyInventoryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CompanyInventoryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyInventoryPayload>
+          }
+          findFirst: {
+            args: Prisma.CompanyInventoryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyInventoryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CompanyInventoryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyInventoryPayload>
+          }
+          findMany: {
+            args: Prisma.CompanyInventoryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyInventoryPayload>[]
+          }
+          create: {
+            args: Prisma.CompanyInventoryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyInventoryPayload>
+          }
+          createMany: {
+            args: Prisma.CompanyInventoryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CompanyInventoryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyInventoryPayload>[]
+          }
+          delete: {
+            args: Prisma.CompanyInventoryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyInventoryPayload>
+          }
+          update: {
+            args: Prisma.CompanyInventoryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyInventoryPayload>
+          }
+          deleteMany: {
+            args: Prisma.CompanyInventoryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CompanyInventoryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.CompanyInventoryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CompanyInventoryPayload>
+          }
+          aggregate: {
+            args: Prisma.CompanyInventoryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCompanyInventory>
+          }
+          groupBy: {
+            args: Prisma.CompanyInventoryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CompanyInventoryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CompanyInventoryCountArgs<ExtArgs>
+            result: $Utils.Optional<CompanyInventoryCountAggregateOutputType> | number
+          }
+        }
+      }
       AmericanaDailyOrders: {
         payload: Prisma.$AmericanaDailyOrdersPayload<ExtArgs>
         fields: Prisma.AmericanaDailyOrdersFieldRefs
@@ -3637,6 +4004,286 @@ export namespace Prisma {
           count: {
             args: Prisma.AmericanaDailyOrdersCountArgs<ExtArgs>
             result: $Utils.Optional<AmericanaDailyOrdersCountAggregateOutputType> | number
+          }
+        }
+      }
+      KpiDefinition: {
+        payload: Prisma.$KpiDefinitionPayload<ExtArgs>
+        fields: Prisma.KpiDefinitionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.KpiDefinitionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiDefinitionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.KpiDefinitionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiDefinitionPayload>
+          }
+          findFirst: {
+            args: Prisma.KpiDefinitionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiDefinitionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.KpiDefinitionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiDefinitionPayload>
+          }
+          findMany: {
+            args: Prisma.KpiDefinitionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiDefinitionPayload>[]
+          }
+          create: {
+            args: Prisma.KpiDefinitionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiDefinitionPayload>
+          }
+          createMany: {
+            args: Prisma.KpiDefinitionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.KpiDefinitionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiDefinitionPayload>[]
+          }
+          delete: {
+            args: Prisma.KpiDefinitionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiDefinitionPayload>
+          }
+          update: {
+            args: Prisma.KpiDefinitionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiDefinitionPayload>
+          }
+          deleteMany: {
+            args: Prisma.KpiDefinitionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.KpiDefinitionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.KpiDefinitionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiDefinitionPayload>
+          }
+          aggregate: {
+            args: Prisma.KpiDefinitionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateKpiDefinition>
+          }
+          groupBy: {
+            args: Prisma.KpiDefinitionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<KpiDefinitionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.KpiDefinitionCountArgs<ExtArgs>
+            result: $Utils.Optional<KpiDefinitionCountAggregateOutputType> | number
+          }
+        }
+      }
+      KpiRecord: {
+        payload: Prisma.$KpiRecordPayload<ExtArgs>
+        fields: Prisma.KpiRecordFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.KpiRecordFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiRecordPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.KpiRecordFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiRecordPayload>
+          }
+          findFirst: {
+            args: Prisma.KpiRecordFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiRecordPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.KpiRecordFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiRecordPayload>
+          }
+          findMany: {
+            args: Prisma.KpiRecordFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiRecordPayload>[]
+          }
+          create: {
+            args: Prisma.KpiRecordCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiRecordPayload>
+          }
+          createMany: {
+            args: Prisma.KpiRecordCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.KpiRecordCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiRecordPayload>[]
+          }
+          delete: {
+            args: Prisma.KpiRecordDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiRecordPayload>
+          }
+          update: {
+            args: Prisma.KpiRecordUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiRecordPayload>
+          }
+          deleteMany: {
+            args: Prisma.KpiRecordDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.KpiRecordUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.KpiRecordUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KpiRecordPayload>
+          }
+          aggregate: {
+            args: Prisma.KpiRecordAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateKpiRecord>
+          }
+          groupBy: {
+            args: Prisma.KpiRecordGroupByArgs<ExtArgs>
+            result: $Utils.Optional<KpiRecordGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.KpiRecordCountArgs<ExtArgs>
+            result: $Utils.Optional<KpiRecordCountAggregateOutputType> | number
+          }
+        }
+      }
+      Notification: {
+        payload: Prisma.$NotificationPayload<ExtArgs>
+        fields: Prisma.NotificationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.NotificationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.NotificationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>
+          }
+          findFirst: {
+            args: Prisma.NotificationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.NotificationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>
+          }
+          findMany: {
+            args: Prisma.NotificationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>[]
+          }
+          create: {
+            args: Prisma.NotificationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>
+          }
+          createMany: {
+            args: Prisma.NotificationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.NotificationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>[]
+          }
+          delete: {
+            args: Prisma.NotificationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>
+          }
+          update: {
+            args: Prisma.NotificationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>
+          }
+          deleteMany: {
+            args: Prisma.NotificationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.NotificationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.NotificationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationPayload>
+          }
+          aggregate: {
+            args: Prisma.NotificationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNotification>
+          }
+          groupBy: {
+            args: Prisma.NotificationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<NotificationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.NotificationCountArgs<ExtArgs>
+            result: $Utils.Optional<NotificationCountAggregateOutputType> | number
+          }
+        }
+      }
+      NotificationRule: {
+        payload: Prisma.$NotificationRulePayload<ExtArgs>
+        fields: Prisma.NotificationRuleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.NotificationRuleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationRulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.NotificationRuleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationRulePayload>
+          }
+          findFirst: {
+            args: Prisma.NotificationRuleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationRulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.NotificationRuleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationRulePayload>
+          }
+          findMany: {
+            args: Prisma.NotificationRuleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationRulePayload>[]
+          }
+          create: {
+            args: Prisma.NotificationRuleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationRulePayload>
+          }
+          createMany: {
+            args: Prisma.NotificationRuleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.NotificationRuleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationRulePayload>[]
+          }
+          delete: {
+            args: Prisma.NotificationRuleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationRulePayload>
+          }
+          update: {
+            args: Prisma.NotificationRuleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationRulePayload>
+          }
+          deleteMany: {
+            args: Prisma.NotificationRuleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.NotificationRuleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.NotificationRuleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NotificationRulePayload>
+          }
+          aggregate: {
+            args: Prisma.NotificationRuleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNotificationRule>
+          }
+          groupBy: {
+            args: Prisma.NotificationRuleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<NotificationRuleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.NotificationRuleCountArgs<ExtArgs>
+            result: $Utils.Optional<NotificationRuleCountAggregateOutputType> | number
           }
         }
       }
@@ -3808,6 +4455,7 @@ export namespace Prisma {
     attendanceRecords: number
     orderLogs: number
     cashRecords: number
+    cashTransactions: number
     pendingDuesLedgers: number
     vehicleInspections: number
     maintenanceRecords: number
@@ -3823,6 +4471,12 @@ export namespace Prisma {
     talabatComplianceEvents: number
     keetaDailyMetrics: number
     americanaDailyOrders: number
+    kpiDefinitions: number
+    kpiRecords: number
+    platformSettings: number
+    companyInventory: number
+    notifications: number
+    notificationRules: number
   }
 
   export type TenantCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3833,6 +4487,7 @@ export namespace Prisma {
     attendanceRecords?: boolean | TenantCountOutputTypeCountAttendanceRecordsArgs
     orderLogs?: boolean | TenantCountOutputTypeCountOrderLogsArgs
     cashRecords?: boolean | TenantCountOutputTypeCountCashRecordsArgs
+    cashTransactions?: boolean | TenantCountOutputTypeCountCashTransactionsArgs
     pendingDuesLedgers?: boolean | TenantCountOutputTypeCountPendingDuesLedgersArgs
     vehicleInspections?: boolean | TenantCountOutputTypeCountVehicleInspectionsArgs
     maintenanceRecords?: boolean | TenantCountOutputTypeCountMaintenanceRecordsArgs
@@ -3848,6 +4503,12 @@ export namespace Prisma {
     talabatComplianceEvents?: boolean | TenantCountOutputTypeCountTalabatComplianceEventsArgs
     keetaDailyMetrics?: boolean | TenantCountOutputTypeCountKeetaDailyMetricsArgs
     americanaDailyOrders?: boolean | TenantCountOutputTypeCountAmericanaDailyOrdersArgs
+    kpiDefinitions?: boolean | TenantCountOutputTypeCountKpiDefinitionsArgs
+    kpiRecords?: boolean | TenantCountOutputTypeCountKpiRecordsArgs
+    platformSettings?: boolean | TenantCountOutputTypeCountPlatformSettingsArgs
+    companyInventory?: boolean | TenantCountOutputTypeCountCompanyInventoryArgs
+    notifications?: boolean | TenantCountOutputTypeCountNotificationsArgs
+    notificationRules?: boolean | TenantCountOutputTypeCountNotificationRulesArgs
   }
 
   // Custom InputTypes
@@ -3908,6 +4569,13 @@ export namespace Prisma {
    */
   export type TenantCountOutputTypeCountCashRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CashRecordWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountCashTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CashTransactionWhereInput
   }
 
   /**
@@ -4015,6 +4683,48 @@ export namespace Prisma {
     where?: AmericanaDailyOrdersWhereInput
   }
 
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountKpiDefinitionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KpiDefinitionWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountKpiRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KpiRecordWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountPlatformSettingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PlatformSettingsWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountCompanyInventoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CompanyInventoryWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountNotificationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: NotificationWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountNotificationRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: NotificationRuleWhereInput
+  }
+
 
   /**
    * Count Type CompanyCountOutputType
@@ -4025,6 +4735,7 @@ export namespace Prisma {
     vehicles: number
     recruitmentPipeline: number
     tickets: number
+    companyInventory: number
   }
 
   export type CompanyCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4032,6 +4743,7 @@ export namespace Prisma {
     vehicles?: boolean | CompanyCountOutputTypeCountVehiclesArgs
     recruitmentPipeline?: boolean | CompanyCountOutputTypeCountRecruitmentPipelineArgs
     tickets?: boolean | CompanyCountOutputTypeCountTicketsArgs
+    companyInventory?: boolean | CompanyCountOutputTypeCountCompanyInventoryArgs
   }
 
   // Custom InputTypes
@@ -4073,6 +4785,13 @@ export namespace Prisma {
     where?: TicketWhereInput
   }
 
+  /**
+   * CompanyCountOutputType without action
+   */
+  export type CompanyCountOutputTypeCountCompanyInventoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CompanyInventoryWhereInput
+  }
+
 
   /**
    * Count Type UserCountOutputType
@@ -4085,6 +4804,7 @@ export namespace Prisma {
     reviewedLeaves: number
     assignedTickets: number
     submittedTickets: number
+    notifications: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4094,6 +4814,7 @@ export namespace Prisma {
     reviewedLeaves?: boolean | UserCountOutputTypeCountReviewedLeavesArgs
     assignedTickets?: boolean | UserCountOutputTypeCountAssignedTicketsArgs
     submittedTickets?: boolean | UserCountOutputTypeCountSubmittedTicketsArgs
+    notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
   }
 
   // Custom InputTypes
@@ -4149,6 +4870,13 @@ export namespace Prisma {
     where?: TicketWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountNotificationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: NotificationWhereInput
+  }
+
 
   /**
    * Count Type DriverCountOutputType
@@ -4160,6 +4888,7 @@ export namespace Prisma {
     attendanceRecords: number
     orderLogs: number
     cashRecords: number
+    cashTransactions: number
     pendingDuesLedgers: number
     vehicleInspections: number
     maintenanceRecords: number
@@ -4176,6 +4905,7 @@ export namespace Prisma {
     keetaDailyMetrics: number
     americanaDailyOrders: number
     talabatDeliveries: number
+    kpiRecords: number
   }
 
   export type DriverCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4184,6 +4914,7 @@ export namespace Prisma {
     attendanceRecords?: boolean | DriverCountOutputTypeCountAttendanceRecordsArgs
     orderLogs?: boolean | DriverCountOutputTypeCountOrderLogsArgs
     cashRecords?: boolean | DriverCountOutputTypeCountCashRecordsArgs
+    cashTransactions?: boolean | DriverCountOutputTypeCountCashTransactionsArgs
     pendingDuesLedgers?: boolean | DriverCountOutputTypeCountPendingDuesLedgersArgs
     vehicleInspections?: boolean | DriverCountOutputTypeCountVehicleInspectionsArgs
     maintenanceRecords?: boolean | DriverCountOutputTypeCountMaintenanceRecordsArgs
@@ -4200,6 +4931,7 @@ export namespace Prisma {
     keetaDailyMetrics?: boolean | DriverCountOutputTypeCountKeetaDailyMetricsArgs
     americanaDailyOrders?: boolean | DriverCountOutputTypeCountAmericanaDailyOrdersArgs
     talabatDeliveries?: boolean | DriverCountOutputTypeCountTalabatDeliveriesArgs
+    kpiRecords?: boolean | DriverCountOutputTypeCountKpiRecordsArgs
   }
 
   // Custom InputTypes
@@ -4246,6 +4978,13 @@ export namespace Prisma {
    */
   export type DriverCountOutputTypeCountCashRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CashRecordWhereInput
+  }
+
+  /**
+   * DriverCountOutputType without action
+   */
+  export type DriverCountOutputTypeCountCashTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CashTransactionWhereInput
   }
 
   /**
@@ -4358,6 +5097,13 @@ export namespace Prisma {
    */
   export type DriverCountOutputTypeCountTalabatDeliveriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TalabatDeliveryWhereInput
+  }
+
+  /**
+   * DriverCountOutputType without action
+   */
+  export type DriverCountOutputTypeCountKpiRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KpiRecordWhereInput
   }
 
 
@@ -4576,6 +5322,37 @@ export namespace Prisma {
 
 
   /**
+   * Count Type KpiDefinitionCountOutputType
+   */
+
+  export type KpiDefinitionCountOutputType = {
+    records: number
+  }
+
+  export type KpiDefinitionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    records?: boolean | KpiDefinitionCountOutputTypeCountRecordsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * KpiDefinitionCountOutputType without action
+   */
+  export type KpiDefinitionCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiDefinitionCountOutputType
+     */
+    select?: KpiDefinitionCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * KpiDefinitionCountOutputType without action
+   */
+  export type KpiDefinitionCountOutputTypeCountRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KpiRecordWhereInput
+  }
+
+
+  /**
    * Models
    */
 
@@ -4754,6 +5531,7 @@ export namespace Prisma {
     attendanceRecords?: boolean | Tenant$attendanceRecordsArgs<ExtArgs>
     orderLogs?: boolean | Tenant$orderLogsArgs<ExtArgs>
     cashRecords?: boolean | Tenant$cashRecordsArgs<ExtArgs>
+    cashTransactions?: boolean | Tenant$cashTransactionsArgs<ExtArgs>
     pendingDuesLedgers?: boolean | Tenant$pendingDuesLedgersArgs<ExtArgs>
     vehicleInspections?: boolean | Tenant$vehicleInspectionsArgs<ExtArgs>
     maintenanceRecords?: boolean | Tenant$maintenanceRecordsArgs<ExtArgs>
@@ -4769,6 +5547,12 @@ export namespace Prisma {
     talabatComplianceEvents?: boolean | Tenant$talabatComplianceEventsArgs<ExtArgs>
     keetaDailyMetrics?: boolean | Tenant$keetaDailyMetricsArgs<ExtArgs>
     americanaDailyOrders?: boolean | Tenant$americanaDailyOrdersArgs<ExtArgs>
+    kpiDefinitions?: boolean | Tenant$kpiDefinitionsArgs<ExtArgs>
+    kpiRecords?: boolean | Tenant$kpiRecordsArgs<ExtArgs>
+    platformSettings?: boolean | Tenant$platformSettingsArgs<ExtArgs>
+    companyInventory?: boolean | Tenant$companyInventoryArgs<ExtArgs>
+    notifications?: boolean | Tenant$notificationsArgs<ExtArgs>
+    notificationRules?: boolean | Tenant$notificationRulesArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["tenant"]>
 
@@ -4798,6 +5582,7 @@ export namespace Prisma {
     attendanceRecords?: boolean | Tenant$attendanceRecordsArgs<ExtArgs>
     orderLogs?: boolean | Tenant$orderLogsArgs<ExtArgs>
     cashRecords?: boolean | Tenant$cashRecordsArgs<ExtArgs>
+    cashTransactions?: boolean | Tenant$cashTransactionsArgs<ExtArgs>
     pendingDuesLedgers?: boolean | Tenant$pendingDuesLedgersArgs<ExtArgs>
     vehicleInspections?: boolean | Tenant$vehicleInspectionsArgs<ExtArgs>
     maintenanceRecords?: boolean | Tenant$maintenanceRecordsArgs<ExtArgs>
@@ -4813,6 +5598,12 @@ export namespace Prisma {
     talabatComplianceEvents?: boolean | Tenant$talabatComplianceEventsArgs<ExtArgs>
     keetaDailyMetrics?: boolean | Tenant$keetaDailyMetricsArgs<ExtArgs>
     americanaDailyOrders?: boolean | Tenant$americanaDailyOrdersArgs<ExtArgs>
+    kpiDefinitions?: boolean | Tenant$kpiDefinitionsArgs<ExtArgs>
+    kpiRecords?: boolean | Tenant$kpiRecordsArgs<ExtArgs>
+    platformSettings?: boolean | Tenant$platformSettingsArgs<ExtArgs>
+    companyInventory?: boolean | Tenant$companyInventoryArgs<ExtArgs>
+    notifications?: boolean | Tenant$notificationsArgs<ExtArgs>
+    notificationRules?: boolean | Tenant$notificationRulesArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TenantIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -4827,6 +5618,7 @@ export namespace Prisma {
       attendanceRecords: Prisma.$AttendanceRecordPayload<ExtArgs>[]
       orderLogs: Prisma.$OrderLogPayload<ExtArgs>[]
       cashRecords: Prisma.$CashRecordPayload<ExtArgs>[]
+      cashTransactions: Prisma.$CashTransactionPayload<ExtArgs>[]
       pendingDuesLedgers: Prisma.$PendingDuesLedgerPayload<ExtArgs>[]
       vehicleInspections: Prisma.$VehicleInspectionPayload<ExtArgs>[]
       maintenanceRecords: Prisma.$MaintenanceRecordPayload<ExtArgs>[]
@@ -4842,6 +5634,12 @@ export namespace Prisma {
       talabatComplianceEvents: Prisma.$TalabatComplianceEventPayload<ExtArgs>[]
       keetaDailyMetrics: Prisma.$KeetaDailyMetricsPayload<ExtArgs>[]
       americanaDailyOrders: Prisma.$AmericanaDailyOrdersPayload<ExtArgs>[]
+      kpiDefinitions: Prisma.$KpiDefinitionPayload<ExtArgs>[]
+      kpiRecords: Prisma.$KpiRecordPayload<ExtArgs>[]
+      platformSettings: Prisma.$PlatformSettingsPayload<ExtArgs>[]
+      companyInventory: Prisma.$CompanyInventoryPayload<ExtArgs>[]
+      notifications: Prisma.$NotificationPayload<ExtArgs>[]
+      notificationRules: Prisma.$NotificationRulePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5221,6 +6019,7 @@ export namespace Prisma {
     attendanceRecords<T extends Tenant$attendanceRecordsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$attendanceRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendanceRecordPayload<ExtArgs>, T, "findMany"> | Null>
     orderLogs<T extends Tenant$orderLogsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$orderLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderLogPayload<ExtArgs>, T, "findMany"> | Null>
     cashRecords<T extends Tenant$cashRecordsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$cashRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CashRecordPayload<ExtArgs>, T, "findMany"> | Null>
+    cashTransactions<T extends Tenant$cashTransactionsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$cashTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CashTransactionPayload<ExtArgs>, T, "findMany"> | Null>
     pendingDuesLedgers<T extends Tenant$pendingDuesLedgersArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$pendingDuesLedgersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PendingDuesLedgerPayload<ExtArgs>, T, "findMany"> | Null>
     vehicleInspections<T extends Tenant$vehicleInspectionsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$vehicleInspectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleInspectionPayload<ExtArgs>, T, "findMany"> | Null>
     maintenanceRecords<T extends Tenant$maintenanceRecordsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$maintenanceRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MaintenanceRecordPayload<ExtArgs>, T, "findMany"> | Null>
@@ -5236,6 +6035,12 @@ export namespace Prisma {
     talabatComplianceEvents<T extends Tenant$talabatComplianceEventsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$talabatComplianceEventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TalabatComplianceEventPayload<ExtArgs>, T, "findMany"> | Null>
     keetaDailyMetrics<T extends Tenant$keetaDailyMetricsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$keetaDailyMetricsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KeetaDailyMetricsPayload<ExtArgs>, T, "findMany"> | Null>
     americanaDailyOrders<T extends Tenant$americanaDailyOrdersArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$americanaDailyOrdersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AmericanaDailyOrdersPayload<ExtArgs>, T, "findMany"> | Null>
+    kpiDefinitions<T extends Tenant$kpiDefinitionsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$kpiDefinitionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KpiDefinitionPayload<ExtArgs>, T, "findMany"> | Null>
+    kpiRecords<T extends Tenant$kpiRecordsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$kpiRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KpiRecordPayload<ExtArgs>, T, "findMany"> | Null>
+    platformSettings<T extends Tenant$platformSettingsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$platformSettingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlatformSettingsPayload<ExtArgs>, T, "findMany"> | Null>
+    companyInventory<T extends Tenant$companyInventoryArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$companyInventoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompanyInventoryPayload<ExtArgs>, T, "findMany"> | Null>
+    notifications<T extends Tenant$notificationsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany"> | Null>
+    notificationRules<T extends Tenant$notificationRulesArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$notificationRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationRulePayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5725,6 +6530,26 @@ export namespace Prisma {
   }
 
   /**
+   * Tenant.cashTransactions
+   */
+  export type Tenant$cashTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CashTransaction
+     */
+    select?: CashTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CashTransactionInclude<ExtArgs> | null
+    where?: CashTransactionWhereInput
+    orderBy?: CashTransactionOrderByWithRelationInput | CashTransactionOrderByWithRelationInput[]
+    cursor?: CashTransactionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CashTransactionScalarFieldEnum | CashTransactionScalarFieldEnum[]
+  }
+
+  /**
    * Tenant.pendingDuesLedgers
    */
   export type Tenant$pendingDuesLedgersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6025,6 +6850,126 @@ export namespace Prisma {
   }
 
   /**
+   * Tenant.kpiDefinitions
+   */
+  export type Tenant$kpiDefinitionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiDefinition
+     */
+    select?: KpiDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiDefinitionInclude<ExtArgs> | null
+    where?: KpiDefinitionWhereInput
+    orderBy?: KpiDefinitionOrderByWithRelationInput | KpiDefinitionOrderByWithRelationInput[]
+    cursor?: KpiDefinitionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: KpiDefinitionScalarFieldEnum | KpiDefinitionScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.kpiRecords
+   */
+  export type Tenant$kpiRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordInclude<ExtArgs> | null
+    where?: KpiRecordWhereInput
+    orderBy?: KpiRecordOrderByWithRelationInput | KpiRecordOrderByWithRelationInput[]
+    cursor?: KpiRecordWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: KpiRecordScalarFieldEnum | KpiRecordScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.platformSettings
+   */
+  export type Tenant$platformSettingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSettings
+     */
+    select?: PlatformSettingsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlatformSettingsInclude<ExtArgs> | null
+    where?: PlatformSettingsWhereInput
+    orderBy?: PlatformSettingsOrderByWithRelationInput | PlatformSettingsOrderByWithRelationInput[]
+    cursor?: PlatformSettingsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PlatformSettingsScalarFieldEnum | PlatformSettingsScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.companyInventory
+   */
+  export type Tenant$companyInventoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyInventory
+     */
+    select?: CompanyInventorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInventoryInclude<ExtArgs> | null
+    where?: CompanyInventoryWhereInput
+    orderBy?: CompanyInventoryOrderByWithRelationInput | CompanyInventoryOrderByWithRelationInput[]
+    cursor?: CompanyInventoryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CompanyInventoryScalarFieldEnum | CompanyInventoryScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.notifications
+   */
+  export type Tenant$notificationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    where?: NotificationWhereInput
+    orderBy?: NotificationOrderByWithRelationInput | NotificationOrderByWithRelationInput[]
+    cursor?: NotificationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: NotificationScalarFieldEnum | NotificationScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.notificationRules
+   */
+  export type Tenant$notificationRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NotificationRule
+     */
+    select?: NotificationRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationRuleInclude<ExtArgs> | null
+    where?: NotificationRuleWhereInput
+    orderBy?: NotificationRuleOrderByWithRelationInput | NotificationRuleOrderByWithRelationInput[]
+    cursor?: NotificationRuleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: NotificationRuleScalarFieldEnum | NotificationRuleScalarFieldEnum[]
+  }
+
+  /**
    * Tenant without action
    */
   export type TenantDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6266,6 +7211,7 @@ export namespace Prisma {
     vehicles?: boolean | Company$vehiclesArgs<ExtArgs>
     recruitmentPipeline?: boolean | Company$recruitmentPipelineArgs<ExtArgs>
     tickets?: boolean | Company$ticketsArgs<ExtArgs>
+    companyInventory?: boolean | Company$companyInventoryArgs<ExtArgs>
     _count?: boolean | CompanyCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["company"]>
 
@@ -6298,6 +7244,7 @@ export namespace Prisma {
     vehicles?: boolean | Company$vehiclesArgs<ExtArgs>
     recruitmentPipeline?: boolean | Company$recruitmentPipelineArgs<ExtArgs>
     tickets?: boolean | Company$ticketsArgs<ExtArgs>
+    companyInventory?: boolean | Company$companyInventoryArgs<ExtArgs>
     _count?: boolean | CompanyCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CompanyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6312,6 +7259,7 @@ export namespace Prisma {
       vehicles: Prisma.$VehiclePayload<ExtArgs>[]
       recruitmentPipeline: Prisma.$RecruitmentPipelinePayload<ExtArgs>[]
       tickets: Prisma.$TicketPayload<ExtArgs>[]
+      companyInventory: Prisma.$CompanyInventoryPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -6691,6 +7639,7 @@ export namespace Prisma {
     vehicles<T extends Company$vehiclesArgs<ExtArgs> = {}>(args?: Subset<T, Company$vehiclesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehiclePayload<ExtArgs>, T, "findMany"> | Null>
     recruitmentPipeline<T extends Company$recruitmentPipelineArgs<ExtArgs> = {}>(args?: Subset<T, Company$recruitmentPipelineArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RecruitmentPipelinePayload<ExtArgs>, T, "findMany"> | Null>
     tickets<T extends Company$ticketsArgs<ExtArgs> = {}>(args?: Subset<T, Company$ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findMany"> | Null>
+    companyInventory<T extends Company$companyInventoryArgs<ExtArgs> = {}>(args?: Subset<T, Company$companyInventoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompanyInventoryPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7126,6 +8075,26 @@ export namespace Prisma {
   }
 
   /**
+   * Company.companyInventory
+   */
+  export type Company$companyInventoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyInventory
+     */
+    select?: CompanyInventorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInventoryInclude<ExtArgs> | null
+    where?: CompanyInventoryWhereInput
+    orderBy?: CompanyInventoryOrderByWithRelationInput | CompanyInventoryOrderByWithRelationInput[]
+    cursor?: CompanyInventoryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CompanyInventoryScalarFieldEnum | CompanyInventoryScalarFieldEnum[]
+  }
+
+  /**
    * Company without action
    */
   export type CompanyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7359,6 +8328,7 @@ export namespace Prisma {
     reviewedLeaves?: boolean | User$reviewedLeavesArgs<ExtArgs>
     assignedTickets?: boolean | User$assignedTicketsArgs<ExtArgs>
     submittedTickets?: boolean | User$submittedTicketsArgs<ExtArgs>
+    notifications?: boolean | User$notificationsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -7399,6 +8369,7 @@ export namespace Prisma {
     reviewedLeaves?: boolean | User$reviewedLeavesArgs<ExtArgs>
     assignedTickets?: boolean | User$assignedTicketsArgs<ExtArgs>
     submittedTickets?: boolean | User$submittedTicketsArgs<ExtArgs>
+    notifications?: boolean | User$notificationsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7415,6 +8386,7 @@ export namespace Prisma {
       reviewedLeaves: Prisma.$LeaveRequestPayload<ExtArgs>[]
       assignedTickets: Prisma.$TicketPayload<ExtArgs>[]
       submittedTickets: Prisma.$TicketPayload<ExtArgs>[]
+      notifications: Prisma.$NotificationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -7799,6 +8771,7 @@ export namespace Prisma {
     reviewedLeaves<T extends User$reviewedLeavesArgs<ExtArgs> = {}>(args?: Subset<T, User$reviewedLeavesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LeaveRequestPayload<ExtArgs>, T, "findMany"> | Null>
     assignedTickets<T extends User$assignedTicketsArgs<ExtArgs> = {}>(args?: Subset<T, User$assignedTicketsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findMany"> | Null>
     submittedTickets<T extends User$submittedTicketsArgs<ExtArgs> = {}>(args?: Subset<T, User$submittedTicketsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TicketPayload<ExtArgs>, T, "findMany"> | Null>
+    notifications<T extends User$notificationsArgs<ExtArgs> = {}>(args?: Subset<T, User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8277,6 +9250,26 @@ export namespace Prisma {
   }
 
   /**
+   * User.notifications
+   */
+  export type User$notificationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    where?: NotificationWhereInput
+    orderBy?: NotificationOrderByWithRelationInput | NotificationOrderByWithRelationInput[]
+    cursor?: NotificationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: NotificationScalarFieldEnum | NotificationScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8671,6 +9664,7 @@ export namespace Prisma {
     attendanceRecords?: boolean | Driver$attendanceRecordsArgs<ExtArgs>
     orderLogs?: boolean | Driver$orderLogsArgs<ExtArgs>
     cashRecords?: boolean | Driver$cashRecordsArgs<ExtArgs>
+    cashTransactions?: boolean | Driver$cashTransactionsArgs<ExtArgs>
     pendingDuesLedgers?: boolean | Driver$pendingDuesLedgersArgs<ExtArgs>
     vehicleInspections?: boolean | Driver$vehicleInspectionsArgs<ExtArgs>
     maintenanceRecords?: boolean | Driver$maintenanceRecordsArgs<ExtArgs>
@@ -8689,6 +9683,7 @@ export namespace Prisma {
     keetaDailyMetrics?: boolean | Driver$keetaDailyMetricsArgs<ExtArgs>
     americanaDailyOrders?: boolean | Driver$americanaDailyOrdersArgs<ExtArgs>
     talabatDeliveries?: boolean | Driver$talabatDeliveriesArgs<ExtArgs>
+    kpiRecords?: boolean | Driver$kpiRecordsArgs<ExtArgs>
     _count?: boolean | DriverCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["driver"]>
 
@@ -8772,6 +9767,7 @@ export namespace Prisma {
     attendanceRecords?: boolean | Driver$attendanceRecordsArgs<ExtArgs>
     orderLogs?: boolean | Driver$orderLogsArgs<ExtArgs>
     cashRecords?: boolean | Driver$cashRecordsArgs<ExtArgs>
+    cashTransactions?: boolean | Driver$cashTransactionsArgs<ExtArgs>
     pendingDuesLedgers?: boolean | Driver$pendingDuesLedgersArgs<ExtArgs>
     vehicleInspections?: boolean | Driver$vehicleInspectionsArgs<ExtArgs>
     maintenanceRecords?: boolean | Driver$maintenanceRecordsArgs<ExtArgs>
@@ -8790,6 +9786,7 @@ export namespace Prisma {
     keetaDailyMetrics?: boolean | Driver$keetaDailyMetricsArgs<ExtArgs>
     americanaDailyOrders?: boolean | Driver$americanaDailyOrdersArgs<ExtArgs>
     talabatDeliveries?: boolean | Driver$talabatDeliveriesArgs<ExtArgs>
+    kpiRecords?: boolean | Driver$kpiRecordsArgs<ExtArgs>
     _count?: boolean | DriverCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type DriverIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8809,6 +9806,7 @@ export namespace Prisma {
       attendanceRecords: Prisma.$AttendanceRecordPayload<ExtArgs>[]
       orderLogs: Prisma.$OrderLogPayload<ExtArgs>[]
       cashRecords: Prisma.$CashRecordPayload<ExtArgs>[]
+      cashTransactions: Prisma.$CashTransactionPayload<ExtArgs>[]
       pendingDuesLedgers: Prisma.$PendingDuesLedgerPayload<ExtArgs>[]
       vehicleInspections: Prisma.$VehicleInspectionPayload<ExtArgs>[]
       maintenanceRecords: Prisma.$MaintenanceRecordPayload<ExtArgs>[]
@@ -8827,6 +9825,7 @@ export namespace Prisma {
       keetaDailyMetrics: Prisma.$KeetaDailyMetricsPayload<ExtArgs>[]
       americanaDailyOrders: Prisma.$AmericanaDailyOrdersPayload<ExtArgs>[]
       talabatDeliveries: Prisma.$TalabatDeliveryPayload<ExtArgs>[]
+      kpiRecords: Prisma.$KpiRecordPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -9232,6 +10231,7 @@ export namespace Prisma {
     attendanceRecords<T extends Driver$attendanceRecordsArgs<ExtArgs> = {}>(args?: Subset<T, Driver$attendanceRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendanceRecordPayload<ExtArgs>, T, "findMany"> | Null>
     orderLogs<T extends Driver$orderLogsArgs<ExtArgs> = {}>(args?: Subset<T, Driver$orderLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderLogPayload<ExtArgs>, T, "findMany"> | Null>
     cashRecords<T extends Driver$cashRecordsArgs<ExtArgs> = {}>(args?: Subset<T, Driver$cashRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CashRecordPayload<ExtArgs>, T, "findMany"> | Null>
+    cashTransactions<T extends Driver$cashTransactionsArgs<ExtArgs> = {}>(args?: Subset<T, Driver$cashTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CashTransactionPayload<ExtArgs>, T, "findMany"> | Null>
     pendingDuesLedgers<T extends Driver$pendingDuesLedgersArgs<ExtArgs> = {}>(args?: Subset<T, Driver$pendingDuesLedgersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PendingDuesLedgerPayload<ExtArgs>, T, "findMany"> | Null>
     vehicleInspections<T extends Driver$vehicleInspectionsArgs<ExtArgs> = {}>(args?: Subset<T, Driver$vehicleInspectionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VehicleInspectionPayload<ExtArgs>, T, "findMany"> | Null>
     maintenanceRecords<T extends Driver$maintenanceRecordsArgs<ExtArgs> = {}>(args?: Subset<T, Driver$maintenanceRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MaintenanceRecordPayload<ExtArgs>, T, "findMany"> | Null>
@@ -9250,6 +10250,7 @@ export namespace Prisma {
     keetaDailyMetrics<T extends Driver$keetaDailyMetricsArgs<ExtArgs> = {}>(args?: Subset<T, Driver$keetaDailyMetricsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KeetaDailyMetricsPayload<ExtArgs>, T, "findMany"> | Null>
     americanaDailyOrders<T extends Driver$americanaDailyOrdersArgs<ExtArgs> = {}>(args?: Subset<T, Driver$americanaDailyOrdersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AmericanaDailyOrdersPayload<ExtArgs>, T, "findMany"> | Null>
     talabatDeliveries<T extends Driver$talabatDeliveriesArgs<ExtArgs> = {}>(args?: Subset<T, Driver$talabatDeliveriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TalabatDeliveryPayload<ExtArgs>, T, "findMany"> | Null>
+    kpiRecords<T extends Driver$kpiRecordsArgs<ExtArgs> = {}>(args?: Subset<T, Driver$kpiRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KpiRecordPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -9743,6 +10744,26 @@ export namespace Prisma {
   }
 
   /**
+   * Driver.cashTransactions
+   */
+  export type Driver$cashTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CashTransaction
+     */
+    select?: CashTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CashTransactionInclude<ExtArgs> | null
+    where?: CashTransactionWhereInput
+    orderBy?: CashTransactionOrderByWithRelationInput | CashTransactionOrderByWithRelationInput[]
+    cursor?: CashTransactionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CashTransactionScalarFieldEnum | CashTransactionScalarFieldEnum[]
+  }
+
+  /**
    * Driver.pendingDuesLedgers
    */
   export type Driver$pendingDuesLedgersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10090,6 +11111,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: TalabatDeliveryScalarFieldEnum | TalabatDeliveryScalarFieldEnum[]
+  }
+
+  /**
+   * Driver.kpiRecords
+   */
+  export type Driver$kpiRecordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordInclude<ExtArgs> | null
+    where?: KpiRecordWhereInput
+    orderBy?: KpiRecordOrderByWithRelationInput | KpiRecordOrderByWithRelationInput[]
+    cursor?: KpiRecordWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: KpiRecordScalarFieldEnum | KpiRecordScalarFieldEnum[]
   }
 
   /**
@@ -12183,6 +13224,8 @@ export namespace Prisma {
     chassisNumber: string | null
     mileage: number | null
     fuelType: string | null
+    ownerCompany: string | null
+    driverIqama: string | null
     status: $Enums.VehicleStatus | null
     assignedDriverId: string | null
     insuranceExpiry: Date | null
@@ -12204,6 +13247,8 @@ export namespace Prisma {
     chassisNumber: string | null
     mileage: number | null
     fuelType: string | null
+    ownerCompany: string | null
+    driverIqama: string | null
     status: $Enums.VehicleStatus | null
     assignedDriverId: string | null
     insuranceExpiry: Date | null
@@ -12225,6 +13270,8 @@ export namespace Prisma {
     chassisNumber: number
     mileage: number
     fuelType: number
+    ownerCompany: number
+    driverIqama: number
     status: number
     assignedDriverId: number
     insuranceExpiry: number
@@ -12258,6 +13305,8 @@ export namespace Prisma {
     chassisNumber?: true
     mileage?: true
     fuelType?: true
+    ownerCompany?: true
+    driverIqama?: true
     status?: true
     assignedDriverId?: true
     insuranceExpiry?: true
@@ -12279,6 +13328,8 @@ export namespace Prisma {
     chassisNumber?: true
     mileage?: true
     fuelType?: true
+    ownerCompany?: true
+    driverIqama?: true
     status?: true
     assignedDriverId?: true
     insuranceExpiry?: true
@@ -12300,6 +13351,8 @@ export namespace Prisma {
     chassisNumber?: true
     mileage?: true
     fuelType?: true
+    ownerCompany?: true
+    driverIqama?: true
     status?: true
     assignedDriverId?: true
     insuranceExpiry?: true
@@ -12408,6 +13461,8 @@ export namespace Prisma {
     chassisNumber: string | null
     mileage: number
     fuelType: string
+    ownerCompany: string | null
+    driverIqama: string | null
     status: $Enums.VehicleStatus
     assignedDriverId: string | null
     insuranceExpiry: Date
@@ -12448,6 +13503,8 @@ export namespace Prisma {
     chassisNumber?: boolean
     mileage?: boolean
     fuelType?: boolean
+    ownerCompany?: boolean
+    driverIqama?: boolean
     status?: boolean
     assignedDriverId?: boolean
     insuranceExpiry?: boolean
@@ -12478,6 +13535,8 @@ export namespace Prisma {
     chassisNumber?: boolean
     mileage?: boolean
     fuelType?: boolean
+    ownerCompany?: boolean
+    driverIqama?: boolean
     status?: boolean
     assignedDriverId?: boolean
     insuranceExpiry?: boolean
@@ -12502,6 +13561,8 @@ export namespace Prisma {
     chassisNumber?: boolean
     mileage?: boolean
     fuelType?: boolean
+    ownerCompany?: boolean
+    driverIqama?: boolean
     status?: boolean
     assignedDriverId?: boolean
     insuranceExpiry?: boolean
@@ -12552,6 +13613,8 @@ export namespace Prisma {
       chassisNumber: string | null
       mileage: number
       fuelType: string
+      ownerCompany: string | null
+      driverIqama: string | null
       status: $Enums.VehicleStatus
       assignedDriverId: string | null
       insuranceExpiry: Date
@@ -12971,6 +14034,8 @@ export namespace Prisma {
     readonly chassisNumber: FieldRef<"Vehicle", 'String'>
     readonly mileage: FieldRef<"Vehicle", 'Int'>
     readonly fuelType: FieldRef<"Vehicle", 'String'>
+    readonly ownerCompany: FieldRef<"Vehicle", 'String'>
+    readonly driverIqama: FieldRef<"Vehicle", 'String'>
     readonly status: FieldRef<"Vehicle", 'VehicleStatus'>
     readonly assignedDriverId: FieldRef<"Vehicle", 'String'>
     readonly insuranceExpiry: FieldRef<"Vehicle", 'DateTime'>
@@ -17965,6 +19030,1055 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: CashRecordInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CashTransaction
+   */
+
+  export type AggregateCashTransaction = {
+    _count: CashTransactionCountAggregateOutputType | null
+    _avg: CashTransactionAvgAggregateOutputType | null
+    _sum: CashTransactionSumAggregateOutputType | null
+    _min: CashTransactionMinAggregateOutputType | null
+    _max: CashTransactionMaxAggregateOutputType | null
+  }
+
+  export type CashTransactionAvgAggregateOutputType = {
+    amount: Decimal | null
+    runningBalance: Decimal | null
+  }
+
+  export type CashTransactionSumAggregateOutputType = {
+    amount: Decimal | null
+    runningBalance: Decimal | null
+  }
+
+  export type CashTransactionMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    driverId: string | null
+    date: Date | null
+    type: $Enums.CashTransactionType | null
+    amount: Decimal | null
+    orderNumber: string | null
+    description: string | null
+    runningBalance: Decimal | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CashTransactionMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    driverId: string | null
+    date: Date | null
+    type: $Enums.CashTransactionType | null
+    amount: Decimal | null
+    orderNumber: string | null
+    description: string | null
+    runningBalance: Decimal | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CashTransactionCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    driverId: number
+    date: number
+    type: number
+    amount: number
+    orderNumber: number
+    description: number
+    runningBalance: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CashTransactionAvgAggregateInputType = {
+    amount?: true
+    runningBalance?: true
+  }
+
+  export type CashTransactionSumAggregateInputType = {
+    amount?: true
+    runningBalance?: true
+  }
+
+  export type CashTransactionMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    driverId?: true
+    date?: true
+    type?: true
+    amount?: true
+    orderNumber?: true
+    description?: true
+    runningBalance?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CashTransactionMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    driverId?: true
+    date?: true
+    type?: true
+    amount?: true
+    orderNumber?: true
+    description?: true
+    runningBalance?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CashTransactionCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    driverId?: true
+    date?: true
+    type?: true
+    amount?: true
+    orderNumber?: true
+    description?: true
+    runningBalance?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CashTransactionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CashTransaction to aggregate.
+     */
+    where?: CashTransactionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CashTransactions to fetch.
+     */
+    orderBy?: CashTransactionOrderByWithRelationInput | CashTransactionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CashTransactionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CashTransactions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CashTransactions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CashTransactions
+    **/
+    _count?: true | CashTransactionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CashTransactionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CashTransactionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CashTransactionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CashTransactionMaxAggregateInputType
+  }
+
+  export type GetCashTransactionAggregateType<T extends CashTransactionAggregateArgs> = {
+        [P in keyof T & keyof AggregateCashTransaction]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCashTransaction[P]>
+      : GetScalarType<T[P], AggregateCashTransaction[P]>
+  }
+
+
+
+
+  export type CashTransactionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CashTransactionWhereInput
+    orderBy?: CashTransactionOrderByWithAggregationInput | CashTransactionOrderByWithAggregationInput[]
+    by: CashTransactionScalarFieldEnum[] | CashTransactionScalarFieldEnum
+    having?: CashTransactionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CashTransactionCountAggregateInputType | true
+    _avg?: CashTransactionAvgAggregateInputType
+    _sum?: CashTransactionSumAggregateInputType
+    _min?: CashTransactionMinAggregateInputType
+    _max?: CashTransactionMaxAggregateInputType
+  }
+
+  export type CashTransactionGroupByOutputType = {
+    id: string
+    tenantId: string
+    driverId: string
+    date: Date
+    type: $Enums.CashTransactionType
+    amount: Decimal
+    orderNumber: string | null
+    description: string | null
+    runningBalance: Decimal
+    createdAt: Date
+    updatedAt: Date
+    _count: CashTransactionCountAggregateOutputType | null
+    _avg: CashTransactionAvgAggregateOutputType | null
+    _sum: CashTransactionSumAggregateOutputType | null
+    _min: CashTransactionMinAggregateOutputType | null
+    _max: CashTransactionMaxAggregateOutputType | null
+  }
+
+  type GetCashTransactionGroupByPayload<T extends CashTransactionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CashTransactionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CashTransactionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CashTransactionGroupByOutputType[P]>
+            : GetScalarType<T[P], CashTransactionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CashTransactionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    driverId?: boolean
+    date?: boolean
+    type?: boolean
+    amount?: boolean
+    orderNumber?: boolean
+    description?: boolean
+    runningBalance?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["cashTransaction"]>
+
+  export type CashTransactionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    driverId?: boolean
+    date?: boolean
+    type?: boolean
+    amount?: boolean
+    orderNumber?: boolean
+    description?: boolean
+    runningBalance?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["cashTransaction"]>
+
+  export type CashTransactionSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    driverId?: boolean
+    date?: boolean
+    type?: boolean
+    amount?: boolean
+    orderNumber?: boolean
+    description?: boolean
+    runningBalance?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CashTransactionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+  }
+  export type CashTransactionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+  }
+
+  export type $CashTransactionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CashTransaction"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      driver: Prisma.$DriverPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      driverId: string
+      date: Date
+      type: $Enums.CashTransactionType
+      amount: Prisma.Decimal
+      orderNumber: string | null
+      description: string | null
+      runningBalance: Prisma.Decimal
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["cashTransaction"]>
+    composites: {}
+  }
+
+  type CashTransactionGetPayload<S extends boolean | null | undefined | CashTransactionDefaultArgs> = $Result.GetResult<Prisma.$CashTransactionPayload, S>
+
+  type CashTransactionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<CashTransactionFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: CashTransactionCountAggregateInputType | true
+    }
+
+  export interface CashTransactionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CashTransaction'], meta: { name: 'CashTransaction' } }
+    /**
+     * Find zero or one CashTransaction that matches the filter.
+     * @param {CashTransactionFindUniqueArgs} args - Arguments to find a CashTransaction
+     * @example
+     * // Get one CashTransaction
+     * const cashTransaction = await prisma.cashTransaction.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CashTransactionFindUniqueArgs>(args: SelectSubset<T, CashTransactionFindUniqueArgs<ExtArgs>>): Prisma__CashTransactionClient<$Result.GetResult<Prisma.$CashTransactionPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one CashTransaction that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {CashTransactionFindUniqueOrThrowArgs} args - Arguments to find a CashTransaction
+     * @example
+     * // Get one CashTransaction
+     * const cashTransaction = await prisma.cashTransaction.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CashTransactionFindUniqueOrThrowArgs>(args: SelectSubset<T, CashTransactionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CashTransactionClient<$Result.GetResult<Prisma.$CashTransactionPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first CashTransaction that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CashTransactionFindFirstArgs} args - Arguments to find a CashTransaction
+     * @example
+     * // Get one CashTransaction
+     * const cashTransaction = await prisma.cashTransaction.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CashTransactionFindFirstArgs>(args?: SelectSubset<T, CashTransactionFindFirstArgs<ExtArgs>>): Prisma__CashTransactionClient<$Result.GetResult<Prisma.$CashTransactionPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first CashTransaction that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CashTransactionFindFirstOrThrowArgs} args - Arguments to find a CashTransaction
+     * @example
+     * // Get one CashTransaction
+     * const cashTransaction = await prisma.cashTransaction.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CashTransactionFindFirstOrThrowArgs>(args?: SelectSubset<T, CashTransactionFindFirstOrThrowArgs<ExtArgs>>): Prisma__CashTransactionClient<$Result.GetResult<Prisma.$CashTransactionPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more CashTransactions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CashTransactionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CashTransactions
+     * const cashTransactions = await prisma.cashTransaction.findMany()
+     * 
+     * // Get first 10 CashTransactions
+     * const cashTransactions = await prisma.cashTransaction.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const cashTransactionWithIdOnly = await prisma.cashTransaction.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CashTransactionFindManyArgs>(args?: SelectSubset<T, CashTransactionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CashTransactionPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a CashTransaction.
+     * @param {CashTransactionCreateArgs} args - Arguments to create a CashTransaction.
+     * @example
+     * // Create one CashTransaction
+     * const CashTransaction = await prisma.cashTransaction.create({
+     *   data: {
+     *     // ... data to create a CashTransaction
+     *   }
+     * })
+     * 
+     */
+    create<T extends CashTransactionCreateArgs>(args: SelectSubset<T, CashTransactionCreateArgs<ExtArgs>>): Prisma__CashTransactionClient<$Result.GetResult<Prisma.$CashTransactionPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many CashTransactions.
+     * @param {CashTransactionCreateManyArgs} args - Arguments to create many CashTransactions.
+     * @example
+     * // Create many CashTransactions
+     * const cashTransaction = await prisma.cashTransaction.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CashTransactionCreateManyArgs>(args?: SelectSubset<T, CashTransactionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CashTransactions and returns the data saved in the database.
+     * @param {CashTransactionCreateManyAndReturnArgs} args - Arguments to create many CashTransactions.
+     * @example
+     * // Create many CashTransactions
+     * const cashTransaction = await prisma.cashTransaction.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CashTransactions and only return the `id`
+     * const cashTransactionWithIdOnly = await prisma.cashTransaction.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CashTransactionCreateManyAndReturnArgs>(args?: SelectSubset<T, CashTransactionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CashTransactionPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a CashTransaction.
+     * @param {CashTransactionDeleteArgs} args - Arguments to delete one CashTransaction.
+     * @example
+     * // Delete one CashTransaction
+     * const CashTransaction = await prisma.cashTransaction.delete({
+     *   where: {
+     *     // ... filter to delete one CashTransaction
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CashTransactionDeleteArgs>(args: SelectSubset<T, CashTransactionDeleteArgs<ExtArgs>>): Prisma__CashTransactionClient<$Result.GetResult<Prisma.$CashTransactionPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one CashTransaction.
+     * @param {CashTransactionUpdateArgs} args - Arguments to update one CashTransaction.
+     * @example
+     * // Update one CashTransaction
+     * const cashTransaction = await prisma.cashTransaction.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CashTransactionUpdateArgs>(args: SelectSubset<T, CashTransactionUpdateArgs<ExtArgs>>): Prisma__CashTransactionClient<$Result.GetResult<Prisma.$CashTransactionPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more CashTransactions.
+     * @param {CashTransactionDeleteManyArgs} args - Arguments to filter CashTransactions to delete.
+     * @example
+     * // Delete a few CashTransactions
+     * const { count } = await prisma.cashTransaction.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CashTransactionDeleteManyArgs>(args?: SelectSubset<T, CashTransactionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CashTransactions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CashTransactionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CashTransactions
+     * const cashTransaction = await prisma.cashTransaction.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CashTransactionUpdateManyArgs>(args: SelectSubset<T, CashTransactionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one CashTransaction.
+     * @param {CashTransactionUpsertArgs} args - Arguments to update or create a CashTransaction.
+     * @example
+     * // Update or create a CashTransaction
+     * const cashTransaction = await prisma.cashTransaction.upsert({
+     *   create: {
+     *     // ... data to create a CashTransaction
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CashTransaction we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CashTransactionUpsertArgs>(args: SelectSubset<T, CashTransactionUpsertArgs<ExtArgs>>): Prisma__CashTransactionClient<$Result.GetResult<Prisma.$CashTransactionPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of CashTransactions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CashTransactionCountArgs} args - Arguments to filter CashTransactions to count.
+     * @example
+     * // Count the number of CashTransactions
+     * const count = await prisma.cashTransaction.count({
+     *   where: {
+     *     // ... the filter for the CashTransactions we want to count
+     *   }
+     * })
+    **/
+    count<T extends CashTransactionCountArgs>(
+      args?: Subset<T, CashTransactionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CashTransactionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CashTransaction.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CashTransactionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CashTransactionAggregateArgs>(args: Subset<T, CashTransactionAggregateArgs>): Prisma.PrismaPromise<GetCashTransactionAggregateType<T>>
+
+    /**
+     * Group by CashTransaction.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CashTransactionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CashTransactionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CashTransactionGroupByArgs['orderBy'] }
+        : { orderBy?: CashTransactionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CashTransactionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCashTransactionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CashTransaction model
+   */
+  readonly fields: CashTransactionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CashTransaction.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CashTransactionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    driver<T extends DriverDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DriverDefaultArgs<ExtArgs>>): Prisma__DriverClient<$Result.GetResult<Prisma.$DriverPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CashTransaction model
+   */ 
+  interface CashTransactionFieldRefs {
+    readonly id: FieldRef<"CashTransaction", 'String'>
+    readonly tenantId: FieldRef<"CashTransaction", 'String'>
+    readonly driverId: FieldRef<"CashTransaction", 'String'>
+    readonly date: FieldRef<"CashTransaction", 'DateTime'>
+    readonly type: FieldRef<"CashTransaction", 'CashTransactionType'>
+    readonly amount: FieldRef<"CashTransaction", 'Decimal'>
+    readonly orderNumber: FieldRef<"CashTransaction", 'String'>
+    readonly description: FieldRef<"CashTransaction", 'String'>
+    readonly runningBalance: FieldRef<"CashTransaction", 'Decimal'>
+    readonly createdAt: FieldRef<"CashTransaction", 'DateTime'>
+    readonly updatedAt: FieldRef<"CashTransaction", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CashTransaction findUnique
+   */
+  export type CashTransactionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CashTransaction
+     */
+    select?: CashTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CashTransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which CashTransaction to fetch.
+     */
+    where: CashTransactionWhereUniqueInput
+  }
+
+  /**
+   * CashTransaction findUniqueOrThrow
+   */
+  export type CashTransactionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CashTransaction
+     */
+    select?: CashTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CashTransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which CashTransaction to fetch.
+     */
+    where: CashTransactionWhereUniqueInput
+  }
+
+  /**
+   * CashTransaction findFirst
+   */
+  export type CashTransactionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CashTransaction
+     */
+    select?: CashTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CashTransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which CashTransaction to fetch.
+     */
+    where?: CashTransactionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CashTransactions to fetch.
+     */
+    orderBy?: CashTransactionOrderByWithRelationInput | CashTransactionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CashTransactions.
+     */
+    cursor?: CashTransactionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CashTransactions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CashTransactions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CashTransactions.
+     */
+    distinct?: CashTransactionScalarFieldEnum | CashTransactionScalarFieldEnum[]
+  }
+
+  /**
+   * CashTransaction findFirstOrThrow
+   */
+  export type CashTransactionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CashTransaction
+     */
+    select?: CashTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CashTransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which CashTransaction to fetch.
+     */
+    where?: CashTransactionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CashTransactions to fetch.
+     */
+    orderBy?: CashTransactionOrderByWithRelationInput | CashTransactionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CashTransactions.
+     */
+    cursor?: CashTransactionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CashTransactions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CashTransactions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CashTransactions.
+     */
+    distinct?: CashTransactionScalarFieldEnum | CashTransactionScalarFieldEnum[]
+  }
+
+  /**
+   * CashTransaction findMany
+   */
+  export type CashTransactionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CashTransaction
+     */
+    select?: CashTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CashTransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which CashTransactions to fetch.
+     */
+    where?: CashTransactionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CashTransactions to fetch.
+     */
+    orderBy?: CashTransactionOrderByWithRelationInput | CashTransactionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CashTransactions.
+     */
+    cursor?: CashTransactionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CashTransactions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CashTransactions.
+     */
+    skip?: number
+    distinct?: CashTransactionScalarFieldEnum | CashTransactionScalarFieldEnum[]
+  }
+
+  /**
+   * CashTransaction create
+   */
+  export type CashTransactionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CashTransaction
+     */
+    select?: CashTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CashTransactionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CashTransaction.
+     */
+    data: XOR<CashTransactionCreateInput, CashTransactionUncheckedCreateInput>
+  }
+
+  /**
+   * CashTransaction createMany
+   */
+  export type CashTransactionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CashTransactions.
+     */
+    data: CashTransactionCreateManyInput | CashTransactionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CashTransaction createManyAndReturn
+   */
+  export type CashTransactionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CashTransaction
+     */
+    select?: CashTransactionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many CashTransactions.
+     */
+    data: CashTransactionCreateManyInput | CashTransactionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CashTransactionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CashTransaction update
+   */
+  export type CashTransactionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CashTransaction
+     */
+    select?: CashTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CashTransactionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CashTransaction.
+     */
+    data: XOR<CashTransactionUpdateInput, CashTransactionUncheckedUpdateInput>
+    /**
+     * Choose, which CashTransaction to update.
+     */
+    where: CashTransactionWhereUniqueInput
+  }
+
+  /**
+   * CashTransaction updateMany
+   */
+  export type CashTransactionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CashTransactions.
+     */
+    data: XOR<CashTransactionUpdateManyMutationInput, CashTransactionUncheckedUpdateManyInput>
+    /**
+     * Filter which CashTransactions to update
+     */
+    where?: CashTransactionWhereInput
+  }
+
+  /**
+   * CashTransaction upsert
+   */
+  export type CashTransactionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CashTransaction
+     */
+    select?: CashTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CashTransactionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CashTransaction to update in case it exists.
+     */
+    where: CashTransactionWhereUniqueInput
+    /**
+     * In case the CashTransaction found by the `where` argument doesn't exist, create a new CashTransaction with this data.
+     */
+    create: XOR<CashTransactionCreateInput, CashTransactionUncheckedCreateInput>
+    /**
+     * In case the CashTransaction was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CashTransactionUpdateInput, CashTransactionUncheckedUpdateInput>
+  }
+
+  /**
+   * CashTransaction delete
+   */
+  export type CashTransactionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CashTransaction
+     */
+    select?: CashTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CashTransactionInclude<ExtArgs> | null
+    /**
+     * Filter which CashTransaction to delete.
+     */
+    where: CashTransactionWhereUniqueInput
+  }
+
+  /**
+   * CashTransaction deleteMany
+   */
+  export type CashTransactionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CashTransactions to delete
+     */
+    where?: CashTransactionWhereInput
+  }
+
+  /**
+   * CashTransaction without action
+   */
+  export type CashTransactionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CashTransaction
+     */
+    select?: CashTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CashTransactionInclude<ExtArgs> | null
   }
 
 
@@ -34179,7 +36293,6 @@ export namespace Prisma {
     driverId: string | null
     sessionId: string | null
     type: $Enums.ComplianceEventType | null
-    severity: $Enums.AlertSeverity | null
     description: string | null
     resolved: boolean | null
     resolvedAt: Date | null
@@ -34193,7 +36306,6 @@ export namespace Prisma {
     driverId: string | null
     sessionId: string | null
     type: $Enums.ComplianceEventType | null
-    severity: $Enums.AlertSeverity | null
     description: string | null
     resolved: boolean | null
     resolvedAt: Date | null
@@ -34207,7 +36319,6 @@ export namespace Prisma {
     driverId: number
     sessionId: number
     type: number
-    severity: number
     description: number
     metadata: number
     resolved: number
@@ -34224,7 +36335,6 @@ export namespace Prisma {
     driverId?: true
     sessionId?: true
     type?: true
-    severity?: true
     description?: true
     resolved?: true
     resolvedAt?: true
@@ -34238,7 +36348,6 @@ export namespace Prisma {
     driverId?: true
     sessionId?: true
     type?: true
-    severity?: true
     description?: true
     resolved?: true
     resolvedAt?: true
@@ -34252,7 +36361,6 @@ export namespace Prisma {
     driverId?: true
     sessionId?: true
     type?: true
-    severity?: true
     description?: true
     metadata?: true
     resolved?: true
@@ -34340,7 +36448,6 @@ export namespace Prisma {
     driverId: string
     sessionId: string | null
     type: $Enums.ComplianceEventType
-    severity: $Enums.AlertSeverity
     description: string
     metadata: JsonValue | null
     resolved: boolean
@@ -34372,7 +36479,6 @@ export namespace Prisma {
     driverId?: boolean
     sessionId?: boolean
     type?: boolean
-    severity?: boolean
     description?: boolean
     metadata?: boolean
     resolved?: boolean
@@ -34390,7 +36496,6 @@ export namespace Prisma {
     driverId?: boolean
     sessionId?: boolean
     type?: boolean
-    severity?: boolean
     description?: boolean
     metadata?: boolean
     resolved?: boolean
@@ -34408,7 +36513,6 @@ export namespace Prisma {
     driverId?: boolean
     sessionId?: boolean
     type?: boolean
-    severity?: boolean
     description?: boolean
     metadata?: boolean
     resolved?: boolean
@@ -34441,7 +36545,6 @@ export namespace Prisma {
       driverId: string
       sessionId: string | null
       type: $Enums.ComplianceEventType
-      severity: $Enums.AlertSeverity
       description: string
       metadata: Prisma.JsonValue | null
       resolved: boolean
@@ -34849,7 +36952,6 @@ export namespace Prisma {
     readonly driverId: FieldRef<"TalabatComplianceEvent", 'String'>
     readonly sessionId: FieldRef<"TalabatComplianceEvent", 'String'>
     readonly type: FieldRef<"TalabatComplianceEvent", 'ComplianceEventType'>
-    readonly severity: FieldRef<"TalabatComplianceEvent", 'AlertSeverity'>
     readonly description: FieldRef<"TalabatComplianceEvent", 'String'>
     readonly metadata: FieldRef<"TalabatComplianceEvent", 'Json'>
     readonly resolved: FieldRef<"TalabatComplianceEvent", 'Boolean'>
@@ -37662,6 +39764,2016 @@ export namespace Prisma {
 
 
   /**
+   * Model PlatformSettings
+   */
+
+  export type AggregatePlatformSettings = {
+    _count: PlatformSettingsCountAggregateOutputType | null
+    _min: PlatformSettingsMinAggregateOutputType | null
+    _max: PlatformSettingsMaxAggregateOutputType | null
+  }
+
+  export type PlatformSettingsMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    platform: $Enums.Platform | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PlatformSettingsMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    platform: $Enums.Platform | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PlatformSettingsCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    platform: number
+    targets: number
+    kpis: number
+    shiftRules: number
+    zones: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PlatformSettingsMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    platform?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PlatformSettingsMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    platform?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PlatformSettingsCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    platform?: true
+    targets?: true
+    kpis?: true
+    shiftRules?: true
+    zones?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PlatformSettingsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PlatformSettings to aggregate.
+     */
+    where?: PlatformSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlatformSettings to fetch.
+     */
+    orderBy?: PlatformSettingsOrderByWithRelationInput | PlatformSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PlatformSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlatformSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlatformSettings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PlatformSettings
+    **/
+    _count?: true | PlatformSettingsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PlatformSettingsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PlatformSettingsMaxAggregateInputType
+  }
+
+  export type GetPlatformSettingsAggregateType<T extends PlatformSettingsAggregateArgs> = {
+        [P in keyof T & keyof AggregatePlatformSettings]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePlatformSettings[P]>
+      : GetScalarType<T[P], AggregatePlatformSettings[P]>
+  }
+
+
+
+
+  export type PlatformSettingsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PlatformSettingsWhereInput
+    orderBy?: PlatformSettingsOrderByWithAggregationInput | PlatformSettingsOrderByWithAggregationInput[]
+    by: PlatformSettingsScalarFieldEnum[] | PlatformSettingsScalarFieldEnum
+    having?: PlatformSettingsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PlatformSettingsCountAggregateInputType | true
+    _min?: PlatformSettingsMinAggregateInputType
+    _max?: PlatformSettingsMaxAggregateInputType
+  }
+
+  export type PlatformSettingsGroupByOutputType = {
+    id: string
+    tenantId: string
+    platform: $Enums.Platform
+    targets: JsonValue
+    kpis: JsonValue | null
+    shiftRules: JsonValue | null
+    zones: JsonValue | null
+    createdAt: Date
+    updatedAt: Date
+    _count: PlatformSettingsCountAggregateOutputType | null
+    _min: PlatformSettingsMinAggregateOutputType | null
+    _max: PlatformSettingsMaxAggregateOutputType | null
+  }
+
+  type GetPlatformSettingsGroupByPayload<T extends PlatformSettingsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PlatformSettingsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PlatformSettingsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PlatformSettingsGroupByOutputType[P]>
+            : GetScalarType<T[P], PlatformSettingsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PlatformSettingsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    platform?: boolean
+    targets?: boolean
+    kpis?: boolean
+    shiftRules?: boolean
+    zones?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["platformSettings"]>
+
+  export type PlatformSettingsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    platform?: boolean
+    targets?: boolean
+    kpis?: boolean
+    shiftRules?: boolean
+    zones?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["platformSettings"]>
+
+  export type PlatformSettingsSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    platform?: boolean
+    targets?: boolean
+    kpis?: boolean
+    shiftRules?: boolean
+    zones?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type PlatformSettingsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+  export type PlatformSettingsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+
+  export type $PlatformSettingsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PlatformSettings"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      platform: $Enums.Platform
+      targets: Prisma.JsonValue
+      kpis: Prisma.JsonValue | null
+      shiftRules: Prisma.JsonValue | null
+      zones: Prisma.JsonValue | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["platformSettings"]>
+    composites: {}
+  }
+
+  type PlatformSettingsGetPayload<S extends boolean | null | undefined | PlatformSettingsDefaultArgs> = $Result.GetResult<Prisma.$PlatformSettingsPayload, S>
+
+  type PlatformSettingsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PlatformSettingsFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PlatformSettingsCountAggregateInputType | true
+    }
+
+  export interface PlatformSettingsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PlatformSettings'], meta: { name: 'PlatformSettings' } }
+    /**
+     * Find zero or one PlatformSettings that matches the filter.
+     * @param {PlatformSettingsFindUniqueArgs} args - Arguments to find a PlatformSettings
+     * @example
+     * // Get one PlatformSettings
+     * const platformSettings = await prisma.platformSettings.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PlatformSettingsFindUniqueArgs>(args: SelectSubset<T, PlatformSettingsFindUniqueArgs<ExtArgs>>): Prisma__PlatformSettingsClient<$Result.GetResult<Prisma.$PlatformSettingsPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PlatformSettings that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PlatformSettingsFindUniqueOrThrowArgs} args - Arguments to find a PlatformSettings
+     * @example
+     * // Get one PlatformSettings
+     * const platformSettings = await prisma.platformSettings.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PlatformSettingsFindUniqueOrThrowArgs>(args: SelectSubset<T, PlatformSettingsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PlatformSettingsClient<$Result.GetResult<Prisma.$PlatformSettingsPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PlatformSettings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSettingsFindFirstArgs} args - Arguments to find a PlatformSettings
+     * @example
+     * // Get one PlatformSettings
+     * const platformSettings = await prisma.platformSettings.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PlatformSettingsFindFirstArgs>(args?: SelectSubset<T, PlatformSettingsFindFirstArgs<ExtArgs>>): Prisma__PlatformSettingsClient<$Result.GetResult<Prisma.$PlatformSettingsPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PlatformSettings that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSettingsFindFirstOrThrowArgs} args - Arguments to find a PlatformSettings
+     * @example
+     * // Get one PlatformSettings
+     * const platformSettings = await prisma.platformSettings.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PlatformSettingsFindFirstOrThrowArgs>(args?: SelectSubset<T, PlatformSettingsFindFirstOrThrowArgs<ExtArgs>>): Prisma__PlatformSettingsClient<$Result.GetResult<Prisma.$PlatformSettingsPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PlatformSettings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSettingsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PlatformSettings
+     * const platformSettings = await prisma.platformSettings.findMany()
+     * 
+     * // Get first 10 PlatformSettings
+     * const platformSettings = await prisma.platformSettings.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const platformSettingsWithIdOnly = await prisma.platformSettings.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PlatformSettingsFindManyArgs>(args?: SelectSubset<T, PlatformSettingsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlatformSettingsPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PlatformSettings.
+     * @param {PlatformSettingsCreateArgs} args - Arguments to create a PlatformSettings.
+     * @example
+     * // Create one PlatformSettings
+     * const PlatformSettings = await prisma.platformSettings.create({
+     *   data: {
+     *     // ... data to create a PlatformSettings
+     *   }
+     * })
+     * 
+     */
+    create<T extends PlatformSettingsCreateArgs>(args: SelectSubset<T, PlatformSettingsCreateArgs<ExtArgs>>): Prisma__PlatformSettingsClient<$Result.GetResult<Prisma.$PlatformSettingsPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PlatformSettings.
+     * @param {PlatformSettingsCreateManyArgs} args - Arguments to create many PlatformSettings.
+     * @example
+     * // Create many PlatformSettings
+     * const platformSettings = await prisma.platformSettings.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PlatformSettingsCreateManyArgs>(args?: SelectSubset<T, PlatformSettingsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PlatformSettings and returns the data saved in the database.
+     * @param {PlatformSettingsCreateManyAndReturnArgs} args - Arguments to create many PlatformSettings.
+     * @example
+     * // Create many PlatformSettings
+     * const platformSettings = await prisma.platformSettings.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PlatformSettings and only return the `id`
+     * const platformSettingsWithIdOnly = await prisma.platformSettings.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PlatformSettingsCreateManyAndReturnArgs>(args?: SelectSubset<T, PlatformSettingsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlatformSettingsPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PlatformSettings.
+     * @param {PlatformSettingsDeleteArgs} args - Arguments to delete one PlatformSettings.
+     * @example
+     * // Delete one PlatformSettings
+     * const PlatformSettings = await prisma.platformSettings.delete({
+     *   where: {
+     *     // ... filter to delete one PlatformSettings
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PlatformSettingsDeleteArgs>(args: SelectSubset<T, PlatformSettingsDeleteArgs<ExtArgs>>): Prisma__PlatformSettingsClient<$Result.GetResult<Prisma.$PlatformSettingsPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PlatformSettings.
+     * @param {PlatformSettingsUpdateArgs} args - Arguments to update one PlatformSettings.
+     * @example
+     * // Update one PlatformSettings
+     * const platformSettings = await prisma.platformSettings.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PlatformSettingsUpdateArgs>(args: SelectSubset<T, PlatformSettingsUpdateArgs<ExtArgs>>): Prisma__PlatformSettingsClient<$Result.GetResult<Prisma.$PlatformSettingsPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PlatformSettings.
+     * @param {PlatformSettingsDeleteManyArgs} args - Arguments to filter PlatformSettings to delete.
+     * @example
+     * // Delete a few PlatformSettings
+     * const { count } = await prisma.platformSettings.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PlatformSettingsDeleteManyArgs>(args?: SelectSubset<T, PlatformSettingsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PlatformSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSettingsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PlatformSettings
+     * const platformSettings = await prisma.platformSettings.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PlatformSettingsUpdateManyArgs>(args: SelectSubset<T, PlatformSettingsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PlatformSettings.
+     * @param {PlatformSettingsUpsertArgs} args - Arguments to update or create a PlatformSettings.
+     * @example
+     * // Update or create a PlatformSettings
+     * const platformSettings = await prisma.platformSettings.upsert({
+     *   create: {
+     *     // ... data to create a PlatformSettings
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PlatformSettings we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PlatformSettingsUpsertArgs>(args: SelectSubset<T, PlatformSettingsUpsertArgs<ExtArgs>>): Prisma__PlatformSettingsClient<$Result.GetResult<Prisma.$PlatformSettingsPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PlatformSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSettingsCountArgs} args - Arguments to filter PlatformSettings to count.
+     * @example
+     * // Count the number of PlatformSettings
+     * const count = await prisma.platformSettings.count({
+     *   where: {
+     *     // ... the filter for the PlatformSettings we want to count
+     *   }
+     * })
+    **/
+    count<T extends PlatformSettingsCountArgs>(
+      args?: Subset<T, PlatformSettingsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PlatformSettingsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PlatformSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSettingsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PlatformSettingsAggregateArgs>(args: Subset<T, PlatformSettingsAggregateArgs>): Prisma.PrismaPromise<GetPlatformSettingsAggregateType<T>>
+
+    /**
+     * Group by PlatformSettings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSettingsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PlatformSettingsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PlatformSettingsGroupByArgs['orderBy'] }
+        : { orderBy?: PlatformSettingsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PlatformSettingsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPlatformSettingsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PlatformSettings model
+   */
+  readonly fields: PlatformSettingsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PlatformSettings.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PlatformSettingsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PlatformSettings model
+   */ 
+  interface PlatformSettingsFieldRefs {
+    readonly id: FieldRef<"PlatformSettings", 'String'>
+    readonly tenantId: FieldRef<"PlatformSettings", 'String'>
+    readonly platform: FieldRef<"PlatformSettings", 'Platform'>
+    readonly targets: FieldRef<"PlatformSettings", 'Json'>
+    readonly kpis: FieldRef<"PlatformSettings", 'Json'>
+    readonly shiftRules: FieldRef<"PlatformSettings", 'Json'>
+    readonly zones: FieldRef<"PlatformSettings", 'Json'>
+    readonly createdAt: FieldRef<"PlatformSettings", 'DateTime'>
+    readonly updatedAt: FieldRef<"PlatformSettings", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PlatformSettings findUnique
+   */
+  export type PlatformSettingsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSettings
+     */
+    select?: PlatformSettingsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlatformSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which PlatformSettings to fetch.
+     */
+    where: PlatformSettingsWhereUniqueInput
+  }
+
+  /**
+   * PlatformSettings findUniqueOrThrow
+   */
+  export type PlatformSettingsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSettings
+     */
+    select?: PlatformSettingsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlatformSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which PlatformSettings to fetch.
+     */
+    where: PlatformSettingsWhereUniqueInput
+  }
+
+  /**
+   * PlatformSettings findFirst
+   */
+  export type PlatformSettingsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSettings
+     */
+    select?: PlatformSettingsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlatformSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which PlatformSettings to fetch.
+     */
+    where?: PlatformSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlatformSettings to fetch.
+     */
+    orderBy?: PlatformSettingsOrderByWithRelationInput | PlatformSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PlatformSettings.
+     */
+    cursor?: PlatformSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlatformSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlatformSettings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PlatformSettings.
+     */
+    distinct?: PlatformSettingsScalarFieldEnum | PlatformSettingsScalarFieldEnum[]
+  }
+
+  /**
+   * PlatformSettings findFirstOrThrow
+   */
+  export type PlatformSettingsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSettings
+     */
+    select?: PlatformSettingsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlatformSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which PlatformSettings to fetch.
+     */
+    where?: PlatformSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlatformSettings to fetch.
+     */
+    orderBy?: PlatformSettingsOrderByWithRelationInput | PlatformSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PlatformSettings.
+     */
+    cursor?: PlatformSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlatformSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlatformSettings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PlatformSettings.
+     */
+    distinct?: PlatformSettingsScalarFieldEnum | PlatformSettingsScalarFieldEnum[]
+  }
+
+  /**
+   * PlatformSettings findMany
+   */
+  export type PlatformSettingsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSettings
+     */
+    select?: PlatformSettingsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlatformSettingsInclude<ExtArgs> | null
+    /**
+     * Filter, which PlatformSettings to fetch.
+     */
+    where?: PlatformSettingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlatformSettings to fetch.
+     */
+    orderBy?: PlatformSettingsOrderByWithRelationInput | PlatformSettingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PlatformSettings.
+     */
+    cursor?: PlatformSettingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlatformSettings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlatformSettings.
+     */
+    skip?: number
+    distinct?: PlatformSettingsScalarFieldEnum | PlatformSettingsScalarFieldEnum[]
+  }
+
+  /**
+   * PlatformSettings create
+   */
+  export type PlatformSettingsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSettings
+     */
+    select?: PlatformSettingsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlatformSettingsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PlatformSettings.
+     */
+    data: XOR<PlatformSettingsCreateInput, PlatformSettingsUncheckedCreateInput>
+  }
+
+  /**
+   * PlatformSettings createMany
+   */
+  export type PlatformSettingsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PlatformSettings.
+     */
+    data: PlatformSettingsCreateManyInput | PlatformSettingsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PlatformSettings createManyAndReturn
+   */
+  export type PlatformSettingsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSettings
+     */
+    select?: PlatformSettingsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PlatformSettings.
+     */
+    data: PlatformSettingsCreateManyInput | PlatformSettingsCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlatformSettingsIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PlatformSettings update
+   */
+  export type PlatformSettingsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSettings
+     */
+    select?: PlatformSettingsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlatformSettingsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PlatformSettings.
+     */
+    data: XOR<PlatformSettingsUpdateInput, PlatformSettingsUncheckedUpdateInput>
+    /**
+     * Choose, which PlatformSettings to update.
+     */
+    where: PlatformSettingsWhereUniqueInput
+  }
+
+  /**
+   * PlatformSettings updateMany
+   */
+  export type PlatformSettingsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PlatformSettings.
+     */
+    data: XOR<PlatformSettingsUpdateManyMutationInput, PlatformSettingsUncheckedUpdateManyInput>
+    /**
+     * Filter which PlatformSettings to update
+     */
+    where?: PlatformSettingsWhereInput
+  }
+
+  /**
+   * PlatformSettings upsert
+   */
+  export type PlatformSettingsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSettings
+     */
+    select?: PlatformSettingsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlatformSettingsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PlatformSettings to update in case it exists.
+     */
+    where: PlatformSettingsWhereUniqueInput
+    /**
+     * In case the PlatformSettings found by the `where` argument doesn't exist, create a new PlatformSettings with this data.
+     */
+    create: XOR<PlatformSettingsCreateInput, PlatformSettingsUncheckedCreateInput>
+    /**
+     * In case the PlatformSettings was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PlatformSettingsUpdateInput, PlatformSettingsUncheckedUpdateInput>
+  }
+
+  /**
+   * PlatformSettings delete
+   */
+  export type PlatformSettingsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSettings
+     */
+    select?: PlatformSettingsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlatformSettingsInclude<ExtArgs> | null
+    /**
+     * Filter which PlatformSettings to delete.
+     */
+    where: PlatformSettingsWhereUniqueInput
+  }
+
+  /**
+   * PlatformSettings deleteMany
+   */
+  export type PlatformSettingsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PlatformSettings to delete
+     */
+    where?: PlatformSettingsWhereInput
+  }
+
+  /**
+   * PlatformSettings without action
+   */
+  export type PlatformSettingsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSettings
+     */
+    select?: PlatformSettingsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PlatformSettingsInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model CompanyInventory
+   */
+
+  export type AggregateCompanyInventory = {
+    _count: CompanyInventoryCountAggregateOutputType | null
+    _avg: CompanyInventoryAvgAggregateOutputType | null
+    _sum: CompanyInventorySumAggregateOutputType | null
+    _min: CompanyInventoryMinAggregateOutputType | null
+    _max: CompanyInventoryMaxAggregateOutputType | null
+  }
+
+  export type CompanyInventoryAvgAggregateOutputType = {
+    total: number | null
+    issued: number | null
+    available: number | null
+    minStock: number | null
+  }
+
+  export type CompanyInventorySumAggregateOutputType = {
+    total: number | null
+    issued: number | null
+    available: number | null
+    minStock: number | null
+  }
+
+  export type CompanyInventoryMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    companyId: string | null
+    itemType: $Enums.InventoryItemType | null
+    total: number | null
+    issued: number | null
+    available: number | null
+    minStock: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CompanyInventoryMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    companyId: string | null
+    itemType: $Enums.InventoryItemType | null
+    total: number | null
+    issued: number | null
+    available: number | null
+    minStock: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type CompanyInventoryCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    companyId: number
+    itemType: number
+    total: number
+    issued: number
+    available: number
+    minStock: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type CompanyInventoryAvgAggregateInputType = {
+    total?: true
+    issued?: true
+    available?: true
+    minStock?: true
+  }
+
+  export type CompanyInventorySumAggregateInputType = {
+    total?: true
+    issued?: true
+    available?: true
+    minStock?: true
+  }
+
+  export type CompanyInventoryMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    companyId?: true
+    itemType?: true
+    total?: true
+    issued?: true
+    available?: true
+    minStock?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CompanyInventoryMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    companyId?: true
+    itemType?: true
+    total?: true
+    issued?: true
+    available?: true
+    minStock?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type CompanyInventoryCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    companyId?: true
+    itemType?: true
+    total?: true
+    issued?: true
+    available?: true
+    minStock?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type CompanyInventoryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CompanyInventory to aggregate.
+     */
+    where?: CompanyInventoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CompanyInventories to fetch.
+     */
+    orderBy?: CompanyInventoryOrderByWithRelationInput | CompanyInventoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CompanyInventoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CompanyInventories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CompanyInventories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CompanyInventories
+    **/
+    _count?: true | CompanyInventoryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CompanyInventoryAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CompanyInventorySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CompanyInventoryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CompanyInventoryMaxAggregateInputType
+  }
+
+  export type GetCompanyInventoryAggregateType<T extends CompanyInventoryAggregateArgs> = {
+        [P in keyof T & keyof AggregateCompanyInventory]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCompanyInventory[P]>
+      : GetScalarType<T[P], AggregateCompanyInventory[P]>
+  }
+
+
+
+
+  export type CompanyInventoryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CompanyInventoryWhereInput
+    orderBy?: CompanyInventoryOrderByWithAggregationInput | CompanyInventoryOrderByWithAggregationInput[]
+    by: CompanyInventoryScalarFieldEnum[] | CompanyInventoryScalarFieldEnum
+    having?: CompanyInventoryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CompanyInventoryCountAggregateInputType | true
+    _avg?: CompanyInventoryAvgAggregateInputType
+    _sum?: CompanyInventorySumAggregateInputType
+    _min?: CompanyInventoryMinAggregateInputType
+    _max?: CompanyInventoryMaxAggregateInputType
+  }
+
+  export type CompanyInventoryGroupByOutputType = {
+    id: string
+    tenantId: string
+    companyId: string
+    itemType: $Enums.InventoryItemType
+    total: number
+    issued: number
+    available: number
+    minStock: number
+    createdAt: Date
+    updatedAt: Date
+    _count: CompanyInventoryCountAggregateOutputType | null
+    _avg: CompanyInventoryAvgAggregateOutputType | null
+    _sum: CompanyInventorySumAggregateOutputType | null
+    _min: CompanyInventoryMinAggregateOutputType | null
+    _max: CompanyInventoryMaxAggregateOutputType | null
+  }
+
+  type GetCompanyInventoryGroupByPayload<T extends CompanyInventoryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CompanyInventoryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CompanyInventoryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CompanyInventoryGroupByOutputType[P]>
+            : GetScalarType<T[P], CompanyInventoryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CompanyInventorySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    companyId?: boolean
+    itemType?: boolean
+    total?: boolean
+    issued?: boolean
+    available?: boolean
+    minStock?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["companyInventory"]>
+
+  export type CompanyInventorySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    companyId?: boolean
+    itemType?: boolean
+    total?: boolean
+    issued?: boolean
+    available?: boolean
+    minStock?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["companyInventory"]>
+
+  export type CompanyInventorySelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    companyId?: boolean
+    itemType?: boolean
+    total?: boolean
+    issued?: boolean
+    available?: boolean
+    minStock?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type CompanyInventoryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
+  }
+  export type CompanyInventoryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    company?: boolean | CompanyDefaultArgs<ExtArgs>
+  }
+
+  export type $CompanyInventoryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CompanyInventory"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      company: Prisma.$CompanyPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      companyId: string
+      itemType: $Enums.InventoryItemType
+      total: number
+      issued: number
+      available: number
+      minStock: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["companyInventory"]>
+    composites: {}
+  }
+
+  type CompanyInventoryGetPayload<S extends boolean | null | undefined | CompanyInventoryDefaultArgs> = $Result.GetResult<Prisma.$CompanyInventoryPayload, S>
+
+  type CompanyInventoryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<CompanyInventoryFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: CompanyInventoryCountAggregateInputType | true
+    }
+
+  export interface CompanyInventoryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CompanyInventory'], meta: { name: 'CompanyInventory' } }
+    /**
+     * Find zero or one CompanyInventory that matches the filter.
+     * @param {CompanyInventoryFindUniqueArgs} args - Arguments to find a CompanyInventory
+     * @example
+     * // Get one CompanyInventory
+     * const companyInventory = await prisma.companyInventory.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CompanyInventoryFindUniqueArgs>(args: SelectSubset<T, CompanyInventoryFindUniqueArgs<ExtArgs>>): Prisma__CompanyInventoryClient<$Result.GetResult<Prisma.$CompanyInventoryPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one CompanyInventory that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {CompanyInventoryFindUniqueOrThrowArgs} args - Arguments to find a CompanyInventory
+     * @example
+     * // Get one CompanyInventory
+     * const companyInventory = await prisma.companyInventory.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CompanyInventoryFindUniqueOrThrowArgs>(args: SelectSubset<T, CompanyInventoryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CompanyInventoryClient<$Result.GetResult<Prisma.$CompanyInventoryPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first CompanyInventory that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyInventoryFindFirstArgs} args - Arguments to find a CompanyInventory
+     * @example
+     * // Get one CompanyInventory
+     * const companyInventory = await prisma.companyInventory.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CompanyInventoryFindFirstArgs>(args?: SelectSubset<T, CompanyInventoryFindFirstArgs<ExtArgs>>): Prisma__CompanyInventoryClient<$Result.GetResult<Prisma.$CompanyInventoryPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first CompanyInventory that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyInventoryFindFirstOrThrowArgs} args - Arguments to find a CompanyInventory
+     * @example
+     * // Get one CompanyInventory
+     * const companyInventory = await prisma.companyInventory.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CompanyInventoryFindFirstOrThrowArgs>(args?: SelectSubset<T, CompanyInventoryFindFirstOrThrowArgs<ExtArgs>>): Prisma__CompanyInventoryClient<$Result.GetResult<Prisma.$CompanyInventoryPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more CompanyInventories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyInventoryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CompanyInventories
+     * const companyInventories = await prisma.companyInventory.findMany()
+     * 
+     * // Get first 10 CompanyInventories
+     * const companyInventories = await prisma.companyInventory.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const companyInventoryWithIdOnly = await prisma.companyInventory.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CompanyInventoryFindManyArgs>(args?: SelectSubset<T, CompanyInventoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompanyInventoryPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a CompanyInventory.
+     * @param {CompanyInventoryCreateArgs} args - Arguments to create a CompanyInventory.
+     * @example
+     * // Create one CompanyInventory
+     * const CompanyInventory = await prisma.companyInventory.create({
+     *   data: {
+     *     // ... data to create a CompanyInventory
+     *   }
+     * })
+     * 
+     */
+    create<T extends CompanyInventoryCreateArgs>(args: SelectSubset<T, CompanyInventoryCreateArgs<ExtArgs>>): Prisma__CompanyInventoryClient<$Result.GetResult<Prisma.$CompanyInventoryPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many CompanyInventories.
+     * @param {CompanyInventoryCreateManyArgs} args - Arguments to create many CompanyInventories.
+     * @example
+     * // Create many CompanyInventories
+     * const companyInventory = await prisma.companyInventory.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CompanyInventoryCreateManyArgs>(args?: SelectSubset<T, CompanyInventoryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CompanyInventories and returns the data saved in the database.
+     * @param {CompanyInventoryCreateManyAndReturnArgs} args - Arguments to create many CompanyInventories.
+     * @example
+     * // Create many CompanyInventories
+     * const companyInventory = await prisma.companyInventory.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CompanyInventories and only return the `id`
+     * const companyInventoryWithIdOnly = await prisma.companyInventory.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CompanyInventoryCreateManyAndReturnArgs>(args?: SelectSubset<T, CompanyInventoryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CompanyInventoryPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a CompanyInventory.
+     * @param {CompanyInventoryDeleteArgs} args - Arguments to delete one CompanyInventory.
+     * @example
+     * // Delete one CompanyInventory
+     * const CompanyInventory = await prisma.companyInventory.delete({
+     *   where: {
+     *     // ... filter to delete one CompanyInventory
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CompanyInventoryDeleteArgs>(args: SelectSubset<T, CompanyInventoryDeleteArgs<ExtArgs>>): Prisma__CompanyInventoryClient<$Result.GetResult<Prisma.$CompanyInventoryPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one CompanyInventory.
+     * @param {CompanyInventoryUpdateArgs} args - Arguments to update one CompanyInventory.
+     * @example
+     * // Update one CompanyInventory
+     * const companyInventory = await prisma.companyInventory.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CompanyInventoryUpdateArgs>(args: SelectSubset<T, CompanyInventoryUpdateArgs<ExtArgs>>): Prisma__CompanyInventoryClient<$Result.GetResult<Prisma.$CompanyInventoryPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more CompanyInventories.
+     * @param {CompanyInventoryDeleteManyArgs} args - Arguments to filter CompanyInventories to delete.
+     * @example
+     * // Delete a few CompanyInventories
+     * const { count } = await prisma.companyInventory.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CompanyInventoryDeleteManyArgs>(args?: SelectSubset<T, CompanyInventoryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CompanyInventories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyInventoryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CompanyInventories
+     * const companyInventory = await prisma.companyInventory.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CompanyInventoryUpdateManyArgs>(args: SelectSubset<T, CompanyInventoryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one CompanyInventory.
+     * @param {CompanyInventoryUpsertArgs} args - Arguments to update or create a CompanyInventory.
+     * @example
+     * // Update or create a CompanyInventory
+     * const companyInventory = await prisma.companyInventory.upsert({
+     *   create: {
+     *     // ... data to create a CompanyInventory
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CompanyInventory we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CompanyInventoryUpsertArgs>(args: SelectSubset<T, CompanyInventoryUpsertArgs<ExtArgs>>): Prisma__CompanyInventoryClient<$Result.GetResult<Prisma.$CompanyInventoryPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of CompanyInventories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyInventoryCountArgs} args - Arguments to filter CompanyInventories to count.
+     * @example
+     * // Count the number of CompanyInventories
+     * const count = await prisma.companyInventory.count({
+     *   where: {
+     *     // ... the filter for the CompanyInventories we want to count
+     *   }
+     * })
+    **/
+    count<T extends CompanyInventoryCountArgs>(
+      args?: Subset<T, CompanyInventoryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CompanyInventoryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CompanyInventory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyInventoryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CompanyInventoryAggregateArgs>(args: Subset<T, CompanyInventoryAggregateArgs>): Prisma.PrismaPromise<GetCompanyInventoryAggregateType<T>>
+
+    /**
+     * Group by CompanyInventory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CompanyInventoryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CompanyInventoryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CompanyInventoryGroupByArgs['orderBy'] }
+        : { orderBy?: CompanyInventoryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CompanyInventoryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCompanyInventoryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CompanyInventory model
+   */
+  readonly fields: CompanyInventoryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CompanyInventory.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CompanyInventoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    company<T extends CompanyDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CompanyDefaultArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CompanyInventory model
+   */ 
+  interface CompanyInventoryFieldRefs {
+    readonly id: FieldRef<"CompanyInventory", 'String'>
+    readonly tenantId: FieldRef<"CompanyInventory", 'String'>
+    readonly companyId: FieldRef<"CompanyInventory", 'String'>
+    readonly itemType: FieldRef<"CompanyInventory", 'InventoryItemType'>
+    readonly total: FieldRef<"CompanyInventory", 'Int'>
+    readonly issued: FieldRef<"CompanyInventory", 'Int'>
+    readonly available: FieldRef<"CompanyInventory", 'Int'>
+    readonly minStock: FieldRef<"CompanyInventory", 'Int'>
+    readonly createdAt: FieldRef<"CompanyInventory", 'DateTime'>
+    readonly updatedAt: FieldRef<"CompanyInventory", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CompanyInventory findUnique
+   */
+  export type CompanyInventoryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyInventory
+     */
+    select?: CompanyInventorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInventoryInclude<ExtArgs> | null
+    /**
+     * Filter, which CompanyInventory to fetch.
+     */
+    where: CompanyInventoryWhereUniqueInput
+  }
+
+  /**
+   * CompanyInventory findUniqueOrThrow
+   */
+  export type CompanyInventoryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyInventory
+     */
+    select?: CompanyInventorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInventoryInclude<ExtArgs> | null
+    /**
+     * Filter, which CompanyInventory to fetch.
+     */
+    where: CompanyInventoryWhereUniqueInput
+  }
+
+  /**
+   * CompanyInventory findFirst
+   */
+  export type CompanyInventoryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyInventory
+     */
+    select?: CompanyInventorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInventoryInclude<ExtArgs> | null
+    /**
+     * Filter, which CompanyInventory to fetch.
+     */
+    where?: CompanyInventoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CompanyInventories to fetch.
+     */
+    orderBy?: CompanyInventoryOrderByWithRelationInput | CompanyInventoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CompanyInventories.
+     */
+    cursor?: CompanyInventoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CompanyInventories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CompanyInventories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CompanyInventories.
+     */
+    distinct?: CompanyInventoryScalarFieldEnum | CompanyInventoryScalarFieldEnum[]
+  }
+
+  /**
+   * CompanyInventory findFirstOrThrow
+   */
+  export type CompanyInventoryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyInventory
+     */
+    select?: CompanyInventorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInventoryInclude<ExtArgs> | null
+    /**
+     * Filter, which CompanyInventory to fetch.
+     */
+    where?: CompanyInventoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CompanyInventories to fetch.
+     */
+    orderBy?: CompanyInventoryOrderByWithRelationInput | CompanyInventoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CompanyInventories.
+     */
+    cursor?: CompanyInventoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CompanyInventories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CompanyInventories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CompanyInventories.
+     */
+    distinct?: CompanyInventoryScalarFieldEnum | CompanyInventoryScalarFieldEnum[]
+  }
+
+  /**
+   * CompanyInventory findMany
+   */
+  export type CompanyInventoryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyInventory
+     */
+    select?: CompanyInventorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInventoryInclude<ExtArgs> | null
+    /**
+     * Filter, which CompanyInventories to fetch.
+     */
+    where?: CompanyInventoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CompanyInventories to fetch.
+     */
+    orderBy?: CompanyInventoryOrderByWithRelationInput | CompanyInventoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CompanyInventories.
+     */
+    cursor?: CompanyInventoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CompanyInventories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CompanyInventories.
+     */
+    skip?: number
+    distinct?: CompanyInventoryScalarFieldEnum | CompanyInventoryScalarFieldEnum[]
+  }
+
+  /**
+   * CompanyInventory create
+   */
+  export type CompanyInventoryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyInventory
+     */
+    select?: CompanyInventorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInventoryInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CompanyInventory.
+     */
+    data: XOR<CompanyInventoryCreateInput, CompanyInventoryUncheckedCreateInput>
+  }
+
+  /**
+   * CompanyInventory createMany
+   */
+  export type CompanyInventoryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CompanyInventories.
+     */
+    data: CompanyInventoryCreateManyInput | CompanyInventoryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CompanyInventory createManyAndReturn
+   */
+  export type CompanyInventoryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyInventory
+     */
+    select?: CompanyInventorySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many CompanyInventories.
+     */
+    data: CompanyInventoryCreateManyInput | CompanyInventoryCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInventoryIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CompanyInventory update
+   */
+  export type CompanyInventoryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyInventory
+     */
+    select?: CompanyInventorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInventoryInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CompanyInventory.
+     */
+    data: XOR<CompanyInventoryUpdateInput, CompanyInventoryUncheckedUpdateInput>
+    /**
+     * Choose, which CompanyInventory to update.
+     */
+    where: CompanyInventoryWhereUniqueInput
+  }
+
+  /**
+   * CompanyInventory updateMany
+   */
+  export type CompanyInventoryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CompanyInventories.
+     */
+    data: XOR<CompanyInventoryUpdateManyMutationInput, CompanyInventoryUncheckedUpdateManyInput>
+    /**
+     * Filter which CompanyInventories to update
+     */
+    where?: CompanyInventoryWhereInput
+  }
+
+  /**
+   * CompanyInventory upsert
+   */
+  export type CompanyInventoryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyInventory
+     */
+    select?: CompanyInventorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInventoryInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CompanyInventory to update in case it exists.
+     */
+    where: CompanyInventoryWhereUniqueInput
+    /**
+     * In case the CompanyInventory found by the `where` argument doesn't exist, create a new CompanyInventory with this data.
+     */
+    create: XOR<CompanyInventoryCreateInput, CompanyInventoryUncheckedCreateInput>
+    /**
+     * In case the CompanyInventory was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CompanyInventoryUpdateInput, CompanyInventoryUncheckedUpdateInput>
+  }
+
+  /**
+   * CompanyInventory delete
+   */
+  export type CompanyInventoryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyInventory
+     */
+    select?: CompanyInventorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInventoryInclude<ExtArgs> | null
+    /**
+     * Filter which CompanyInventory to delete.
+     */
+    where: CompanyInventoryWhereUniqueInput
+  }
+
+  /**
+   * CompanyInventory deleteMany
+   */
+  export type CompanyInventoryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CompanyInventories to delete
+     */
+    where?: CompanyInventoryWhereInput
+  }
+
+  /**
+   * CompanyInventory without action
+   */
+  export type CompanyInventoryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CompanyInventory
+     */
+    select?: CompanyInventorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInventoryInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model AmericanaDailyOrders
    */
 
@@ -38751,6 +42863,4122 @@ export namespace Prisma {
 
 
   /**
+   * Model KpiDefinition
+   */
+
+  export type AggregateKpiDefinition = {
+    _count: KpiDefinitionCountAggregateOutputType | null
+    _avg: KpiDefinitionAvgAggregateOutputType | null
+    _sum: KpiDefinitionSumAggregateOutputType | null
+    _min: KpiDefinitionMinAggregateOutputType | null
+    _max: KpiDefinitionMaxAggregateOutputType | null
+  }
+
+  export type KpiDefinitionAvgAggregateOutputType = {
+    target: Decimal | null
+    sortOrder: number | null
+  }
+
+  export type KpiDefinitionSumAggregateOutputType = {
+    target: Decimal | null
+    sortOrder: number | null
+  }
+
+  export type KpiDefinitionMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    name: string | null
+    description: string | null
+    category: $Enums.KpiCategory | null
+    unit: $Enums.KpiUnit | null
+    platform: $Enums.Platform | null
+    target: Decimal | null
+    isActive: boolean | null
+    sortOrder: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type KpiDefinitionMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    name: string | null
+    description: string | null
+    category: $Enums.KpiCategory | null
+    unit: $Enums.KpiUnit | null
+    platform: $Enums.Platform | null
+    target: Decimal | null
+    isActive: boolean | null
+    sortOrder: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type KpiDefinitionCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    name: number
+    description: number
+    category: number
+    unit: number
+    platform: number
+    target: number
+    isActive: number
+    sortOrder: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type KpiDefinitionAvgAggregateInputType = {
+    target?: true
+    sortOrder?: true
+  }
+
+  export type KpiDefinitionSumAggregateInputType = {
+    target?: true
+    sortOrder?: true
+  }
+
+  export type KpiDefinitionMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    name?: true
+    description?: true
+    category?: true
+    unit?: true
+    platform?: true
+    target?: true
+    isActive?: true
+    sortOrder?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type KpiDefinitionMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    name?: true
+    description?: true
+    category?: true
+    unit?: true
+    platform?: true
+    target?: true
+    isActive?: true
+    sortOrder?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type KpiDefinitionCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    name?: true
+    description?: true
+    category?: true
+    unit?: true
+    platform?: true
+    target?: true
+    isActive?: true
+    sortOrder?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type KpiDefinitionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KpiDefinition to aggregate.
+     */
+    where?: KpiDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KpiDefinitions to fetch.
+     */
+    orderBy?: KpiDefinitionOrderByWithRelationInput | KpiDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: KpiDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KpiDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KpiDefinitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned KpiDefinitions
+    **/
+    _count?: true | KpiDefinitionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: KpiDefinitionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: KpiDefinitionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: KpiDefinitionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: KpiDefinitionMaxAggregateInputType
+  }
+
+  export type GetKpiDefinitionAggregateType<T extends KpiDefinitionAggregateArgs> = {
+        [P in keyof T & keyof AggregateKpiDefinition]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateKpiDefinition[P]>
+      : GetScalarType<T[P], AggregateKpiDefinition[P]>
+  }
+
+
+
+
+  export type KpiDefinitionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KpiDefinitionWhereInput
+    orderBy?: KpiDefinitionOrderByWithAggregationInput | KpiDefinitionOrderByWithAggregationInput[]
+    by: KpiDefinitionScalarFieldEnum[] | KpiDefinitionScalarFieldEnum
+    having?: KpiDefinitionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: KpiDefinitionCountAggregateInputType | true
+    _avg?: KpiDefinitionAvgAggregateInputType
+    _sum?: KpiDefinitionSumAggregateInputType
+    _min?: KpiDefinitionMinAggregateInputType
+    _max?: KpiDefinitionMaxAggregateInputType
+  }
+
+  export type KpiDefinitionGroupByOutputType = {
+    id: string
+    tenantId: string
+    name: string
+    description: string | null
+    category: $Enums.KpiCategory
+    unit: $Enums.KpiUnit
+    platform: $Enums.Platform | null
+    target: Decimal | null
+    isActive: boolean
+    sortOrder: number
+    createdAt: Date
+    updatedAt: Date
+    _count: KpiDefinitionCountAggregateOutputType | null
+    _avg: KpiDefinitionAvgAggregateOutputType | null
+    _sum: KpiDefinitionSumAggregateOutputType | null
+    _min: KpiDefinitionMinAggregateOutputType | null
+    _max: KpiDefinitionMaxAggregateOutputType | null
+  }
+
+  type GetKpiDefinitionGroupByPayload<T extends KpiDefinitionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<KpiDefinitionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof KpiDefinitionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], KpiDefinitionGroupByOutputType[P]>
+            : GetScalarType<T[P], KpiDefinitionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type KpiDefinitionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    name?: boolean
+    description?: boolean
+    category?: boolean
+    unit?: boolean
+    platform?: boolean
+    target?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    records?: boolean | KpiDefinition$recordsArgs<ExtArgs>
+    _count?: boolean | KpiDefinitionCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["kpiDefinition"]>
+
+  export type KpiDefinitionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    name?: boolean
+    description?: boolean
+    category?: boolean
+    unit?: boolean
+    platform?: boolean
+    target?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["kpiDefinition"]>
+
+  export type KpiDefinitionSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    name?: boolean
+    description?: boolean
+    category?: boolean
+    unit?: boolean
+    platform?: boolean
+    target?: boolean
+    isActive?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type KpiDefinitionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    records?: boolean | KpiDefinition$recordsArgs<ExtArgs>
+    _count?: boolean | KpiDefinitionCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type KpiDefinitionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+
+  export type $KpiDefinitionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "KpiDefinition"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      records: Prisma.$KpiRecordPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      name: string
+      description: string | null
+      category: $Enums.KpiCategory
+      unit: $Enums.KpiUnit
+      platform: $Enums.Platform | null
+      target: Prisma.Decimal | null
+      isActive: boolean
+      sortOrder: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["kpiDefinition"]>
+    composites: {}
+  }
+
+  type KpiDefinitionGetPayload<S extends boolean | null | undefined | KpiDefinitionDefaultArgs> = $Result.GetResult<Prisma.$KpiDefinitionPayload, S>
+
+  type KpiDefinitionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<KpiDefinitionFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: KpiDefinitionCountAggregateInputType | true
+    }
+
+  export interface KpiDefinitionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['KpiDefinition'], meta: { name: 'KpiDefinition' } }
+    /**
+     * Find zero or one KpiDefinition that matches the filter.
+     * @param {KpiDefinitionFindUniqueArgs} args - Arguments to find a KpiDefinition
+     * @example
+     * // Get one KpiDefinition
+     * const kpiDefinition = await prisma.kpiDefinition.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends KpiDefinitionFindUniqueArgs>(args: SelectSubset<T, KpiDefinitionFindUniqueArgs<ExtArgs>>): Prisma__KpiDefinitionClient<$Result.GetResult<Prisma.$KpiDefinitionPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one KpiDefinition that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {KpiDefinitionFindUniqueOrThrowArgs} args - Arguments to find a KpiDefinition
+     * @example
+     * // Get one KpiDefinition
+     * const kpiDefinition = await prisma.kpiDefinition.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends KpiDefinitionFindUniqueOrThrowArgs>(args: SelectSubset<T, KpiDefinitionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__KpiDefinitionClient<$Result.GetResult<Prisma.$KpiDefinitionPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first KpiDefinition that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiDefinitionFindFirstArgs} args - Arguments to find a KpiDefinition
+     * @example
+     * // Get one KpiDefinition
+     * const kpiDefinition = await prisma.kpiDefinition.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends KpiDefinitionFindFirstArgs>(args?: SelectSubset<T, KpiDefinitionFindFirstArgs<ExtArgs>>): Prisma__KpiDefinitionClient<$Result.GetResult<Prisma.$KpiDefinitionPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first KpiDefinition that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiDefinitionFindFirstOrThrowArgs} args - Arguments to find a KpiDefinition
+     * @example
+     * // Get one KpiDefinition
+     * const kpiDefinition = await prisma.kpiDefinition.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends KpiDefinitionFindFirstOrThrowArgs>(args?: SelectSubset<T, KpiDefinitionFindFirstOrThrowArgs<ExtArgs>>): Prisma__KpiDefinitionClient<$Result.GetResult<Prisma.$KpiDefinitionPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more KpiDefinitions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiDefinitionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all KpiDefinitions
+     * const kpiDefinitions = await prisma.kpiDefinition.findMany()
+     * 
+     * // Get first 10 KpiDefinitions
+     * const kpiDefinitions = await prisma.kpiDefinition.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const kpiDefinitionWithIdOnly = await prisma.kpiDefinition.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends KpiDefinitionFindManyArgs>(args?: SelectSubset<T, KpiDefinitionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KpiDefinitionPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a KpiDefinition.
+     * @param {KpiDefinitionCreateArgs} args - Arguments to create a KpiDefinition.
+     * @example
+     * // Create one KpiDefinition
+     * const KpiDefinition = await prisma.kpiDefinition.create({
+     *   data: {
+     *     // ... data to create a KpiDefinition
+     *   }
+     * })
+     * 
+     */
+    create<T extends KpiDefinitionCreateArgs>(args: SelectSubset<T, KpiDefinitionCreateArgs<ExtArgs>>): Prisma__KpiDefinitionClient<$Result.GetResult<Prisma.$KpiDefinitionPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many KpiDefinitions.
+     * @param {KpiDefinitionCreateManyArgs} args - Arguments to create many KpiDefinitions.
+     * @example
+     * // Create many KpiDefinitions
+     * const kpiDefinition = await prisma.kpiDefinition.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends KpiDefinitionCreateManyArgs>(args?: SelectSubset<T, KpiDefinitionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many KpiDefinitions and returns the data saved in the database.
+     * @param {KpiDefinitionCreateManyAndReturnArgs} args - Arguments to create many KpiDefinitions.
+     * @example
+     * // Create many KpiDefinitions
+     * const kpiDefinition = await prisma.kpiDefinition.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many KpiDefinitions and only return the `id`
+     * const kpiDefinitionWithIdOnly = await prisma.kpiDefinition.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends KpiDefinitionCreateManyAndReturnArgs>(args?: SelectSubset<T, KpiDefinitionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KpiDefinitionPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a KpiDefinition.
+     * @param {KpiDefinitionDeleteArgs} args - Arguments to delete one KpiDefinition.
+     * @example
+     * // Delete one KpiDefinition
+     * const KpiDefinition = await prisma.kpiDefinition.delete({
+     *   where: {
+     *     // ... filter to delete one KpiDefinition
+     *   }
+     * })
+     * 
+     */
+    delete<T extends KpiDefinitionDeleteArgs>(args: SelectSubset<T, KpiDefinitionDeleteArgs<ExtArgs>>): Prisma__KpiDefinitionClient<$Result.GetResult<Prisma.$KpiDefinitionPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one KpiDefinition.
+     * @param {KpiDefinitionUpdateArgs} args - Arguments to update one KpiDefinition.
+     * @example
+     * // Update one KpiDefinition
+     * const kpiDefinition = await prisma.kpiDefinition.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends KpiDefinitionUpdateArgs>(args: SelectSubset<T, KpiDefinitionUpdateArgs<ExtArgs>>): Prisma__KpiDefinitionClient<$Result.GetResult<Prisma.$KpiDefinitionPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more KpiDefinitions.
+     * @param {KpiDefinitionDeleteManyArgs} args - Arguments to filter KpiDefinitions to delete.
+     * @example
+     * // Delete a few KpiDefinitions
+     * const { count } = await prisma.kpiDefinition.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends KpiDefinitionDeleteManyArgs>(args?: SelectSubset<T, KpiDefinitionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more KpiDefinitions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiDefinitionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many KpiDefinitions
+     * const kpiDefinition = await prisma.kpiDefinition.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends KpiDefinitionUpdateManyArgs>(args: SelectSubset<T, KpiDefinitionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one KpiDefinition.
+     * @param {KpiDefinitionUpsertArgs} args - Arguments to update or create a KpiDefinition.
+     * @example
+     * // Update or create a KpiDefinition
+     * const kpiDefinition = await prisma.kpiDefinition.upsert({
+     *   create: {
+     *     // ... data to create a KpiDefinition
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the KpiDefinition we want to update
+     *   }
+     * })
+     */
+    upsert<T extends KpiDefinitionUpsertArgs>(args: SelectSubset<T, KpiDefinitionUpsertArgs<ExtArgs>>): Prisma__KpiDefinitionClient<$Result.GetResult<Prisma.$KpiDefinitionPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of KpiDefinitions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiDefinitionCountArgs} args - Arguments to filter KpiDefinitions to count.
+     * @example
+     * // Count the number of KpiDefinitions
+     * const count = await prisma.kpiDefinition.count({
+     *   where: {
+     *     // ... the filter for the KpiDefinitions we want to count
+     *   }
+     * })
+    **/
+    count<T extends KpiDefinitionCountArgs>(
+      args?: Subset<T, KpiDefinitionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], KpiDefinitionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a KpiDefinition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiDefinitionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends KpiDefinitionAggregateArgs>(args: Subset<T, KpiDefinitionAggregateArgs>): Prisma.PrismaPromise<GetKpiDefinitionAggregateType<T>>
+
+    /**
+     * Group by KpiDefinition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiDefinitionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends KpiDefinitionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: KpiDefinitionGroupByArgs['orderBy'] }
+        : { orderBy?: KpiDefinitionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, KpiDefinitionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetKpiDefinitionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the KpiDefinition model
+   */
+  readonly fields: KpiDefinitionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for KpiDefinition.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__KpiDefinitionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    records<T extends KpiDefinition$recordsArgs<ExtArgs> = {}>(args?: Subset<T, KpiDefinition$recordsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KpiRecordPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the KpiDefinition model
+   */ 
+  interface KpiDefinitionFieldRefs {
+    readonly id: FieldRef<"KpiDefinition", 'String'>
+    readonly tenantId: FieldRef<"KpiDefinition", 'String'>
+    readonly name: FieldRef<"KpiDefinition", 'String'>
+    readonly description: FieldRef<"KpiDefinition", 'String'>
+    readonly category: FieldRef<"KpiDefinition", 'KpiCategory'>
+    readonly unit: FieldRef<"KpiDefinition", 'KpiUnit'>
+    readonly platform: FieldRef<"KpiDefinition", 'Platform'>
+    readonly target: FieldRef<"KpiDefinition", 'Decimal'>
+    readonly isActive: FieldRef<"KpiDefinition", 'Boolean'>
+    readonly sortOrder: FieldRef<"KpiDefinition", 'Int'>
+    readonly createdAt: FieldRef<"KpiDefinition", 'DateTime'>
+    readonly updatedAt: FieldRef<"KpiDefinition", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * KpiDefinition findUnique
+   */
+  export type KpiDefinitionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiDefinition
+     */
+    select?: KpiDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which KpiDefinition to fetch.
+     */
+    where: KpiDefinitionWhereUniqueInput
+  }
+
+  /**
+   * KpiDefinition findUniqueOrThrow
+   */
+  export type KpiDefinitionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiDefinition
+     */
+    select?: KpiDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which KpiDefinition to fetch.
+     */
+    where: KpiDefinitionWhereUniqueInput
+  }
+
+  /**
+   * KpiDefinition findFirst
+   */
+  export type KpiDefinitionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiDefinition
+     */
+    select?: KpiDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which KpiDefinition to fetch.
+     */
+    where?: KpiDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KpiDefinitions to fetch.
+     */
+    orderBy?: KpiDefinitionOrderByWithRelationInput | KpiDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KpiDefinitions.
+     */
+    cursor?: KpiDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KpiDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KpiDefinitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KpiDefinitions.
+     */
+    distinct?: KpiDefinitionScalarFieldEnum | KpiDefinitionScalarFieldEnum[]
+  }
+
+  /**
+   * KpiDefinition findFirstOrThrow
+   */
+  export type KpiDefinitionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiDefinition
+     */
+    select?: KpiDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which KpiDefinition to fetch.
+     */
+    where?: KpiDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KpiDefinitions to fetch.
+     */
+    orderBy?: KpiDefinitionOrderByWithRelationInput | KpiDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KpiDefinitions.
+     */
+    cursor?: KpiDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KpiDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KpiDefinitions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KpiDefinitions.
+     */
+    distinct?: KpiDefinitionScalarFieldEnum | KpiDefinitionScalarFieldEnum[]
+  }
+
+  /**
+   * KpiDefinition findMany
+   */
+  export type KpiDefinitionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiDefinition
+     */
+    select?: KpiDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter, which KpiDefinitions to fetch.
+     */
+    where?: KpiDefinitionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KpiDefinitions to fetch.
+     */
+    orderBy?: KpiDefinitionOrderByWithRelationInput | KpiDefinitionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing KpiDefinitions.
+     */
+    cursor?: KpiDefinitionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KpiDefinitions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KpiDefinitions.
+     */
+    skip?: number
+    distinct?: KpiDefinitionScalarFieldEnum | KpiDefinitionScalarFieldEnum[]
+  }
+
+  /**
+   * KpiDefinition create
+   */
+  export type KpiDefinitionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiDefinition
+     */
+    select?: KpiDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiDefinitionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a KpiDefinition.
+     */
+    data: XOR<KpiDefinitionCreateInput, KpiDefinitionUncheckedCreateInput>
+  }
+
+  /**
+   * KpiDefinition createMany
+   */
+  export type KpiDefinitionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many KpiDefinitions.
+     */
+    data: KpiDefinitionCreateManyInput | KpiDefinitionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * KpiDefinition createManyAndReturn
+   */
+  export type KpiDefinitionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiDefinition
+     */
+    select?: KpiDefinitionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many KpiDefinitions.
+     */
+    data: KpiDefinitionCreateManyInput | KpiDefinitionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiDefinitionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * KpiDefinition update
+   */
+  export type KpiDefinitionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiDefinition
+     */
+    select?: KpiDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiDefinitionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a KpiDefinition.
+     */
+    data: XOR<KpiDefinitionUpdateInput, KpiDefinitionUncheckedUpdateInput>
+    /**
+     * Choose, which KpiDefinition to update.
+     */
+    where: KpiDefinitionWhereUniqueInput
+  }
+
+  /**
+   * KpiDefinition updateMany
+   */
+  export type KpiDefinitionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update KpiDefinitions.
+     */
+    data: XOR<KpiDefinitionUpdateManyMutationInput, KpiDefinitionUncheckedUpdateManyInput>
+    /**
+     * Filter which KpiDefinitions to update
+     */
+    where?: KpiDefinitionWhereInput
+  }
+
+  /**
+   * KpiDefinition upsert
+   */
+  export type KpiDefinitionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiDefinition
+     */
+    select?: KpiDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiDefinitionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the KpiDefinition to update in case it exists.
+     */
+    where: KpiDefinitionWhereUniqueInput
+    /**
+     * In case the KpiDefinition found by the `where` argument doesn't exist, create a new KpiDefinition with this data.
+     */
+    create: XOR<KpiDefinitionCreateInput, KpiDefinitionUncheckedCreateInput>
+    /**
+     * In case the KpiDefinition was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<KpiDefinitionUpdateInput, KpiDefinitionUncheckedUpdateInput>
+  }
+
+  /**
+   * KpiDefinition delete
+   */
+  export type KpiDefinitionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiDefinition
+     */
+    select?: KpiDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiDefinitionInclude<ExtArgs> | null
+    /**
+     * Filter which KpiDefinition to delete.
+     */
+    where: KpiDefinitionWhereUniqueInput
+  }
+
+  /**
+   * KpiDefinition deleteMany
+   */
+  export type KpiDefinitionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KpiDefinitions to delete
+     */
+    where?: KpiDefinitionWhereInput
+  }
+
+  /**
+   * KpiDefinition.records
+   */
+  export type KpiDefinition$recordsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordInclude<ExtArgs> | null
+    where?: KpiRecordWhereInput
+    orderBy?: KpiRecordOrderByWithRelationInput | KpiRecordOrderByWithRelationInput[]
+    cursor?: KpiRecordWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: KpiRecordScalarFieldEnum | KpiRecordScalarFieldEnum[]
+  }
+
+  /**
+   * KpiDefinition without action
+   */
+  export type KpiDefinitionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiDefinition
+     */
+    select?: KpiDefinitionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiDefinitionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model KpiRecord
+   */
+
+  export type AggregateKpiRecord = {
+    _count: KpiRecordCountAggregateOutputType | null
+    _avg: KpiRecordAvgAggregateOutputType | null
+    _sum: KpiRecordSumAggregateOutputType | null
+    _min: KpiRecordMinAggregateOutputType | null
+    _max: KpiRecordMaxAggregateOutputType | null
+  }
+
+  export type KpiRecordAvgAggregateOutputType = {
+    value: Decimal | null
+    target: Decimal | null
+    score: Decimal | null
+  }
+
+  export type KpiRecordSumAggregateOutputType = {
+    value: Decimal | null
+    target: Decimal | null
+    score: Decimal | null
+  }
+
+  export type KpiRecordMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    driverId: string | null
+    kpiDefinitionId: string | null
+    date: Date | null
+    value: Decimal | null
+    target: Decimal | null
+    score: Decimal | null
+    source: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type KpiRecordMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    driverId: string | null
+    kpiDefinitionId: string | null
+    date: Date | null
+    value: Decimal | null
+    target: Decimal | null
+    score: Decimal | null
+    source: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type KpiRecordCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    driverId: number
+    kpiDefinitionId: number
+    date: number
+    value: number
+    target: number
+    score: number
+    source: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type KpiRecordAvgAggregateInputType = {
+    value?: true
+    target?: true
+    score?: true
+  }
+
+  export type KpiRecordSumAggregateInputType = {
+    value?: true
+    target?: true
+    score?: true
+  }
+
+  export type KpiRecordMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    driverId?: true
+    kpiDefinitionId?: true
+    date?: true
+    value?: true
+    target?: true
+    score?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type KpiRecordMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    driverId?: true
+    kpiDefinitionId?: true
+    date?: true
+    value?: true
+    target?: true
+    score?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type KpiRecordCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    driverId?: true
+    kpiDefinitionId?: true
+    date?: true
+    value?: true
+    target?: true
+    score?: true
+    source?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type KpiRecordAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KpiRecord to aggregate.
+     */
+    where?: KpiRecordWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KpiRecords to fetch.
+     */
+    orderBy?: KpiRecordOrderByWithRelationInput | KpiRecordOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: KpiRecordWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KpiRecords from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KpiRecords.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned KpiRecords
+    **/
+    _count?: true | KpiRecordCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: KpiRecordAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: KpiRecordSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: KpiRecordMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: KpiRecordMaxAggregateInputType
+  }
+
+  export type GetKpiRecordAggregateType<T extends KpiRecordAggregateArgs> = {
+        [P in keyof T & keyof AggregateKpiRecord]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateKpiRecord[P]>
+      : GetScalarType<T[P], AggregateKpiRecord[P]>
+  }
+
+
+
+
+  export type KpiRecordGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KpiRecordWhereInput
+    orderBy?: KpiRecordOrderByWithAggregationInput | KpiRecordOrderByWithAggregationInput[]
+    by: KpiRecordScalarFieldEnum[] | KpiRecordScalarFieldEnum
+    having?: KpiRecordScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: KpiRecordCountAggregateInputType | true
+    _avg?: KpiRecordAvgAggregateInputType
+    _sum?: KpiRecordSumAggregateInputType
+    _min?: KpiRecordMinAggregateInputType
+    _max?: KpiRecordMaxAggregateInputType
+  }
+
+  export type KpiRecordGroupByOutputType = {
+    id: string
+    tenantId: string
+    driverId: string
+    kpiDefinitionId: string
+    date: Date
+    value: Decimal
+    target: Decimal | null
+    score: Decimal | null
+    source: string
+    createdAt: Date
+    updatedAt: Date
+    _count: KpiRecordCountAggregateOutputType | null
+    _avg: KpiRecordAvgAggregateOutputType | null
+    _sum: KpiRecordSumAggregateOutputType | null
+    _min: KpiRecordMinAggregateOutputType | null
+    _max: KpiRecordMaxAggregateOutputType | null
+  }
+
+  type GetKpiRecordGroupByPayload<T extends KpiRecordGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<KpiRecordGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof KpiRecordGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], KpiRecordGroupByOutputType[P]>
+            : GetScalarType<T[P], KpiRecordGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type KpiRecordSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    driverId?: boolean
+    kpiDefinitionId?: boolean
+    date?: boolean
+    value?: boolean
+    target?: boolean
+    score?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+    kpiDefinition?: boolean | KpiDefinitionDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["kpiRecord"]>
+
+  export type KpiRecordSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    driverId?: boolean
+    kpiDefinitionId?: boolean
+    date?: boolean
+    value?: boolean
+    target?: boolean
+    score?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+    kpiDefinition?: boolean | KpiDefinitionDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["kpiRecord"]>
+
+  export type KpiRecordSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    driverId?: boolean
+    kpiDefinitionId?: boolean
+    date?: boolean
+    value?: boolean
+    target?: boolean
+    score?: boolean
+    source?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type KpiRecordInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+    kpiDefinition?: boolean | KpiDefinitionDefaultArgs<ExtArgs>
+  }
+  export type KpiRecordIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    driver?: boolean | DriverDefaultArgs<ExtArgs>
+    kpiDefinition?: boolean | KpiDefinitionDefaultArgs<ExtArgs>
+  }
+
+  export type $KpiRecordPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "KpiRecord"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      driver: Prisma.$DriverPayload<ExtArgs>
+      kpiDefinition: Prisma.$KpiDefinitionPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      driverId: string
+      kpiDefinitionId: string
+      date: Date
+      value: Prisma.Decimal
+      target: Prisma.Decimal | null
+      score: Prisma.Decimal | null
+      source: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["kpiRecord"]>
+    composites: {}
+  }
+
+  type KpiRecordGetPayload<S extends boolean | null | undefined | KpiRecordDefaultArgs> = $Result.GetResult<Prisma.$KpiRecordPayload, S>
+
+  type KpiRecordCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<KpiRecordFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: KpiRecordCountAggregateInputType | true
+    }
+
+  export interface KpiRecordDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['KpiRecord'], meta: { name: 'KpiRecord' } }
+    /**
+     * Find zero or one KpiRecord that matches the filter.
+     * @param {KpiRecordFindUniqueArgs} args - Arguments to find a KpiRecord
+     * @example
+     * // Get one KpiRecord
+     * const kpiRecord = await prisma.kpiRecord.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends KpiRecordFindUniqueArgs>(args: SelectSubset<T, KpiRecordFindUniqueArgs<ExtArgs>>): Prisma__KpiRecordClient<$Result.GetResult<Prisma.$KpiRecordPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one KpiRecord that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {KpiRecordFindUniqueOrThrowArgs} args - Arguments to find a KpiRecord
+     * @example
+     * // Get one KpiRecord
+     * const kpiRecord = await prisma.kpiRecord.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends KpiRecordFindUniqueOrThrowArgs>(args: SelectSubset<T, KpiRecordFindUniqueOrThrowArgs<ExtArgs>>): Prisma__KpiRecordClient<$Result.GetResult<Prisma.$KpiRecordPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first KpiRecord that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiRecordFindFirstArgs} args - Arguments to find a KpiRecord
+     * @example
+     * // Get one KpiRecord
+     * const kpiRecord = await prisma.kpiRecord.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends KpiRecordFindFirstArgs>(args?: SelectSubset<T, KpiRecordFindFirstArgs<ExtArgs>>): Prisma__KpiRecordClient<$Result.GetResult<Prisma.$KpiRecordPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first KpiRecord that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiRecordFindFirstOrThrowArgs} args - Arguments to find a KpiRecord
+     * @example
+     * // Get one KpiRecord
+     * const kpiRecord = await prisma.kpiRecord.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends KpiRecordFindFirstOrThrowArgs>(args?: SelectSubset<T, KpiRecordFindFirstOrThrowArgs<ExtArgs>>): Prisma__KpiRecordClient<$Result.GetResult<Prisma.$KpiRecordPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more KpiRecords that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiRecordFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all KpiRecords
+     * const kpiRecords = await prisma.kpiRecord.findMany()
+     * 
+     * // Get first 10 KpiRecords
+     * const kpiRecords = await prisma.kpiRecord.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const kpiRecordWithIdOnly = await prisma.kpiRecord.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends KpiRecordFindManyArgs>(args?: SelectSubset<T, KpiRecordFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KpiRecordPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a KpiRecord.
+     * @param {KpiRecordCreateArgs} args - Arguments to create a KpiRecord.
+     * @example
+     * // Create one KpiRecord
+     * const KpiRecord = await prisma.kpiRecord.create({
+     *   data: {
+     *     // ... data to create a KpiRecord
+     *   }
+     * })
+     * 
+     */
+    create<T extends KpiRecordCreateArgs>(args: SelectSubset<T, KpiRecordCreateArgs<ExtArgs>>): Prisma__KpiRecordClient<$Result.GetResult<Prisma.$KpiRecordPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many KpiRecords.
+     * @param {KpiRecordCreateManyArgs} args - Arguments to create many KpiRecords.
+     * @example
+     * // Create many KpiRecords
+     * const kpiRecord = await prisma.kpiRecord.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends KpiRecordCreateManyArgs>(args?: SelectSubset<T, KpiRecordCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many KpiRecords and returns the data saved in the database.
+     * @param {KpiRecordCreateManyAndReturnArgs} args - Arguments to create many KpiRecords.
+     * @example
+     * // Create many KpiRecords
+     * const kpiRecord = await prisma.kpiRecord.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many KpiRecords and only return the `id`
+     * const kpiRecordWithIdOnly = await prisma.kpiRecord.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends KpiRecordCreateManyAndReturnArgs>(args?: SelectSubset<T, KpiRecordCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KpiRecordPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a KpiRecord.
+     * @param {KpiRecordDeleteArgs} args - Arguments to delete one KpiRecord.
+     * @example
+     * // Delete one KpiRecord
+     * const KpiRecord = await prisma.kpiRecord.delete({
+     *   where: {
+     *     // ... filter to delete one KpiRecord
+     *   }
+     * })
+     * 
+     */
+    delete<T extends KpiRecordDeleteArgs>(args: SelectSubset<T, KpiRecordDeleteArgs<ExtArgs>>): Prisma__KpiRecordClient<$Result.GetResult<Prisma.$KpiRecordPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one KpiRecord.
+     * @param {KpiRecordUpdateArgs} args - Arguments to update one KpiRecord.
+     * @example
+     * // Update one KpiRecord
+     * const kpiRecord = await prisma.kpiRecord.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends KpiRecordUpdateArgs>(args: SelectSubset<T, KpiRecordUpdateArgs<ExtArgs>>): Prisma__KpiRecordClient<$Result.GetResult<Prisma.$KpiRecordPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more KpiRecords.
+     * @param {KpiRecordDeleteManyArgs} args - Arguments to filter KpiRecords to delete.
+     * @example
+     * // Delete a few KpiRecords
+     * const { count } = await prisma.kpiRecord.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends KpiRecordDeleteManyArgs>(args?: SelectSubset<T, KpiRecordDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more KpiRecords.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiRecordUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many KpiRecords
+     * const kpiRecord = await prisma.kpiRecord.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends KpiRecordUpdateManyArgs>(args: SelectSubset<T, KpiRecordUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one KpiRecord.
+     * @param {KpiRecordUpsertArgs} args - Arguments to update or create a KpiRecord.
+     * @example
+     * // Update or create a KpiRecord
+     * const kpiRecord = await prisma.kpiRecord.upsert({
+     *   create: {
+     *     // ... data to create a KpiRecord
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the KpiRecord we want to update
+     *   }
+     * })
+     */
+    upsert<T extends KpiRecordUpsertArgs>(args: SelectSubset<T, KpiRecordUpsertArgs<ExtArgs>>): Prisma__KpiRecordClient<$Result.GetResult<Prisma.$KpiRecordPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of KpiRecords.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiRecordCountArgs} args - Arguments to filter KpiRecords to count.
+     * @example
+     * // Count the number of KpiRecords
+     * const count = await prisma.kpiRecord.count({
+     *   where: {
+     *     // ... the filter for the KpiRecords we want to count
+     *   }
+     * })
+    **/
+    count<T extends KpiRecordCountArgs>(
+      args?: Subset<T, KpiRecordCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], KpiRecordCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a KpiRecord.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiRecordAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends KpiRecordAggregateArgs>(args: Subset<T, KpiRecordAggregateArgs>): Prisma.PrismaPromise<GetKpiRecordAggregateType<T>>
+
+    /**
+     * Group by KpiRecord.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KpiRecordGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends KpiRecordGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: KpiRecordGroupByArgs['orderBy'] }
+        : { orderBy?: KpiRecordGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, KpiRecordGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetKpiRecordGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the KpiRecord model
+   */
+  readonly fields: KpiRecordFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for KpiRecord.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__KpiRecordClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    driver<T extends DriverDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DriverDefaultArgs<ExtArgs>>): Prisma__DriverClient<$Result.GetResult<Prisma.$DriverPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    kpiDefinition<T extends KpiDefinitionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, KpiDefinitionDefaultArgs<ExtArgs>>): Prisma__KpiDefinitionClient<$Result.GetResult<Prisma.$KpiDefinitionPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the KpiRecord model
+   */ 
+  interface KpiRecordFieldRefs {
+    readonly id: FieldRef<"KpiRecord", 'String'>
+    readonly tenantId: FieldRef<"KpiRecord", 'String'>
+    readonly driverId: FieldRef<"KpiRecord", 'String'>
+    readonly kpiDefinitionId: FieldRef<"KpiRecord", 'String'>
+    readonly date: FieldRef<"KpiRecord", 'DateTime'>
+    readonly value: FieldRef<"KpiRecord", 'Decimal'>
+    readonly target: FieldRef<"KpiRecord", 'Decimal'>
+    readonly score: FieldRef<"KpiRecord", 'Decimal'>
+    readonly source: FieldRef<"KpiRecord", 'String'>
+    readonly createdAt: FieldRef<"KpiRecord", 'DateTime'>
+    readonly updatedAt: FieldRef<"KpiRecord", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * KpiRecord findUnique
+   */
+  export type KpiRecordFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordInclude<ExtArgs> | null
+    /**
+     * Filter, which KpiRecord to fetch.
+     */
+    where: KpiRecordWhereUniqueInput
+  }
+
+  /**
+   * KpiRecord findUniqueOrThrow
+   */
+  export type KpiRecordFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordInclude<ExtArgs> | null
+    /**
+     * Filter, which KpiRecord to fetch.
+     */
+    where: KpiRecordWhereUniqueInput
+  }
+
+  /**
+   * KpiRecord findFirst
+   */
+  export type KpiRecordFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordInclude<ExtArgs> | null
+    /**
+     * Filter, which KpiRecord to fetch.
+     */
+    where?: KpiRecordWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KpiRecords to fetch.
+     */
+    orderBy?: KpiRecordOrderByWithRelationInput | KpiRecordOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KpiRecords.
+     */
+    cursor?: KpiRecordWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KpiRecords from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KpiRecords.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KpiRecords.
+     */
+    distinct?: KpiRecordScalarFieldEnum | KpiRecordScalarFieldEnum[]
+  }
+
+  /**
+   * KpiRecord findFirstOrThrow
+   */
+  export type KpiRecordFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordInclude<ExtArgs> | null
+    /**
+     * Filter, which KpiRecord to fetch.
+     */
+    where?: KpiRecordWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KpiRecords to fetch.
+     */
+    orderBy?: KpiRecordOrderByWithRelationInput | KpiRecordOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KpiRecords.
+     */
+    cursor?: KpiRecordWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KpiRecords from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KpiRecords.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KpiRecords.
+     */
+    distinct?: KpiRecordScalarFieldEnum | KpiRecordScalarFieldEnum[]
+  }
+
+  /**
+   * KpiRecord findMany
+   */
+  export type KpiRecordFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordInclude<ExtArgs> | null
+    /**
+     * Filter, which KpiRecords to fetch.
+     */
+    where?: KpiRecordWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KpiRecords to fetch.
+     */
+    orderBy?: KpiRecordOrderByWithRelationInput | KpiRecordOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing KpiRecords.
+     */
+    cursor?: KpiRecordWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KpiRecords from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KpiRecords.
+     */
+    skip?: number
+    distinct?: KpiRecordScalarFieldEnum | KpiRecordScalarFieldEnum[]
+  }
+
+  /**
+   * KpiRecord create
+   */
+  export type KpiRecordCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordInclude<ExtArgs> | null
+    /**
+     * The data needed to create a KpiRecord.
+     */
+    data: XOR<KpiRecordCreateInput, KpiRecordUncheckedCreateInput>
+  }
+
+  /**
+   * KpiRecord createMany
+   */
+  export type KpiRecordCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many KpiRecords.
+     */
+    data: KpiRecordCreateManyInput | KpiRecordCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * KpiRecord createManyAndReturn
+   */
+  export type KpiRecordCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many KpiRecords.
+     */
+    data: KpiRecordCreateManyInput | KpiRecordCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * KpiRecord update
+   */
+  export type KpiRecordUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordInclude<ExtArgs> | null
+    /**
+     * The data needed to update a KpiRecord.
+     */
+    data: XOR<KpiRecordUpdateInput, KpiRecordUncheckedUpdateInput>
+    /**
+     * Choose, which KpiRecord to update.
+     */
+    where: KpiRecordWhereUniqueInput
+  }
+
+  /**
+   * KpiRecord updateMany
+   */
+  export type KpiRecordUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update KpiRecords.
+     */
+    data: XOR<KpiRecordUpdateManyMutationInput, KpiRecordUncheckedUpdateManyInput>
+    /**
+     * Filter which KpiRecords to update
+     */
+    where?: KpiRecordWhereInput
+  }
+
+  /**
+   * KpiRecord upsert
+   */
+  export type KpiRecordUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordInclude<ExtArgs> | null
+    /**
+     * The filter to search for the KpiRecord to update in case it exists.
+     */
+    where: KpiRecordWhereUniqueInput
+    /**
+     * In case the KpiRecord found by the `where` argument doesn't exist, create a new KpiRecord with this data.
+     */
+    create: XOR<KpiRecordCreateInput, KpiRecordUncheckedCreateInput>
+    /**
+     * In case the KpiRecord was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<KpiRecordUpdateInput, KpiRecordUncheckedUpdateInput>
+  }
+
+  /**
+   * KpiRecord delete
+   */
+  export type KpiRecordDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordInclude<ExtArgs> | null
+    /**
+     * Filter which KpiRecord to delete.
+     */
+    where: KpiRecordWhereUniqueInput
+  }
+
+  /**
+   * KpiRecord deleteMany
+   */
+  export type KpiRecordDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KpiRecords to delete
+     */
+    where?: KpiRecordWhereInput
+  }
+
+  /**
+   * KpiRecord without action
+   */
+  export type KpiRecordDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KpiRecord
+     */
+    select?: KpiRecordSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: KpiRecordInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Notification
+   */
+
+  export type AggregateNotification = {
+    _count: NotificationCountAggregateOutputType | null
+    _min: NotificationMinAggregateOutputType | null
+    _max: NotificationMaxAggregateOutputType | null
+  }
+
+  export type NotificationMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    userId: string | null
+    title: string | null
+    message: string | null
+    type: string | null
+    severity: string | null
+    sourceId: string | null
+    read: boolean | null
+    readAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type NotificationMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    userId: string | null
+    title: string | null
+    message: string | null
+    type: string | null
+    severity: string | null
+    sourceId: string | null
+    read: boolean | null
+    readAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type NotificationCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    userId: number
+    title: number
+    message: number
+    type: number
+    severity: number
+    sourceId: number
+    metadata: number
+    read: number
+    readAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type NotificationMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    userId?: true
+    title?: true
+    message?: true
+    type?: true
+    severity?: true
+    sourceId?: true
+    read?: true
+    readAt?: true
+    createdAt?: true
+  }
+
+  export type NotificationMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    userId?: true
+    title?: true
+    message?: true
+    type?: true
+    severity?: true
+    sourceId?: true
+    read?: true
+    readAt?: true
+    createdAt?: true
+  }
+
+  export type NotificationCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    userId?: true
+    title?: true
+    message?: true
+    type?: true
+    severity?: true
+    sourceId?: true
+    metadata?: true
+    read?: true
+    readAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type NotificationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Notification to aggregate.
+     */
+    where?: NotificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Notifications to fetch.
+     */
+    orderBy?: NotificationOrderByWithRelationInput | NotificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: NotificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Notifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Notifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Notifications
+    **/
+    _count?: true | NotificationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: NotificationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: NotificationMaxAggregateInputType
+  }
+
+  export type GetNotificationAggregateType<T extends NotificationAggregateArgs> = {
+        [P in keyof T & keyof AggregateNotification]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNotification[P]>
+      : GetScalarType<T[P], AggregateNotification[P]>
+  }
+
+
+
+
+  export type NotificationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: NotificationWhereInput
+    orderBy?: NotificationOrderByWithAggregationInput | NotificationOrderByWithAggregationInput[]
+    by: NotificationScalarFieldEnum[] | NotificationScalarFieldEnum
+    having?: NotificationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: NotificationCountAggregateInputType | true
+    _min?: NotificationMinAggregateInputType
+    _max?: NotificationMaxAggregateInputType
+  }
+
+  export type NotificationGroupByOutputType = {
+    id: string
+    tenantId: string
+    userId: string
+    title: string
+    message: string
+    type: string
+    severity: string
+    sourceId: string | null
+    metadata: JsonValue | null
+    read: boolean
+    readAt: Date | null
+    createdAt: Date
+    _count: NotificationCountAggregateOutputType | null
+    _min: NotificationMinAggregateOutputType | null
+    _max: NotificationMaxAggregateOutputType | null
+  }
+
+  type GetNotificationGroupByPayload<T extends NotificationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<NotificationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof NotificationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], NotificationGroupByOutputType[P]>
+            : GetScalarType<T[P], NotificationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type NotificationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    userId?: boolean
+    title?: boolean
+    message?: boolean
+    type?: boolean
+    severity?: boolean
+    sourceId?: boolean
+    metadata?: boolean
+    read?: boolean
+    readAt?: boolean
+    createdAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["notification"]>
+
+  export type NotificationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    userId?: boolean
+    title?: boolean
+    message?: boolean
+    type?: boolean
+    severity?: boolean
+    sourceId?: boolean
+    metadata?: boolean
+    read?: boolean
+    readAt?: boolean
+    createdAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["notification"]>
+
+  export type NotificationSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    userId?: boolean
+    title?: boolean
+    message?: boolean
+    type?: boolean
+    severity?: boolean
+    sourceId?: boolean
+    metadata?: boolean
+    read?: boolean
+    readAt?: boolean
+    createdAt?: boolean
+  }
+
+  export type NotificationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type NotificationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $NotificationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Notification"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      userId: string
+      title: string
+      message: string
+      type: string
+      severity: string
+      sourceId: string | null
+      metadata: Prisma.JsonValue | null
+      read: boolean
+      readAt: Date | null
+      createdAt: Date
+    }, ExtArgs["result"]["notification"]>
+    composites: {}
+  }
+
+  type NotificationGetPayload<S extends boolean | null | undefined | NotificationDefaultArgs> = $Result.GetResult<Prisma.$NotificationPayload, S>
+
+  type NotificationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<NotificationFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: NotificationCountAggregateInputType | true
+    }
+
+  export interface NotificationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Notification'], meta: { name: 'Notification' } }
+    /**
+     * Find zero or one Notification that matches the filter.
+     * @param {NotificationFindUniqueArgs} args - Arguments to find a Notification
+     * @example
+     * // Get one Notification
+     * const notification = await prisma.notification.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends NotificationFindUniqueArgs>(args: SelectSubset<T, NotificationFindUniqueArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Notification that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {NotificationFindUniqueOrThrowArgs} args - Arguments to find a Notification
+     * @example
+     * // Get one Notification
+     * const notification = await prisma.notification.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends NotificationFindUniqueOrThrowArgs>(args: SelectSubset<T, NotificationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Notification that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationFindFirstArgs} args - Arguments to find a Notification
+     * @example
+     * // Get one Notification
+     * const notification = await prisma.notification.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends NotificationFindFirstArgs>(args?: SelectSubset<T, NotificationFindFirstArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Notification that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationFindFirstOrThrowArgs} args - Arguments to find a Notification
+     * @example
+     * // Get one Notification
+     * const notification = await prisma.notification.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends NotificationFindFirstOrThrowArgs>(args?: SelectSubset<T, NotificationFindFirstOrThrowArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Notifications that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Notifications
+     * const notifications = await prisma.notification.findMany()
+     * 
+     * // Get first 10 Notifications
+     * const notifications = await prisma.notification.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const notificationWithIdOnly = await prisma.notification.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends NotificationFindManyArgs>(args?: SelectSubset<T, NotificationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Notification.
+     * @param {NotificationCreateArgs} args - Arguments to create a Notification.
+     * @example
+     * // Create one Notification
+     * const Notification = await prisma.notification.create({
+     *   data: {
+     *     // ... data to create a Notification
+     *   }
+     * })
+     * 
+     */
+    create<T extends NotificationCreateArgs>(args: SelectSubset<T, NotificationCreateArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Notifications.
+     * @param {NotificationCreateManyArgs} args - Arguments to create many Notifications.
+     * @example
+     * // Create many Notifications
+     * const notification = await prisma.notification.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends NotificationCreateManyArgs>(args?: SelectSubset<T, NotificationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Notifications and returns the data saved in the database.
+     * @param {NotificationCreateManyAndReturnArgs} args - Arguments to create many Notifications.
+     * @example
+     * // Create many Notifications
+     * const notification = await prisma.notification.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Notifications and only return the `id`
+     * const notificationWithIdOnly = await prisma.notification.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends NotificationCreateManyAndReturnArgs>(args?: SelectSubset<T, NotificationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Notification.
+     * @param {NotificationDeleteArgs} args - Arguments to delete one Notification.
+     * @example
+     * // Delete one Notification
+     * const Notification = await prisma.notification.delete({
+     *   where: {
+     *     // ... filter to delete one Notification
+     *   }
+     * })
+     * 
+     */
+    delete<T extends NotificationDeleteArgs>(args: SelectSubset<T, NotificationDeleteArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Notification.
+     * @param {NotificationUpdateArgs} args - Arguments to update one Notification.
+     * @example
+     * // Update one Notification
+     * const notification = await prisma.notification.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends NotificationUpdateArgs>(args: SelectSubset<T, NotificationUpdateArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Notifications.
+     * @param {NotificationDeleteManyArgs} args - Arguments to filter Notifications to delete.
+     * @example
+     * // Delete a few Notifications
+     * const { count } = await prisma.notification.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends NotificationDeleteManyArgs>(args?: SelectSubset<T, NotificationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Notifications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Notifications
+     * const notification = await prisma.notification.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends NotificationUpdateManyArgs>(args: SelectSubset<T, NotificationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Notification.
+     * @param {NotificationUpsertArgs} args - Arguments to update or create a Notification.
+     * @example
+     * // Update or create a Notification
+     * const notification = await prisma.notification.upsert({
+     *   create: {
+     *     // ... data to create a Notification
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Notification we want to update
+     *   }
+     * })
+     */
+    upsert<T extends NotificationUpsertArgs>(args: SelectSubset<T, NotificationUpsertArgs<ExtArgs>>): Prisma__NotificationClient<$Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Notifications.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationCountArgs} args - Arguments to filter Notifications to count.
+     * @example
+     * // Count the number of Notifications
+     * const count = await prisma.notification.count({
+     *   where: {
+     *     // ... the filter for the Notifications we want to count
+     *   }
+     * })
+    **/
+    count<T extends NotificationCountArgs>(
+      args?: Subset<T, NotificationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], NotificationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Notification.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends NotificationAggregateArgs>(args: Subset<T, NotificationAggregateArgs>): Prisma.PrismaPromise<GetNotificationAggregateType<T>>
+
+    /**
+     * Group by Notification.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends NotificationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: NotificationGroupByArgs['orderBy'] }
+        : { orderBy?: NotificationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, NotificationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNotificationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Notification model
+   */
+  readonly fields: NotificationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Notification.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__NotificationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Notification model
+   */ 
+  interface NotificationFieldRefs {
+    readonly id: FieldRef<"Notification", 'String'>
+    readonly tenantId: FieldRef<"Notification", 'String'>
+    readonly userId: FieldRef<"Notification", 'String'>
+    readonly title: FieldRef<"Notification", 'String'>
+    readonly message: FieldRef<"Notification", 'String'>
+    readonly type: FieldRef<"Notification", 'String'>
+    readonly severity: FieldRef<"Notification", 'String'>
+    readonly sourceId: FieldRef<"Notification", 'String'>
+    readonly metadata: FieldRef<"Notification", 'Json'>
+    readonly read: FieldRef<"Notification", 'Boolean'>
+    readonly readAt: FieldRef<"Notification", 'DateTime'>
+    readonly createdAt: FieldRef<"Notification", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Notification findUnique
+   */
+  export type NotificationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which Notification to fetch.
+     */
+    where: NotificationWhereUniqueInput
+  }
+
+  /**
+   * Notification findUniqueOrThrow
+   */
+  export type NotificationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which Notification to fetch.
+     */
+    where: NotificationWhereUniqueInput
+  }
+
+  /**
+   * Notification findFirst
+   */
+  export type NotificationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which Notification to fetch.
+     */
+    where?: NotificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Notifications to fetch.
+     */
+    orderBy?: NotificationOrderByWithRelationInput | NotificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Notifications.
+     */
+    cursor?: NotificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Notifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Notifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Notifications.
+     */
+    distinct?: NotificationScalarFieldEnum | NotificationScalarFieldEnum[]
+  }
+
+  /**
+   * Notification findFirstOrThrow
+   */
+  export type NotificationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which Notification to fetch.
+     */
+    where?: NotificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Notifications to fetch.
+     */
+    orderBy?: NotificationOrderByWithRelationInput | NotificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Notifications.
+     */
+    cursor?: NotificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Notifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Notifications.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Notifications.
+     */
+    distinct?: NotificationScalarFieldEnum | NotificationScalarFieldEnum[]
+  }
+
+  /**
+   * Notification findMany
+   */
+  export type NotificationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * Filter, which Notifications to fetch.
+     */
+    where?: NotificationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Notifications to fetch.
+     */
+    orderBy?: NotificationOrderByWithRelationInput | NotificationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Notifications.
+     */
+    cursor?: NotificationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Notifications from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Notifications.
+     */
+    skip?: number
+    distinct?: NotificationScalarFieldEnum | NotificationScalarFieldEnum[]
+  }
+
+  /**
+   * Notification create
+   */
+  export type NotificationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Notification.
+     */
+    data: XOR<NotificationCreateInput, NotificationUncheckedCreateInput>
+  }
+
+  /**
+   * Notification createMany
+   */
+  export type NotificationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Notifications.
+     */
+    data: NotificationCreateManyInput | NotificationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Notification createManyAndReturn
+   */
+  export type NotificationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Notifications.
+     */
+    data: NotificationCreateManyInput | NotificationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Notification update
+   */
+  export type NotificationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Notification.
+     */
+    data: XOR<NotificationUpdateInput, NotificationUncheckedUpdateInput>
+    /**
+     * Choose, which Notification to update.
+     */
+    where: NotificationWhereUniqueInput
+  }
+
+  /**
+   * Notification updateMany
+   */
+  export type NotificationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Notifications.
+     */
+    data: XOR<NotificationUpdateManyMutationInput, NotificationUncheckedUpdateManyInput>
+    /**
+     * Filter which Notifications to update
+     */
+    where?: NotificationWhereInput
+  }
+
+  /**
+   * Notification upsert
+   */
+  export type NotificationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Notification to update in case it exists.
+     */
+    where: NotificationWhereUniqueInput
+    /**
+     * In case the Notification found by the `where` argument doesn't exist, create a new Notification with this data.
+     */
+    create: XOR<NotificationCreateInput, NotificationUncheckedCreateInput>
+    /**
+     * In case the Notification was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<NotificationUpdateInput, NotificationUncheckedUpdateInput>
+  }
+
+  /**
+   * Notification delete
+   */
+  export type NotificationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+    /**
+     * Filter which Notification to delete.
+     */
+    where: NotificationWhereUniqueInput
+  }
+
+  /**
+   * Notification deleteMany
+   */
+  export type NotificationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Notifications to delete
+     */
+    where?: NotificationWhereInput
+  }
+
+  /**
+   * Notification without action
+   */
+  export type NotificationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Notification
+     */
+    select?: NotificationSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model NotificationRule
+   */
+
+  export type AggregateNotificationRule = {
+    _count: NotificationRuleCountAggregateOutputType | null
+    _min: NotificationRuleMinAggregateOutputType | null
+    _max: NotificationRuleMaxAggregateOutputType | null
+  }
+
+  export type NotificationRuleMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    eventType: string | null
+    role: $Enums.UserRole | null
+    enabled: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type NotificationRuleMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    eventType: string | null
+    role: $Enums.UserRole | null
+    enabled: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type NotificationRuleCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    eventType: number
+    role: number
+    enabled: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type NotificationRuleMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    eventType?: true
+    role?: true
+    enabled?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type NotificationRuleMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    eventType?: true
+    role?: true
+    enabled?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type NotificationRuleCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    eventType?: true
+    role?: true
+    enabled?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type NotificationRuleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which NotificationRule to aggregate.
+     */
+    where?: NotificationRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NotificationRules to fetch.
+     */
+    orderBy?: NotificationRuleOrderByWithRelationInput | NotificationRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: NotificationRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NotificationRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NotificationRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned NotificationRules
+    **/
+    _count?: true | NotificationRuleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: NotificationRuleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: NotificationRuleMaxAggregateInputType
+  }
+
+  export type GetNotificationRuleAggregateType<T extends NotificationRuleAggregateArgs> = {
+        [P in keyof T & keyof AggregateNotificationRule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNotificationRule[P]>
+      : GetScalarType<T[P], AggregateNotificationRule[P]>
+  }
+
+
+
+
+  export type NotificationRuleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: NotificationRuleWhereInput
+    orderBy?: NotificationRuleOrderByWithAggregationInput | NotificationRuleOrderByWithAggregationInput[]
+    by: NotificationRuleScalarFieldEnum[] | NotificationRuleScalarFieldEnum
+    having?: NotificationRuleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: NotificationRuleCountAggregateInputType | true
+    _min?: NotificationRuleMinAggregateInputType
+    _max?: NotificationRuleMaxAggregateInputType
+  }
+
+  export type NotificationRuleGroupByOutputType = {
+    id: string
+    tenantId: string
+    eventType: string
+    role: $Enums.UserRole
+    enabled: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: NotificationRuleCountAggregateOutputType | null
+    _min: NotificationRuleMinAggregateOutputType | null
+    _max: NotificationRuleMaxAggregateOutputType | null
+  }
+
+  type GetNotificationRuleGroupByPayload<T extends NotificationRuleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<NotificationRuleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof NotificationRuleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], NotificationRuleGroupByOutputType[P]>
+            : GetScalarType<T[P], NotificationRuleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type NotificationRuleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    eventType?: boolean
+    role?: boolean
+    enabled?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["notificationRule"]>
+
+  export type NotificationRuleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    eventType?: boolean
+    role?: boolean
+    enabled?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["notificationRule"]>
+
+  export type NotificationRuleSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    eventType?: boolean
+    role?: boolean
+    enabled?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type NotificationRuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+  export type NotificationRuleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+
+  export type $NotificationRulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "NotificationRule"
+    objects: {
+      tenant: Prisma.$TenantPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      eventType: string
+      role: $Enums.UserRole
+      enabled: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["notificationRule"]>
+    composites: {}
+  }
+
+  type NotificationRuleGetPayload<S extends boolean | null | undefined | NotificationRuleDefaultArgs> = $Result.GetResult<Prisma.$NotificationRulePayload, S>
+
+  type NotificationRuleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<NotificationRuleFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: NotificationRuleCountAggregateInputType | true
+    }
+
+  export interface NotificationRuleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['NotificationRule'], meta: { name: 'NotificationRule' } }
+    /**
+     * Find zero or one NotificationRule that matches the filter.
+     * @param {NotificationRuleFindUniqueArgs} args - Arguments to find a NotificationRule
+     * @example
+     * // Get one NotificationRule
+     * const notificationRule = await prisma.notificationRule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends NotificationRuleFindUniqueArgs>(args: SelectSubset<T, NotificationRuleFindUniqueArgs<ExtArgs>>): Prisma__NotificationRuleClient<$Result.GetResult<Prisma.$NotificationRulePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one NotificationRule that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {NotificationRuleFindUniqueOrThrowArgs} args - Arguments to find a NotificationRule
+     * @example
+     * // Get one NotificationRule
+     * const notificationRule = await prisma.notificationRule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends NotificationRuleFindUniqueOrThrowArgs>(args: SelectSubset<T, NotificationRuleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__NotificationRuleClient<$Result.GetResult<Prisma.$NotificationRulePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first NotificationRule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationRuleFindFirstArgs} args - Arguments to find a NotificationRule
+     * @example
+     * // Get one NotificationRule
+     * const notificationRule = await prisma.notificationRule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends NotificationRuleFindFirstArgs>(args?: SelectSubset<T, NotificationRuleFindFirstArgs<ExtArgs>>): Prisma__NotificationRuleClient<$Result.GetResult<Prisma.$NotificationRulePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first NotificationRule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationRuleFindFirstOrThrowArgs} args - Arguments to find a NotificationRule
+     * @example
+     * // Get one NotificationRule
+     * const notificationRule = await prisma.notificationRule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends NotificationRuleFindFirstOrThrowArgs>(args?: SelectSubset<T, NotificationRuleFindFirstOrThrowArgs<ExtArgs>>): Prisma__NotificationRuleClient<$Result.GetResult<Prisma.$NotificationRulePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more NotificationRules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationRuleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all NotificationRules
+     * const notificationRules = await prisma.notificationRule.findMany()
+     * 
+     * // Get first 10 NotificationRules
+     * const notificationRules = await prisma.notificationRule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const notificationRuleWithIdOnly = await prisma.notificationRule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends NotificationRuleFindManyArgs>(args?: SelectSubset<T, NotificationRuleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationRulePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a NotificationRule.
+     * @param {NotificationRuleCreateArgs} args - Arguments to create a NotificationRule.
+     * @example
+     * // Create one NotificationRule
+     * const NotificationRule = await prisma.notificationRule.create({
+     *   data: {
+     *     // ... data to create a NotificationRule
+     *   }
+     * })
+     * 
+     */
+    create<T extends NotificationRuleCreateArgs>(args: SelectSubset<T, NotificationRuleCreateArgs<ExtArgs>>): Prisma__NotificationRuleClient<$Result.GetResult<Prisma.$NotificationRulePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many NotificationRules.
+     * @param {NotificationRuleCreateManyArgs} args - Arguments to create many NotificationRules.
+     * @example
+     * // Create many NotificationRules
+     * const notificationRule = await prisma.notificationRule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends NotificationRuleCreateManyArgs>(args?: SelectSubset<T, NotificationRuleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many NotificationRules and returns the data saved in the database.
+     * @param {NotificationRuleCreateManyAndReturnArgs} args - Arguments to create many NotificationRules.
+     * @example
+     * // Create many NotificationRules
+     * const notificationRule = await prisma.notificationRule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many NotificationRules and only return the `id`
+     * const notificationRuleWithIdOnly = await prisma.notificationRule.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends NotificationRuleCreateManyAndReturnArgs>(args?: SelectSubset<T, NotificationRuleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NotificationRulePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a NotificationRule.
+     * @param {NotificationRuleDeleteArgs} args - Arguments to delete one NotificationRule.
+     * @example
+     * // Delete one NotificationRule
+     * const NotificationRule = await prisma.notificationRule.delete({
+     *   where: {
+     *     // ... filter to delete one NotificationRule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends NotificationRuleDeleteArgs>(args: SelectSubset<T, NotificationRuleDeleteArgs<ExtArgs>>): Prisma__NotificationRuleClient<$Result.GetResult<Prisma.$NotificationRulePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one NotificationRule.
+     * @param {NotificationRuleUpdateArgs} args - Arguments to update one NotificationRule.
+     * @example
+     * // Update one NotificationRule
+     * const notificationRule = await prisma.notificationRule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends NotificationRuleUpdateArgs>(args: SelectSubset<T, NotificationRuleUpdateArgs<ExtArgs>>): Prisma__NotificationRuleClient<$Result.GetResult<Prisma.$NotificationRulePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more NotificationRules.
+     * @param {NotificationRuleDeleteManyArgs} args - Arguments to filter NotificationRules to delete.
+     * @example
+     * // Delete a few NotificationRules
+     * const { count } = await prisma.notificationRule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends NotificationRuleDeleteManyArgs>(args?: SelectSubset<T, NotificationRuleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more NotificationRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationRuleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many NotificationRules
+     * const notificationRule = await prisma.notificationRule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends NotificationRuleUpdateManyArgs>(args: SelectSubset<T, NotificationRuleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one NotificationRule.
+     * @param {NotificationRuleUpsertArgs} args - Arguments to update or create a NotificationRule.
+     * @example
+     * // Update or create a NotificationRule
+     * const notificationRule = await prisma.notificationRule.upsert({
+     *   create: {
+     *     // ... data to create a NotificationRule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the NotificationRule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends NotificationRuleUpsertArgs>(args: SelectSubset<T, NotificationRuleUpsertArgs<ExtArgs>>): Prisma__NotificationRuleClient<$Result.GetResult<Prisma.$NotificationRulePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of NotificationRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationRuleCountArgs} args - Arguments to filter NotificationRules to count.
+     * @example
+     * // Count the number of NotificationRules
+     * const count = await prisma.notificationRule.count({
+     *   where: {
+     *     // ... the filter for the NotificationRules we want to count
+     *   }
+     * })
+    **/
+    count<T extends NotificationRuleCountArgs>(
+      args?: Subset<T, NotificationRuleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], NotificationRuleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a NotificationRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationRuleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends NotificationRuleAggregateArgs>(args: Subset<T, NotificationRuleAggregateArgs>): Prisma.PrismaPromise<GetNotificationRuleAggregateType<T>>
+
+    /**
+     * Group by NotificationRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NotificationRuleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends NotificationRuleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: NotificationRuleGroupByArgs['orderBy'] }
+        : { orderBy?: NotificationRuleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, NotificationRuleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNotificationRuleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the NotificationRule model
+   */
+  readonly fields: NotificationRuleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for NotificationRule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__NotificationRuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the NotificationRule model
+   */ 
+  interface NotificationRuleFieldRefs {
+    readonly id: FieldRef<"NotificationRule", 'String'>
+    readonly tenantId: FieldRef<"NotificationRule", 'String'>
+    readonly eventType: FieldRef<"NotificationRule", 'String'>
+    readonly role: FieldRef<"NotificationRule", 'UserRole'>
+    readonly enabled: FieldRef<"NotificationRule", 'Boolean'>
+    readonly createdAt: FieldRef<"NotificationRule", 'DateTime'>
+    readonly updatedAt: FieldRef<"NotificationRule", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * NotificationRule findUnique
+   */
+  export type NotificationRuleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NotificationRule
+     */
+    select?: NotificationRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which NotificationRule to fetch.
+     */
+    where: NotificationRuleWhereUniqueInput
+  }
+
+  /**
+   * NotificationRule findUniqueOrThrow
+   */
+  export type NotificationRuleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NotificationRule
+     */
+    select?: NotificationRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which NotificationRule to fetch.
+     */
+    where: NotificationRuleWhereUniqueInput
+  }
+
+  /**
+   * NotificationRule findFirst
+   */
+  export type NotificationRuleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NotificationRule
+     */
+    select?: NotificationRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which NotificationRule to fetch.
+     */
+    where?: NotificationRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NotificationRules to fetch.
+     */
+    orderBy?: NotificationRuleOrderByWithRelationInput | NotificationRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for NotificationRules.
+     */
+    cursor?: NotificationRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NotificationRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NotificationRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of NotificationRules.
+     */
+    distinct?: NotificationRuleScalarFieldEnum | NotificationRuleScalarFieldEnum[]
+  }
+
+  /**
+   * NotificationRule findFirstOrThrow
+   */
+  export type NotificationRuleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NotificationRule
+     */
+    select?: NotificationRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which NotificationRule to fetch.
+     */
+    where?: NotificationRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NotificationRules to fetch.
+     */
+    orderBy?: NotificationRuleOrderByWithRelationInput | NotificationRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for NotificationRules.
+     */
+    cursor?: NotificationRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NotificationRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NotificationRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of NotificationRules.
+     */
+    distinct?: NotificationRuleScalarFieldEnum | NotificationRuleScalarFieldEnum[]
+  }
+
+  /**
+   * NotificationRule findMany
+   */
+  export type NotificationRuleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NotificationRule
+     */
+    select?: NotificationRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which NotificationRules to fetch.
+     */
+    where?: NotificationRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NotificationRules to fetch.
+     */
+    orderBy?: NotificationRuleOrderByWithRelationInput | NotificationRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing NotificationRules.
+     */
+    cursor?: NotificationRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NotificationRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NotificationRules.
+     */
+    skip?: number
+    distinct?: NotificationRuleScalarFieldEnum | NotificationRuleScalarFieldEnum[]
+  }
+
+  /**
+   * NotificationRule create
+   */
+  export type NotificationRuleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NotificationRule
+     */
+    select?: NotificationRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationRuleInclude<ExtArgs> | null
+    /**
+     * The data needed to create a NotificationRule.
+     */
+    data: XOR<NotificationRuleCreateInput, NotificationRuleUncheckedCreateInput>
+  }
+
+  /**
+   * NotificationRule createMany
+   */
+  export type NotificationRuleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many NotificationRules.
+     */
+    data: NotificationRuleCreateManyInput | NotificationRuleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * NotificationRule createManyAndReturn
+   */
+  export type NotificationRuleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NotificationRule
+     */
+    select?: NotificationRuleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many NotificationRules.
+     */
+    data: NotificationRuleCreateManyInput | NotificationRuleCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationRuleIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * NotificationRule update
+   */
+  export type NotificationRuleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NotificationRule
+     */
+    select?: NotificationRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationRuleInclude<ExtArgs> | null
+    /**
+     * The data needed to update a NotificationRule.
+     */
+    data: XOR<NotificationRuleUpdateInput, NotificationRuleUncheckedUpdateInput>
+    /**
+     * Choose, which NotificationRule to update.
+     */
+    where: NotificationRuleWhereUniqueInput
+  }
+
+  /**
+   * NotificationRule updateMany
+   */
+  export type NotificationRuleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update NotificationRules.
+     */
+    data: XOR<NotificationRuleUpdateManyMutationInput, NotificationRuleUncheckedUpdateManyInput>
+    /**
+     * Filter which NotificationRules to update
+     */
+    where?: NotificationRuleWhereInput
+  }
+
+  /**
+   * NotificationRule upsert
+   */
+  export type NotificationRuleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NotificationRule
+     */
+    select?: NotificationRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationRuleInclude<ExtArgs> | null
+    /**
+     * The filter to search for the NotificationRule to update in case it exists.
+     */
+    where: NotificationRuleWhereUniqueInput
+    /**
+     * In case the NotificationRule found by the `where` argument doesn't exist, create a new NotificationRule with this data.
+     */
+    create: XOR<NotificationRuleCreateInput, NotificationRuleUncheckedCreateInput>
+    /**
+     * In case the NotificationRule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<NotificationRuleUpdateInput, NotificationRuleUncheckedUpdateInput>
+  }
+
+  /**
+   * NotificationRule delete
+   */
+  export type NotificationRuleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NotificationRule
+     */
+    select?: NotificationRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationRuleInclude<ExtArgs> | null
+    /**
+     * Filter which NotificationRule to delete.
+     */
+    where: NotificationRuleWhereUniqueInput
+  }
+
+  /**
+   * NotificationRule deleteMany
+   */
+  export type NotificationRuleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which NotificationRules to delete
+     */
+    where?: NotificationRuleWhereInput
+  }
+
+  /**
+   * NotificationRule without action
+   */
+  export type NotificationRuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NotificationRule
+     */
+    select?: NotificationRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: NotificationRuleInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -38889,6 +47117,8 @@ export namespace Prisma {
     chassisNumber: 'chassisNumber',
     mileage: 'mileage',
     fuelType: 'fuelType',
+    ownerCompany: 'ownerCompany',
+    driverIqama: 'driverIqama',
     status: 'status',
     assignedDriverId: 'assignedDriverId',
     insuranceExpiry: 'insuranceExpiry',
@@ -38985,6 +47215,23 @@ export namespace Prisma {
   };
 
   export type CashRecordScalarFieldEnum = (typeof CashRecordScalarFieldEnum)[keyof typeof CashRecordScalarFieldEnum]
+
+
+  export const CashTransactionScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    driverId: 'driverId',
+    date: 'date',
+    type: 'type',
+    amount: 'amount',
+    orderNumber: 'orderNumber',
+    description: 'description',
+    runningBalance: 'runningBalance',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CashTransactionScalarFieldEnum = (typeof CashTransactionScalarFieldEnum)[keyof typeof CashTransactionScalarFieldEnum]
 
 
   export const PendingDuesLedgerScalarFieldEnum: {
@@ -39275,7 +47522,6 @@ export namespace Prisma {
     driverId: 'driverId',
     sessionId: 'sessionId',
     type: 'type',
-    severity: 'severity',
     description: 'description',
     metadata: 'metadata',
     resolved: 'resolved',
@@ -39345,6 +47591,37 @@ export namespace Prisma {
   export type KeetaDailyMetricsScalarFieldEnum = (typeof KeetaDailyMetricsScalarFieldEnum)[keyof typeof KeetaDailyMetricsScalarFieldEnum]
 
 
+  export const PlatformSettingsScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    platform: 'platform',
+    targets: 'targets',
+    kpis: 'kpis',
+    shiftRules: 'shiftRules',
+    zones: 'zones',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PlatformSettingsScalarFieldEnum = (typeof PlatformSettingsScalarFieldEnum)[keyof typeof PlatformSettingsScalarFieldEnum]
+
+
+  export const CompanyInventoryScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    companyId: 'companyId',
+    itemType: 'itemType',
+    total: 'total',
+    issued: 'issued',
+    available: 'available',
+    minStock: 'minStock',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type CompanyInventoryScalarFieldEnum = (typeof CompanyInventoryScalarFieldEnum)[keyof typeof CompanyInventoryScalarFieldEnum]
+
+
   export const AmericanaDailyOrdersScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
@@ -39364,6 +47641,72 @@ export namespace Prisma {
   };
 
   export type AmericanaDailyOrdersScalarFieldEnum = (typeof AmericanaDailyOrdersScalarFieldEnum)[keyof typeof AmericanaDailyOrdersScalarFieldEnum]
+
+
+  export const KpiDefinitionScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    name: 'name',
+    description: 'description',
+    category: 'category',
+    unit: 'unit',
+    platform: 'platform',
+    target: 'target',
+    isActive: 'isActive',
+    sortOrder: 'sortOrder',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type KpiDefinitionScalarFieldEnum = (typeof KpiDefinitionScalarFieldEnum)[keyof typeof KpiDefinitionScalarFieldEnum]
+
+
+  export const KpiRecordScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    driverId: 'driverId',
+    kpiDefinitionId: 'kpiDefinitionId',
+    date: 'date',
+    value: 'value',
+    target: 'target',
+    score: 'score',
+    source: 'source',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type KpiRecordScalarFieldEnum = (typeof KpiRecordScalarFieldEnum)[keyof typeof KpiRecordScalarFieldEnum]
+
+
+  export const NotificationScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    userId: 'userId',
+    title: 'title',
+    message: 'message',
+    type: 'type',
+    severity: 'severity',
+    sourceId: 'sourceId',
+    metadata: 'metadata',
+    read: 'read',
+    readAt: 'readAt',
+    createdAt: 'createdAt'
+  };
+
+  export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+  export const NotificationRuleScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    eventType: 'eventType',
+    role: 'role',
+    enabled: 'enabled',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type NotificationRuleScalarFieldEnum = (typeof NotificationRuleScalarFieldEnum)[keyof typeof NotificationRuleScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -39672,6 +48015,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'CashTransactionType'
+   */
+  export type EnumCashTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CashTransactionType'>
+    
+
+
+  /**
+   * Reference to a field of type 'CashTransactionType[]'
+   */
+  export type ListEnumCashTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CashTransactionType[]'>
+    
+
+
+  /**
    * Reference to a field of type 'LedgerStatus'
    */
   export type EnumLedgerStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LedgerStatus'>
@@ -39924,6 +48281,34 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'KpiCategory'
+   */
+  export type EnumKpiCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'KpiCategory'>
+    
+
+
+  /**
+   * Reference to a field of type 'KpiCategory[]'
+   */
+  export type ListEnumKpiCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'KpiCategory[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'KpiUnit'
+   */
+  export type EnumKpiUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'KpiUnit'>
+    
+
+
+  /**
+   * Reference to a field of type 'KpiUnit[]'
+   */
+  export type ListEnumKpiUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'KpiUnit[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -39957,6 +48342,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordListRelationFilter
     orderLogs?: OrderLogListRelationFilter
     cashRecords?: CashRecordListRelationFilter
+    cashTransactions?: CashTransactionListRelationFilter
     pendingDuesLedgers?: PendingDuesLedgerListRelationFilter
     vehicleInspections?: VehicleInspectionListRelationFilter
     maintenanceRecords?: MaintenanceRecordListRelationFilter
@@ -39972,6 +48358,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventListRelationFilter
     keetaDailyMetrics?: KeetaDailyMetricsListRelationFilter
     americanaDailyOrders?: AmericanaDailyOrdersListRelationFilter
+    kpiDefinitions?: KpiDefinitionListRelationFilter
+    kpiRecords?: KpiRecordListRelationFilter
+    platformSettings?: PlatformSettingsListRelationFilter
+    companyInventory?: CompanyInventoryListRelationFilter
+    notifications?: NotificationListRelationFilter
+    notificationRules?: NotificationRuleListRelationFilter
   }
 
   export type TenantOrderByWithRelationInput = {
@@ -39988,6 +48380,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordOrderByRelationAggregateInput
     orderLogs?: OrderLogOrderByRelationAggregateInput
     cashRecords?: CashRecordOrderByRelationAggregateInput
+    cashTransactions?: CashTransactionOrderByRelationAggregateInput
     pendingDuesLedgers?: PendingDuesLedgerOrderByRelationAggregateInput
     vehicleInspections?: VehicleInspectionOrderByRelationAggregateInput
     maintenanceRecords?: MaintenanceRecordOrderByRelationAggregateInput
@@ -40003,6 +48396,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventOrderByRelationAggregateInput
     keetaDailyMetrics?: KeetaDailyMetricsOrderByRelationAggregateInput
     americanaDailyOrders?: AmericanaDailyOrdersOrderByRelationAggregateInput
+    kpiDefinitions?: KpiDefinitionOrderByRelationAggregateInput
+    kpiRecords?: KpiRecordOrderByRelationAggregateInput
+    platformSettings?: PlatformSettingsOrderByRelationAggregateInput
+    companyInventory?: CompanyInventoryOrderByRelationAggregateInput
+    notifications?: NotificationOrderByRelationAggregateInput
+    notificationRules?: NotificationRuleOrderByRelationAggregateInput
   }
 
   export type TenantWhereUniqueInput = Prisma.AtLeast<{
@@ -40022,6 +48421,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordListRelationFilter
     orderLogs?: OrderLogListRelationFilter
     cashRecords?: CashRecordListRelationFilter
+    cashTransactions?: CashTransactionListRelationFilter
     pendingDuesLedgers?: PendingDuesLedgerListRelationFilter
     vehicleInspections?: VehicleInspectionListRelationFilter
     maintenanceRecords?: MaintenanceRecordListRelationFilter
@@ -40037,6 +48437,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventListRelationFilter
     keetaDailyMetrics?: KeetaDailyMetricsListRelationFilter
     americanaDailyOrders?: AmericanaDailyOrdersListRelationFilter
+    kpiDefinitions?: KpiDefinitionListRelationFilter
+    kpiRecords?: KpiRecordListRelationFilter
+    platformSettings?: PlatformSettingsListRelationFilter
+    companyInventory?: CompanyInventoryListRelationFilter
+    notifications?: NotificationListRelationFilter
+    notificationRules?: NotificationRuleListRelationFilter
   }, "id">
 
   export type TenantOrderByWithAggregationInput = {
@@ -40080,6 +48486,7 @@ export namespace Prisma {
     vehicles?: VehicleListRelationFilter
     recruitmentPipeline?: RecruitmentPipelineListRelationFilter
     tickets?: TicketListRelationFilter
+    companyInventory?: CompanyInventoryListRelationFilter
   }
 
   export type CompanyOrderByWithRelationInput = {
@@ -40096,6 +48503,7 @@ export namespace Prisma {
     vehicles?: VehicleOrderByRelationAggregateInput
     recruitmentPipeline?: RecruitmentPipelineOrderByRelationAggregateInput
     tickets?: TicketOrderByRelationAggregateInput
+    companyInventory?: CompanyInventoryOrderByRelationAggregateInput
   }
 
   export type CompanyWhereUniqueInput = Prisma.AtLeast<{
@@ -40115,6 +48523,7 @@ export namespace Prisma {
     vehicles?: VehicleListRelationFilter
     recruitmentPipeline?: RecruitmentPipelineListRelationFilter
     tickets?: TicketListRelationFilter
+    companyInventory?: CompanyInventoryListRelationFilter
   }, "id">
 
   export type CompanyOrderByWithAggregationInput = {
@@ -40169,6 +48578,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestListRelationFilter
     assignedTickets?: TicketListRelationFilter
     submittedTickets?: TicketListRelationFilter
+    notifications?: NotificationListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -40190,6 +48600,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestOrderByRelationAggregateInput
     assignedTickets?: TicketOrderByRelationAggregateInput
     submittedTickets?: TicketOrderByRelationAggregateInput
+    notifications?: NotificationOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -40214,6 +48625,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestListRelationFilter
     assignedTickets?: TicketListRelationFilter
     submittedTickets?: TicketListRelationFilter
+    notifications?: NotificationListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -40293,6 +48705,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordListRelationFilter
     orderLogs?: OrderLogListRelationFilter
     cashRecords?: CashRecordListRelationFilter
+    cashTransactions?: CashTransactionListRelationFilter
     pendingDuesLedgers?: PendingDuesLedgerListRelationFilter
     vehicleInspections?: VehicleInspectionListRelationFilter
     maintenanceRecords?: MaintenanceRecordListRelationFilter
@@ -40311,6 +48724,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsListRelationFilter
     americanaDailyOrders?: AmericanaDailyOrdersListRelationFilter
     talabatDeliveries?: TalabatDeliveryListRelationFilter
+    kpiRecords?: KpiRecordListRelationFilter
   }
 
   export type DriverOrderByWithRelationInput = {
@@ -40353,6 +48767,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordOrderByRelationAggregateInput
     orderLogs?: OrderLogOrderByRelationAggregateInput
     cashRecords?: CashRecordOrderByRelationAggregateInput
+    cashTransactions?: CashTransactionOrderByRelationAggregateInput
     pendingDuesLedgers?: PendingDuesLedgerOrderByRelationAggregateInput
     vehicleInspections?: VehicleInspectionOrderByRelationAggregateInput
     maintenanceRecords?: MaintenanceRecordOrderByRelationAggregateInput
@@ -40371,6 +48786,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsOrderByRelationAggregateInput
     americanaDailyOrders?: AmericanaDailyOrdersOrderByRelationAggregateInput
     talabatDeliveries?: TalabatDeliveryOrderByRelationAggregateInput
+    kpiRecords?: KpiRecordOrderByRelationAggregateInput
   }
 
   export type DriverWhereUniqueInput = Prisma.AtLeast<{
@@ -40416,6 +48832,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordListRelationFilter
     orderLogs?: OrderLogListRelationFilter
     cashRecords?: CashRecordListRelationFilter
+    cashTransactions?: CashTransactionListRelationFilter
     pendingDuesLedgers?: PendingDuesLedgerListRelationFilter
     vehicleInspections?: VehicleInspectionListRelationFilter
     maintenanceRecords?: MaintenanceRecordListRelationFilter
@@ -40434,6 +48851,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsListRelationFilter
     americanaDailyOrders?: AmericanaDailyOrdersListRelationFilter
     talabatDeliveries?: TalabatDeliveryListRelationFilter
+    kpiRecords?: KpiRecordListRelationFilter
   }, "id">
 
   export type DriverOrderByWithAggregationInput = {
@@ -40691,6 +49109,8 @@ export namespace Prisma {
     chassisNumber?: StringNullableFilter<"Vehicle"> | string | null
     mileage?: IntFilter<"Vehicle"> | number
     fuelType?: StringFilter<"Vehicle"> | string
+    ownerCompany?: StringNullableFilter<"Vehicle"> | string | null
+    driverIqama?: StringNullableFilter<"Vehicle"> | string | null
     status?: EnumVehicleStatusFilter<"Vehicle"> | $Enums.VehicleStatus
     assignedDriverId?: StringNullableFilter<"Vehicle"> | string | null
     insuranceExpiry?: DateTimeFilter<"Vehicle"> | Date | string
@@ -40720,6 +49140,8 @@ export namespace Prisma {
     chassisNumber?: SortOrderInput | SortOrder
     mileage?: SortOrder
     fuelType?: SortOrder
+    ownerCompany?: SortOrderInput | SortOrder
+    driverIqama?: SortOrderInput | SortOrder
     status?: SortOrder
     assignedDriverId?: SortOrderInput | SortOrder
     insuranceExpiry?: SortOrder
@@ -40753,6 +49175,8 @@ export namespace Prisma {
     chassisNumber?: StringNullableFilter<"Vehicle"> | string | null
     mileage?: IntFilter<"Vehicle"> | number
     fuelType?: StringFilter<"Vehicle"> | string
+    ownerCompany?: StringNullableFilter<"Vehicle"> | string | null
+    driverIqama?: StringNullableFilter<"Vehicle"> | string | null
     status?: EnumVehicleStatusFilter<"Vehicle"> | $Enums.VehicleStatus
     insuranceExpiry?: DateTimeFilter<"Vehicle"> | Date | string
     registrationExpiry?: DateTimeFilter<"Vehicle"> | Date | string
@@ -40781,6 +49205,8 @@ export namespace Prisma {
     chassisNumber?: SortOrderInput | SortOrder
     mileage?: SortOrder
     fuelType?: SortOrder
+    ownerCompany?: SortOrderInput | SortOrder
+    driverIqama?: SortOrderInput | SortOrder
     status?: SortOrder
     assignedDriverId?: SortOrderInput | SortOrder
     insuranceExpiry?: SortOrder
@@ -40810,6 +49236,8 @@ export namespace Prisma {
     chassisNumber?: StringNullableWithAggregatesFilter<"Vehicle"> | string | null
     mileage?: IntWithAggregatesFilter<"Vehicle"> | number
     fuelType?: StringWithAggregatesFilter<"Vehicle"> | string
+    ownerCompany?: StringNullableWithAggregatesFilter<"Vehicle"> | string | null
+    driverIqama?: StringNullableWithAggregatesFilter<"Vehicle"> | string | null
     status?: EnumVehicleStatusWithAggregatesFilter<"Vehicle"> | $Enums.VehicleStatus
     assignedDriverId?: StringNullableWithAggregatesFilter<"Vehicle"> | string | null
     insuranceExpiry?: DateTimeWithAggregatesFilter<"Vehicle"> | Date | string
@@ -41004,6 +49432,7 @@ export namespace Prisma {
 
   export type AttendanceRecordWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    tenantId_driverId_date?: AttendanceRecordTenantId_driverId_dateCompoundUniqueInput
     AND?: AttendanceRecordWhereInput | AttendanceRecordWhereInput[]
     OR?: AttendanceRecordWhereInput[]
     NOT?: AttendanceRecordWhereInput | AttendanceRecordWhereInput[]
@@ -41019,7 +49448,7 @@ export namespace Prisma {
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
     driver?: XOR<DriverRelationFilter, DriverWhereInput>
     shift?: XOR<ShiftNullableRelationFilter, ShiftWhereInput> | null
-  }, "id">
+  }, "id" | "tenantId_driverId_date">
 
   export type AttendanceRecordOrderByWithAggregationInput = {
     id?: SortOrder
@@ -41286,6 +49715,96 @@ export namespace Prisma {
     notes?: StringNullableWithAggregatesFilter<"CashRecord"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"CashRecord"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"CashRecord"> | Date | string
+  }
+
+  export type CashTransactionWhereInput = {
+    AND?: CashTransactionWhereInput | CashTransactionWhereInput[]
+    OR?: CashTransactionWhereInput[]
+    NOT?: CashTransactionWhereInput | CashTransactionWhereInput[]
+    id?: StringFilter<"CashTransaction"> | string
+    tenantId?: StringFilter<"CashTransaction"> | string
+    driverId?: StringFilter<"CashTransaction"> | string
+    date?: DateTimeFilter<"CashTransaction"> | Date | string
+    type?: EnumCashTransactionTypeFilter<"CashTransaction"> | $Enums.CashTransactionType
+    amount?: DecimalFilter<"CashTransaction"> | Decimal | DecimalJsLike | number | string
+    orderNumber?: StringNullableFilter<"CashTransaction"> | string | null
+    description?: StringNullableFilter<"CashTransaction"> | string | null
+    runningBalance?: DecimalFilter<"CashTransaction"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFilter<"CashTransaction"> | Date | string
+    updatedAt?: DateTimeFilter<"CashTransaction"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    driver?: XOR<DriverRelationFilter, DriverWhereInput>
+  }
+
+  export type CashTransactionOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    date?: SortOrder
+    type?: SortOrder
+    amount?: SortOrder
+    orderNumber?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    runningBalance?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    driver?: DriverOrderByWithRelationInput
+  }
+
+  export type CashTransactionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: CashTransactionWhereInput | CashTransactionWhereInput[]
+    OR?: CashTransactionWhereInput[]
+    NOT?: CashTransactionWhereInput | CashTransactionWhereInput[]
+    tenantId?: StringFilter<"CashTransaction"> | string
+    driverId?: StringFilter<"CashTransaction"> | string
+    date?: DateTimeFilter<"CashTransaction"> | Date | string
+    type?: EnumCashTransactionTypeFilter<"CashTransaction"> | $Enums.CashTransactionType
+    amount?: DecimalFilter<"CashTransaction"> | Decimal | DecimalJsLike | number | string
+    orderNumber?: StringNullableFilter<"CashTransaction"> | string | null
+    description?: StringNullableFilter<"CashTransaction"> | string | null
+    runningBalance?: DecimalFilter<"CashTransaction"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFilter<"CashTransaction"> | Date | string
+    updatedAt?: DateTimeFilter<"CashTransaction"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    driver?: XOR<DriverRelationFilter, DriverWhereInput>
+  }, "id">
+
+  export type CashTransactionOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    date?: SortOrder
+    type?: SortOrder
+    amount?: SortOrder
+    orderNumber?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    runningBalance?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CashTransactionCountOrderByAggregateInput
+    _avg?: CashTransactionAvgOrderByAggregateInput
+    _max?: CashTransactionMaxOrderByAggregateInput
+    _min?: CashTransactionMinOrderByAggregateInput
+    _sum?: CashTransactionSumOrderByAggregateInput
+  }
+
+  export type CashTransactionScalarWhereWithAggregatesInput = {
+    AND?: CashTransactionScalarWhereWithAggregatesInput | CashTransactionScalarWhereWithAggregatesInput[]
+    OR?: CashTransactionScalarWhereWithAggregatesInput[]
+    NOT?: CashTransactionScalarWhereWithAggregatesInput | CashTransactionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CashTransaction"> | string
+    tenantId?: StringWithAggregatesFilter<"CashTransaction"> | string
+    driverId?: StringWithAggregatesFilter<"CashTransaction"> | string
+    date?: DateTimeWithAggregatesFilter<"CashTransaction"> | Date | string
+    type?: EnumCashTransactionTypeWithAggregatesFilter<"CashTransaction"> | $Enums.CashTransactionType
+    amount?: DecimalWithAggregatesFilter<"CashTransaction"> | Decimal | DecimalJsLike | number | string
+    orderNumber?: StringNullableWithAggregatesFilter<"CashTransaction"> | string | null
+    description?: StringNullableWithAggregatesFilter<"CashTransaction"> | string | null
+    runningBalance?: DecimalWithAggregatesFilter<"CashTransaction"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeWithAggregatesFilter<"CashTransaction"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CashTransaction"> | Date | string
   }
 
   export type PendingDuesLedgerWhereInput = {
@@ -42813,7 +51332,6 @@ export namespace Prisma {
     driverId?: StringFilter<"TalabatComplianceEvent"> | string
     sessionId?: StringNullableFilter<"TalabatComplianceEvent"> | string | null
     type?: EnumComplianceEventTypeFilter<"TalabatComplianceEvent"> | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFilter<"TalabatComplianceEvent"> | $Enums.AlertSeverity
     description?: StringFilter<"TalabatComplianceEvent"> | string
     metadata?: JsonNullableFilter<"TalabatComplianceEvent">
     resolved?: BoolFilter<"TalabatComplianceEvent"> | boolean
@@ -42831,7 +51349,6 @@ export namespace Prisma {
     driverId?: SortOrder
     sessionId?: SortOrderInput | SortOrder
     type?: SortOrder
-    severity?: SortOrder
     description?: SortOrder
     metadata?: SortOrderInput | SortOrder
     resolved?: SortOrder
@@ -42852,7 +51369,6 @@ export namespace Prisma {
     driverId?: StringFilter<"TalabatComplianceEvent"> | string
     sessionId?: StringNullableFilter<"TalabatComplianceEvent"> | string | null
     type?: EnumComplianceEventTypeFilter<"TalabatComplianceEvent"> | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFilter<"TalabatComplianceEvent"> | $Enums.AlertSeverity
     description?: StringFilter<"TalabatComplianceEvent"> | string
     metadata?: JsonNullableFilter<"TalabatComplianceEvent">
     resolved?: BoolFilter<"TalabatComplianceEvent"> | boolean
@@ -42870,7 +51386,6 @@ export namespace Prisma {
     driverId?: SortOrder
     sessionId?: SortOrderInput | SortOrder
     type?: SortOrder
-    severity?: SortOrder
     description?: SortOrder
     metadata?: SortOrderInput | SortOrder
     resolved?: SortOrder
@@ -42891,7 +51406,6 @@ export namespace Prisma {
     driverId?: StringWithAggregatesFilter<"TalabatComplianceEvent"> | string
     sessionId?: StringNullableWithAggregatesFilter<"TalabatComplianceEvent"> | string | null
     type?: EnumComplianceEventTypeWithAggregatesFilter<"TalabatComplianceEvent"> | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityWithAggregatesFilter<"TalabatComplianceEvent"> | $Enums.AlertSeverity
     description?: StringWithAggregatesFilter<"TalabatComplianceEvent"> | string
     metadata?: JsonNullableWithAggregatesFilter<"TalabatComplianceEvent">
     resolved?: BoolWithAggregatesFilter<"TalabatComplianceEvent"> | boolean
@@ -43201,6 +51715,168 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"KeetaDailyMetrics"> | Date | string
   }
 
+  export type PlatformSettingsWhereInput = {
+    AND?: PlatformSettingsWhereInput | PlatformSettingsWhereInput[]
+    OR?: PlatformSettingsWhereInput[]
+    NOT?: PlatformSettingsWhereInput | PlatformSettingsWhereInput[]
+    id?: StringFilter<"PlatformSettings"> | string
+    tenantId?: StringFilter<"PlatformSettings"> | string
+    platform?: EnumPlatformFilter<"PlatformSettings"> | $Enums.Platform
+    targets?: JsonFilter<"PlatformSettings">
+    kpis?: JsonNullableFilter<"PlatformSettings">
+    shiftRules?: JsonNullableFilter<"PlatformSettings">
+    zones?: JsonNullableFilter<"PlatformSettings">
+    createdAt?: DateTimeFilter<"PlatformSettings"> | Date | string
+    updatedAt?: DateTimeFilter<"PlatformSettings"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+  }
+
+  export type PlatformSettingsOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    platform?: SortOrder
+    targets?: SortOrder
+    kpis?: SortOrderInput | SortOrder
+    shiftRules?: SortOrderInput | SortOrder
+    zones?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+  }
+
+  export type PlatformSettingsWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tenantId_platform?: PlatformSettingsTenantIdPlatformCompoundUniqueInput
+    AND?: PlatformSettingsWhereInput | PlatformSettingsWhereInput[]
+    OR?: PlatformSettingsWhereInput[]
+    NOT?: PlatformSettingsWhereInput | PlatformSettingsWhereInput[]
+    tenantId?: StringFilter<"PlatformSettings"> | string
+    platform?: EnumPlatformFilter<"PlatformSettings"> | $Enums.Platform
+    targets?: JsonFilter<"PlatformSettings">
+    kpis?: JsonNullableFilter<"PlatformSettings">
+    shiftRules?: JsonNullableFilter<"PlatformSettings">
+    zones?: JsonNullableFilter<"PlatformSettings">
+    createdAt?: DateTimeFilter<"PlatformSettings"> | Date | string
+    updatedAt?: DateTimeFilter<"PlatformSettings"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+  }, "id" | "tenantId_platform">
+
+  export type PlatformSettingsOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    platform?: SortOrder
+    targets?: SortOrder
+    kpis?: SortOrderInput | SortOrder
+    shiftRules?: SortOrderInput | SortOrder
+    zones?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PlatformSettingsCountOrderByAggregateInput
+    _max?: PlatformSettingsMaxOrderByAggregateInput
+    _min?: PlatformSettingsMinOrderByAggregateInput
+  }
+
+  export type PlatformSettingsScalarWhereWithAggregatesInput = {
+    AND?: PlatformSettingsScalarWhereWithAggregatesInput | PlatformSettingsScalarWhereWithAggregatesInput[]
+    OR?: PlatformSettingsScalarWhereWithAggregatesInput[]
+    NOT?: PlatformSettingsScalarWhereWithAggregatesInput | PlatformSettingsScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PlatformSettings"> | string
+    tenantId?: StringWithAggregatesFilter<"PlatformSettings"> | string
+    platform?: EnumPlatformWithAggregatesFilter<"PlatformSettings"> | $Enums.Platform
+    targets?: JsonWithAggregatesFilter<"PlatformSettings">
+    kpis?: JsonNullableWithAggregatesFilter<"PlatformSettings">
+    shiftRules?: JsonNullableWithAggregatesFilter<"PlatformSettings">
+    zones?: JsonNullableWithAggregatesFilter<"PlatformSettings">
+    createdAt?: DateTimeWithAggregatesFilter<"PlatformSettings"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PlatformSettings"> | Date | string
+  }
+
+  export type CompanyInventoryWhereInput = {
+    AND?: CompanyInventoryWhereInput | CompanyInventoryWhereInput[]
+    OR?: CompanyInventoryWhereInput[]
+    NOT?: CompanyInventoryWhereInput | CompanyInventoryWhereInput[]
+    id?: StringFilter<"CompanyInventory"> | string
+    tenantId?: StringFilter<"CompanyInventory"> | string
+    companyId?: StringFilter<"CompanyInventory"> | string
+    itemType?: EnumInventoryItemTypeFilter<"CompanyInventory"> | $Enums.InventoryItemType
+    total?: IntFilter<"CompanyInventory"> | number
+    issued?: IntFilter<"CompanyInventory"> | number
+    available?: IntFilter<"CompanyInventory"> | number
+    minStock?: IntFilter<"CompanyInventory"> | number
+    createdAt?: DateTimeFilter<"CompanyInventory"> | Date | string
+    updatedAt?: DateTimeFilter<"CompanyInventory"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    company?: XOR<CompanyRelationFilter, CompanyWhereInput>
+  }
+
+  export type CompanyInventoryOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    companyId?: SortOrder
+    itemType?: SortOrder
+    total?: SortOrder
+    issued?: SortOrder
+    available?: SortOrder
+    minStock?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    company?: CompanyOrderByWithRelationInput
+  }
+
+  export type CompanyInventoryWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    companyId_itemType?: CompanyInventoryCompanyIdItemTypeCompoundUniqueInput
+    AND?: CompanyInventoryWhereInput | CompanyInventoryWhereInput[]
+    OR?: CompanyInventoryWhereInput[]
+    NOT?: CompanyInventoryWhereInput | CompanyInventoryWhereInput[]
+    tenantId?: StringFilter<"CompanyInventory"> | string
+    companyId?: StringFilter<"CompanyInventory"> | string
+    itemType?: EnumInventoryItemTypeFilter<"CompanyInventory"> | $Enums.InventoryItemType
+    total?: IntFilter<"CompanyInventory"> | number
+    issued?: IntFilter<"CompanyInventory"> | number
+    available?: IntFilter<"CompanyInventory"> | number
+    minStock?: IntFilter<"CompanyInventory"> | number
+    createdAt?: DateTimeFilter<"CompanyInventory"> | Date | string
+    updatedAt?: DateTimeFilter<"CompanyInventory"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    company?: XOR<CompanyRelationFilter, CompanyWhereInput>
+  }, "id" | "companyId_itemType">
+
+  export type CompanyInventoryOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    companyId?: SortOrder
+    itemType?: SortOrder
+    total?: SortOrder
+    issued?: SortOrder
+    available?: SortOrder
+    minStock?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: CompanyInventoryCountOrderByAggregateInput
+    _avg?: CompanyInventoryAvgOrderByAggregateInput
+    _max?: CompanyInventoryMaxOrderByAggregateInput
+    _min?: CompanyInventoryMinOrderByAggregateInput
+    _sum?: CompanyInventorySumOrderByAggregateInput
+  }
+
+  export type CompanyInventoryScalarWhereWithAggregatesInput = {
+    AND?: CompanyInventoryScalarWhereWithAggregatesInput | CompanyInventoryScalarWhereWithAggregatesInput[]
+    OR?: CompanyInventoryScalarWhereWithAggregatesInput[]
+    NOT?: CompanyInventoryScalarWhereWithAggregatesInput | CompanyInventoryScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CompanyInventory"> | string
+    tenantId?: StringWithAggregatesFilter<"CompanyInventory"> | string
+    companyId?: StringWithAggregatesFilter<"CompanyInventory"> | string
+    itemType?: EnumInventoryItemTypeWithAggregatesFilter<"CompanyInventory"> | $Enums.InventoryItemType
+    total?: IntWithAggregatesFilter<"CompanyInventory"> | number
+    issued?: IntWithAggregatesFilter<"CompanyInventory"> | number
+    available?: IntWithAggregatesFilter<"CompanyInventory"> | number
+    minStock?: IntWithAggregatesFilter<"CompanyInventory"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"CompanyInventory"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"CompanyInventory"> | Date | string
+  }
+
   export type AmericanaDailyOrdersWhereInput = {
     AND?: AmericanaDailyOrdersWhereInput | AmericanaDailyOrdersWhereInput[]
     OR?: AmericanaDailyOrdersWhereInput[]
@@ -43312,6 +51988,355 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"AmericanaDailyOrders"> | Date | string
   }
 
+  export type KpiDefinitionWhereInput = {
+    AND?: KpiDefinitionWhereInput | KpiDefinitionWhereInput[]
+    OR?: KpiDefinitionWhereInput[]
+    NOT?: KpiDefinitionWhereInput | KpiDefinitionWhereInput[]
+    id?: StringFilter<"KpiDefinition"> | string
+    tenantId?: StringFilter<"KpiDefinition"> | string
+    name?: StringFilter<"KpiDefinition"> | string
+    description?: StringNullableFilter<"KpiDefinition"> | string | null
+    category?: EnumKpiCategoryFilter<"KpiDefinition"> | $Enums.KpiCategory
+    unit?: EnumKpiUnitFilter<"KpiDefinition"> | $Enums.KpiUnit
+    platform?: EnumPlatformNullableFilter<"KpiDefinition"> | $Enums.Platform | null
+    target?: DecimalNullableFilter<"KpiDefinition"> | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFilter<"KpiDefinition"> | boolean
+    sortOrder?: IntFilter<"KpiDefinition"> | number
+    createdAt?: DateTimeFilter<"KpiDefinition"> | Date | string
+    updatedAt?: DateTimeFilter<"KpiDefinition"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    records?: KpiRecordListRelationFilter
+  }
+
+  export type KpiDefinitionOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    category?: SortOrder
+    unit?: SortOrder
+    platform?: SortOrderInput | SortOrder
+    target?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    records?: KpiRecordOrderByRelationAggregateInput
+  }
+
+  export type KpiDefinitionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tenantId_name_platform?: KpiDefinitionTenantIdNamePlatformCompoundUniqueInput
+    AND?: KpiDefinitionWhereInput | KpiDefinitionWhereInput[]
+    OR?: KpiDefinitionWhereInput[]
+    NOT?: KpiDefinitionWhereInput | KpiDefinitionWhereInput[]
+    tenantId?: StringFilter<"KpiDefinition"> | string
+    name?: StringFilter<"KpiDefinition"> | string
+    description?: StringNullableFilter<"KpiDefinition"> | string | null
+    category?: EnumKpiCategoryFilter<"KpiDefinition"> | $Enums.KpiCategory
+    unit?: EnumKpiUnitFilter<"KpiDefinition"> | $Enums.KpiUnit
+    platform?: EnumPlatformNullableFilter<"KpiDefinition"> | $Enums.Platform | null
+    target?: DecimalNullableFilter<"KpiDefinition"> | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFilter<"KpiDefinition"> | boolean
+    sortOrder?: IntFilter<"KpiDefinition"> | number
+    createdAt?: DateTimeFilter<"KpiDefinition"> | Date | string
+    updatedAt?: DateTimeFilter<"KpiDefinition"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    records?: KpiRecordListRelationFilter
+  }, "id" | "tenantId_name_platform">
+
+  export type KpiDefinitionOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    category?: SortOrder
+    unit?: SortOrder
+    platform?: SortOrderInput | SortOrder
+    target?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: KpiDefinitionCountOrderByAggregateInput
+    _avg?: KpiDefinitionAvgOrderByAggregateInput
+    _max?: KpiDefinitionMaxOrderByAggregateInput
+    _min?: KpiDefinitionMinOrderByAggregateInput
+    _sum?: KpiDefinitionSumOrderByAggregateInput
+  }
+
+  export type KpiDefinitionScalarWhereWithAggregatesInput = {
+    AND?: KpiDefinitionScalarWhereWithAggregatesInput | KpiDefinitionScalarWhereWithAggregatesInput[]
+    OR?: KpiDefinitionScalarWhereWithAggregatesInput[]
+    NOT?: KpiDefinitionScalarWhereWithAggregatesInput | KpiDefinitionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"KpiDefinition"> | string
+    tenantId?: StringWithAggregatesFilter<"KpiDefinition"> | string
+    name?: StringWithAggregatesFilter<"KpiDefinition"> | string
+    description?: StringNullableWithAggregatesFilter<"KpiDefinition"> | string | null
+    category?: EnumKpiCategoryWithAggregatesFilter<"KpiDefinition"> | $Enums.KpiCategory
+    unit?: EnumKpiUnitWithAggregatesFilter<"KpiDefinition"> | $Enums.KpiUnit
+    platform?: EnumPlatformNullableWithAggregatesFilter<"KpiDefinition"> | $Enums.Platform | null
+    target?: DecimalNullableWithAggregatesFilter<"KpiDefinition"> | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolWithAggregatesFilter<"KpiDefinition"> | boolean
+    sortOrder?: IntWithAggregatesFilter<"KpiDefinition"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"KpiDefinition"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"KpiDefinition"> | Date | string
+  }
+
+  export type KpiRecordWhereInput = {
+    AND?: KpiRecordWhereInput | KpiRecordWhereInput[]
+    OR?: KpiRecordWhereInput[]
+    NOT?: KpiRecordWhereInput | KpiRecordWhereInput[]
+    id?: StringFilter<"KpiRecord"> | string
+    tenantId?: StringFilter<"KpiRecord"> | string
+    driverId?: StringFilter<"KpiRecord"> | string
+    kpiDefinitionId?: StringFilter<"KpiRecord"> | string
+    date?: DateTimeFilter<"KpiRecord"> | Date | string
+    value?: DecimalFilter<"KpiRecord"> | Decimal | DecimalJsLike | number | string
+    target?: DecimalNullableFilter<"KpiRecord"> | Decimal | DecimalJsLike | number | string | null
+    score?: DecimalNullableFilter<"KpiRecord"> | Decimal | DecimalJsLike | number | string | null
+    source?: StringFilter<"KpiRecord"> | string
+    createdAt?: DateTimeFilter<"KpiRecord"> | Date | string
+    updatedAt?: DateTimeFilter<"KpiRecord"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    driver?: XOR<DriverRelationFilter, DriverWhereInput>
+    kpiDefinition?: XOR<KpiDefinitionRelationFilter, KpiDefinitionWhereInput>
+  }
+
+  export type KpiRecordOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    kpiDefinitionId?: SortOrder
+    date?: SortOrder
+    value?: SortOrder
+    target?: SortOrderInput | SortOrder
+    score?: SortOrderInput | SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    driver?: DriverOrderByWithRelationInput
+    kpiDefinition?: KpiDefinitionOrderByWithRelationInput
+  }
+
+  export type KpiRecordWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tenantId_driverId_kpiDefinitionId_date?: KpiRecordTenantIdDriverIdKpiDefinitionIdDateCompoundUniqueInput
+    AND?: KpiRecordWhereInput | KpiRecordWhereInput[]
+    OR?: KpiRecordWhereInput[]
+    NOT?: KpiRecordWhereInput | KpiRecordWhereInput[]
+    tenantId?: StringFilter<"KpiRecord"> | string
+    driverId?: StringFilter<"KpiRecord"> | string
+    kpiDefinitionId?: StringFilter<"KpiRecord"> | string
+    date?: DateTimeFilter<"KpiRecord"> | Date | string
+    value?: DecimalFilter<"KpiRecord"> | Decimal | DecimalJsLike | number | string
+    target?: DecimalNullableFilter<"KpiRecord"> | Decimal | DecimalJsLike | number | string | null
+    score?: DecimalNullableFilter<"KpiRecord"> | Decimal | DecimalJsLike | number | string | null
+    source?: StringFilter<"KpiRecord"> | string
+    createdAt?: DateTimeFilter<"KpiRecord"> | Date | string
+    updatedAt?: DateTimeFilter<"KpiRecord"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    driver?: XOR<DriverRelationFilter, DriverWhereInput>
+    kpiDefinition?: XOR<KpiDefinitionRelationFilter, KpiDefinitionWhereInput>
+  }, "id" | "tenantId_driverId_kpiDefinitionId_date">
+
+  export type KpiRecordOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    kpiDefinitionId?: SortOrder
+    date?: SortOrder
+    value?: SortOrder
+    target?: SortOrderInput | SortOrder
+    score?: SortOrderInput | SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: KpiRecordCountOrderByAggregateInput
+    _avg?: KpiRecordAvgOrderByAggregateInput
+    _max?: KpiRecordMaxOrderByAggregateInput
+    _min?: KpiRecordMinOrderByAggregateInput
+    _sum?: KpiRecordSumOrderByAggregateInput
+  }
+
+  export type KpiRecordScalarWhereWithAggregatesInput = {
+    AND?: KpiRecordScalarWhereWithAggregatesInput | KpiRecordScalarWhereWithAggregatesInput[]
+    OR?: KpiRecordScalarWhereWithAggregatesInput[]
+    NOT?: KpiRecordScalarWhereWithAggregatesInput | KpiRecordScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"KpiRecord"> | string
+    tenantId?: StringWithAggregatesFilter<"KpiRecord"> | string
+    driverId?: StringWithAggregatesFilter<"KpiRecord"> | string
+    kpiDefinitionId?: StringWithAggregatesFilter<"KpiRecord"> | string
+    date?: DateTimeWithAggregatesFilter<"KpiRecord"> | Date | string
+    value?: DecimalWithAggregatesFilter<"KpiRecord"> | Decimal | DecimalJsLike | number | string
+    target?: DecimalNullableWithAggregatesFilter<"KpiRecord"> | Decimal | DecimalJsLike | number | string | null
+    score?: DecimalNullableWithAggregatesFilter<"KpiRecord"> | Decimal | DecimalJsLike | number | string | null
+    source?: StringWithAggregatesFilter<"KpiRecord"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"KpiRecord"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"KpiRecord"> | Date | string
+  }
+
+  export type NotificationWhereInput = {
+    AND?: NotificationWhereInput | NotificationWhereInput[]
+    OR?: NotificationWhereInput[]
+    NOT?: NotificationWhereInput | NotificationWhereInput[]
+    id?: StringFilter<"Notification"> | string
+    tenantId?: StringFilter<"Notification"> | string
+    userId?: StringFilter<"Notification"> | string
+    title?: StringFilter<"Notification"> | string
+    message?: StringFilter<"Notification"> | string
+    type?: StringFilter<"Notification"> | string
+    severity?: StringFilter<"Notification"> | string
+    sourceId?: StringNullableFilter<"Notification"> | string | null
+    metadata?: JsonNullableFilter<"Notification">
+    read?: BoolFilter<"Notification"> | boolean
+    readAt?: DateTimeNullableFilter<"Notification"> | Date | string | null
+    createdAt?: DateTimeFilter<"Notification"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }
+
+  export type NotificationOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    message?: SortOrder
+    type?: SortOrder
+    severity?: SortOrder
+    sourceId?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    read?: SortOrder
+    readAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type NotificationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: NotificationWhereInput | NotificationWhereInput[]
+    OR?: NotificationWhereInput[]
+    NOT?: NotificationWhereInput | NotificationWhereInput[]
+    tenantId?: StringFilter<"Notification"> | string
+    userId?: StringFilter<"Notification"> | string
+    title?: StringFilter<"Notification"> | string
+    message?: StringFilter<"Notification"> | string
+    type?: StringFilter<"Notification"> | string
+    severity?: StringFilter<"Notification"> | string
+    sourceId?: StringNullableFilter<"Notification"> | string | null
+    metadata?: JsonNullableFilter<"Notification">
+    read?: BoolFilter<"Notification"> | boolean
+    readAt?: DateTimeNullableFilter<"Notification"> | Date | string | null
+    createdAt?: DateTimeFilter<"Notification"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type NotificationOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    message?: SortOrder
+    type?: SortOrder
+    severity?: SortOrder
+    sourceId?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    read?: SortOrder
+    readAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: NotificationCountOrderByAggregateInput
+    _max?: NotificationMaxOrderByAggregateInput
+    _min?: NotificationMinOrderByAggregateInput
+  }
+
+  export type NotificationScalarWhereWithAggregatesInput = {
+    AND?: NotificationScalarWhereWithAggregatesInput | NotificationScalarWhereWithAggregatesInput[]
+    OR?: NotificationScalarWhereWithAggregatesInput[]
+    NOT?: NotificationScalarWhereWithAggregatesInput | NotificationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Notification"> | string
+    tenantId?: StringWithAggregatesFilter<"Notification"> | string
+    userId?: StringWithAggregatesFilter<"Notification"> | string
+    title?: StringWithAggregatesFilter<"Notification"> | string
+    message?: StringWithAggregatesFilter<"Notification"> | string
+    type?: StringWithAggregatesFilter<"Notification"> | string
+    severity?: StringWithAggregatesFilter<"Notification"> | string
+    sourceId?: StringNullableWithAggregatesFilter<"Notification"> | string | null
+    metadata?: JsonNullableWithAggregatesFilter<"Notification">
+    read?: BoolWithAggregatesFilter<"Notification"> | boolean
+    readAt?: DateTimeNullableWithAggregatesFilter<"Notification"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Notification"> | Date | string
+  }
+
+  export type NotificationRuleWhereInput = {
+    AND?: NotificationRuleWhereInput | NotificationRuleWhereInput[]
+    OR?: NotificationRuleWhereInput[]
+    NOT?: NotificationRuleWhereInput | NotificationRuleWhereInput[]
+    id?: StringFilter<"NotificationRule"> | string
+    tenantId?: StringFilter<"NotificationRule"> | string
+    eventType?: StringFilter<"NotificationRule"> | string
+    role?: EnumUserRoleFilter<"NotificationRule"> | $Enums.UserRole
+    enabled?: BoolFilter<"NotificationRule"> | boolean
+    createdAt?: DateTimeFilter<"NotificationRule"> | Date | string
+    updatedAt?: DateTimeFilter<"NotificationRule"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+  }
+
+  export type NotificationRuleOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    eventType?: SortOrder
+    role?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    tenant?: TenantOrderByWithRelationInput
+  }
+
+  export type NotificationRuleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    tenantId_eventType_role?: NotificationRuleTenantIdEventTypeRoleCompoundUniqueInput
+    AND?: NotificationRuleWhereInput | NotificationRuleWhereInput[]
+    OR?: NotificationRuleWhereInput[]
+    NOT?: NotificationRuleWhereInput | NotificationRuleWhereInput[]
+    tenantId?: StringFilter<"NotificationRule"> | string
+    eventType?: StringFilter<"NotificationRule"> | string
+    role?: EnumUserRoleFilter<"NotificationRule"> | $Enums.UserRole
+    enabled?: BoolFilter<"NotificationRule"> | boolean
+    createdAt?: DateTimeFilter<"NotificationRule"> | Date | string
+    updatedAt?: DateTimeFilter<"NotificationRule"> | Date | string
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+  }, "id" | "tenantId_eventType_role">
+
+  export type NotificationRuleOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    eventType?: SortOrder
+    role?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: NotificationRuleCountOrderByAggregateInput
+    _max?: NotificationRuleMaxOrderByAggregateInput
+    _min?: NotificationRuleMinOrderByAggregateInput
+  }
+
+  export type NotificationRuleScalarWhereWithAggregatesInput = {
+    AND?: NotificationRuleScalarWhereWithAggregatesInput | NotificationRuleScalarWhereWithAggregatesInput[]
+    OR?: NotificationRuleScalarWhereWithAggregatesInput[]
+    NOT?: NotificationRuleScalarWhereWithAggregatesInput | NotificationRuleScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"NotificationRule"> | string
+    tenantId?: StringWithAggregatesFilter<"NotificationRule"> | string
+    eventType?: StringWithAggregatesFilter<"NotificationRule"> | string
+    role?: EnumUserRoleWithAggregatesFilter<"NotificationRule"> | $Enums.UserRole
+    enabled?: BoolWithAggregatesFilter<"NotificationRule"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"NotificationRule"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"NotificationRule"> | Date | string
+  }
+
   export type TenantCreateInput = {
     id?: string
     name: string
@@ -43326,6 +52351,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -43341,6 +52367,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateInput = {
@@ -43357,6 +52389,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -43372,6 +52405,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUpdateInput = {
@@ -43388,6 +52427,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -43403,6 +52443,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateInput = {
@@ -43419,6 +52465,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -43434,6 +52481,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateManyInput = {
@@ -43476,6 +52529,7 @@ export namespace Prisma {
     vehicles?: VehicleCreateNestedManyWithoutCompanyInput
     recruitmentPipeline?: RecruitmentPipelineCreateNestedManyWithoutAssignedCompanyInput
     tickets?: TicketCreateNestedManyWithoutCompanyInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateInput = {
@@ -43491,6 +52545,7 @@ export namespace Prisma {
     vehicles?: VehicleUncheckedCreateNestedManyWithoutCompanyInput
     recruitmentPipeline?: RecruitmentPipelineUncheckedCreateNestedManyWithoutAssignedCompanyInput
     tickets?: TicketUncheckedCreateNestedManyWithoutCompanyInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUpdateInput = {
@@ -43506,6 +52561,7 @@ export namespace Prisma {
     vehicles?: VehicleUpdateManyWithoutCompanyNestedInput
     recruitmentPipeline?: RecruitmentPipelineUpdateManyWithoutAssignedCompanyNestedInput
     tickets?: TicketUpdateManyWithoutCompanyNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateInput = {
@@ -43521,6 +52577,7 @@ export namespace Prisma {
     vehicles?: VehicleUncheckedUpdateManyWithoutCompanyNestedInput
     recruitmentPipeline?: RecruitmentPipelineUncheckedUpdateManyWithoutAssignedCompanyNestedInput
     tickets?: TicketUncheckedUpdateManyWithoutCompanyNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyCreateManyInput = {
@@ -43573,6 +52630,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestCreateNestedManyWithoutReviewedByInput
     assignedTickets?: TicketCreateNestedManyWithoutAssignedToInput
     submittedTickets?: TicketCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -43593,6 +52651,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
     assignedTickets?: TicketUncheckedCreateNestedManyWithoutAssignedToInput
     submittedTickets?: TicketUncheckedCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -43613,6 +52672,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
     assignedTickets?: TicketUpdateManyWithoutAssignedToNestedInput
     submittedTickets?: TicketUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -43633,6 +52693,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
     assignedTickets?: TicketUncheckedUpdateManyWithoutAssignedToNestedInput
     submittedTickets?: TicketUncheckedUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -43713,6 +52774,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -43731,6 +52793,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateInput = {
@@ -43770,6 +52833,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -43788,6 +52852,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUpdateInput = {
@@ -43827,6 +52892,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -43845,6 +52911,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateInput = {
@@ -43884,6 +52951,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -43902,6 +52970,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverCreateManyInput = {
@@ -44193,6 +53262,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     insuranceExpiry: Date | string
     registrationExpiry: Date | string
@@ -44221,6 +53292,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     assignedDriverId?: string | null
     insuranceExpiry: Date | string
@@ -44245,6 +53318,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
     registrationExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -44273,6 +53348,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     assignedDriverId?: NullableStringFieldUpdateOperationsInput | string | null
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -44299,6 +53376,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     assignedDriverId?: string | null
     insuranceExpiry: Date | string
@@ -44318,6 +53397,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
     registrationExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -44338,6 +53419,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     assignedDriverId?: NullableStringFieldUpdateOperationsInput | string | null
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -44869,6 +53952,102 @@ export namespace Prisma {
     pendingDues?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumCashStatusFieldUpdateOperationsInput | $Enums.CashStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CashTransactionCreateInput = {
+    id?: string
+    date: Date | string
+    type: $Enums.CashTransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    orderNumber?: string | null
+    description?: string | null
+    runningBalance: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutCashTransactionsInput
+    driver: DriverCreateNestedOneWithoutCashTransactionsInput
+  }
+
+  export type CashTransactionUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    driverId: string
+    date: Date | string
+    type: $Enums.CashTransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    orderNumber?: string | null
+    description?: string | null
+    runningBalance: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CashTransactionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: EnumCashTransactionTypeFieldUpdateOperationsInput | $Enums.CashTransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    runningBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutCashTransactionsNestedInput
+    driver?: DriverUpdateOneRequiredWithoutCashTransactionsNestedInput
+  }
+
+  export type CashTransactionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: EnumCashTransactionTypeFieldUpdateOperationsInput | $Enums.CashTransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    runningBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CashTransactionCreateManyInput = {
+    id?: string
+    tenantId: string
+    driverId: string
+    date: Date | string
+    type: $Enums.CashTransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    orderNumber?: string | null
+    description?: string | null
+    runningBalance: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CashTransactionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: EnumCashTransactionTypeFieldUpdateOperationsInput | $Enums.CashTransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    runningBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CashTransactionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: EnumCashTransactionTypeFieldUpdateOperationsInput | $Enums.CashTransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    runningBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -46520,7 +55699,6 @@ export namespace Prisma {
   export type TalabatComplianceEventCreateInput = {
     id?: string
     type: $Enums.ComplianceEventType
-    severity: $Enums.AlertSeverity
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: boolean
@@ -46538,7 +55716,6 @@ export namespace Prisma {
     driverId: string
     sessionId?: string | null
     type: $Enums.ComplianceEventType
-    severity: $Enums.AlertSeverity
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: boolean
@@ -46550,7 +55727,6 @@ export namespace Prisma {
   export type TalabatComplianceEventUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumComplianceEventTypeFieldUpdateOperationsInput | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFieldUpdateOperationsInput | $Enums.AlertSeverity
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: BoolFieldUpdateOperationsInput | boolean
@@ -46568,7 +55744,6 @@ export namespace Prisma {
     driverId?: StringFieldUpdateOperationsInput | string
     sessionId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumComplianceEventTypeFieldUpdateOperationsInput | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFieldUpdateOperationsInput | $Enums.AlertSeverity
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: BoolFieldUpdateOperationsInput | boolean
@@ -46583,7 +55758,6 @@ export namespace Prisma {
     driverId: string
     sessionId?: string | null
     type: $Enums.ComplianceEventType
-    severity: $Enums.AlertSeverity
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: boolean
@@ -46595,7 +55769,6 @@ export namespace Prisma {
   export type TalabatComplianceEventUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumComplianceEventTypeFieldUpdateOperationsInput | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFieldUpdateOperationsInput | $Enums.AlertSeverity
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: BoolFieldUpdateOperationsInput | boolean
@@ -46610,7 +55783,6 @@ export namespace Prisma {
     driverId?: StringFieldUpdateOperationsInput | string
     sessionId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumComplianceEventTypeFieldUpdateOperationsInput | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFieldUpdateOperationsInput | $Enums.AlertSeverity
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: BoolFieldUpdateOperationsInput | boolean
@@ -46979,6 +56151,178 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PlatformSettingsCreateInput = {
+    id?: string
+    platform: $Enums.Platform
+    targets: JsonNullValueInput | InputJsonValue
+    kpis?: NullableJsonNullValueInput | InputJsonValue
+    shiftRules?: NullableJsonNullValueInput | InputJsonValue
+    zones?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutPlatformSettingsInput
+  }
+
+  export type PlatformSettingsUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    platform: $Enums.Platform
+    targets: JsonNullValueInput | InputJsonValue
+    kpis?: NullableJsonNullValueInput | InputJsonValue
+    shiftRules?: NullableJsonNullValueInput | InputJsonValue
+    zones?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PlatformSettingsUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    platform?: EnumPlatformFieldUpdateOperationsInput | $Enums.Platform
+    targets?: JsonNullValueInput | InputJsonValue
+    kpis?: NullableJsonNullValueInput | InputJsonValue
+    shiftRules?: NullableJsonNullValueInput | InputJsonValue
+    zones?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutPlatformSettingsNestedInput
+  }
+
+  export type PlatformSettingsUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    platform?: EnumPlatformFieldUpdateOperationsInput | $Enums.Platform
+    targets?: JsonNullValueInput | InputJsonValue
+    kpis?: NullableJsonNullValueInput | InputJsonValue
+    shiftRules?: NullableJsonNullValueInput | InputJsonValue
+    zones?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlatformSettingsCreateManyInput = {
+    id?: string
+    tenantId: string
+    platform: $Enums.Platform
+    targets: JsonNullValueInput | InputJsonValue
+    kpis?: NullableJsonNullValueInput | InputJsonValue
+    shiftRules?: NullableJsonNullValueInput | InputJsonValue
+    zones?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PlatformSettingsUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    platform?: EnumPlatformFieldUpdateOperationsInput | $Enums.Platform
+    targets?: JsonNullValueInput | InputJsonValue
+    kpis?: NullableJsonNullValueInput | InputJsonValue
+    shiftRules?: NullableJsonNullValueInput | InputJsonValue
+    zones?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlatformSettingsUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    platform?: EnumPlatformFieldUpdateOperationsInput | $Enums.Platform
+    targets?: JsonNullValueInput | InputJsonValue
+    kpis?: NullableJsonNullValueInput | InputJsonValue
+    shiftRules?: NullableJsonNullValueInput | InputJsonValue
+    zones?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompanyInventoryCreateInput = {
+    id?: string
+    itemType: $Enums.InventoryItemType
+    total?: number
+    issued?: number
+    available?: number
+    minStock?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutCompanyInventoryInput
+    company: CompanyCreateNestedOneWithoutCompanyInventoryInput
+  }
+
+  export type CompanyInventoryUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    companyId: string
+    itemType: $Enums.InventoryItemType
+    total?: number
+    issued?: number
+    available?: number
+    minStock?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CompanyInventoryUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    itemType?: EnumInventoryItemTypeFieldUpdateOperationsInput | $Enums.InventoryItemType
+    total?: IntFieldUpdateOperationsInput | number
+    issued?: IntFieldUpdateOperationsInput | number
+    available?: IntFieldUpdateOperationsInput | number
+    minStock?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutCompanyInventoryNestedInput
+    company?: CompanyUpdateOneRequiredWithoutCompanyInventoryNestedInput
+  }
+
+  export type CompanyInventoryUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    companyId?: StringFieldUpdateOperationsInput | string
+    itemType?: EnumInventoryItemTypeFieldUpdateOperationsInput | $Enums.InventoryItemType
+    total?: IntFieldUpdateOperationsInput | number
+    issued?: IntFieldUpdateOperationsInput | number
+    available?: IntFieldUpdateOperationsInput | number
+    minStock?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompanyInventoryCreateManyInput = {
+    id?: string
+    tenantId: string
+    companyId: string
+    itemType: $Enums.InventoryItemType
+    total?: number
+    issued?: number
+    available?: number
+    minStock?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CompanyInventoryUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    itemType?: EnumInventoryItemTypeFieldUpdateOperationsInput | $Enums.InventoryItemType
+    total?: IntFieldUpdateOperationsInput | number
+    issued?: IntFieldUpdateOperationsInput | number
+    available?: IntFieldUpdateOperationsInput | number
+    minStock?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompanyInventoryUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    companyId?: StringFieldUpdateOperationsInput | string
+    itemType?: EnumInventoryItemTypeFieldUpdateOperationsInput | $Enums.InventoryItemType
+    total?: IntFieldUpdateOperationsInput | number
+    issued?: IntFieldUpdateOperationsInput | number
+    available?: IntFieldUpdateOperationsInput | number
+    minStock?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type AmericanaDailyOrdersCreateInput = {
     id?: string
     month: Date | string
@@ -47103,6 +56447,381 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type KpiDefinitionCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    category: $Enums.KpiCategory
+    unit: $Enums.KpiUnit
+    platform?: $Enums.Platform | null
+    target?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutKpiDefinitionsInput
+    records?: KpiRecordCreateNestedManyWithoutKpiDefinitionInput
+  }
+
+  export type KpiDefinitionUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    name: string
+    description?: string | null
+    category: $Enums.KpiCategory
+    unit: $Enums.KpiUnit
+    platform?: $Enums.Platform | null
+    target?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    records?: KpiRecordUncheckedCreateNestedManyWithoutKpiDefinitionInput
+  }
+
+  export type KpiDefinitionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: EnumKpiCategoryFieldUpdateOperationsInput | $Enums.KpiCategory
+    unit?: EnumKpiUnitFieldUpdateOperationsInput | $Enums.KpiUnit
+    platform?: NullableEnumPlatformFieldUpdateOperationsInput | $Enums.Platform | null
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutKpiDefinitionsNestedInput
+    records?: KpiRecordUpdateManyWithoutKpiDefinitionNestedInput
+  }
+
+  export type KpiDefinitionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: EnumKpiCategoryFieldUpdateOperationsInput | $Enums.KpiCategory
+    unit?: EnumKpiUnitFieldUpdateOperationsInput | $Enums.KpiUnit
+    platform?: NullableEnumPlatformFieldUpdateOperationsInput | $Enums.Platform | null
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    records?: KpiRecordUncheckedUpdateManyWithoutKpiDefinitionNestedInput
+  }
+
+  export type KpiDefinitionCreateManyInput = {
+    id?: string
+    tenantId: string
+    name: string
+    description?: string | null
+    category: $Enums.KpiCategory
+    unit: $Enums.KpiUnit
+    platform?: $Enums.Platform | null
+    target?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KpiDefinitionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: EnumKpiCategoryFieldUpdateOperationsInput | $Enums.KpiCategory
+    unit?: EnumKpiUnitFieldUpdateOperationsInput | $Enums.KpiUnit
+    platform?: NullableEnumPlatformFieldUpdateOperationsInput | $Enums.Platform | null
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KpiDefinitionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: EnumKpiCategoryFieldUpdateOperationsInput | $Enums.KpiCategory
+    unit?: EnumKpiUnitFieldUpdateOperationsInput | $Enums.KpiUnit
+    platform?: NullableEnumPlatformFieldUpdateOperationsInput | $Enums.Platform | null
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KpiRecordCreateInput = {
+    id?: string
+    date: Date | string
+    value: Decimal | DecimalJsLike | number | string
+    target?: Decimal | DecimalJsLike | number | string | null
+    score?: Decimal | DecimalJsLike | number | string | null
+    source?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutKpiRecordsInput
+    driver: DriverCreateNestedOneWithoutKpiRecordsInput
+    kpiDefinition: KpiDefinitionCreateNestedOneWithoutRecordsInput
+  }
+
+  export type KpiRecordUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    driverId: string
+    kpiDefinitionId: string
+    date: Date | string
+    value: Decimal | DecimalJsLike | number | string
+    target?: Decimal | DecimalJsLike | number | string | null
+    score?: Decimal | DecimalJsLike | number | string | null
+    source?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KpiRecordUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    value?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutKpiRecordsNestedInput
+    driver?: DriverUpdateOneRequiredWithoutKpiRecordsNestedInput
+    kpiDefinition?: KpiDefinitionUpdateOneRequiredWithoutRecordsNestedInput
+  }
+
+  export type KpiRecordUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    kpiDefinitionId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    value?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KpiRecordCreateManyInput = {
+    id?: string
+    tenantId: string
+    driverId: string
+    kpiDefinitionId: string
+    date: Date | string
+    value: Decimal | DecimalJsLike | number | string
+    target?: Decimal | DecimalJsLike | number | string | null
+    score?: Decimal | DecimalJsLike | number | string | null
+    source?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KpiRecordUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    value?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KpiRecordUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    kpiDefinitionId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    value?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationCreateInput = {
+    id?: string
+    title: string
+    message: string
+    type: string
+    severity?: string
+    sourceId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: boolean
+    readAt?: Date | string | null
+    createdAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutNotificationsInput
+    user: UserCreateNestedOneWithoutNotificationsInput
+  }
+
+  export type NotificationUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    userId: string
+    title: string
+    message: string
+    type: string
+    severity?: string
+    sourceId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: boolean
+    readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type NotificationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: BoolFieldUpdateOperationsInput | boolean
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutNotificationsNestedInput
+    user?: UserUpdateOneRequiredWithoutNotificationsNestedInput
+  }
+
+  export type NotificationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: BoolFieldUpdateOperationsInput | boolean
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationCreateManyInput = {
+    id?: string
+    tenantId: string
+    userId: string
+    title: string
+    message: string
+    type: string
+    severity?: string
+    sourceId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: boolean
+    readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type NotificationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: BoolFieldUpdateOperationsInput | boolean
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: BoolFieldUpdateOperationsInput | boolean
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationRuleCreateInput = {
+    id?: string
+    eventType: string
+    role: $Enums.UserRole
+    enabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutNotificationRulesInput
+  }
+
+  export type NotificationRuleUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    eventType: string
+    role: $Enums.UserRole
+    enabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type NotificationRuleUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutNotificationRulesNestedInput
+  }
+
+  export type NotificationRuleUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationRuleCreateManyInput = {
+    id?: string
+    tenantId: string
+    eventType: string
+    role: $Enums.UserRole
+    enabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type NotificationRuleUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationRuleUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -47200,6 +56919,12 @@ export namespace Prisma {
     none?: CashRecordWhereInput
   }
 
+  export type CashTransactionListRelationFilter = {
+    every?: CashTransactionWhereInput
+    some?: CashTransactionWhereInput
+    none?: CashTransactionWhereInput
+  }
+
   export type PendingDuesLedgerListRelationFilter = {
     every?: PendingDuesLedgerWhereInput
     some?: PendingDuesLedgerWhereInput
@@ -47290,6 +57015,42 @@ export namespace Prisma {
     none?: AmericanaDailyOrdersWhereInput
   }
 
+  export type KpiDefinitionListRelationFilter = {
+    every?: KpiDefinitionWhereInput
+    some?: KpiDefinitionWhereInput
+    none?: KpiDefinitionWhereInput
+  }
+
+  export type KpiRecordListRelationFilter = {
+    every?: KpiRecordWhereInput
+    some?: KpiRecordWhereInput
+    none?: KpiRecordWhereInput
+  }
+
+  export type PlatformSettingsListRelationFilter = {
+    every?: PlatformSettingsWhereInput
+    some?: PlatformSettingsWhereInput
+    none?: PlatformSettingsWhereInput
+  }
+
+  export type CompanyInventoryListRelationFilter = {
+    every?: CompanyInventoryWhereInput
+    some?: CompanyInventoryWhereInput
+    none?: CompanyInventoryWhereInput
+  }
+
+  export type NotificationListRelationFilter = {
+    every?: NotificationWhereInput
+    some?: NotificationWhereInput
+    none?: NotificationWhereInput
+  }
+
+  export type NotificationRuleListRelationFilter = {
+    every?: NotificationRuleWhereInput
+    some?: NotificationRuleWhereInput
+    none?: NotificationRuleWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -47320,6 +57081,10 @@ export namespace Prisma {
   }
 
   export type CashRecordOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CashTransactionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -47380,6 +57145,30 @@ export namespace Prisma {
   }
 
   export type AmericanaDailyOrdersOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type KpiDefinitionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type KpiRecordOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PlatformSettingsOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CompanyInventoryOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type NotificationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type NotificationRuleOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -48066,6 +57855,8 @@ export namespace Prisma {
     chassisNumber?: SortOrder
     mileage?: SortOrder
     fuelType?: SortOrder
+    ownerCompany?: SortOrder
+    driverIqama?: SortOrder
     status?: SortOrder
     assignedDriverId?: SortOrder
     insuranceExpiry?: SortOrder
@@ -48092,6 +57883,8 @@ export namespace Prisma {
     chassisNumber?: SortOrder
     mileage?: SortOrder
     fuelType?: SortOrder
+    ownerCompany?: SortOrder
+    driverIqama?: SortOrder
     status?: SortOrder
     assignedDriverId?: SortOrder
     insuranceExpiry?: SortOrder
@@ -48113,6 +57906,8 @@ export namespace Prisma {
     chassisNumber?: SortOrder
     mileage?: SortOrder
     fuelType?: SortOrder
+    ownerCompany?: SortOrder
+    driverIqama?: SortOrder
     status?: SortOrder
     assignedDriverId?: SortOrder
     insuranceExpiry?: SortOrder
@@ -48283,6 +58078,12 @@ export namespace Prisma {
   export type ShiftNullableRelationFilter = {
     is?: ShiftWhereInput | null
     isNot?: ShiftWhereInput | null
+  }
+
+  export type AttendanceRecordTenantId_driverId_dateCompoundUniqueInput = {
+    tenantId: string
+    driverId: string
+    date: Date | string
   }
 
   export type AttendanceRecordCountOrderByAggregateInput = {
@@ -48585,6 +58386,75 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumCashStatusFilter<$PrismaModel>
     _max?: NestedEnumCashStatusFilter<$PrismaModel>
+  }
+
+  export type EnumCashTransactionTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.CashTransactionType | EnumCashTransactionTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CashTransactionType[] | ListEnumCashTransactionTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CashTransactionType[] | ListEnumCashTransactionTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCashTransactionTypeFilter<$PrismaModel> | $Enums.CashTransactionType
+  }
+
+  export type CashTransactionCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    date?: SortOrder
+    type?: SortOrder
+    amount?: SortOrder
+    orderNumber?: SortOrder
+    description?: SortOrder
+    runningBalance?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CashTransactionAvgOrderByAggregateInput = {
+    amount?: SortOrder
+    runningBalance?: SortOrder
+  }
+
+  export type CashTransactionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    date?: SortOrder
+    type?: SortOrder
+    amount?: SortOrder
+    orderNumber?: SortOrder
+    description?: SortOrder
+    runningBalance?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CashTransactionMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    date?: SortOrder
+    type?: SortOrder
+    amount?: SortOrder
+    orderNumber?: SortOrder
+    description?: SortOrder
+    runningBalance?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CashTransactionSumOrderByAggregateInput = {
+    amount?: SortOrder
+    runningBalance?: SortOrder
+  }
+
+  export type EnumCashTransactionTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CashTransactionType | EnumCashTransactionTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CashTransactionType[] | ListEnumCashTransactionTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CashTransactionType[] | ListEnumCashTransactionTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCashTransactionTypeWithAggregatesFilter<$PrismaModel> | $Enums.CashTransactionType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCashTransactionTypeFilter<$PrismaModel>
+    _max?: NestedEnumCashTransactionTypeFilter<$PrismaModel>
   }
   export type JsonFilter<$PrismaModel = never> = 
     | PatchUndefined<
@@ -49779,7 +59649,6 @@ export namespace Prisma {
     driverId?: SortOrder
     sessionId?: SortOrder
     type?: SortOrder
-    severity?: SortOrder
     description?: SortOrder
     metadata?: SortOrder
     resolved?: SortOrder
@@ -49794,7 +59663,6 @@ export namespace Prisma {
     driverId?: SortOrder
     sessionId?: SortOrder
     type?: SortOrder
-    severity?: SortOrder
     description?: SortOrder
     resolved?: SortOrder
     resolvedAt?: SortOrder
@@ -49808,7 +59676,6 @@ export namespace Prisma {
     driverId?: SortOrder
     sessionId?: SortOrder
     type?: SortOrder
-    severity?: SortOrder
     description?: SortOrder
     resolved?: SortOrder
     resolvedAt?: SortOrder
@@ -50049,6 +59916,97 @@ export namespace Prisma {
     severelyOverdue?: SortOrder
   }
 
+  export type PlatformSettingsTenantIdPlatformCompoundUniqueInput = {
+    tenantId: string
+    platform: $Enums.Platform
+  }
+
+  export type PlatformSettingsCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    platform?: SortOrder
+    targets?: SortOrder
+    kpis?: SortOrder
+    shiftRules?: SortOrder
+    zones?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PlatformSettingsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    platform?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PlatformSettingsMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    platform?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CompanyInventoryCompanyIdItemTypeCompoundUniqueInput = {
+    companyId: string
+    itemType: $Enums.InventoryItemType
+  }
+
+  export type CompanyInventoryCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    companyId?: SortOrder
+    itemType?: SortOrder
+    total?: SortOrder
+    issued?: SortOrder
+    available?: SortOrder
+    minStock?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CompanyInventoryAvgOrderByAggregateInput = {
+    total?: SortOrder
+    issued?: SortOrder
+    available?: SortOrder
+    minStock?: SortOrder
+  }
+
+  export type CompanyInventoryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    companyId?: SortOrder
+    itemType?: SortOrder
+    total?: SortOrder
+    issued?: SortOrder
+    available?: SortOrder
+    minStock?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CompanyInventoryMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    companyId?: SortOrder
+    itemType?: SortOrder
+    total?: SortOrder
+    issued?: SortOrder
+    available?: SortOrder
+    minStock?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type CompanyInventorySumOrderByAggregateInput = {
+    total?: SortOrder
+    issued?: SortOrder
+    available?: SortOrder
+    minStock?: SortOrder
+  }
+
   export type AmericanaDailyOrdersTenantIdDriverIdMonthCompoundUniqueInput = {
     tenantId: string
     driverId: string
@@ -50115,6 +60073,246 @@ export namespace Prisma {
     totalOrders?: SortOrder
   }
 
+  export type EnumKpiCategoryFilter<$PrismaModel = never> = {
+    equals?: $Enums.KpiCategory | EnumKpiCategoryFieldRefInput<$PrismaModel>
+    in?: $Enums.KpiCategory[] | ListEnumKpiCategoryFieldRefInput<$PrismaModel>
+    notIn?: $Enums.KpiCategory[] | ListEnumKpiCategoryFieldRefInput<$PrismaModel>
+    not?: NestedEnumKpiCategoryFilter<$PrismaModel> | $Enums.KpiCategory
+  }
+
+  export type EnumKpiUnitFilter<$PrismaModel = never> = {
+    equals?: $Enums.KpiUnit | EnumKpiUnitFieldRefInput<$PrismaModel>
+    in?: $Enums.KpiUnit[] | ListEnumKpiUnitFieldRefInput<$PrismaModel>
+    notIn?: $Enums.KpiUnit[] | ListEnumKpiUnitFieldRefInput<$PrismaModel>
+    not?: NestedEnumKpiUnitFilter<$PrismaModel> | $Enums.KpiUnit
+  }
+
+  export type KpiDefinitionTenantIdNamePlatformCompoundUniqueInput = {
+    tenantId: string
+    name: string
+    platform: $Enums.Platform
+  }
+
+  export type KpiDefinitionCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    category?: SortOrder
+    unit?: SortOrder
+    platform?: SortOrder
+    target?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KpiDefinitionAvgOrderByAggregateInput = {
+    target?: SortOrder
+    sortOrder?: SortOrder
+  }
+
+  export type KpiDefinitionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    category?: SortOrder
+    unit?: SortOrder
+    platform?: SortOrder
+    target?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KpiDefinitionMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    category?: SortOrder
+    unit?: SortOrder
+    platform?: SortOrder
+    target?: SortOrder
+    isActive?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KpiDefinitionSumOrderByAggregateInput = {
+    target?: SortOrder
+    sortOrder?: SortOrder
+  }
+
+  export type EnumKpiCategoryWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.KpiCategory | EnumKpiCategoryFieldRefInput<$PrismaModel>
+    in?: $Enums.KpiCategory[] | ListEnumKpiCategoryFieldRefInput<$PrismaModel>
+    notIn?: $Enums.KpiCategory[] | ListEnumKpiCategoryFieldRefInput<$PrismaModel>
+    not?: NestedEnumKpiCategoryWithAggregatesFilter<$PrismaModel> | $Enums.KpiCategory
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumKpiCategoryFilter<$PrismaModel>
+    _max?: NestedEnumKpiCategoryFilter<$PrismaModel>
+  }
+
+  export type EnumKpiUnitWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.KpiUnit | EnumKpiUnitFieldRefInput<$PrismaModel>
+    in?: $Enums.KpiUnit[] | ListEnumKpiUnitFieldRefInput<$PrismaModel>
+    notIn?: $Enums.KpiUnit[] | ListEnumKpiUnitFieldRefInput<$PrismaModel>
+    not?: NestedEnumKpiUnitWithAggregatesFilter<$PrismaModel> | $Enums.KpiUnit
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumKpiUnitFilter<$PrismaModel>
+    _max?: NestedEnumKpiUnitFilter<$PrismaModel>
+  }
+
+  export type KpiDefinitionRelationFilter = {
+    is?: KpiDefinitionWhereInput
+    isNot?: KpiDefinitionWhereInput
+  }
+
+  export type KpiRecordTenantIdDriverIdKpiDefinitionIdDateCompoundUniqueInput = {
+    tenantId: string
+    driverId: string
+    kpiDefinitionId: string
+    date: Date | string
+  }
+
+  export type KpiRecordCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    kpiDefinitionId?: SortOrder
+    date?: SortOrder
+    value?: SortOrder
+    target?: SortOrder
+    score?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KpiRecordAvgOrderByAggregateInput = {
+    value?: SortOrder
+    target?: SortOrder
+    score?: SortOrder
+  }
+
+  export type KpiRecordMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    kpiDefinitionId?: SortOrder
+    date?: SortOrder
+    value?: SortOrder
+    target?: SortOrder
+    score?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KpiRecordMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    driverId?: SortOrder
+    kpiDefinitionId?: SortOrder
+    date?: SortOrder
+    value?: SortOrder
+    target?: SortOrder
+    score?: SortOrder
+    source?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type KpiRecordSumOrderByAggregateInput = {
+    value?: SortOrder
+    target?: SortOrder
+    score?: SortOrder
+  }
+
+  export type NotificationCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    message?: SortOrder
+    type?: SortOrder
+    severity?: SortOrder
+    sourceId?: SortOrder
+    metadata?: SortOrder
+    read?: SortOrder
+    readAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type NotificationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    message?: SortOrder
+    type?: SortOrder
+    severity?: SortOrder
+    sourceId?: SortOrder
+    read?: SortOrder
+    readAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type NotificationMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    message?: SortOrder
+    type?: SortOrder
+    severity?: SortOrder
+    sourceId?: SortOrder
+    read?: SortOrder
+    readAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type NotificationRuleTenantIdEventTypeRoleCompoundUniqueInput = {
+    tenantId: string
+    eventType: string
+    role: $Enums.UserRole
+  }
+
+  export type NotificationRuleCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    eventType?: SortOrder
+    role?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type NotificationRuleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    eventType?: SortOrder
+    role?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type NotificationRuleMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    eventType?: SortOrder
+    role?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
   export type CompanyCreateNestedManyWithoutTenantInput = {
     create?: XOR<CompanyCreateWithoutTenantInput, CompanyUncheckedCreateWithoutTenantInput> | CompanyCreateWithoutTenantInput[] | CompanyUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: CompanyCreateOrConnectWithoutTenantInput | CompanyCreateOrConnectWithoutTenantInput[]
@@ -50162,6 +60360,13 @@ export namespace Prisma {
     connectOrCreate?: CashRecordCreateOrConnectWithoutTenantInput | CashRecordCreateOrConnectWithoutTenantInput[]
     createMany?: CashRecordCreateManyTenantInputEnvelope
     connect?: CashRecordWhereUniqueInput | CashRecordWhereUniqueInput[]
+  }
+
+  export type CashTransactionCreateNestedManyWithoutTenantInput = {
+    create?: XOR<CashTransactionCreateWithoutTenantInput, CashTransactionUncheckedCreateWithoutTenantInput> | CashTransactionCreateWithoutTenantInput[] | CashTransactionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: CashTransactionCreateOrConnectWithoutTenantInput | CashTransactionCreateOrConnectWithoutTenantInput[]
+    createMany?: CashTransactionCreateManyTenantInputEnvelope
+    connect?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
   }
 
   export type PendingDuesLedgerCreateNestedManyWithoutTenantInput = {
@@ -50269,6 +60474,48 @@ export namespace Prisma {
     connect?: AmericanaDailyOrdersWhereUniqueInput | AmericanaDailyOrdersWhereUniqueInput[]
   }
 
+  export type KpiDefinitionCreateNestedManyWithoutTenantInput = {
+    create?: XOR<KpiDefinitionCreateWithoutTenantInput, KpiDefinitionUncheckedCreateWithoutTenantInput> | KpiDefinitionCreateWithoutTenantInput[] | KpiDefinitionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: KpiDefinitionCreateOrConnectWithoutTenantInput | KpiDefinitionCreateOrConnectWithoutTenantInput[]
+    createMany?: KpiDefinitionCreateManyTenantInputEnvelope
+    connect?: KpiDefinitionWhereUniqueInput | KpiDefinitionWhereUniqueInput[]
+  }
+
+  export type KpiRecordCreateNestedManyWithoutTenantInput = {
+    create?: XOR<KpiRecordCreateWithoutTenantInput, KpiRecordUncheckedCreateWithoutTenantInput> | KpiRecordCreateWithoutTenantInput[] | KpiRecordUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: KpiRecordCreateOrConnectWithoutTenantInput | KpiRecordCreateOrConnectWithoutTenantInput[]
+    createMany?: KpiRecordCreateManyTenantInputEnvelope
+    connect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+  }
+
+  export type PlatformSettingsCreateNestedManyWithoutTenantInput = {
+    create?: XOR<PlatformSettingsCreateWithoutTenantInput, PlatformSettingsUncheckedCreateWithoutTenantInput> | PlatformSettingsCreateWithoutTenantInput[] | PlatformSettingsUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PlatformSettingsCreateOrConnectWithoutTenantInput | PlatformSettingsCreateOrConnectWithoutTenantInput[]
+    createMany?: PlatformSettingsCreateManyTenantInputEnvelope
+    connect?: PlatformSettingsWhereUniqueInput | PlatformSettingsWhereUniqueInput[]
+  }
+
+  export type CompanyInventoryCreateNestedManyWithoutTenantInput = {
+    create?: XOR<CompanyInventoryCreateWithoutTenantInput, CompanyInventoryUncheckedCreateWithoutTenantInput> | CompanyInventoryCreateWithoutTenantInput[] | CompanyInventoryUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: CompanyInventoryCreateOrConnectWithoutTenantInput | CompanyInventoryCreateOrConnectWithoutTenantInput[]
+    createMany?: CompanyInventoryCreateManyTenantInputEnvelope
+    connect?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+  }
+
+  export type NotificationCreateNestedManyWithoutTenantInput = {
+    create?: XOR<NotificationCreateWithoutTenantInput, NotificationUncheckedCreateWithoutTenantInput> | NotificationCreateWithoutTenantInput[] | NotificationUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: NotificationCreateOrConnectWithoutTenantInput | NotificationCreateOrConnectWithoutTenantInput[]
+    createMany?: NotificationCreateManyTenantInputEnvelope
+    connect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+  }
+
+  export type NotificationRuleCreateNestedManyWithoutTenantInput = {
+    create?: XOR<NotificationRuleCreateWithoutTenantInput, NotificationRuleUncheckedCreateWithoutTenantInput> | NotificationRuleCreateWithoutTenantInput[] | NotificationRuleUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: NotificationRuleCreateOrConnectWithoutTenantInput | NotificationRuleCreateOrConnectWithoutTenantInput[]
+    createMany?: NotificationRuleCreateManyTenantInputEnvelope
+    connect?: NotificationRuleWhereUniqueInput | NotificationRuleWhereUniqueInput[]
+  }
+
   export type CompanyUncheckedCreateNestedManyWithoutTenantInput = {
     create?: XOR<CompanyCreateWithoutTenantInput, CompanyUncheckedCreateWithoutTenantInput> | CompanyCreateWithoutTenantInput[] | CompanyUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: CompanyCreateOrConnectWithoutTenantInput | CompanyCreateOrConnectWithoutTenantInput[]
@@ -50316,6 +60563,13 @@ export namespace Prisma {
     connectOrCreate?: CashRecordCreateOrConnectWithoutTenantInput | CashRecordCreateOrConnectWithoutTenantInput[]
     createMany?: CashRecordCreateManyTenantInputEnvelope
     connect?: CashRecordWhereUniqueInput | CashRecordWhereUniqueInput[]
+  }
+
+  export type CashTransactionUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<CashTransactionCreateWithoutTenantInput, CashTransactionUncheckedCreateWithoutTenantInput> | CashTransactionCreateWithoutTenantInput[] | CashTransactionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: CashTransactionCreateOrConnectWithoutTenantInput | CashTransactionCreateOrConnectWithoutTenantInput[]
+    createMany?: CashTransactionCreateManyTenantInputEnvelope
+    connect?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
   }
 
   export type PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput = {
@@ -50421,6 +60675,48 @@ export namespace Prisma {
     connectOrCreate?: AmericanaDailyOrdersCreateOrConnectWithoutTenantInput | AmericanaDailyOrdersCreateOrConnectWithoutTenantInput[]
     createMany?: AmericanaDailyOrdersCreateManyTenantInputEnvelope
     connect?: AmericanaDailyOrdersWhereUniqueInput | AmericanaDailyOrdersWhereUniqueInput[]
+  }
+
+  export type KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<KpiDefinitionCreateWithoutTenantInput, KpiDefinitionUncheckedCreateWithoutTenantInput> | KpiDefinitionCreateWithoutTenantInput[] | KpiDefinitionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: KpiDefinitionCreateOrConnectWithoutTenantInput | KpiDefinitionCreateOrConnectWithoutTenantInput[]
+    createMany?: KpiDefinitionCreateManyTenantInputEnvelope
+    connect?: KpiDefinitionWhereUniqueInput | KpiDefinitionWhereUniqueInput[]
+  }
+
+  export type KpiRecordUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<KpiRecordCreateWithoutTenantInput, KpiRecordUncheckedCreateWithoutTenantInput> | KpiRecordCreateWithoutTenantInput[] | KpiRecordUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: KpiRecordCreateOrConnectWithoutTenantInput | KpiRecordCreateOrConnectWithoutTenantInput[]
+    createMany?: KpiRecordCreateManyTenantInputEnvelope
+    connect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+  }
+
+  export type PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<PlatformSettingsCreateWithoutTenantInput, PlatformSettingsUncheckedCreateWithoutTenantInput> | PlatformSettingsCreateWithoutTenantInput[] | PlatformSettingsUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PlatformSettingsCreateOrConnectWithoutTenantInput | PlatformSettingsCreateOrConnectWithoutTenantInput[]
+    createMany?: PlatformSettingsCreateManyTenantInputEnvelope
+    connect?: PlatformSettingsWhereUniqueInput | PlatformSettingsWhereUniqueInput[]
+  }
+
+  export type CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<CompanyInventoryCreateWithoutTenantInput, CompanyInventoryUncheckedCreateWithoutTenantInput> | CompanyInventoryCreateWithoutTenantInput[] | CompanyInventoryUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: CompanyInventoryCreateOrConnectWithoutTenantInput | CompanyInventoryCreateOrConnectWithoutTenantInput[]
+    createMany?: CompanyInventoryCreateManyTenantInputEnvelope
+    connect?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+  }
+
+  export type NotificationUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<NotificationCreateWithoutTenantInput, NotificationUncheckedCreateWithoutTenantInput> | NotificationCreateWithoutTenantInput[] | NotificationUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: NotificationCreateOrConnectWithoutTenantInput | NotificationCreateOrConnectWithoutTenantInput[]
+    createMany?: NotificationCreateManyTenantInputEnvelope
+    connect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+  }
+
+  export type NotificationRuleUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<NotificationRuleCreateWithoutTenantInput, NotificationRuleUncheckedCreateWithoutTenantInput> | NotificationRuleCreateWithoutTenantInput[] | NotificationRuleUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: NotificationRuleCreateOrConnectWithoutTenantInput | NotificationRuleCreateOrConnectWithoutTenantInput[]
+    createMany?: NotificationRuleCreateManyTenantInputEnvelope
+    connect?: NotificationRuleWhereUniqueInput | NotificationRuleWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -50531,6 +60827,20 @@ export namespace Prisma {
     update?: CashRecordUpdateWithWhereUniqueWithoutTenantInput | CashRecordUpdateWithWhereUniqueWithoutTenantInput[]
     updateMany?: CashRecordUpdateManyWithWhereWithoutTenantInput | CashRecordUpdateManyWithWhereWithoutTenantInput[]
     deleteMany?: CashRecordScalarWhereInput | CashRecordScalarWhereInput[]
+  }
+
+  export type CashTransactionUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<CashTransactionCreateWithoutTenantInput, CashTransactionUncheckedCreateWithoutTenantInput> | CashTransactionCreateWithoutTenantInput[] | CashTransactionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: CashTransactionCreateOrConnectWithoutTenantInput | CashTransactionCreateOrConnectWithoutTenantInput[]
+    upsert?: CashTransactionUpsertWithWhereUniqueWithoutTenantInput | CashTransactionUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: CashTransactionCreateManyTenantInputEnvelope
+    set?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    disconnect?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    delete?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    connect?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    update?: CashTransactionUpdateWithWhereUniqueWithoutTenantInput | CashTransactionUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: CashTransactionUpdateManyWithWhereWithoutTenantInput | CashTransactionUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: CashTransactionScalarWhereInput | CashTransactionScalarWhereInput[]
   }
 
   export type PendingDuesLedgerUpdateManyWithoutTenantNestedInput = {
@@ -50743,6 +61053,90 @@ export namespace Prisma {
     deleteMany?: AmericanaDailyOrdersScalarWhereInput | AmericanaDailyOrdersScalarWhereInput[]
   }
 
+  export type KpiDefinitionUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<KpiDefinitionCreateWithoutTenantInput, KpiDefinitionUncheckedCreateWithoutTenantInput> | KpiDefinitionCreateWithoutTenantInput[] | KpiDefinitionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: KpiDefinitionCreateOrConnectWithoutTenantInput | KpiDefinitionCreateOrConnectWithoutTenantInput[]
+    upsert?: KpiDefinitionUpsertWithWhereUniqueWithoutTenantInput | KpiDefinitionUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: KpiDefinitionCreateManyTenantInputEnvelope
+    set?: KpiDefinitionWhereUniqueInput | KpiDefinitionWhereUniqueInput[]
+    disconnect?: KpiDefinitionWhereUniqueInput | KpiDefinitionWhereUniqueInput[]
+    delete?: KpiDefinitionWhereUniqueInput | KpiDefinitionWhereUniqueInput[]
+    connect?: KpiDefinitionWhereUniqueInput | KpiDefinitionWhereUniqueInput[]
+    update?: KpiDefinitionUpdateWithWhereUniqueWithoutTenantInput | KpiDefinitionUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: KpiDefinitionUpdateManyWithWhereWithoutTenantInput | KpiDefinitionUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: KpiDefinitionScalarWhereInput | KpiDefinitionScalarWhereInput[]
+  }
+
+  export type KpiRecordUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<KpiRecordCreateWithoutTenantInput, KpiRecordUncheckedCreateWithoutTenantInput> | KpiRecordCreateWithoutTenantInput[] | KpiRecordUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: KpiRecordCreateOrConnectWithoutTenantInput | KpiRecordCreateOrConnectWithoutTenantInput[]
+    upsert?: KpiRecordUpsertWithWhereUniqueWithoutTenantInput | KpiRecordUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: KpiRecordCreateManyTenantInputEnvelope
+    set?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    disconnect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    delete?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    connect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    update?: KpiRecordUpdateWithWhereUniqueWithoutTenantInput | KpiRecordUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: KpiRecordUpdateManyWithWhereWithoutTenantInput | KpiRecordUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: KpiRecordScalarWhereInput | KpiRecordScalarWhereInput[]
+  }
+
+  export type PlatformSettingsUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<PlatformSettingsCreateWithoutTenantInput, PlatformSettingsUncheckedCreateWithoutTenantInput> | PlatformSettingsCreateWithoutTenantInput[] | PlatformSettingsUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PlatformSettingsCreateOrConnectWithoutTenantInput | PlatformSettingsCreateOrConnectWithoutTenantInput[]
+    upsert?: PlatformSettingsUpsertWithWhereUniqueWithoutTenantInput | PlatformSettingsUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: PlatformSettingsCreateManyTenantInputEnvelope
+    set?: PlatformSettingsWhereUniqueInput | PlatformSettingsWhereUniqueInput[]
+    disconnect?: PlatformSettingsWhereUniqueInput | PlatformSettingsWhereUniqueInput[]
+    delete?: PlatformSettingsWhereUniqueInput | PlatformSettingsWhereUniqueInput[]
+    connect?: PlatformSettingsWhereUniqueInput | PlatformSettingsWhereUniqueInput[]
+    update?: PlatformSettingsUpdateWithWhereUniqueWithoutTenantInput | PlatformSettingsUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: PlatformSettingsUpdateManyWithWhereWithoutTenantInput | PlatformSettingsUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: PlatformSettingsScalarWhereInput | PlatformSettingsScalarWhereInput[]
+  }
+
+  export type CompanyInventoryUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<CompanyInventoryCreateWithoutTenantInput, CompanyInventoryUncheckedCreateWithoutTenantInput> | CompanyInventoryCreateWithoutTenantInput[] | CompanyInventoryUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: CompanyInventoryCreateOrConnectWithoutTenantInput | CompanyInventoryCreateOrConnectWithoutTenantInput[]
+    upsert?: CompanyInventoryUpsertWithWhereUniqueWithoutTenantInput | CompanyInventoryUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: CompanyInventoryCreateManyTenantInputEnvelope
+    set?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    disconnect?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    delete?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    connect?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    update?: CompanyInventoryUpdateWithWhereUniqueWithoutTenantInput | CompanyInventoryUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: CompanyInventoryUpdateManyWithWhereWithoutTenantInput | CompanyInventoryUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: CompanyInventoryScalarWhereInput | CompanyInventoryScalarWhereInput[]
+  }
+
+  export type NotificationUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<NotificationCreateWithoutTenantInput, NotificationUncheckedCreateWithoutTenantInput> | NotificationCreateWithoutTenantInput[] | NotificationUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: NotificationCreateOrConnectWithoutTenantInput | NotificationCreateOrConnectWithoutTenantInput[]
+    upsert?: NotificationUpsertWithWhereUniqueWithoutTenantInput | NotificationUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: NotificationCreateManyTenantInputEnvelope
+    set?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    disconnect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    delete?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    connect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    update?: NotificationUpdateWithWhereUniqueWithoutTenantInput | NotificationUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: NotificationUpdateManyWithWhereWithoutTenantInput | NotificationUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: NotificationScalarWhereInput | NotificationScalarWhereInput[]
+  }
+
+  export type NotificationRuleUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<NotificationRuleCreateWithoutTenantInput, NotificationRuleUncheckedCreateWithoutTenantInput> | NotificationRuleCreateWithoutTenantInput[] | NotificationRuleUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: NotificationRuleCreateOrConnectWithoutTenantInput | NotificationRuleCreateOrConnectWithoutTenantInput[]
+    upsert?: NotificationRuleUpsertWithWhereUniqueWithoutTenantInput | NotificationRuleUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: NotificationRuleCreateManyTenantInputEnvelope
+    set?: NotificationRuleWhereUniqueInput | NotificationRuleWhereUniqueInput[]
+    disconnect?: NotificationRuleWhereUniqueInput | NotificationRuleWhereUniqueInput[]
+    delete?: NotificationRuleWhereUniqueInput | NotificationRuleWhereUniqueInput[]
+    connect?: NotificationRuleWhereUniqueInput | NotificationRuleWhereUniqueInput[]
+    update?: NotificationRuleUpdateWithWhereUniqueWithoutTenantInput | NotificationRuleUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: NotificationRuleUpdateManyWithWhereWithoutTenantInput | NotificationRuleUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: NotificationRuleScalarWhereInput | NotificationRuleScalarWhereInput[]
+  }
+
   export type CompanyUncheckedUpdateManyWithoutTenantNestedInput = {
     create?: XOR<CompanyCreateWithoutTenantInput, CompanyUncheckedCreateWithoutTenantInput> | CompanyCreateWithoutTenantInput[] | CompanyUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: CompanyCreateOrConnectWithoutTenantInput | CompanyCreateOrConnectWithoutTenantInput[]
@@ -50839,6 +61233,20 @@ export namespace Prisma {
     update?: CashRecordUpdateWithWhereUniqueWithoutTenantInput | CashRecordUpdateWithWhereUniqueWithoutTenantInput[]
     updateMany?: CashRecordUpdateManyWithWhereWithoutTenantInput | CashRecordUpdateManyWithWhereWithoutTenantInput[]
     deleteMany?: CashRecordScalarWhereInput | CashRecordScalarWhereInput[]
+  }
+
+  export type CashTransactionUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<CashTransactionCreateWithoutTenantInput, CashTransactionUncheckedCreateWithoutTenantInput> | CashTransactionCreateWithoutTenantInput[] | CashTransactionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: CashTransactionCreateOrConnectWithoutTenantInput | CashTransactionCreateOrConnectWithoutTenantInput[]
+    upsert?: CashTransactionUpsertWithWhereUniqueWithoutTenantInput | CashTransactionUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: CashTransactionCreateManyTenantInputEnvelope
+    set?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    disconnect?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    delete?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    connect?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    update?: CashTransactionUpdateWithWhereUniqueWithoutTenantInput | CashTransactionUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: CashTransactionUpdateManyWithWhereWithoutTenantInput | CashTransactionUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: CashTransactionScalarWhereInput | CashTransactionScalarWhereInput[]
   }
 
   export type PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput = {
@@ -51051,6 +61459,90 @@ export namespace Prisma {
     deleteMany?: AmericanaDailyOrdersScalarWhereInput | AmericanaDailyOrdersScalarWhereInput[]
   }
 
+  export type KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<KpiDefinitionCreateWithoutTenantInput, KpiDefinitionUncheckedCreateWithoutTenantInput> | KpiDefinitionCreateWithoutTenantInput[] | KpiDefinitionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: KpiDefinitionCreateOrConnectWithoutTenantInput | KpiDefinitionCreateOrConnectWithoutTenantInput[]
+    upsert?: KpiDefinitionUpsertWithWhereUniqueWithoutTenantInput | KpiDefinitionUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: KpiDefinitionCreateManyTenantInputEnvelope
+    set?: KpiDefinitionWhereUniqueInput | KpiDefinitionWhereUniqueInput[]
+    disconnect?: KpiDefinitionWhereUniqueInput | KpiDefinitionWhereUniqueInput[]
+    delete?: KpiDefinitionWhereUniqueInput | KpiDefinitionWhereUniqueInput[]
+    connect?: KpiDefinitionWhereUniqueInput | KpiDefinitionWhereUniqueInput[]
+    update?: KpiDefinitionUpdateWithWhereUniqueWithoutTenantInput | KpiDefinitionUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: KpiDefinitionUpdateManyWithWhereWithoutTenantInput | KpiDefinitionUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: KpiDefinitionScalarWhereInput | KpiDefinitionScalarWhereInput[]
+  }
+
+  export type KpiRecordUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<KpiRecordCreateWithoutTenantInput, KpiRecordUncheckedCreateWithoutTenantInput> | KpiRecordCreateWithoutTenantInput[] | KpiRecordUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: KpiRecordCreateOrConnectWithoutTenantInput | KpiRecordCreateOrConnectWithoutTenantInput[]
+    upsert?: KpiRecordUpsertWithWhereUniqueWithoutTenantInput | KpiRecordUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: KpiRecordCreateManyTenantInputEnvelope
+    set?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    disconnect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    delete?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    connect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    update?: KpiRecordUpdateWithWhereUniqueWithoutTenantInput | KpiRecordUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: KpiRecordUpdateManyWithWhereWithoutTenantInput | KpiRecordUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: KpiRecordScalarWhereInput | KpiRecordScalarWhereInput[]
+  }
+
+  export type PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<PlatformSettingsCreateWithoutTenantInput, PlatformSettingsUncheckedCreateWithoutTenantInput> | PlatformSettingsCreateWithoutTenantInput[] | PlatformSettingsUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: PlatformSettingsCreateOrConnectWithoutTenantInput | PlatformSettingsCreateOrConnectWithoutTenantInput[]
+    upsert?: PlatformSettingsUpsertWithWhereUniqueWithoutTenantInput | PlatformSettingsUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: PlatformSettingsCreateManyTenantInputEnvelope
+    set?: PlatformSettingsWhereUniqueInput | PlatformSettingsWhereUniqueInput[]
+    disconnect?: PlatformSettingsWhereUniqueInput | PlatformSettingsWhereUniqueInput[]
+    delete?: PlatformSettingsWhereUniqueInput | PlatformSettingsWhereUniqueInput[]
+    connect?: PlatformSettingsWhereUniqueInput | PlatformSettingsWhereUniqueInput[]
+    update?: PlatformSettingsUpdateWithWhereUniqueWithoutTenantInput | PlatformSettingsUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: PlatformSettingsUpdateManyWithWhereWithoutTenantInput | PlatformSettingsUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: PlatformSettingsScalarWhereInput | PlatformSettingsScalarWhereInput[]
+  }
+
+  export type CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<CompanyInventoryCreateWithoutTenantInput, CompanyInventoryUncheckedCreateWithoutTenantInput> | CompanyInventoryCreateWithoutTenantInput[] | CompanyInventoryUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: CompanyInventoryCreateOrConnectWithoutTenantInput | CompanyInventoryCreateOrConnectWithoutTenantInput[]
+    upsert?: CompanyInventoryUpsertWithWhereUniqueWithoutTenantInput | CompanyInventoryUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: CompanyInventoryCreateManyTenantInputEnvelope
+    set?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    disconnect?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    delete?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    connect?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    update?: CompanyInventoryUpdateWithWhereUniqueWithoutTenantInput | CompanyInventoryUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: CompanyInventoryUpdateManyWithWhereWithoutTenantInput | CompanyInventoryUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: CompanyInventoryScalarWhereInput | CompanyInventoryScalarWhereInput[]
+  }
+
+  export type NotificationUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<NotificationCreateWithoutTenantInput, NotificationUncheckedCreateWithoutTenantInput> | NotificationCreateWithoutTenantInput[] | NotificationUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: NotificationCreateOrConnectWithoutTenantInput | NotificationCreateOrConnectWithoutTenantInput[]
+    upsert?: NotificationUpsertWithWhereUniqueWithoutTenantInput | NotificationUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: NotificationCreateManyTenantInputEnvelope
+    set?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    disconnect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    delete?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    connect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    update?: NotificationUpdateWithWhereUniqueWithoutTenantInput | NotificationUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: NotificationUpdateManyWithWhereWithoutTenantInput | NotificationUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: NotificationScalarWhereInput | NotificationScalarWhereInput[]
+  }
+
+  export type NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<NotificationRuleCreateWithoutTenantInput, NotificationRuleUncheckedCreateWithoutTenantInput> | NotificationRuleCreateWithoutTenantInput[] | NotificationRuleUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: NotificationRuleCreateOrConnectWithoutTenantInput | NotificationRuleCreateOrConnectWithoutTenantInput[]
+    upsert?: NotificationRuleUpsertWithWhereUniqueWithoutTenantInput | NotificationRuleUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: NotificationRuleCreateManyTenantInputEnvelope
+    set?: NotificationRuleWhereUniqueInput | NotificationRuleWhereUniqueInput[]
+    disconnect?: NotificationRuleWhereUniqueInput | NotificationRuleWhereUniqueInput[]
+    delete?: NotificationRuleWhereUniqueInput | NotificationRuleWhereUniqueInput[]
+    connect?: NotificationRuleWhereUniqueInput | NotificationRuleWhereUniqueInput[]
+    update?: NotificationRuleUpdateWithWhereUniqueWithoutTenantInput | NotificationRuleUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: NotificationRuleUpdateManyWithWhereWithoutTenantInput | NotificationRuleUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: NotificationRuleScalarWhereInput | NotificationRuleScalarWhereInput[]
+  }
+
   export type TenantCreateNestedOneWithoutCompaniesInput = {
     create?: XOR<TenantCreateWithoutCompaniesInput, TenantUncheckedCreateWithoutCompaniesInput>
     connectOrCreate?: TenantCreateOrConnectWithoutCompaniesInput
@@ -51085,6 +61577,13 @@ export namespace Prisma {
     connect?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
   }
 
+  export type CompanyInventoryCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<CompanyInventoryCreateWithoutCompanyInput, CompanyInventoryUncheckedCreateWithoutCompanyInput> | CompanyInventoryCreateWithoutCompanyInput[] | CompanyInventoryUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: CompanyInventoryCreateOrConnectWithoutCompanyInput | CompanyInventoryCreateOrConnectWithoutCompanyInput[]
+    createMany?: CompanyInventoryCreateManyCompanyInputEnvelope
+    connect?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+  }
+
   export type DriverUncheckedCreateNestedManyWithoutCompanyInput = {
     create?: XOR<DriverCreateWithoutCompanyInput, DriverUncheckedCreateWithoutCompanyInput> | DriverCreateWithoutCompanyInput[] | DriverUncheckedCreateWithoutCompanyInput[]
     connectOrCreate?: DriverCreateOrConnectWithoutCompanyInput | DriverCreateOrConnectWithoutCompanyInput[]
@@ -51111,6 +61610,13 @@ export namespace Prisma {
     connectOrCreate?: TicketCreateOrConnectWithoutCompanyInput | TicketCreateOrConnectWithoutCompanyInput[]
     createMany?: TicketCreateManyCompanyInputEnvelope
     connect?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
+  }
+
+  export type CompanyInventoryUncheckedCreateNestedManyWithoutCompanyInput = {
+    create?: XOR<CompanyInventoryCreateWithoutCompanyInput, CompanyInventoryUncheckedCreateWithoutCompanyInput> | CompanyInventoryCreateWithoutCompanyInput[] | CompanyInventoryUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: CompanyInventoryCreateOrConnectWithoutCompanyInput | CompanyInventoryCreateOrConnectWithoutCompanyInput[]
+    createMany?: CompanyInventoryCreateManyCompanyInputEnvelope
+    connect?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
   }
 
   export type EnumPlatformFieldUpdateOperationsInput = {
@@ -51193,6 +61699,20 @@ export namespace Prisma {
     deleteMany?: TicketScalarWhereInput | TicketScalarWhereInput[]
   }
 
+  export type CompanyInventoryUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<CompanyInventoryCreateWithoutCompanyInput, CompanyInventoryUncheckedCreateWithoutCompanyInput> | CompanyInventoryCreateWithoutCompanyInput[] | CompanyInventoryUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: CompanyInventoryCreateOrConnectWithoutCompanyInput | CompanyInventoryCreateOrConnectWithoutCompanyInput[]
+    upsert?: CompanyInventoryUpsertWithWhereUniqueWithoutCompanyInput | CompanyInventoryUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: CompanyInventoryCreateManyCompanyInputEnvelope
+    set?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    disconnect?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    delete?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    connect?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    update?: CompanyInventoryUpdateWithWhereUniqueWithoutCompanyInput | CompanyInventoryUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: CompanyInventoryUpdateManyWithWhereWithoutCompanyInput | CompanyInventoryUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: CompanyInventoryScalarWhereInput | CompanyInventoryScalarWhereInput[]
+  }
+
   export type DriverUncheckedUpdateManyWithoutCompanyNestedInput = {
     create?: XOR<DriverCreateWithoutCompanyInput, DriverUncheckedCreateWithoutCompanyInput> | DriverCreateWithoutCompanyInput[] | DriverUncheckedCreateWithoutCompanyInput[]
     connectOrCreate?: DriverCreateOrConnectWithoutCompanyInput | DriverCreateOrConnectWithoutCompanyInput[]
@@ -51249,6 +61769,20 @@ export namespace Prisma {
     deleteMany?: TicketScalarWhereInput | TicketScalarWhereInput[]
   }
 
+  export type CompanyInventoryUncheckedUpdateManyWithoutCompanyNestedInput = {
+    create?: XOR<CompanyInventoryCreateWithoutCompanyInput, CompanyInventoryUncheckedCreateWithoutCompanyInput> | CompanyInventoryCreateWithoutCompanyInput[] | CompanyInventoryUncheckedCreateWithoutCompanyInput[]
+    connectOrCreate?: CompanyInventoryCreateOrConnectWithoutCompanyInput | CompanyInventoryCreateOrConnectWithoutCompanyInput[]
+    upsert?: CompanyInventoryUpsertWithWhereUniqueWithoutCompanyInput | CompanyInventoryUpsertWithWhereUniqueWithoutCompanyInput[]
+    createMany?: CompanyInventoryCreateManyCompanyInputEnvelope
+    set?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    disconnect?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    delete?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    connect?: CompanyInventoryWhereUniqueInput | CompanyInventoryWhereUniqueInput[]
+    update?: CompanyInventoryUpdateWithWhereUniqueWithoutCompanyInput | CompanyInventoryUpdateWithWhereUniqueWithoutCompanyInput[]
+    updateMany?: CompanyInventoryUpdateManyWithWhereWithoutCompanyInput | CompanyInventoryUpdateManyWithWhereWithoutCompanyInput[]
+    deleteMany?: CompanyInventoryScalarWhereInput | CompanyInventoryScalarWhereInput[]
+  }
+
   export type TenantCreateNestedOneWithoutUsersInput = {
     create?: XOR<TenantCreateWithoutUsersInput, TenantUncheckedCreateWithoutUsersInput>
     connectOrCreate?: TenantCreateOrConnectWithoutUsersInput
@@ -51297,6 +61831,13 @@ export namespace Prisma {
     connect?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
   }
 
+  export type NotificationCreateNestedManyWithoutUserInput = {
+    create?: XOR<NotificationCreateWithoutUserInput, NotificationUncheckedCreateWithoutUserInput> | NotificationCreateWithoutUserInput[] | NotificationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: NotificationCreateOrConnectWithoutUserInput | NotificationCreateOrConnectWithoutUserInput[]
+    createMany?: NotificationCreateManyUserInputEnvelope
+    connect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+  }
+
   export type DriverUncheckedCreateNestedManyWithoutSupervisorInput = {
     create?: XOR<DriverCreateWithoutSupervisorInput, DriverUncheckedCreateWithoutSupervisorInput> | DriverCreateWithoutSupervisorInput[] | DriverUncheckedCreateWithoutSupervisorInput[]
     connectOrCreate?: DriverCreateOrConnectWithoutSupervisorInput | DriverCreateOrConnectWithoutSupervisorInput[]
@@ -51337,6 +61878,13 @@ export namespace Prisma {
     connectOrCreate?: TicketCreateOrConnectWithoutSubmitterUserInput | TicketCreateOrConnectWithoutSubmitterUserInput[]
     createMany?: TicketCreateManySubmitterUserInputEnvelope
     connect?: TicketWhereUniqueInput | TicketWhereUniqueInput[]
+  }
+
+  export type NotificationUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<NotificationCreateWithoutUserInput, NotificationUncheckedCreateWithoutUserInput> | NotificationCreateWithoutUserInput[] | NotificationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: NotificationCreateOrConnectWithoutUserInput | NotificationCreateOrConnectWithoutUserInput[]
+    createMany?: NotificationCreateManyUserInputEnvelope
+    connect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
   }
 
   export type NullableStringFieldUpdateOperationsInput = {
@@ -51443,6 +61991,20 @@ export namespace Prisma {
     deleteMany?: TicketScalarWhereInput | TicketScalarWhereInput[]
   }
 
+  export type NotificationUpdateManyWithoutUserNestedInput = {
+    create?: XOR<NotificationCreateWithoutUserInput, NotificationUncheckedCreateWithoutUserInput> | NotificationCreateWithoutUserInput[] | NotificationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: NotificationCreateOrConnectWithoutUserInput | NotificationCreateOrConnectWithoutUserInput[]
+    upsert?: NotificationUpsertWithWhereUniqueWithoutUserInput | NotificationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: NotificationCreateManyUserInputEnvelope
+    set?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    disconnect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    delete?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    connect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    update?: NotificationUpdateWithWhereUniqueWithoutUserInput | NotificationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: NotificationUpdateManyWithWhereWithoutUserInput | NotificationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: NotificationScalarWhereInput | NotificationScalarWhereInput[]
+  }
+
   export type DriverUncheckedUpdateManyWithoutSupervisorNestedInput = {
     create?: XOR<DriverCreateWithoutSupervisorInput, DriverUncheckedCreateWithoutSupervisorInput> | DriverCreateWithoutSupervisorInput[] | DriverUncheckedCreateWithoutSupervisorInput[]
     connectOrCreate?: DriverCreateOrConnectWithoutSupervisorInput | DriverCreateOrConnectWithoutSupervisorInput[]
@@ -51527,6 +62089,20 @@ export namespace Prisma {
     deleteMany?: TicketScalarWhereInput | TicketScalarWhereInput[]
   }
 
+  export type NotificationUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<NotificationCreateWithoutUserInput, NotificationUncheckedCreateWithoutUserInput> | NotificationCreateWithoutUserInput[] | NotificationUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: NotificationCreateOrConnectWithoutUserInput | NotificationCreateOrConnectWithoutUserInput[]
+    upsert?: NotificationUpsertWithWhereUniqueWithoutUserInput | NotificationUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: NotificationCreateManyUserInputEnvelope
+    set?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    disconnect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    delete?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    connect?: NotificationWhereUniqueInput | NotificationWhereUniqueInput[]
+    update?: NotificationUpdateWithWhereUniqueWithoutUserInput | NotificationUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: NotificationUpdateManyWithWhereWithoutUserInput | NotificationUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: NotificationScalarWhereInput | NotificationScalarWhereInput[]
+  }
+
   export type TenantCreateNestedOneWithoutDriversInput = {
     create?: XOR<TenantCreateWithoutDriversInput, TenantUncheckedCreateWithoutDriversInput>
     connectOrCreate?: TenantCreateOrConnectWithoutDriversInput
@@ -51578,6 +62154,13 @@ export namespace Prisma {
     connectOrCreate?: CashRecordCreateOrConnectWithoutDriverInput | CashRecordCreateOrConnectWithoutDriverInput[]
     createMany?: CashRecordCreateManyDriverInputEnvelope
     connect?: CashRecordWhereUniqueInput | CashRecordWhereUniqueInput[]
+  }
+
+  export type CashTransactionCreateNestedManyWithoutDriverInput = {
+    create?: XOR<CashTransactionCreateWithoutDriverInput, CashTransactionUncheckedCreateWithoutDriverInput> | CashTransactionCreateWithoutDriverInput[] | CashTransactionUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: CashTransactionCreateOrConnectWithoutDriverInput | CashTransactionCreateOrConnectWithoutDriverInput[]
+    createMany?: CashTransactionCreateManyDriverInputEnvelope
+    connect?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
   }
 
   export type PendingDuesLedgerCreateNestedManyWithoutDriverInput = {
@@ -51704,6 +62287,13 @@ export namespace Prisma {
     connect?: TalabatDeliveryWhereUniqueInput | TalabatDeliveryWhereUniqueInput[]
   }
 
+  export type KpiRecordCreateNestedManyWithoutDriverInput = {
+    create?: XOR<KpiRecordCreateWithoutDriverInput, KpiRecordUncheckedCreateWithoutDriverInput> | KpiRecordCreateWithoutDriverInput[] | KpiRecordUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: KpiRecordCreateOrConnectWithoutDriverInput | KpiRecordCreateOrConnectWithoutDriverInput[]
+    createMany?: KpiRecordCreateManyDriverInputEnvelope
+    connect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+  }
+
   export type DriverInventoryUncheckedCreateNestedManyWithoutDriverInput = {
     create?: XOR<DriverInventoryCreateWithoutDriverInput, DriverInventoryUncheckedCreateWithoutDriverInput> | DriverInventoryCreateWithoutDriverInput[] | DriverInventoryUncheckedCreateWithoutDriverInput[]
     connectOrCreate?: DriverInventoryCreateOrConnectWithoutDriverInput | DriverInventoryCreateOrConnectWithoutDriverInput[]
@@ -51737,6 +62327,13 @@ export namespace Prisma {
     connectOrCreate?: CashRecordCreateOrConnectWithoutDriverInput | CashRecordCreateOrConnectWithoutDriverInput[]
     createMany?: CashRecordCreateManyDriverInputEnvelope
     connect?: CashRecordWhereUniqueInput | CashRecordWhereUniqueInput[]
+  }
+
+  export type CashTransactionUncheckedCreateNestedManyWithoutDriverInput = {
+    create?: XOR<CashTransactionCreateWithoutDriverInput, CashTransactionUncheckedCreateWithoutDriverInput> | CashTransactionCreateWithoutDriverInput[] | CashTransactionUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: CashTransactionCreateOrConnectWithoutDriverInput | CashTransactionCreateOrConnectWithoutDriverInput[]
+    createMany?: CashTransactionCreateManyDriverInputEnvelope
+    connect?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
   }
 
   export type PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput = {
@@ -51863,6 +62460,13 @@ export namespace Prisma {
     connect?: TalabatDeliveryWhereUniqueInput | TalabatDeliveryWhereUniqueInput[]
   }
 
+  export type KpiRecordUncheckedCreateNestedManyWithoutDriverInput = {
+    create?: XOR<KpiRecordCreateWithoutDriverInput, KpiRecordUncheckedCreateWithoutDriverInput> | KpiRecordCreateWithoutDriverInput[] | KpiRecordUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: KpiRecordCreateOrConnectWithoutDriverInput | KpiRecordCreateOrConnectWithoutDriverInput[]
+    createMany?: KpiRecordCreateManyDriverInputEnvelope
+    connect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+  }
+
   export type EnumVehicleTypeFieldUpdateOperationsInput = {
     set?: $Enums.VehicleType
   }
@@ -51965,6 +62569,20 @@ export namespace Prisma {
     update?: CashRecordUpdateWithWhereUniqueWithoutDriverInput | CashRecordUpdateWithWhereUniqueWithoutDriverInput[]
     updateMany?: CashRecordUpdateManyWithWhereWithoutDriverInput | CashRecordUpdateManyWithWhereWithoutDriverInput[]
     deleteMany?: CashRecordScalarWhereInput | CashRecordScalarWhereInput[]
+  }
+
+  export type CashTransactionUpdateManyWithoutDriverNestedInput = {
+    create?: XOR<CashTransactionCreateWithoutDriverInput, CashTransactionUncheckedCreateWithoutDriverInput> | CashTransactionCreateWithoutDriverInput[] | CashTransactionUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: CashTransactionCreateOrConnectWithoutDriverInput | CashTransactionCreateOrConnectWithoutDriverInput[]
+    upsert?: CashTransactionUpsertWithWhereUniqueWithoutDriverInput | CashTransactionUpsertWithWhereUniqueWithoutDriverInput[]
+    createMany?: CashTransactionCreateManyDriverInputEnvelope
+    set?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    disconnect?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    delete?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    connect?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    update?: CashTransactionUpdateWithWhereUniqueWithoutDriverInput | CashTransactionUpdateWithWhereUniqueWithoutDriverInput[]
+    updateMany?: CashTransactionUpdateManyWithWhereWithoutDriverInput | CashTransactionUpdateManyWithWhereWithoutDriverInput[]
+    deleteMany?: CashTransactionScalarWhereInput | CashTransactionScalarWhereInput[]
   }
 
   export type PendingDuesLedgerUpdateManyWithoutDriverNestedInput = {
@@ -52211,6 +62829,20 @@ export namespace Prisma {
     deleteMany?: TalabatDeliveryScalarWhereInput | TalabatDeliveryScalarWhereInput[]
   }
 
+  export type KpiRecordUpdateManyWithoutDriverNestedInput = {
+    create?: XOR<KpiRecordCreateWithoutDriverInput, KpiRecordUncheckedCreateWithoutDriverInput> | KpiRecordCreateWithoutDriverInput[] | KpiRecordUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: KpiRecordCreateOrConnectWithoutDriverInput | KpiRecordCreateOrConnectWithoutDriverInput[]
+    upsert?: KpiRecordUpsertWithWhereUniqueWithoutDriverInput | KpiRecordUpsertWithWhereUniqueWithoutDriverInput[]
+    createMany?: KpiRecordCreateManyDriverInputEnvelope
+    set?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    disconnect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    delete?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    connect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    update?: KpiRecordUpdateWithWhereUniqueWithoutDriverInput | KpiRecordUpdateWithWhereUniqueWithoutDriverInput[]
+    updateMany?: KpiRecordUpdateManyWithWhereWithoutDriverInput | KpiRecordUpdateManyWithWhereWithoutDriverInput[]
+    deleteMany?: KpiRecordScalarWhereInput | KpiRecordScalarWhereInput[]
+  }
+
   export type DriverInventoryUncheckedUpdateManyWithoutDriverNestedInput = {
     create?: XOR<DriverInventoryCreateWithoutDriverInput, DriverInventoryUncheckedCreateWithoutDriverInput> | DriverInventoryCreateWithoutDriverInput[] | DriverInventoryUncheckedCreateWithoutDriverInput[]
     connectOrCreate?: DriverInventoryCreateOrConnectWithoutDriverInput | DriverInventoryCreateOrConnectWithoutDriverInput[]
@@ -52279,6 +62911,20 @@ export namespace Prisma {
     update?: CashRecordUpdateWithWhereUniqueWithoutDriverInput | CashRecordUpdateWithWhereUniqueWithoutDriverInput[]
     updateMany?: CashRecordUpdateManyWithWhereWithoutDriverInput | CashRecordUpdateManyWithWhereWithoutDriverInput[]
     deleteMany?: CashRecordScalarWhereInput | CashRecordScalarWhereInput[]
+  }
+
+  export type CashTransactionUncheckedUpdateManyWithoutDriverNestedInput = {
+    create?: XOR<CashTransactionCreateWithoutDriverInput, CashTransactionUncheckedCreateWithoutDriverInput> | CashTransactionCreateWithoutDriverInput[] | CashTransactionUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: CashTransactionCreateOrConnectWithoutDriverInput | CashTransactionCreateOrConnectWithoutDriverInput[]
+    upsert?: CashTransactionUpsertWithWhereUniqueWithoutDriverInput | CashTransactionUpsertWithWhereUniqueWithoutDriverInput[]
+    createMany?: CashTransactionCreateManyDriverInputEnvelope
+    set?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    disconnect?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    delete?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    connect?: CashTransactionWhereUniqueInput | CashTransactionWhereUniqueInput[]
+    update?: CashTransactionUpdateWithWhereUniqueWithoutDriverInput | CashTransactionUpdateWithWhereUniqueWithoutDriverInput[]
+    updateMany?: CashTransactionUpdateManyWithWhereWithoutDriverInput | CashTransactionUpdateManyWithWhereWithoutDriverInput[]
+    deleteMany?: CashTransactionScalarWhereInput | CashTransactionScalarWhereInput[]
   }
 
   export type PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput = {
@@ -52523,6 +63169,20 @@ export namespace Prisma {
     update?: TalabatDeliveryUpdateWithWhereUniqueWithoutDriverInput | TalabatDeliveryUpdateWithWhereUniqueWithoutDriverInput[]
     updateMany?: TalabatDeliveryUpdateManyWithWhereWithoutDriverInput | TalabatDeliveryUpdateManyWithWhereWithoutDriverInput[]
     deleteMany?: TalabatDeliveryScalarWhereInput | TalabatDeliveryScalarWhereInput[]
+  }
+
+  export type KpiRecordUncheckedUpdateManyWithoutDriverNestedInput = {
+    create?: XOR<KpiRecordCreateWithoutDriverInput, KpiRecordUncheckedCreateWithoutDriverInput> | KpiRecordCreateWithoutDriverInput[] | KpiRecordUncheckedCreateWithoutDriverInput[]
+    connectOrCreate?: KpiRecordCreateOrConnectWithoutDriverInput | KpiRecordCreateOrConnectWithoutDriverInput[]
+    upsert?: KpiRecordUpsertWithWhereUniqueWithoutDriverInput | KpiRecordUpsertWithWhereUniqueWithoutDriverInput[]
+    createMany?: KpiRecordCreateManyDriverInputEnvelope
+    set?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    disconnect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    delete?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    connect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    update?: KpiRecordUpdateWithWhereUniqueWithoutDriverInput | KpiRecordUpdateWithWhereUniqueWithoutDriverInput[]
+    updateMany?: KpiRecordUpdateManyWithWhereWithoutDriverInput | KpiRecordUpdateManyWithWhereWithoutDriverInput[]
+    deleteMany?: KpiRecordScalarWhereInput | KpiRecordScalarWhereInput[]
   }
 
   export type DriverCreateNestedOneWithoutInventoryInput = {
@@ -53151,6 +63811,38 @@ export namespace Prisma {
     upsert?: DriverUpsertWithoutCashRecordsInput
     connect?: DriverWhereUniqueInput
     update?: XOR<XOR<DriverUpdateToOneWithWhereWithoutCashRecordsInput, DriverUpdateWithoutCashRecordsInput>, DriverUncheckedUpdateWithoutCashRecordsInput>
+  }
+
+  export type TenantCreateNestedOneWithoutCashTransactionsInput = {
+    create?: XOR<TenantCreateWithoutCashTransactionsInput, TenantUncheckedCreateWithoutCashTransactionsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutCashTransactionsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type DriverCreateNestedOneWithoutCashTransactionsInput = {
+    create?: XOR<DriverCreateWithoutCashTransactionsInput, DriverUncheckedCreateWithoutCashTransactionsInput>
+    connectOrCreate?: DriverCreateOrConnectWithoutCashTransactionsInput
+    connect?: DriverWhereUniqueInput
+  }
+
+  export type EnumCashTransactionTypeFieldUpdateOperationsInput = {
+    set?: $Enums.CashTransactionType
+  }
+
+  export type TenantUpdateOneRequiredWithoutCashTransactionsNestedInput = {
+    create?: XOR<TenantCreateWithoutCashTransactionsInput, TenantUncheckedCreateWithoutCashTransactionsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutCashTransactionsInput
+    upsert?: TenantUpsertWithoutCashTransactionsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutCashTransactionsInput, TenantUpdateWithoutCashTransactionsInput>, TenantUncheckedUpdateWithoutCashTransactionsInput>
+  }
+
+  export type DriverUpdateOneRequiredWithoutCashTransactionsNestedInput = {
+    create?: XOR<DriverCreateWithoutCashTransactionsInput, DriverUncheckedCreateWithoutCashTransactionsInput>
+    connectOrCreate?: DriverCreateOrConnectWithoutCashTransactionsInput
+    upsert?: DriverUpsertWithoutCashTransactionsInput
+    connect?: DriverWhereUniqueInput
+    update?: XOR<XOR<DriverUpdateToOneWithWhereWithoutCashTransactionsInput, DriverUpdateWithoutCashTransactionsInput>, DriverUncheckedUpdateWithoutCashTransactionsInput>
   }
 
   export type TenantCreateNestedOneWithoutPendingDuesLedgersInput = {
@@ -54155,6 +64847,48 @@ export namespace Prisma {
     update?: XOR<XOR<DriverUpdateToOneWithWhereWithoutKeetaDailyMetricsInput, DriverUpdateWithoutKeetaDailyMetricsInput>, DriverUncheckedUpdateWithoutKeetaDailyMetricsInput>
   }
 
+  export type TenantCreateNestedOneWithoutPlatformSettingsInput = {
+    create?: XOR<TenantCreateWithoutPlatformSettingsInput, TenantUncheckedCreateWithoutPlatformSettingsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutPlatformSettingsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type TenantUpdateOneRequiredWithoutPlatformSettingsNestedInput = {
+    create?: XOR<TenantCreateWithoutPlatformSettingsInput, TenantUncheckedCreateWithoutPlatformSettingsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutPlatformSettingsInput
+    upsert?: TenantUpsertWithoutPlatformSettingsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutPlatformSettingsInput, TenantUpdateWithoutPlatformSettingsInput>, TenantUncheckedUpdateWithoutPlatformSettingsInput>
+  }
+
+  export type TenantCreateNestedOneWithoutCompanyInventoryInput = {
+    create?: XOR<TenantCreateWithoutCompanyInventoryInput, TenantUncheckedCreateWithoutCompanyInventoryInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutCompanyInventoryInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type CompanyCreateNestedOneWithoutCompanyInventoryInput = {
+    create?: XOR<CompanyCreateWithoutCompanyInventoryInput, CompanyUncheckedCreateWithoutCompanyInventoryInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutCompanyInventoryInput
+    connect?: CompanyWhereUniqueInput
+  }
+
+  export type TenantUpdateOneRequiredWithoutCompanyInventoryNestedInput = {
+    create?: XOR<TenantCreateWithoutCompanyInventoryInput, TenantUncheckedCreateWithoutCompanyInventoryInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutCompanyInventoryInput
+    upsert?: TenantUpsertWithoutCompanyInventoryInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutCompanyInventoryInput, TenantUpdateWithoutCompanyInventoryInput>, TenantUncheckedUpdateWithoutCompanyInventoryInput>
+  }
+
+  export type CompanyUpdateOneRequiredWithoutCompanyInventoryNestedInput = {
+    create?: XOR<CompanyCreateWithoutCompanyInventoryInput, CompanyUncheckedCreateWithoutCompanyInventoryInput>
+    connectOrCreate?: CompanyCreateOrConnectWithoutCompanyInventoryInput
+    upsert?: CompanyUpsertWithoutCompanyInventoryInput
+    connect?: CompanyWhereUniqueInput
+    update?: XOR<XOR<CompanyUpdateToOneWithWhereWithoutCompanyInventoryInput, CompanyUpdateWithoutCompanyInventoryInput>, CompanyUncheckedUpdateWithoutCompanyInventoryInput>
+  }
+
   export type TenantCreateNestedOneWithoutAmericanaDailyOrdersInput = {
     create?: XOR<TenantCreateWithoutAmericanaDailyOrdersInput, TenantUncheckedCreateWithoutAmericanaDailyOrdersInput>
     connectOrCreate?: TenantCreateOrConnectWithoutAmericanaDailyOrdersInput
@@ -54181,6 +64915,154 @@ export namespace Prisma {
     upsert?: DriverUpsertWithoutAmericanaDailyOrdersInput
     connect?: DriverWhereUniqueInput
     update?: XOR<XOR<DriverUpdateToOneWithWhereWithoutAmericanaDailyOrdersInput, DriverUpdateWithoutAmericanaDailyOrdersInput>, DriverUncheckedUpdateWithoutAmericanaDailyOrdersInput>
+  }
+
+  export type TenantCreateNestedOneWithoutKpiDefinitionsInput = {
+    create?: XOR<TenantCreateWithoutKpiDefinitionsInput, TenantUncheckedCreateWithoutKpiDefinitionsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutKpiDefinitionsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type KpiRecordCreateNestedManyWithoutKpiDefinitionInput = {
+    create?: XOR<KpiRecordCreateWithoutKpiDefinitionInput, KpiRecordUncheckedCreateWithoutKpiDefinitionInput> | KpiRecordCreateWithoutKpiDefinitionInput[] | KpiRecordUncheckedCreateWithoutKpiDefinitionInput[]
+    connectOrCreate?: KpiRecordCreateOrConnectWithoutKpiDefinitionInput | KpiRecordCreateOrConnectWithoutKpiDefinitionInput[]
+    createMany?: KpiRecordCreateManyKpiDefinitionInputEnvelope
+    connect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+  }
+
+  export type KpiRecordUncheckedCreateNestedManyWithoutKpiDefinitionInput = {
+    create?: XOR<KpiRecordCreateWithoutKpiDefinitionInput, KpiRecordUncheckedCreateWithoutKpiDefinitionInput> | KpiRecordCreateWithoutKpiDefinitionInput[] | KpiRecordUncheckedCreateWithoutKpiDefinitionInput[]
+    connectOrCreate?: KpiRecordCreateOrConnectWithoutKpiDefinitionInput | KpiRecordCreateOrConnectWithoutKpiDefinitionInput[]
+    createMany?: KpiRecordCreateManyKpiDefinitionInputEnvelope
+    connect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+  }
+
+  export type EnumKpiCategoryFieldUpdateOperationsInput = {
+    set?: $Enums.KpiCategory
+  }
+
+  export type EnumKpiUnitFieldUpdateOperationsInput = {
+    set?: $Enums.KpiUnit
+  }
+
+  export type TenantUpdateOneRequiredWithoutKpiDefinitionsNestedInput = {
+    create?: XOR<TenantCreateWithoutKpiDefinitionsInput, TenantUncheckedCreateWithoutKpiDefinitionsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutKpiDefinitionsInput
+    upsert?: TenantUpsertWithoutKpiDefinitionsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutKpiDefinitionsInput, TenantUpdateWithoutKpiDefinitionsInput>, TenantUncheckedUpdateWithoutKpiDefinitionsInput>
+  }
+
+  export type KpiRecordUpdateManyWithoutKpiDefinitionNestedInput = {
+    create?: XOR<KpiRecordCreateWithoutKpiDefinitionInput, KpiRecordUncheckedCreateWithoutKpiDefinitionInput> | KpiRecordCreateWithoutKpiDefinitionInput[] | KpiRecordUncheckedCreateWithoutKpiDefinitionInput[]
+    connectOrCreate?: KpiRecordCreateOrConnectWithoutKpiDefinitionInput | KpiRecordCreateOrConnectWithoutKpiDefinitionInput[]
+    upsert?: KpiRecordUpsertWithWhereUniqueWithoutKpiDefinitionInput | KpiRecordUpsertWithWhereUniqueWithoutKpiDefinitionInput[]
+    createMany?: KpiRecordCreateManyKpiDefinitionInputEnvelope
+    set?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    disconnect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    delete?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    connect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    update?: KpiRecordUpdateWithWhereUniqueWithoutKpiDefinitionInput | KpiRecordUpdateWithWhereUniqueWithoutKpiDefinitionInput[]
+    updateMany?: KpiRecordUpdateManyWithWhereWithoutKpiDefinitionInput | KpiRecordUpdateManyWithWhereWithoutKpiDefinitionInput[]
+    deleteMany?: KpiRecordScalarWhereInput | KpiRecordScalarWhereInput[]
+  }
+
+  export type KpiRecordUncheckedUpdateManyWithoutKpiDefinitionNestedInput = {
+    create?: XOR<KpiRecordCreateWithoutKpiDefinitionInput, KpiRecordUncheckedCreateWithoutKpiDefinitionInput> | KpiRecordCreateWithoutKpiDefinitionInput[] | KpiRecordUncheckedCreateWithoutKpiDefinitionInput[]
+    connectOrCreate?: KpiRecordCreateOrConnectWithoutKpiDefinitionInput | KpiRecordCreateOrConnectWithoutKpiDefinitionInput[]
+    upsert?: KpiRecordUpsertWithWhereUniqueWithoutKpiDefinitionInput | KpiRecordUpsertWithWhereUniqueWithoutKpiDefinitionInput[]
+    createMany?: KpiRecordCreateManyKpiDefinitionInputEnvelope
+    set?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    disconnect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    delete?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    connect?: KpiRecordWhereUniqueInput | KpiRecordWhereUniqueInput[]
+    update?: KpiRecordUpdateWithWhereUniqueWithoutKpiDefinitionInput | KpiRecordUpdateWithWhereUniqueWithoutKpiDefinitionInput[]
+    updateMany?: KpiRecordUpdateManyWithWhereWithoutKpiDefinitionInput | KpiRecordUpdateManyWithWhereWithoutKpiDefinitionInput[]
+    deleteMany?: KpiRecordScalarWhereInput | KpiRecordScalarWhereInput[]
+  }
+
+  export type TenantCreateNestedOneWithoutKpiRecordsInput = {
+    create?: XOR<TenantCreateWithoutKpiRecordsInput, TenantUncheckedCreateWithoutKpiRecordsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutKpiRecordsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type DriverCreateNestedOneWithoutKpiRecordsInput = {
+    create?: XOR<DriverCreateWithoutKpiRecordsInput, DriverUncheckedCreateWithoutKpiRecordsInput>
+    connectOrCreate?: DriverCreateOrConnectWithoutKpiRecordsInput
+    connect?: DriverWhereUniqueInput
+  }
+
+  export type KpiDefinitionCreateNestedOneWithoutRecordsInput = {
+    create?: XOR<KpiDefinitionCreateWithoutRecordsInput, KpiDefinitionUncheckedCreateWithoutRecordsInput>
+    connectOrCreate?: KpiDefinitionCreateOrConnectWithoutRecordsInput
+    connect?: KpiDefinitionWhereUniqueInput
+  }
+
+  export type TenantUpdateOneRequiredWithoutKpiRecordsNestedInput = {
+    create?: XOR<TenantCreateWithoutKpiRecordsInput, TenantUncheckedCreateWithoutKpiRecordsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutKpiRecordsInput
+    upsert?: TenantUpsertWithoutKpiRecordsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutKpiRecordsInput, TenantUpdateWithoutKpiRecordsInput>, TenantUncheckedUpdateWithoutKpiRecordsInput>
+  }
+
+  export type DriverUpdateOneRequiredWithoutKpiRecordsNestedInput = {
+    create?: XOR<DriverCreateWithoutKpiRecordsInput, DriverUncheckedCreateWithoutKpiRecordsInput>
+    connectOrCreate?: DriverCreateOrConnectWithoutKpiRecordsInput
+    upsert?: DriverUpsertWithoutKpiRecordsInput
+    connect?: DriverWhereUniqueInput
+    update?: XOR<XOR<DriverUpdateToOneWithWhereWithoutKpiRecordsInput, DriverUpdateWithoutKpiRecordsInput>, DriverUncheckedUpdateWithoutKpiRecordsInput>
+  }
+
+  export type KpiDefinitionUpdateOneRequiredWithoutRecordsNestedInput = {
+    create?: XOR<KpiDefinitionCreateWithoutRecordsInput, KpiDefinitionUncheckedCreateWithoutRecordsInput>
+    connectOrCreate?: KpiDefinitionCreateOrConnectWithoutRecordsInput
+    upsert?: KpiDefinitionUpsertWithoutRecordsInput
+    connect?: KpiDefinitionWhereUniqueInput
+    update?: XOR<XOR<KpiDefinitionUpdateToOneWithWhereWithoutRecordsInput, KpiDefinitionUpdateWithoutRecordsInput>, KpiDefinitionUncheckedUpdateWithoutRecordsInput>
+  }
+
+  export type TenantCreateNestedOneWithoutNotificationsInput = {
+    create?: XOR<TenantCreateWithoutNotificationsInput, TenantUncheckedCreateWithoutNotificationsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutNotificationsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutNotificationsInput = {
+    create?: XOR<UserCreateWithoutNotificationsInput, UserUncheckedCreateWithoutNotificationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutNotificationsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type TenantUpdateOneRequiredWithoutNotificationsNestedInput = {
+    create?: XOR<TenantCreateWithoutNotificationsInput, TenantUncheckedCreateWithoutNotificationsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutNotificationsInput
+    upsert?: TenantUpsertWithoutNotificationsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutNotificationsInput, TenantUpdateWithoutNotificationsInput>, TenantUncheckedUpdateWithoutNotificationsInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutNotificationsNestedInput = {
+    create?: XOR<UserCreateWithoutNotificationsInput, UserUncheckedCreateWithoutNotificationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutNotificationsInput
+    upsert?: UserUpsertWithoutNotificationsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutNotificationsInput, UserUpdateWithoutNotificationsInput>, UserUncheckedUpdateWithoutNotificationsInput>
+  }
+
+  export type TenantCreateNestedOneWithoutNotificationRulesInput = {
+    create?: XOR<TenantCreateWithoutNotificationRulesInput, TenantUncheckedCreateWithoutNotificationRulesInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutNotificationRulesInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type TenantUpdateOneRequiredWithoutNotificationRulesNestedInput = {
+    create?: XOR<TenantCreateWithoutNotificationRulesInput, TenantUncheckedCreateWithoutNotificationRulesInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutNotificationRulesInput
+    upsert?: TenantUpsertWithoutNotificationRulesInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutNotificationRulesInput, TenantUpdateWithoutNotificationRulesInput>, TenantUncheckedUpdateWithoutNotificationRulesInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -54694,6 +65576,23 @@ export namespace Prisma {
     _max?: NestedEnumCashStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumCashTransactionTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.CashTransactionType | EnumCashTransactionTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CashTransactionType[] | ListEnumCashTransactionTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CashTransactionType[] | ListEnumCashTransactionTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCashTransactionTypeFilter<$PrismaModel> | $Enums.CashTransactionType
+  }
+
+  export type NestedEnumCashTransactionTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.CashTransactionType | EnumCashTransactionTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.CashTransactionType[] | ListEnumCashTransactionTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.CashTransactionType[] | ListEnumCashTransactionTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumCashTransactionTypeWithAggregatesFilter<$PrismaModel> | $Enums.CashTransactionType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumCashTransactionTypeFilter<$PrismaModel>
+    _max?: NestedEnumCashTransactionTypeFilter<$PrismaModel>
+  }
+
   export type NestedEnumLedgerStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.LedgerStatus | EnumLedgerStatusFieldRefInput<$PrismaModel>
     in?: $Enums.LedgerStatus[] | ListEnumLedgerStatusFieldRefInput<$PrismaModel>
@@ -55039,6 +65938,40 @@ export namespace Prisma {
     _max?: NestedEnumComplianceEventTypeFilter<$PrismaModel>
   }
 
+  export type NestedEnumKpiCategoryFilter<$PrismaModel = never> = {
+    equals?: $Enums.KpiCategory | EnumKpiCategoryFieldRefInput<$PrismaModel>
+    in?: $Enums.KpiCategory[] | ListEnumKpiCategoryFieldRefInput<$PrismaModel>
+    notIn?: $Enums.KpiCategory[] | ListEnumKpiCategoryFieldRefInput<$PrismaModel>
+    not?: NestedEnumKpiCategoryFilter<$PrismaModel> | $Enums.KpiCategory
+  }
+
+  export type NestedEnumKpiUnitFilter<$PrismaModel = never> = {
+    equals?: $Enums.KpiUnit | EnumKpiUnitFieldRefInput<$PrismaModel>
+    in?: $Enums.KpiUnit[] | ListEnumKpiUnitFieldRefInput<$PrismaModel>
+    notIn?: $Enums.KpiUnit[] | ListEnumKpiUnitFieldRefInput<$PrismaModel>
+    not?: NestedEnumKpiUnitFilter<$PrismaModel> | $Enums.KpiUnit
+  }
+
+  export type NestedEnumKpiCategoryWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.KpiCategory | EnumKpiCategoryFieldRefInput<$PrismaModel>
+    in?: $Enums.KpiCategory[] | ListEnumKpiCategoryFieldRefInput<$PrismaModel>
+    notIn?: $Enums.KpiCategory[] | ListEnumKpiCategoryFieldRefInput<$PrismaModel>
+    not?: NestedEnumKpiCategoryWithAggregatesFilter<$PrismaModel> | $Enums.KpiCategory
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumKpiCategoryFilter<$PrismaModel>
+    _max?: NestedEnumKpiCategoryFilter<$PrismaModel>
+  }
+
+  export type NestedEnumKpiUnitWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.KpiUnit | EnumKpiUnitFieldRefInput<$PrismaModel>
+    in?: $Enums.KpiUnit[] | ListEnumKpiUnitFieldRefInput<$PrismaModel>
+    notIn?: $Enums.KpiUnit[] | ListEnumKpiUnitFieldRefInput<$PrismaModel>
+    not?: NestedEnumKpiUnitWithAggregatesFilter<$PrismaModel> | $Enums.KpiUnit
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumKpiUnitFilter<$PrismaModel>
+    _max?: NestedEnumKpiUnitFilter<$PrismaModel>
+  }
+
   export type CompanyCreateWithoutTenantInput = {
     id?: string
     name: string
@@ -55051,6 +65984,7 @@ export namespace Prisma {
     vehicles?: VehicleCreateNestedManyWithoutCompanyInput
     recruitmentPipeline?: RecruitmentPipelineCreateNestedManyWithoutAssignedCompanyInput
     tickets?: TicketCreateNestedManyWithoutCompanyInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutTenantInput = {
@@ -55065,6 +65999,7 @@ export namespace Prisma {
     vehicles?: VehicleUncheckedCreateNestedManyWithoutCompanyInput
     recruitmentPipeline?: RecruitmentPipelineUncheckedCreateNestedManyWithoutAssignedCompanyInput
     tickets?: TicketUncheckedCreateNestedManyWithoutCompanyInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutTenantInput = {
@@ -55094,6 +66029,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestCreateNestedManyWithoutReviewedByInput
     assignedTickets?: TicketCreateNestedManyWithoutAssignedToInput
     submittedTickets?: TicketCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutTenantInput = {
@@ -55113,6 +66049,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
     assignedTickets?: TicketUncheckedCreateNestedManyWithoutAssignedToInput
     submittedTickets?: TicketUncheckedCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutTenantInput = {
@@ -55161,6 +66098,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -55179,6 +66117,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutTenantInput = {
@@ -55217,6 +66156,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -55235,6 +66175,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutTenantInput = {
@@ -55432,6 +66373,42 @@ export namespace Prisma {
 
   export type CashRecordCreateManyTenantInputEnvelope = {
     data: CashRecordCreateManyTenantInput | CashRecordCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CashTransactionCreateWithoutTenantInput = {
+    id?: string
+    date: Date | string
+    type: $Enums.CashTransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    orderNumber?: string | null
+    description?: string | null
+    runningBalance: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    driver: DriverCreateNestedOneWithoutCashTransactionsInput
+  }
+
+  export type CashTransactionUncheckedCreateWithoutTenantInput = {
+    id?: string
+    driverId: string
+    date: Date | string
+    type: $Enums.CashTransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    orderNumber?: string | null
+    description?: string | null
+    runningBalance: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CashTransactionCreateOrConnectWithoutTenantInput = {
+    where: CashTransactionWhereUniqueInput
+    create: XOR<CashTransactionCreateWithoutTenantInput, CashTransactionUncheckedCreateWithoutTenantInput>
+  }
+
+  export type CashTransactionCreateManyTenantInputEnvelope = {
+    data: CashTransactionCreateManyTenantInput | CashTransactionCreateManyTenantInput[]
     skipDuplicates?: boolean
   }
 
@@ -55848,6 +66825,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     insuranceExpiry: Date | string
     registrationExpiry: Date | string
@@ -55874,6 +66853,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     assignedDriverId?: string | null
     insuranceExpiry: Date | string
@@ -55972,7 +66953,6 @@ export namespace Prisma {
   export type TalabatComplianceEventCreateWithoutTenantInput = {
     id?: string
     type: $Enums.ComplianceEventType
-    severity: $Enums.AlertSeverity
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: boolean
@@ -55988,7 +66968,6 @@ export namespace Prisma {
     driverId: string
     sessionId?: string | null
     type: $Enums.ComplianceEventType
-    severity: $Enums.AlertSeverity
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: boolean
@@ -56124,6 +67103,214 @@ export namespace Prisma {
 
   export type AmericanaDailyOrdersCreateManyTenantInputEnvelope = {
     data: AmericanaDailyOrdersCreateManyTenantInput | AmericanaDailyOrdersCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type KpiDefinitionCreateWithoutTenantInput = {
+    id?: string
+    name: string
+    description?: string | null
+    category: $Enums.KpiCategory
+    unit: $Enums.KpiUnit
+    platform?: $Enums.Platform | null
+    target?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    records?: KpiRecordCreateNestedManyWithoutKpiDefinitionInput
+  }
+
+  export type KpiDefinitionUncheckedCreateWithoutTenantInput = {
+    id?: string
+    name: string
+    description?: string | null
+    category: $Enums.KpiCategory
+    unit: $Enums.KpiUnit
+    platform?: $Enums.Platform | null
+    target?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    records?: KpiRecordUncheckedCreateNestedManyWithoutKpiDefinitionInput
+  }
+
+  export type KpiDefinitionCreateOrConnectWithoutTenantInput = {
+    where: KpiDefinitionWhereUniqueInput
+    create: XOR<KpiDefinitionCreateWithoutTenantInput, KpiDefinitionUncheckedCreateWithoutTenantInput>
+  }
+
+  export type KpiDefinitionCreateManyTenantInputEnvelope = {
+    data: KpiDefinitionCreateManyTenantInput | KpiDefinitionCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type KpiRecordCreateWithoutTenantInput = {
+    id?: string
+    date: Date | string
+    value: Decimal | DecimalJsLike | number | string
+    target?: Decimal | DecimalJsLike | number | string | null
+    score?: Decimal | DecimalJsLike | number | string | null
+    source?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    driver: DriverCreateNestedOneWithoutKpiRecordsInput
+    kpiDefinition: KpiDefinitionCreateNestedOneWithoutRecordsInput
+  }
+
+  export type KpiRecordUncheckedCreateWithoutTenantInput = {
+    id?: string
+    driverId: string
+    kpiDefinitionId: string
+    date: Date | string
+    value: Decimal | DecimalJsLike | number | string
+    target?: Decimal | DecimalJsLike | number | string | null
+    score?: Decimal | DecimalJsLike | number | string | null
+    source?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KpiRecordCreateOrConnectWithoutTenantInput = {
+    where: KpiRecordWhereUniqueInput
+    create: XOR<KpiRecordCreateWithoutTenantInput, KpiRecordUncheckedCreateWithoutTenantInput>
+  }
+
+  export type KpiRecordCreateManyTenantInputEnvelope = {
+    data: KpiRecordCreateManyTenantInput | KpiRecordCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PlatformSettingsCreateWithoutTenantInput = {
+    id?: string
+    platform: $Enums.Platform
+    targets: JsonNullValueInput | InputJsonValue
+    kpis?: NullableJsonNullValueInput | InputJsonValue
+    shiftRules?: NullableJsonNullValueInput | InputJsonValue
+    zones?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PlatformSettingsUncheckedCreateWithoutTenantInput = {
+    id?: string
+    platform: $Enums.Platform
+    targets: JsonNullValueInput | InputJsonValue
+    kpis?: NullableJsonNullValueInput | InputJsonValue
+    shiftRules?: NullableJsonNullValueInput | InputJsonValue
+    zones?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PlatformSettingsCreateOrConnectWithoutTenantInput = {
+    where: PlatformSettingsWhereUniqueInput
+    create: XOR<PlatformSettingsCreateWithoutTenantInput, PlatformSettingsUncheckedCreateWithoutTenantInput>
+  }
+
+  export type PlatformSettingsCreateManyTenantInputEnvelope = {
+    data: PlatformSettingsCreateManyTenantInput | PlatformSettingsCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CompanyInventoryCreateWithoutTenantInput = {
+    id?: string
+    itemType: $Enums.InventoryItemType
+    total?: number
+    issued?: number
+    available?: number
+    minStock?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    company: CompanyCreateNestedOneWithoutCompanyInventoryInput
+  }
+
+  export type CompanyInventoryUncheckedCreateWithoutTenantInput = {
+    id?: string
+    companyId: string
+    itemType: $Enums.InventoryItemType
+    total?: number
+    issued?: number
+    available?: number
+    minStock?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CompanyInventoryCreateOrConnectWithoutTenantInput = {
+    where: CompanyInventoryWhereUniqueInput
+    create: XOR<CompanyInventoryCreateWithoutTenantInput, CompanyInventoryUncheckedCreateWithoutTenantInput>
+  }
+
+  export type CompanyInventoryCreateManyTenantInputEnvelope = {
+    data: CompanyInventoryCreateManyTenantInput | CompanyInventoryCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type NotificationCreateWithoutTenantInput = {
+    id?: string
+    title: string
+    message: string
+    type: string
+    severity?: string
+    sourceId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: boolean
+    readAt?: Date | string | null
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutNotificationsInput
+  }
+
+  export type NotificationUncheckedCreateWithoutTenantInput = {
+    id?: string
+    userId: string
+    title: string
+    message: string
+    type: string
+    severity?: string
+    sourceId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: boolean
+    readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type NotificationCreateOrConnectWithoutTenantInput = {
+    where: NotificationWhereUniqueInput
+    create: XOR<NotificationCreateWithoutTenantInput, NotificationUncheckedCreateWithoutTenantInput>
+  }
+
+  export type NotificationCreateManyTenantInputEnvelope = {
+    data: NotificationCreateManyTenantInput | NotificationCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type NotificationRuleCreateWithoutTenantInput = {
+    id?: string
+    eventType: string
+    role: $Enums.UserRole
+    enabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type NotificationRuleUncheckedCreateWithoutTenantInput = {
+    id?: string
+    eventType: string
+    role: $Enums.UserRole
+    enabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type NotificationRuleCreateOrConnectWithoutTenantInput = {
+    where: NotificationRuleWhereUniqueInput
+    create: XOR<NotificationRuleCreateWithoutTenantInput, NotificationRuleUncheckedCreateWithoutTenantInput>
+  }
+
+  export type NotificationRuleCreateManyTenantInputEnvelope = {
+    data: NotificationRuleCreateManyTenantInput | NotificationRuleCreateManyTenantInput[]
     skipDuplicates?: boolean
   }
 
@@ -56392,6 +67579,39 @@ export namespace Prisma {
     notes?: StringNullableFilter<"CashRecord"> | string | null
     createdAt?: DateTimeFilter<"CashRecord"> | Date | string
     updatedAt?: DateTimeFilter<"CashRecord"> | Date | string
+  }
+
+  export type CashTransactionUpsertWithWhereUniqueWithoutTenantInput = {
+    where: CashTransactionWhereUniqueInput
+    update: XOR<CashTransactionUpdateWithoutTenantInput, CashTransactionUncheckedUpdateWithoutTenantInput>
+    create: XOR<CashTransactionCreateWithoutTenantInput, CashTransactionUncheckedCreateWithoutTenantInput>
+  }
+
+  export type CashTransactionUpdateWithWhereUniqueWithoutTenantInput = {
+    where: CashTransactionWhereUniqueInput
+    data: XOR<CashTransactionUpdateWithoutTenantInput, CashTransactionUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type CashTransactionUpdateManyWithWhereWithoutTenantInput = {
+    where: CashTransactionScalarWhereInput
+    data: XOR<CashTransactionUpdateManyMutationInput, CashTransactionUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type CashTransactionScalarWhereInput = {
+    AND?: CashTransactionScalarWhereInput | CashTransactionScalarWhereInput[]
+    OR?: CashTransactionScalarWhereInput[]
+    NOT?: CashTransactionScalarWhereInput | CashTransactionScalarWhereInput[]
+    id?: StringFilter<"CashTransaction"> | string
+    tenantId?: StringFilter<"CashTransaction"> | string
+    driverId?: StringFilter<"CashTransaction"> | string
+    date?: DateTimeFilter<"CashTransaction"> | Date | string
+    type?: EnumCashTransactionTypeFilter<"CashTransaction"> | $Enums.CashTransactionType
+    amount?: DecimalFilter<"CashTransaction"> | Decimal | DecimalJsLike | number | string
+    orderNumber?: StringNullableFilter<"CashTransaction"> | string | null
+    description?: StringNullableFilter<"CashTransaction"> | string | null
+    runningBalance?: DecimalFilter<"CashTransaction"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFilter<"CashTransaction"> | Date | string
+    updatedAt?: DateTimeFilter<"CashTransaction"> | Date | string
   }
 
   export type PendingDuesLedgerUpsertWithWhereUniqueWithoutTenantInput = {
@@ -56777,6 +67997,8 @@ export namespace Prisma {
     chassisNumber?: StringNullableFilter<"Vehicle"> | string | null
     mileage?: IntFilter<"Vehicle"> | number
     fuelType?: StringFilter<"Vehicle"> | string
+    ownerCompany?: StringNullableFilter<"Vehicle"> | string | null
+    driverIqama?: StringNullableFilter<"Vehicle"> | string | null
     status?: EnumVehicleStatusFilter<"Vehicle"> | $Enums.VehicleStatus
     assignedDriverId?: StringNullableFilter<"Vehicle"> | string | null
     insuranceExpiry?: DateTimeFilter<"Vehicle"> | Date | string
@@ -56859,7 +68081,6 @@ export namespace Prisma {
     driverId?: StringFilter<"TalabatComplianceEvent"> | string
     sessionId?: StringNullableFilter<"TalabatComplianceEvent"> | string | null
     type?: EnumComplianceEventTypeFilter<"TalabatComplianceEvent"> | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFilter<"TalabatComplianceEvent"> | $Enums.AlertSeverity
     description?: StringFilter<"TalabatComplianceEvent"> | string
     metadata?: JsonNullableFilter<"TalabatComplianceEvent">
     resolved?: BoolFilter<"TalabatComplianceEvent"> | boolean
@@ -56958,6 +68179,199 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"AmericanaDailyOrders"> | Date | string
   }
 
+  export type KpiDefinitionUpsertWithWhereUniqueWithoutTenantInput = {
+    where: KpiDefinitionWhereUniqueInput
+    update: XOR<KpiDefinitionUpdateWithoutTenantInput, KpiDefinitionUncheckedUpdateWithoutTenantInput>
+    create: XOR<KpiDefinitionCreateWithoutTenantInput, KpiDefinitionUncheckedCreateWithoutTenantInput>
+  }
+
+  export type KpiDefinitionUpdateWithWhereUniqueWithoutTenantInput = {
+    where: KpiDefinitionWhereUniqueInput
+    data: XOR<KpiDefinitionUpdateWithoutTenantInput, KpiDefinitionUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type KpiDefinitionUpdateManyWithWhereWithoutTenantInput = {
+    where: KpiDefinitionScalarWhereInput
+    data: XOR<KpiDefinitionUpdateManyMutationInput, KpiDefinitionUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type KpiDefinitionScalarWhereInput = {
+    AND?: KpiDefinitionScalarWhereInput | KpiDefinitionScalarWhereInput[]
+    OR?: KpiDefinitionScalarWhereInput[]
+    NOT?: KpiDefinitionScalarWhereInput | KpiDefinitionScalarWhereInput[]
+    id?: StringFilter<"KpiDefinition"> | string
+    tenantId?: StringFilter<"KpiDefinition"> | string
+    name?: StringFilter<"KpiDefinition"> | string
+    description?: StringNullableFilter<"KpiDefinition"> | string | null
+    category?: EnumKpiCategoryFilter<"KpiDefinition"> | $Enums.KpiCategory
+    unit?: EnumKpiUnitFilter<"KpiDefinition"> | $Enums.KpiUnit
+    platform?: EnumPlatformNullableFilter<"KpiDefinition"> | $Enums.Platform | null
+    target?: DecimalNullableFilter<"KpiDefinition"> | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFilter<"KpiDefinition"> | boolean
+    sortOrder?: IntFilter<"KpiDefinition"> | number
+    createdAt?: DateTimeFilter<"KpiDefinition"> | Date | string
+    updatedAt?: DateTimeFilter<"KpiDefinition"> | Date | string
+  }
+
+  export type KpiRecordUpsertWithWhereUniqueWithoutTenantInput = {
+    where: KpiRecordWhereUniqueInput
+    update: XOR<KpiRecordUpdateWithoutTenantInput, KpiRecordUncheckedUpdateWithoutTenantInput>
+    create: XOR<KpiRecordCreateWithoutTenantInput, KpiRecordUncheckedCreateWithoutTenantInput>
+  }
+
+  export type KpiRecordUpdateWithWhereUniqueWithoutTenantInput = {
+    where: KpiRecordWhereUniqueInput
+    data: XOR<KpiRecordUpdateWithoutTenantInput, KpiRecordUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type KpiRecordUpdateManyWithWhereWithoutTenantInput = {
+    where: KpiRecordScalarWhereInput
+    data: XOR<KpiRecordUpdateManyMutationInput, KpiRecordUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type KpiRecordScalarWhereInput = {
+    AND?: KpiRecordScalarWhereInput | KpiRecordScalarWhereInput[]
+    OR?: KpiRecordScalarWhereInput[]
+    NOT?: KpiRecordScalarWhereInput | KpiRecordScalarWhereInput[]
+    id?: StringFilter<"KpiRecord"> | string
+    tenantId?: StringFilter<"KpiRecord"> | string
+    driverId?: StringFilter<"KpiRecord"> | string
+    kpiDefinitionId?: StringFilter<"KpiRecord"> | string
+    date?: DateTimeFilter<"KpiRecord"> | Date | string
+    value?: DecimalFilter<"KpiRecord"> | Decimal | DecimalJsLike | number | string
+    target?: DecimalNullableFilter<"KpiRecord"> | Decimal | DecimalJsLike | number | string | null
+    score?: DecimalNullableFilter<"KpiRecord"> | Decimal | DecimalJsLike | number | string | null
+    source?: StringFilter<"KpiRecord"> | string
+    createdAt?: DateTimeFilter<"KpiRecord"> | Date | string
+    updatedAt?: DateTimeFilter<"KpiRecord"> | Date | string
+  }
+
+  export type PlatformSettingsUpsertWithWhereUniqueWithoutTenantInput = {
+    where: PlatformSettingsWhereUniqueInput
+    update: XOR<PlatformSettingsUpdateWithoutTenantInput, PlatformSettingsUncheckedUpdateWithoutTenantInput>
+    create: XOR<PlatformSettingsCreateWithoutTenantInput, PlatformSettingsUncheckedCreateWithoutTenantInput>
+  }
+
+  export type PlatformSettingsUpdateWithWhereUniqueWithoutTenantInput = {
+    where: PlatformSettingsWhereUniqueInput
+    data: XOR<PlatformSettingsUpdateWithoutTenantInput, PlatformSettingsUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type PlatformSettingsUpdateManyWithWhereWithoutTenantInput = {
+    where: PlatformSettingsScalarWhereInput
+    data: XOR<PlatformSettingsUpdateManyMutationInput, PlatformSettingsUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type PlatformSettingsScalarWhereInput = {
+    AND?: PlatformSettingsScalarWhereInput | PlatformSettingsScalarWhereInput[]
+    OR?: PlatformSettingsScalarWhereInput[]
+    NOT?: PlatformSettingsScalarWhereInput | PlatformSettingsScalarWhereInput[]
+    id?: StringFilter<"PlatformSettings"> | string
+    tenantId?: StringFilter<"PlatformSettings"> | string
+    platform?: EnumPlatformFilter<"PlatformSettings"> | $Enums.Platform
+    targets?: JsonFilter<"PlatformSettings">
+    kpis?: JsonNullableFilter<"PlatformSettings">
+    shiftRules?: JsonNullableFilter<"PlatformSettings">
+    zones?: JsonNullableFilter<"PlatformSettings">
+    createdAt?: DateTimeFilter<"PlatformSettings"> | Date | string
+    updatedAt?: DateTimeFilter<"PlatformSettings"> | Date | string
+  }
+
+  export type CompanyInventoryUpsertWithWhereUniqueWithoutTenantInput = {
+    where: CompanyInventoryWhereUniqueInput
+    update: XOR<CompanyInventoryUpdateWithoutTenantInput, CompanyInventoryUncheckedUpdateWithoutTenantInput>
+    create: XOR<CompanyInventoryCreateWithoutTenantInput, CompanyInventoryUncheckedCreateWithoutTenantInput>
+  }
+
+  export type CompanyInventoryUpdateWithWhereUniqueWithoutTenantInput = {
+    where: CompanyInventoryWhereUniqueInput
+    data: XOR<CompanyInventoryUpdateWithoutTenantInput, CompanyInventoryUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type CompanyInventoryUpdateManyWithWhereWithoutTenantInput = {
+    where: CompanyInventoryScalarWhereInput
+    data: XOR<CompanyInventoryUpdateManyMutationInput, CompanyInventoryUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type CompanyInventoryScalarWhereInput = {
+    AND?: CompanyInventoryScalarWhereInput | CompanyInventoryScalarWhereInput[]
+    OR?: CompanyInventoryScalarWhereInput[]
+    NOT?: CompanyInventoryScalarWhereInput | CompanyInventoryScalarWhereInput[]
+    id?: StringFilter<"CompanyInventory"> | string
+    tenantId?: StringFilter<"CompanyInventory"> | string
+    companyId?: StringFilter<"CompanyInventory"> | string
+    itemType?: EnumInventoryItemTypeFilter<"CompanyInventory"> | $Enums.InventoryItemType
+    total?: IntFilter<"CompanyInventory"> | number
+    issued?: IntFilter<"CompanyInventory"> | number
+    available?: IntFilter<"CompanyInventory"> | number
+    minStock?: IntFilter<"CompanyInventory"> | number
+    createdAt?: DateTimeFilter<"CompanyInventory"> | Date | string
+    updatedAt?: DateTimeFilter<"CompanyInventory"> | Date | string
+  }
+
+  export type NotificationUpsertWithWhereUniqueWithoutTenantInput = {
+    where: NotificationWhereUniqueInput
+    update: XOR<NotificationUpdateWithoutTenantInput, NotificationUncheckedUpdateWithoutTenantInput>
+    create: XOR<NotificationCreateWithoutTenantInput, NotificationUncheckedCreateWithoutTenantInput>
+  }
+
+  export type NotificationUpdateWithWhereUniqueWithoutTenantInput = {
+    where: NotificationWhereUniqueInput
+    data: XOR<NotificationUpdateWithoutTenantInput, NotificationUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type NotificationUpdateManyWithWhereWithoutTenantInput = {
+    where: NotificationScalarWhereInput
+    data: XOR<NotificationUpdateManyMutationInput, NotificationUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type NotificationScalarWhereInput = {
+    AND?: NotificationScalarWhereInput | NotificationScalarWhereInput[]
+    OR?: NotificationScalarWhereInput[]
+    NOT?: NotificationScalarWhereInput | NotificationScalarWhereInput[]
+    id?: StringFilter<"Notification"> | string
+    tenantId?: StringFilter<"Notification"> | string
+    userId?: StringFilter<"Notification"> | string
+    title?: StringFilter<"Notification"> | string
+    message?: StringFilter<"Notification"> | string
+    type?: StringFilter<"Notification"> | string
+    severity?: StringFilter<"Notification"> | string
+    sourceId?: StringNullableFilter<"Notification"> | string | null
+    metadata?: JsonNullableFilter<"Notification">
+    read?: BoolFilter<"Notification"> | boolean
+    readAt?: DateTimeNullableFilter<"Notification"> | Date | string | null
+    createdAt?: DateTimeFilter<"Notification"> | Date | string
+  }
+
+  export type NotificationRuleUpsertWithWhereUniqueWithoutTenantInput = {
+    where: NotificationRuleWhereUniqueInput
+    update: XOR<NotificationRuleUpdateWithoutTenantInput, NotificationRuleUncheckedUpdateWithoutTenantInput>
+    create: XOR<NotificationRuleCreateWithoutTenantInput, NotificationRuleUncheckedCreateWithoutTenantInput>
+  }
+
+  export type NotificationRuleUpdateWithWhereUniqueWithoutTenantInput = {
+    where: NotificationRuleWhereUniqueInput
+    data: XOR<NotificationRuleUpdateWithoutTenantInput, NotificationRuleUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type NotificationRuleUpdateManyWithWhereWithoutTenantInput = {
+    where: NotificationRuleScalarWhereInput
+    data: XOR<NotificationRuleUpdateManyMutationInput, NotificationRuleUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type NotificationRuleScalarWhereInput = {
+    AND?: NotificationRuleScalarWhereInput | NotificationRuleScalarWhereInput[]
+    OR?: NotificationRuleScalarWhereInput[]
+    NOT?: NotificationRuleScalarWhereInput | NotificationRuleScalarWhereInput[]
+    id?: StringFilter<"NotificationRule"> | string
+    tenantId?: StringFilter<"NotificationRule"> | string
+    eventType?: StringFilter<"NotificationRule"> | string
+    role?: EnumUserRoleFilter<"NotificationRule"> | $Enums.UserRole
+    enabled?: BoolFilter<"NotificationRule"> | boolean
+    createdAt?: DateTimeFilter<"NotificationRule"> | Date | string
+    updatedAt?: DateTimeFilter<"NotificationRule"> | Date | string
+  }
+
   export type TenantCreateWithoutCompaniesInput = {
     id?: string
     name: string
@@ -56971,6 +68385,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -56986,6 +68401,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutCompaniesInput = {
@@ -57001,6 +68422,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -57016,6 +68438,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutCompaniesInput = {
@@ -57059,6 +68487,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -57077,6 +68506,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutCompanyInput = {
@@ -57115,6 +68545,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -57133,6 +68564,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutCompanyInput = {
@@ -57156,6 +68588,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     insuranceExpiry: Date | string
     registrationExpiry: Date | string
@@ -57182,6 +68616,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     assignedDriverId?: string | null
     insuranceExpiry: Date | string
@@ -57299,6 +68735,40 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type CompanyInventoryCreateWithoutCompanyInput = {
+    id?: string
+    itemType: $Enums.InventoryItemType
+    total?: number
+    issued?: number
+    available?: number
+    minStock?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutCompanyInventoryInput
+  }
+
+  export type CompanyInventoryUncheckedCreateWithoutCompanyInput = {
+    id?: string
+    tenantId: string
+    itemType: $Enums.InventoryItemType
+    total?: number
+    issued?: number
+    available?: number
+    minStock?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CompanyInventoryCreateOrConnectWithoutCompanyInput = {
+    where: CompanyInventoryWhereUniqueInput
+    create: XOR<CompanyInventoryCreateWithoutCompanyInput, CompanyInventoryUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type CompanyInventoryCreateManyCompanyInputEnvelope = {
+    data: CompanyInventoryCreateManyCompanyInput | CompanyInventoryCreateManyCompanyInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TenantUpsertWithoutCompaniesInput = {
     update: XOR<TenantUpdateWithoutCompaniesInput, TenantUncheckedUpdateWithoutCompaniesInput>
     create: XOR<TenantCreateWithoutCompaniesInput, TenantUncheckedCreateWithoutCompaniesInput>
@@ -57323,6 +68793,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -57338,6 +68809,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutCompaniesInput = {
@@ -57353,6 +68830,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -57368,6 +68846,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithWhereUniqueWithoutCompanyInput = {
@@ -57434,6 +68918,22 @@ export namespace Prisma {
     data: XOR<TicketUpdateManyMutationInput, TicketUncheckedUpdateManyWithoutCompanyInput>
   }
 
+  export type CompanyInventoryUpsertWithWhereUniqueWithoutCompanyInput = {
+    where: CompanyInventoryWhereUniqueInput
+    update: XOR<CompanyInventoryUpdateWithoutCompanyInput, CompanyInventoryUncheckedUpdateWithoutCompanyInput>
+    create: XOR<CompanyInventoryCreateWithoutCompanyInput, CompanyInventoryUncheckedCreateWithoutCompanyInput>
+  }
+
+  export type CompanyInventoryUpdateWithWhereUniqueWithoutCompanyInput = {
+    where: CompanyInventoryWhereUniqueInput
+    data: XOR<CompanyInventoryUpdateWithoutCompanyInput, CompanyInventoryUncheckedUpdateWithoutCompanyInput>
+  }
+
+  export type CompanyInventoryUpdateManyWithWhereWithoutCompanyInput = {
+    where: CompanyInventoryScalarWhereInput
+    data: XOR<CompanyInventoryUpdateManyMutationInput, CompanyInventoryUncheckedUpdateManyWithoutCompanyInput>
+  }
+
   export type TenantCreateWithoutUsersInput = {
     id?: string
     name: string
@@ -57447,6 +68947,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -57462,6 +68963,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutUsersInput = {
@@ -57477,6 +68984,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -57492,6 +69000,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutUsersInput = {
@@ -57535,6 +69049,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -57553,6 +69068,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutSupervisorInput = {
@@ -57591,6 +69107,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -57609,6 +69126,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutSupervisorInput = {
@@ -57849,6 +69367,44 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type NotificationCreateWithoutUserInput = {
+    id?: string
+    title: string
+    message: string
+    type: string
+    severity?: string
+    sourceId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: boolean
+    readAt?: Date | string | null
+    createdAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutNotificationsInput
+  }
+
+  export type NotificationUncheckedCreateWithoutUserInput = {
+    id?: string
+    tenantId: string
+    title: string
+    message: string
+    type: string
+    severity?: string
+    sourceId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: boolean
+    readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type NotificationCreateOrConnectWithoutUserInput = {
+    where: NotificationWhereUniqueInput
+    create: XOR<NotificationCreateWithoutUserInput, NotificationUncheckedCreateWithoutUserInput>
+  }
+
+  export type NotificationCreateManyUserInputEnvelope = {
+    data: NotificationCreateManyUserInput | NotificationCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TenantUpsertWithoutUsersInput = {
     update: XOR<TenantUpdateWithoutUsersInput, TenantUncheckedUpdateWithoutUsersInput>
     create: XOR<TenantCreateWithoutUsersInput, TenantUncheckedCreateWithoutUsersInput>
@@ -57873,6 +69429,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -57888,6 +69445,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutUsersInput = {
@@ -57903,6 +69466,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -57918,6 +69482,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithWhereUniqueWithoutSupervisorInput = {
@@ -58030,6 +69600,22 @@ export namespace Prisma {
     data: XOR<TicketUpdateManyMutationInput, TicketUncheckedUpdateManyWithoutSubmitterUserInput>
   }
 
+  export type NotificationUpsertWithWhereUniqueWithoutUserInput = {
+    where: NotificationWhereUniqueInput
+    update: XOR<NotificationUpdateWithoutUserInput, NotificationUncheckedUpdateWithoutUserInput>
+    create: XOR<NotificationCreateWithoutUserInput, NotificationUncheckedCreateWithoutUserInput>
+  }
+
+  export type NotificationUpdateWithWhereUniqueWithoutUserInput = {
+    where: NotificationWhereUniqueInput
+    data: XOR<NotificationUpdateWithoutUserInput, NotificationUncheckedUpdateWithoutUserInput>
+  }
+
+  export type NotificationUpdateManyWithWhereWithoutUserInput = {
+    where: NotificationScalarWhereInput
+    data: XOR<NotificationUpdateManyMutationInput, NotificationUncheckedUpdateManyWithoutUserInput>
+  }
+
   export type TenantCreateWithoutDriversInput = {
     id?: string
     name: string
@@ -58043,6 +69629,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -58058,6 +69645,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutDriversInput = {
@@ -58073,6 +69666,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -58088,6 +69682,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutDriversInput = {
@@ -58107,6 +69707,7 @@ export namespace Prisma {
     vehicles?: VehicleCreateNestedManyWithoutCompanyInput
     recruitmentPipeline?: RecruitmentPipelineCreateNestedManyWithoutAssignedCompanyInput
     tickets?: TicketCreateNestedManyWithoutCompanyInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutDriversInput = {
@@ -58121,6 +69722,7 @@ export namespace Prisma {
     vehicles?: VehicleUncheckedCreateNestedManyWithoutCompanyInput
     recruitmentPipeline?: RecruitmentPipelineUncheckedCreateNestedManyWithoutAssignedCompanyInput
     tickets?: TicketUncheckedCreateNestedManyWithoutCompanyInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutDriversInput = {
@@ -58145,6 +69747,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestCreateNestedManyWithoutReviewedByInput
     assignedTickets?: TicketCreateNestedManyWithoutAssignedToInput
     submittedTickets?: TicketCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSupervisedDriversInput = {
@@ -58164,6 +69767,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
     assignedTickets?: TicketUncheckedCreateNestedManyWithoutAssignedToInput
     submittedTickets?: TicketUncheckedCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSupervisedDriversInput = {
@@ -58388,6 +69992,42 @@ export namespace Prisma {
 
   export type CashRecordCreateManyDriverInputEnvelope = {
     data: CashRecordCreateManyDriverInput | CashRecordCreateManyDriverInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CashTransactionCreateWithoutDriverInput = {
+    id?: string
+    date: Date | string
+    type: $Enums.CashTransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    orderNumber?: string | null
+    description?: string | null
+    runningBalance: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutCashTransactionsInput
+  }
+
+  export type CashTransactionUncheckedCreateWithoutDriverInput = {
+    id?: string
+    tenantId: string
+    date: Date | string
+    type: $Enums.CashTransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    orderNumber?: string | null
+    description?: string | null
+    runningBalance: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CashTransactionCreateOrConnectWithoutDriverInput = {
+    where: CashTransactionWhereUniqueInput
+    create: XOR<CashTransactionCreateWithoutDriverInput, CashTransactionUncheckedCreateWithoutDriverInput>
+  }
+
+  export type CashTransactionCreateManyDriverInputEnvelope = {
+    data: CashTransactionCreateManyDriverInput | CashTransactionCreateManyDriverInput[]
     skipDuplicates?: boolean
   }
 
@@ -58743,6 +70383,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     insuranceExpiry: Date | string
     registrationExpiry: Date | string
@@ -58770,6 +70412,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     insuranceExpiry: Date | string
     registrationExpiry: Date | string
@@ -59018,7 +70662,6 @@ export namespace Prisma {
   export type TalabatComplianceEventCreateWithoutDriverInput = {
     id?: string
     type: $Enums.ComplianceEventType
-    severity: $Enums.AlertSeverity
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: boolean
@@ -59034,7 +70677,6 @@ export namespace Prisma {
     tenantId: string
     sessionId?: string | null
     type: $Enums.ComplianceEventType
-    severity: $Enums.AlertSeverity
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: boolean
@@ -59217,6 +70859,42 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type KpiRecordCreateWithoutDriverInput = {
+    id?: string
+    date: Date | string
+    value: Decimal | DecimalJsLike | number | string
+    target?: Decimal | DecimalJsLike | number | string | null
+    score?: Decimal | DecimalJsLike | number | string | null
+    source?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutKpiRecordsInput
+    kpiDefinition: KpiDefinitionCreateNestedOneWithoutRecordsInput
+  }
+
+  export type KpiRecordUncheckedCreateWithoutDriverInput = {
+    id?: string
+    tenantId: string
+    kpiDefinitionId: string
+    date: Date | string
+    value: Decimal | DecimalJsLike | number | string
+    target?: Decimal | DecimalJsLike | number | string | null
+    score?: Decimal | DecimalJsLike | number | string | null
+    source?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KpiRecordCreateOrConnectWithoutDriverInput = {
+    where: KpiRecordWhereUniqueInput
+    create: XOR<KpiRecordCreateWithoutDriverInput, KpiRecordUncheckedCreateWithoutDriverInput>
+  }
+
+  export type KpiRecordCreateManyDriverInputEnvelope = {
+    data: KpiRecordCreateManyDriverInput | KpiRecordCreateManyDriverInput[]
+    skipDuplicates?: boolean
+  }
+
   export type TenantUpsertWithoutDriversInput = {
     update: XOR<TenantUpdateWithoutDriversInput, TenantUncheckedUpdateWithoutDriversInput>
     create: XOR<TenantCreateWithoutDriversInput, TenantUncheckedCreateWithoutDriversInput>
@@ -59241,6 +70919,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -59256,6 +70935,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutDriversInput = {
@@ -59271,6 +70956,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -59286,6 +70972,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type CompanyUpsertWithoutDriversInput = {
@@ -59311,6 +71003,7 @@ export namespace Prisma {
     vehicles?: VehicleUpdateManyWithoutCompanyNestedInput
     recruitmentPipeline?: RecruitmentPipelineUpdateManyWithoutAssignedCompanyNestedInput
     tickets?: TicketUpdateManyWithoutCompanyNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutDriversInput = {
@@ -59325,6 +71018,7 @@ export namespace Prisma {
     vehicles?: VehicleUncheckedUpdateManyWithoutCompanyNestedInput
     recruitmentPipeline?: RecruitmentPipelineUncheckedUpdateManyWithoutAssignedCompanyNestedInput
     tickets?: TicketUncheckedUpdateManyWithoutCompanyNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type UserUpsertWithoutSupervisedDriversInput = {
@@ -59355,6 +71049,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
     assignedTickets?: TicketUpdateManyWithoutAssignedToNestedInput
     submittedTickets?: TicketUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSupervisedDriversInput = {
@@ -59374,6 +71069,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
     assignedTickets?: TicketUncheckedUpdateManyWithoutAssignedToNestedInput
     submittedTickets?: TicketUncheckedUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type DriverInventoryUpsertWithWhereUniqueWithoutDriverInput = {
@@ -59469,6 +71165,22 @@ export namespace Prisma {
   export type CashRecordUpdateManyWithWhereWithoutDriverInput = {
     where: CashRecordScalarWhereInput
     data: XOR<CashRecordUpdateManyMutationInput, CashRecordUncheckedUpdateManyWithoutDriverInput>
+  }
+
+  export type CashTransactionUpsertWithWhereUniqueWithoutDriverInput = {
+    where: CashTransactionWhereUniqueInput
+    update: XOR<CashTransactionUpdateWithoutDriverInput, CashTransactionUncheckedUpdateWithoutDriverInput>
+    create: XOR<CashTransactionCreateWithoutDriverInput, CashTransactionUncheckedCreateWithoutDriverInput>
+  }
+
+  export type CashTransactionUpdateWithWhereUniqueWithoutDriverInput = {
+    where: CashTransactionWhereUniqueInput
+    data: XOR<CashTransactionUpdateWithoutDriverInput, CashTransactionUncheckedUpdateWithoutDriverInput>
+  }
+
+  export type CashTransactionUpdateManyWithWhereWithoutDriverInput = {
+    where: CashTransactionScalarWhereInput
+    data: XOR<CashTransactionUpdateManyMutationInput, CashTransactionUncheckedUpdateManyWithoutDriverInput>
   }
 
   export type PendingDuesLedgerUpsertWithWhereUniqueWithoutDriverInput = {
@@ -59714,6 +71426,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
     registrationExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -59741,6 +71455,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
     registrationExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -59902,6 +71618,22 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"TalabatDelivery"> | Date | string
   }
 
+  export type KpiRecordUpsertWithWhereUniqueWithoutDriverInput = {
+    where: KpiRecordWhereUniqueInput
+    update: XOR<KpiRecordUpdateWithoutDriverInput, KpiRecordUncheckedUpdateWithoutDriverInput>
+    create: XOR<KpiRecordCreateWithoutDriverInput, KpiRecordUncheckedCreateWithoutDriverInput>
+  }
+
+  export type KpiRecordUpdateWithWhereUniqueWithoutDriverInput = {
+    where: KpiRecordWhereUniqueInput
+    data: XOR<KpiRecordUpdateWithoutDriverInput, KpiRecordUncheckedUpdateWithoutDriverInput>
+  }
+
+  export type KpiRecordUpdateManyWithWhereWithoutDriverInput = {
+    where: KpiRecordScalarWhereInput
+    data: XOR<KpiRecordUpdateManyMutationInput, KpiRecordUncheckedUpdateManyWithoutDriverInput>
+  }
+
   export type DriverCreateWithoutInventoryInput = {
     id?: string
     name: string
@@ -59938,6 +71670,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -59956,6 +71689,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutInventoryInput = {
@@ -59994,6 +71728,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -60012,6 +71747,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutInventoryInput = {
@@ -60066,6 +71802,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -60084,6 +71821,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutInventoryInput = {
@@ -60122,6 +71860,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -60140,6 +71879,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type TenantCreateWithoutRecruitmentPipelineInput = {
@@ -60156,6 +71896,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -60170,6 +71911,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutRecruitmentPipelineInput = {
@@ -60186,6 +71933,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -60200,6 +71948,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutRecruitmentPipelineInput = {
@@ -60219,6 +71973,7 @@ export namespace Prisma {
     drivers?: DriverCreateNestedManyWithoutCompanyInput
     vehicles?: VehicleCreateNestedManyWithoutCompanyInput
     tickets?: TicketCreateNestedManyWithoutCompanyInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutRecruitmentPipelineInput = {
@@ -60233,6 +71988,7 @@ export namespace Prisma {
     drivers?: DriverUncheckedCreateNestedManyWithoutCompanyInput
     vehicles?: VehicleUncheckedCreateNestedManyWithoutCompanyInput
     tickets?: TicketUncheckedCreateNestedManyWithoutCompanyInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutRecruitmentPipelineInput = {
@@ -60265,6 +72021,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -60279,6 +72036,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutRecruitmentPipelineInput = {
@@ -60295,6 +72058,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -60309,6 +72073,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type CompanyUpsertWithoutRecruitmentPipelineInput = {
@@ -60334,6 +72104,7 @@ export namespace Prisma {
     drivers?: DriverUpdateManyWithoutCompanyNestedInput
     vehicles?: VehicleUpdateManyWithoutCompanyNestedInput
     tickets?: TicketUpdateManyWithoutCompanyNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutRecruitmentPipelineInput = {
@@ -60348,6 +72119,7 @@ export namespace Prisma {
     drivers?: DriverUncheckedUpdateManyWithoutCompanyNestedInput
     vehicles?: VehicleUncheckedUpdateManyWithoutCompanyNestedInput
     tickets?: TicketUncheckedUpdateManyWithoutCompanyNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type TenantCreateWithoutVehiclesInput = {
@@ -60364,6 +72136,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -60378,6 +72151,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutVehiclesInput = {
@@ -60394,6 +72173,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -60408,6 +72188,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutVehiclesInput = {
@@ -60427,6 +72213,7 @@ export namespace Prisma {
     drivers?: DriverCreateNestedManyWithoutCompanyInput
     recruitmentPipeline?: RecruitmentPipelineCreateNestedManyWithoutAssignedCompanyInput
     tickets?: TicketCreateNestedManyWithoutCompanyInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutVehiclesInput = {
@@ -60441,6 +72228,7 @@ export namespace Prisma {
     drivers?: DriverUncheckedCreateNestedManyWithoutCompanyInput
     recruitmentPipeline?: RecruitmentPipelineUncheckedCreateNestedManyWithoutAssignedCompanyInput
     tickets?: TicketUncheckedCreateNestedManyWithoutCompanyInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutVehiclesInput = {
@@ -60485,6 +72273,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -60502,6 +72291,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutAssignedVehicleInput = {
@@ -60541,6 +72331,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -60558,6 +72349,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutAssignedVehicleInput = {
@@ -60806,6 +72598,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -60820,6 +72613,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutVehiclesInput = {
@@ -60836,6 +72635,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -60850,6 +72650,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type CompanyUpsertWithoutVehiclesInput = {
@@ -60875,6 +72681,7 @@ export namespace Prisma {
     drivers?: DriverUpdateManyWithoutCompanyNestedInput
     recruitmentPipeline?: RecruitmentPipelineUpdateManyWithoutAssignedCompanyNestedInput
     tickets?: TicketUpdateManyWithoutCompanyNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutVehiclesInput = {
@@ -60889,6 +72696,7 @@ export namespace Prisma {
     drivers?: DriverUncheckedUpdateManyWithoutCompanyNestedInput
     recruitmentPipeline?: RecruitmentPipelineUncheckedUpdateManyWithoutAssignedCompanyNestedInput
     tickets?: TicketUncheckedUpdateManyWithoutCompanyNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type DriverUpsertWithoutAssignedVehicleInput = {
@@ -60939,6 +72747,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -60956,6 +72765,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutAssignedVehicleInput = {
@@ -60995,6 +72805,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -61012,6 +72823,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type VehicleInspectionUpsertWithWhereUniqueWithoutVehicleInput = {
@@ -61107,6 +72919,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -61122,6 +72935,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutShiftsInput = {
@@ -61137,6 +72956,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -61152,6 +72972,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutShiftsInput = {
@@ -61195,6 +73021,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -61213,6 +73040,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutShiftsInput = {
@@ -61251,6 +73079,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -61269,6 +73098,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutShiftsInput = {
@@ -61458,6 +73288,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -61473,6 +73304,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutShiftsInput = {
@@ -61488,6 +73325,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -61503,6 +73341,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithoutShiftsInput = {
@@ -61552,6 +73396,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -61570,6 +73415,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutShiftsInput = {
@@ -61608,6 +73454,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -61626,6 +73473,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type AttendanceRecordUpsertWithWhereUniqueWithoutShiftInput = {
@@ -61689,6 +73537,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -61704,6 +73553,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutAttendanceRecordsInput = {
@@ -61719,6 +73574,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -61734,6 +73590,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutAttendanceRecordsInput = {
@@ -61777,6 +73639,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -61795,6 +73658,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutAttendanceRecordsInput = {
@@ -61833,6 +73697,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -61851,6 +73716,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutAttendanceRecordsInput = {
@@ -61939,6 +73805,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -61954,6 +73821,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutAttendanceRecordsInput = {
@@ -61969,6 +73842,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -61984,6 +73858,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithoutAttendanceRecordsInput = {
@@ -62033,6 +73913,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -62051,6 +73932,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutAttendanceRecordsInput = {
@@ -62089,6 +73971,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -62107,6 +73990,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type ShiftUpsertWithoutAttendanceRecordsInput = {
@@ -62185,6 +74069,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutTenantInput
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -62200,6 +74085,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutOrderLogsInput = {
@@ -62215,6 +74106,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutTenantInput
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -62230,6 +74122,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutOrderLogsInput = {
@@ -62273,6 +74171,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutDriverInput
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -62291,6 +74190,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutOrderLogsInput = {
@@ -62329,6 +74229,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutDriverInput
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -62347,6 +74248,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutOrderLogsInput = {
@@ -62435,6 +74337,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutTenantNestedInput
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -62450,6 +74353,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutOrderLogsInput = {
@@ -62465,6 +74374,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutTenantNestedInput
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -62480,6 +74390,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithoutOrderLogsInput = {
@@ -62529,6 +74445,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutDriverNestedInput
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -62547,6 +74464,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutOrderLogsInput = {
@@ -62585,6 +74503,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutDriverNestedInput
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -62603,6 +74522,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type ShiftUpsertWithoutOrderLogsInput = {
@@ -62681,6 +74601,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutTenantInput
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -62696,6 +74617,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutCashRecordsInput = {
@@ -62711,6 +74638,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutTenantInput
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -62726,6 +74654,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutCashRecordsInput = {
@@ -62769,6 +74703,7 @@ export namespace Prisma {
     shifts?: ShiftCreateNestedManyWithoutDriverInput
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -62787,6 +74722,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutCashRecordsInput = {
@@ -62825,6 +74761,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedCreateNestedManyWithoutDriverInput
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -62843,6 +74780,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutCashRecordsInput = {
@@ -62874,6 +74812,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutTenantNestedInput
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -62889,6 +74828,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutCashRecordsInput = {
@@ -62904,6 +74849,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutTenantNestedInput
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -62919,6 +74865,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithoutCashRecordsInput = {
@@ -62968,6 +74920,7 @@ export namespace Prisma {
     shifts?: ShiftUpdateManyWithoutDriverNestedInput
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -62986,6 +74939,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutCashRecordsInput = {
@@ -63024,6 +74978,7 @@ export namespace Prisma {
     shifts?: ShiftUncheckedUpdateManyWithoutDriverNestedInput
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -63042,6 +74997,419 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
+  }
+
+  export type TenantCreateWithoutCashTransactionsInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    shifts?: ShiftCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
+    tickets?: TicketCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutCashTransactionsInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestUncheckedCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    tickets?: TicketUncheckedCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleUncheckedCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionUncheckedCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutCashTransactionsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutCashTransactionsInput, TenantUncheckedCreateWithoutCashTransactionsInput>
+  }
+
+  export type DriverCreateWithoutCashTransactionsInput = {
+    id?: string
+    name: string
+    phone: string
+    platform: $Enums.Platform
+    platformDriverId?: string | null
+    utr?: string | null
+    vehicleType: $Enums.VehicleType
+    zone?: string | null
+    batchNumber?: string | null
+    status?: $Enums.DriverStatus
+    hireDate: Date | string
+    photoUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    healthCertExpiry?: Date | string | null
+    healthCertStatus?: string | null
+    workPermitExpiry?: Date | string | null
+    workPermitStatus?: string | null
+    foodHandlingCertExpiry?: Date | string | null
+    foodHandlingCertStatus?: string | null
+    vehicleRegExpiry?: Date | string | null
+    vehicleRegStatus?: string | null
+    vehicleInsuranceExpiry?: Date | string | null
+    vehicleInsuranceStatus?: string | null
+    drivingLicenseExpiry?: Date | string | null
+    drivingLicenseStatus?: string | null
+    civilIdExpiry?: Date | string | null
+    civilIdStatus?: string | null
+    tenant: TenantCreateNestedOneWithoutDriversInput
+    company: CompanyCreateNestedOneWithoutDriversInput
+    supervisor?: UserCreateNestedOneWithoutSupervisedDriversInput
+    inventory?: DriverInventoryCreateNestedManyWithoutDriverInput
+    shifts?: ShiftCreateNestedManyWithoutDriverInput
+    attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
+    orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
+    cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
+    vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
+    maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
+    aiScores?: AiScoreCreateNestedManyWithoutDriverInput
+    alerts?: AlertCreateNestedManyWithoutDriverInput
+    capturedOrders?: CapturedOrderCreateNestedManyWithoutDriverInput
+    locationLogs?: LocationLogCreateNestedManyWithoutDriverInput
+    appUsageLogs?: AppUsageLogCreateNestedManyWithoutDriverInput
+    device?: DeviceCreateNestedOneWithoutDriverInput
+    assignedVehicle?: VehicleCreateNestedOneWithoutAssignedDriverInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutDriverInput
+    tickets?: TicketCreateNestedManyWithoutDriverInput
+    submittedTickets?: TicketCreateNestedManyWithoutSubmitterDriverInput
+    talabatSessions?: TalabatSessionCreateNestedManyWithoutDriverInput
+    talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutDriverInput
+    keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
+    americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
+    talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
+  }
+
+  export type DriverUncheckedCreateWithoutCashTransactionsInput = {
+    id?: string
+    tenantId: string
+    companyId: string
+    name: string
+    phone: string
+    platform: $Enums.Platform
+    platformDriverId?: string | null
+    utr?: string | null
+    vehicleType: $Enums.VehicleType
+    zone?: string | null
+    batchNumber?: string | null
+    status?: $Enums.DriverStatus
+    hireDate: Date | string
+    photoUrl?: string | null
+    supervisorId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    healthCertExpiry?: Date | string | null
+    healthCertStatus?: string | null
+    workPermitExpiry?: Date | string | null
+    workPermitStatus?: string | null
+    foodHandlingCertExpiry?: Date | string | null
+    foodHandlingCertStatus?: string | null
+    vehicleRegExpiry?: Date | string | null
+    vehicleRegStatus?: string | null
+    vehicleInsuranceExpiry?: Date | string | null
+    vehicleInsuranceStatus?: string | null
+    drivingLicenseExpiry?: Date | string | null
+    drivingLicenseStatus?: string | null
+    civilIdExpiry?: Date | string | null
+    civilIdStatus?: string | null
+    inventory?: DriverInventoryUncheckedCreateNestedManyWithoutDriverInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutDriverInput
+    attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
+    orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
+    cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
+    vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
+    maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
+    aiScores?: AiScoreUncheckedCreateNestedManyWithoutDriverInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutDriverInput
+    capturedOrders?: CapturedOrderUncheckedCreateNestedManyWithoutDriverInput
+    locationLogs?: LocationLogUncheckedCreateNestedManyWithoutDriverInput
+    appUsageLogs?: AppUsageLogUncheckedCreateNestedManyWithoutDriverInput
+    device?: DeviceUncheckedCreateNestedOneWithoutDriverInput
+    assignedVehicle?: VehicleUncheckedCreateNestedOneWithoutAssignedDriverInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutDriverInput
+    tickets?: TicketUncheckedCreateNestedManyWithoutDriverInput
+    submittedTickets?: TicketUncheckedCreateNestedManyWithoutSubmitterDriverInput
+    talabatSessions?: TalabatSessionUncheckedCreateNestedManyWithoutDriverInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutDriverInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
+    talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
+  }
+
+  export type DriverCreateOrConnectWithoutCashTransactionsInput = {
+    where: DriverWhereUniqueInput
+    create: XOR<DriverCreateWithoutCashTransactionsInput, DriverUncheckedCreateWithoutCashTransactionsInput>
+  }
+
+  export type TenantUpsertWithoutCashTransactionsInput = {
+    update: XOR<TenantUpdateWithoutCashTransactionsInput, TenantUncheckedUpdateWithoutCashTransactionsInput>
+    create: XOR<TenantCreateWithoutCashTransactionsInput, TenantUncheckedCreateWithoutCashTransactionsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutCashTransactionsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutCashTransactionsInput, TenantUncheckedUpdateWithoutCashTransactionsInput>
+  }
+
+  export type TenantUpdateWithoutCashTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutCashTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUncheckedUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUncheckedUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUncheckedUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUncheckedUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type DriverUpsertWithoutCashTransactionsInput = {
+    update: XOR<DriverUpdateWithoutCashTransactionsInput, DriverUncheckedUpdateWithoutCashTransactionsInput>
+    create: XOR<DriverCreateWithoutCashTransactionsInput, DriverUncheckedCreateWithoutCashTransactionsInput>
+    where?: DriverWhereInput
+  }
+
+  export type DriverUpdateToOneWithWhereWithoutCashTransactionsInput = {
+    where?: DriverWhereInput
+    data: XOR<DriverUpdateWithoutCashTransactionsInput, DriverUncheckedUpdateWithoutCashTransactionsInput>
+  }
+
+  export type DriverUpdateWithoutCashTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    platform?: EnumPlatformFieldUpdateOperationsInput | $Enums.Platform
+    platformDriverId?: NullableStringFieldUpdateOperationsInput | string | null
+    utr?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: EnumVehicleTypeFieldUpdateOperationsInput | $Enums.VehicleType
+    zone?: NullableStringFieldUpdateOperationsInput | string | null
+    batchNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDriverStatusFieldUpdateOperationsInput | $Enums.DriverStatus
+    hireDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    healthCertExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    healthCertStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPermitExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workPermitStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    foodHandlingCertExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    foodHandlingCertStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleRegExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    vehicleRegStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleInsuranceExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    vehicleInsuranceStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    drivingLicenseExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    drivingLicenseStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    civilIdExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    civilIdStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    tenant?: TenantUpdateOneRequiredWithoutDriversNestedInput
+    company?: CompanyUpdateOneRequiredWithoutDriversNestedInput
+    supervisor?: UserUpdateOneWithoutSupervisedDriversNestedInput
+    inventory?: DriverInventoryUpdateManyWithoutDriverNestedInput
+    shifts?: ShiftUpdateManyWithoutDriverNestedInput
+    attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
+    orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
+    cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
+    vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
+    maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
+    aiScores?: AiScoreUpdateManyWithoutDriverNestedInput
+    alerts?: AlertUpdateManyWithoutDriverNestedInput
+    capturedOrders?: CapturedOrderUpdateManyWithoutDriverNestedInput
+    locationLogs?: LocationLogUpdateManyWithoutDriverNestedInput
+    appUsageLogs?: AppUsageLogUpdateManyWithoutDriverNestedInput
+    device?: DeviceUpdateOneWithoutDriverNestedInput
+    assignedVehicle?: VehicleUpdateOneWithoutAssignedDriverNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutDriverNestedInput
+    tickets?: TicketUpdateManyWithoutDriverNestedInput
+    submittedTickets?: TicketUpdateManyWithoutSubmitterDriverNestedInput
+    talabatSessions?: TalabatSessionUpdateManyWithoutDriverNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutDriverNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
+    talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
+  }
+
+  export type DriverUncheckedUpdateWithoutCashTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    companyId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    platform?: EnumPlatformFieldUpdateOperationsInput | $Enums.Platform
+    platformDriverId?: NullableStringFieldUpdateOperationsInput | string | null
+    utr?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: EnumVehicleTypeFieldUpdateOperationsInput | $Enums.VehicleType
+    zone?: NullableStringFieldUpdateOperationsInput | string | null
+    batchNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDriverStatusFieldUpdateOperationsInput | $Enums.DriverStatus
+    hireDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    supervisorId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    healthCertExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    healthCertStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPermitExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workPermitStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    foodHandlingCertExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    foodHandlingCertStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleRegExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    vehicleRegStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleInsuranceExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    vehicleInsuranceStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    drivingLicenseExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    drivingLicenseStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    civilIdExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    civilIdStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    inventory?: DriverInventoryUncheckedUpdateManyWithoutDriverNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutDriverNestedInput
+    attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
+    orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
+    cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
+    vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
+    maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
+    aiScores?: AiScoreUncheckedUpdateManyWithoutDriverNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutDriverNestedInput
+    capturedOrders?: CapturedOrderUncheckedUpdateManyWithoutDriverNestedInput
+    locationLogs?: LocationLogUncheckedUpdateManyWithoutDriverNestedInput
+    appUsageLogs?: AppUsageLogUncheckedUpdateManyWithoutDriverNestedInput
+    device?: DeviceUncheckedUpdateOneWithoutDriverNestedInput
+    assignedVehicle?: VehicleUncheckedUpdateOneWithoutAssignedDriverNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutDriverNestedInput
+    tickets?: TicketUncheckedUpdateManyWithoutDriverNestedInput
+    submittedTickets?: TicketUncheckedUpdateManyWithoutSubmitterDriverNestedInput
+    talabatSessions?: TalabatSessionUncheckedUpdateManyWithoutDriverNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutDriverNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
+    talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type TenantCreateWithoutPendingDuesLedgersInput = {
@@ -63058,6 +75426,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
     aiScores?: AiScoreCreateNestedManyWithoutTenantInput
@@ -63072,6 +75441,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutPendingDuesLedgersInput = {
@@ -63088,6 +75463,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
     aiScores?: AiScoreUncheckedCreateNestedManyWithoutTenantInput
@@ -63102,6 +75478,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutPendingDuesLedgersInput = {
@@ -63146,6 +75528,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
     aiScores?: AiScoreCreateNestedManyWithoutDriverInput
@@ -63163,6 +75546,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutPendingDuesLedgersInput = {
@@ -63202,6 +75586,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
     aiScores?: AiScoreUncheckedCreateNestedManyWithoutDriverInput
@@ -63219,6 +75604,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutPendingDuesLedgersInput = {
@@ -63251,6 +75637,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
     aiScores?: AiScoreUpdateManyWithoutTenantNestedInput
@@ -63265,6 +75652,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutPendingDuesLedgersInput = {
@@ -63281,6 +75674,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     aiScores?: AiScoreUncheckedUpdateManyWithoutTenantNestedInput
@@ -63295,6 +75689,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithoutPendingDuesLedgersInput = {
@@ -63345,6 +75745,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
     aiScores?: AiScoreUpdateManyWithoutDriverNestedInput
@@ -63362,6 +75763,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutPendingDuesLedgersInput = {
@@ -63401,6 +75803,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     aiScores?: AiScoreUncheckedUpdateManyWithoutDriverNestedInput
@@ -63418,6 +75821,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type TenantCreateWithoutVehicleInspectionsInput = {
@@ -63434,6 +75838,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
     aiScores?: AiScoreCreateNestedManyWithoutTenantInput
@@ -63448,6 +75853,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutVehicleInspectionsInput = {
@@ -63464,6 +75875,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
     aiScores?: AiScoreUncheckedCreateNestedManyWithoutTenantInput
@@ -63478,6 +75890,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutVehicleInspectionsInput = {
@@ -63496,6 +75914,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     insuranceExpiry: Date | string
     registrationExpiry: Date | string
@@ -63523,6 +75943,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     assignedDriverId?: string | null
     insuranceExpiry: Date | string
@@ -63577,6 +75999,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
     aiScores?: AiScoreCreateNestedManyWithoutDriverInput
@@ -63594,6 +76017,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutVehicleInspectionsInput = {
@@ -63633,6 +76057,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
     aiScores?: AiScoreUncheckedCreateNestedManyWithoutDriverInput
@@ -63650,6 +76075,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutVehicleInspectionsInput = {
@@ -63682,6 +76108,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
     aiScores?: AiScoreUpdateManyWithoutTenantNestedInput
@@ -63696,6 +76123,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutVehicleInspectionsInput = {
@@ -63712,6 +76145,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     aiScores?: AiScoreUncheckedUpdateManyWithoutTenantNestedInput
@@ -63726,6 +76160,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type VehicleUpsertWithoutInspectionsInput = {
@@ -63750,6 +76190,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
     registrationExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -63777,6 +76219,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     assignedDriverId?: NullableStringFieldUpdateOperationsInput | string | null
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -63837,6 +76281,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
     aiScores?: AiScoreUpdateManyWithoutDriverNestedInput
@@ -63854,6 +76299,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutVehicleInspectionsInput = {
@@ -63893,6 +76339,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     aiScores?: AiScoreUncheckedUpdateManyWithoutDriverNestedInput
@@ -63910,6 +76357,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type TenantCreateWithoutMaintenanceRecordsInput = {
@@ -63926,6 +76374,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     aiScores?: AiScoreCreateNestedManyWithoutTenantInput
@@ -63940,6 +76389,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutMaintenanceRecordsInput = {
@@ -63956,6 +76411,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     aiScores?: AiScoreUncheckedCreateNestedManyWithoutTenantInput
@@ -63970,6 +76426,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutMaintenanceRecordsInput = {
@@ -63988,6 +76450,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     insuranceExpiry: Date | string
     registrationExpiry: Date | string
@@ -64015,6 +76479,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     assignedDriverId?: string | null
     insuranceExpiry: Date | string
@@ -64069,6 +76535,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     aiScores?: AiScoreCreateNestedManyWithoutDriverInput
@@ -64086,6 +76553,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutMaintenanceRecordsInput = {
@@ -64125,6 +76593,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     aiScores?: AiScoreUncheckedCreateNestedManyWithoutDriverInput
@@ -64142,6 +76611,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutMaintenanceRecordsInput = {
@@ -64160,6 +76630,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     insuranceExpiry: Date | string
     registrationExpiry: Date | string
@@ -64187,6 +76659,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     assignedDriverId?: string | null
     insuranceExpiry: Date | string
@@ -64229,6 +76703,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     aiScores?: AiScoreUpdateManyWithoutTenantNestedInput
@@ -64243,6 +76718,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutMaintenanceRecordsInput = {
@@ -64259,6 +76740,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     aiScores?: AiScoreUncheckedUpdateManyWithoutTenantNestedInput
@@ -64273,6 +76755,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type VehicleUpsertWithoutMaintenanceRecordsInput = {
@@ -64297,6 +76785,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
     registrationExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -64324,6 +76814,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     assignedDriverId?: NullableStringFieldUpdateOperationsInput | string | null
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -64384,6 +76876,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     aiScores?: AiScoreUpdateManyWithoutDriverNestedInput
@@ -64401,6 +76894,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutMaintenanceRecordsInput = {
@@ -64440,6 +76934,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     aiScores?: AiScoreUncheckedUpdateManyWithoutDriverNestedInput
@@ -64457,6 +76952,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type VehicleUpsertWithoutSpareMaintenanceInput = {
@@ -64481,6 +76977,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
     registrationExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -64508,6 +77006,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     assignedDriverId?: NullableStringFieldUpdateOperationsInput | string | null
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -64557,6 +77057,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -64574,6 +77075,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutDeviceInput = {
@@ -64613,6 +77115,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -64630,6 +77133,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutDeviceInput = {
@@ -64801,6 +77305,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -64818,6 +77323,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutDeviceInput = {
@@ -64857,6 +77363,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -64874,6 +77381,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type CapturedOrderUpsertWithWhereUniqueWithoutDeviceInput = {
@@ -65024,6 +77532,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -65041,6 +77550,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutCapturedOrdersInput = {
@@ -65080,6 +77590,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -65097,6 +77608,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutCapturedOrdersInput = {
@@ -65205,6 +77717,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -65222,6 +77735,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutCapturedOrdersInput = {
@@ -65261,6 +77775,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -65278,6 +77793,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type DeviceCreateWithoutLocationLogsInput = {
@@ -65364,6 +77880,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -65381,6 +77898,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutLocationLogsInput = {
@@ -65420,6 +77938,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -65437,6 +77956,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutLocationLogsInput = {
@@ -65545,6 +78065,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -65562,6 +78083,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutLocationLogsInput = {
@@ -65601,6 +78123,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -65618,6 +78141,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type DeviceCreateWithoutAppUsageLogsInput = {
@@ -65704,6 +78228,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -65721,6 +78246,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutAppUsageLogsInput = {
@@ -65760,6 +78286,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -65777,6 +78304,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutAppUsageLogsInput = {
@@ -65885,6 +78413,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -65902,6 +78431,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutAppUsageLogsInput = {
@@ -65941,6 +78471,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -65958,6 +78489,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type DeviceCreateWithoutCommandsInput = {
@@ -66024,6 +78556,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestCreateNestedManyWithoutReviewedByInput
     assignedTickets?: TicketCreateNestedManyWithoutAssignedToInput
     submittedTickets?: TicketCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutIssuedCommandsInput = {
@@ -66043,6 +78576,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
     assignedTickets?: TicketUncheckedCreateNestedManyWithoutAssignedToInput
     submittedTickets?: TicketUncheckedCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutIssuedCommandsInput = {
@@ -66131,6 +78665,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
     assignedTickets?: TicketUpdateManyWithoutAssignedToNestedInput
     submittedTickets?: TicketUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutIssuedCommandsInput = {
@@ -66150,6 +78685,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
     assignedTickets?: TicketUncheckedUpdateManyWithoutAssignedToNestedInput
     submittedTickets?: TicketUncheckedUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TenantCreateWithoutAiScoresInput = {
@@ -66166,6 +78702,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -66180,6 +78717,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutAiScoresInput = {
@@ -66196,6 +78739,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -66210,6 +78754,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutAiScoresInput = {
@@ -66254,6 +78804,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -66271,6 +78822,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutAiScoresInput = {
@@ -66310,6 +78862,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -66327,6 +78880,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutAiScoresInput = {
@@ -66359,6 +78913,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -66373,6 +78928,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutAiScoresInput = {
@@ -66389,6 +78950,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -66403,6 +78965,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithoutAiScoresInput = {
@@ -66453,6 +79021,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -66470,6 +79039,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutAiScoresInput = {
@@ -66509,6 +79079,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -66526,6 +79097,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type TenantCreateWithoutAlertsInput = {
@@ -66542,6 +79114,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -66556,6 +79129,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutAlertsInput = {
@@ -66572,6 +79151,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -66586,6 +79166,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutAlertsInput = {
@@ -66630,6 +79216,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -66647,6 +79234,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutAlertsInput = {
@@ -66686,6 +79274,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -66703,6 +79292,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutAlertsInput = {
@@ -66721,6 +79311,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     insuranceExpiry: Date | string
     registrationExpiry: Date | string
@@ -66748,6 +79340,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     assignedDriverId?: string | null
     insuranceExpiry: Date | string
@@ -66782,6 +79376,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestCreateNestedManyWithoutReviewedByInput
     assignedTickets?: TicketCreateNestedManyWithoutAssignedToInput
     submittedTickets?: TicketCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAcknowledgedAlertsInput = {
@@ -66801,6 +79396,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
     assignedTickets?: TicketUncheckedCreateNestedManyWithoutAssignedToInput
     submittedTickets?: TicketUncheckedCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAcknowledgedAlertsInput = {
@@ -66833,6 +79429,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -66847,6 +79444,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutAlertsInput = {
@@ -66863,6 +79466,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -66877,6 +79481,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithoutAlertsInput = {
@@ -66927,6 +79537,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -66944,6 +79555,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutAlertsInput = {
@@ -66983,6 +79595,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -67000,6 +79613,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type VehicleUpsertWithoutAlertsInput = {
@@ -67024,6 +79638,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
     registrationExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -67051,6 +79667,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     assignedDriverId?: NullableStringFieldUpdateOperationsInput | string | null
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -67091,6 +79709,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
     assignedTickets?: TicketUpdateManyWithoutAssignedToNestedInput
     submittedTickets?: TicketUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAcknowledgedAlertsInput = {
@@ -67110,6 +79729,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
     assignedTickets?: TicketUncheckedUpdateManyWithoutAssignedToNestedInput
     submittedTickets?: TicketUncheckedUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TenantCreateWithoutAiDigestsInput = {
@@ -67126,6 +79746,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -67140,6 +79761,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutAiDigestsInput = {
@@ -67156,6 +79783,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -67170,6 +79798,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutAiDigestsInput = {
@@ -67202,6 +79836,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -67216,6 +79851,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutAiDigestsInput = {
@@ -67232,6 +79873,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -67246,6 +79888,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutAuditLogsInput = {
@@ -67262,6 +79910,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -67276,6 +79925,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutAuditLogsInput = {
@@ -67292,6 +79947,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -67306,6 +79962,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutAuditLogsInput = {
@@ -67338,6 +80000,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -67352,6 +80015,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutAuditLogsInput = {
@@ -67368,6 +80037,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -67382,6 +80052,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutTicketsInput = {
@@ -67398,6 +80074,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -67412,6 +80089,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutTicketsInput = {
@@ -67428,6 +80111,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -67442,6 +80126,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutTicketsInput = {
@@ -67486,6 +80176,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -67503,6 +80194,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutSubmittedTicketsInput = {
@@ -67542,6 +80234,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -67559,6 +80252,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutSubmittedTicketsInput = {
@@ -67583,6 +80277,7 @@ export namespace Prisma {
     acknowledgedAlerts?: AlertCreateNestedManyWithoutAcknowledgedByInput
     reviewedLeaves?: LeaveRequestCreateNestedManyWithoutReviewedByInput
     assignedTickets?: TicketCreateNestedManyWithoutAssignedToInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSubmittedTicketsInput = {
@@ -67602,6 +80297,7 @@ export namespace Prisma {
     acknowledgedAlerts?: AlertUncheckedCreateNestedManyWithoutAcknowledgedByInput
     reviewedLeaves?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
     assignedTickets?: TicketUncheckedCreateNestedManyWithoutAssignedToInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSubmittedTicketsInput = {
@@ -67626,6 +80322,7 @@ export namespace Prisma {
     acknowledgedAlerts?: AlertCreateNestedManyWithoutAcknowledgedByInput
     reviewedLeaves?: LeaveRequestCreateNestedManyWithoutReviewedByInput
     submittedTickets?: TicketCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutAssignedTicketsInput = {
@@ -67645,6 +80342,7 @@ export namespace Prisma {
     acknowledgedAlerts?: AlertUncheckedCreateNestedManyWithoutAcknowledgedByInput
     reviewedLeaves?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
     submittedTickets?: TicketUncheckedCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutAssignedTicketsInput = {
@@ -67664,6 +80362,7 @@ export namespace Prisma {
     drivers?: DriverCreateNestedManyWithoutCompanyInput
     vehicles?: VehicleCreateNestedManyWithoutCompanyInput
     recruitmentPipeline?: RecruitmentPipelineCreateNestedManyWithoutAssignedCompanyInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyUncheckedCreateWithoutTicketsInput = {
@@ -67678,6 +80377,7 @@ export namespace Prisma {
     drivers?: DriverUncheckedCreateNestedManyWithoutCompanyInput
     vehicles?: VehicleUncheckedCreateNestedManyWithoutCompanyInput
     recruitmentPipeline?: RecruitmentPipelineUncheckedCreateNestedManyWithoutAssignedCompanyInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutCompanyInput
   }
 
   export type CompanyCreateOrConnectWithoutTicketsInput = {
@@ -67722,6 +80422,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -67739,6 +80440,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutTicketsInput = {
@@ -67778,6 +80480,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -67795,6 +80498,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutTicketsInput = {
@@ -67813,6 +80517,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     insuranceExpiry: Date | string
     registrationExpiry: Date | string
@@ -67840,6 +80546,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     assignedDriverId?: string | null
     insuranceExpiry: Date | string
@@ -67882,6 +80590,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -67896,6 +80605,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutTicketsInput = {
@@ -67912,6 +80627,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -67926,6 +80642,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithoutSubmittedTicketsInput = {
@@ -67976,6 +80698,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -67993,6 +80716,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutSubmittedTicketsInput = {
@@ -68032,6 +80756,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -68049,6 +80774,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type UserUpsertWithoutSubmittedTicketsInput = {
@@ -68079,6 +80805,7 @@ export namespace Prisma {
     acknowledgedAlerts?: AlertUpdateManyWithoutAcknowledgedByNestedInput
     reviewedLeaves?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
     assignedTickets?: TicketUpdateManyWithoutAssignedToNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSubmittedTicketsInput = {
@@ -68098,6 +80825,7 @@ export namespace Prisma {
     acknowledgedAlerts?: AlertUncheckedUpdateManyWithoutAcknowledgedByNestedInput
     reviewedLeaves?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
     assignedTickets?: TicketUncheckedUpdateManyWithoutAssignedToNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutAssignedTicketsInput = {
@@ -68128,6 +80856,7 @@ export namespace Prisma {
     acknowledgedAlerts?: AlertUpdateManyWithoutAcknowledgedByNestedInput
     reviewedLeaves?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
     submittedTickets?: TicketUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutAssignedTicketsInput = {
@@ -68147,6 +80876,7 @@ export namespace Prisma {
     acknowledgedAlerts?: AlertUncheckedUpdateManyWithoutAcknowledgedByNestedInput
     reviewedLeaves?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
     submittedTickets?: TicketUncheckedUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CompanyUpsertWithoutTicketsInput = {
@@ -68172,6 +80902,7 @@ export namespace Prisma {
     drivers?: DriverUpdateManyWithoutCompanyNestedInput
     vehicles?: VehicleUpdateManyWithoutCompanyNestedInput
     recruitmentPipeline?: RecruitmentPipelineUpdateManyWithoutAssignedCompanyNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutTicketsInput = {
@@ -68186,6 +80917,7 @@ export namespace Prisma {
     drivers?: DriverUncheckedUpdateManyWithoutCompanyNestedInput
     vehicles?: VehicleUncheckedUpdateManyWithoutCompanyNestedInput
     recruitmentPipeline?: RecruitmentPipelineUncheckedUpdateManyWithoutAssignedCompanyNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type DriverUpsertWithoutTicketsInput = {
@@ -68236,6 +80968,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -68253,6 +80986,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutTicketsInput = {
@@ -68292,6 +81026,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -68309,6 +81044,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type VehicleUpsertWithoutTicketsInput = {
@@ -68333,6 +81069,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
     registrationExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -68360,6 +81098,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     assignedDriverId?: NullableStringFieldUpdateOperationsInput | string | null
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -68386,6 +81126,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -68400,6 +81141,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutLeaveRequestsInput = {
@@ -68416,6 +81163,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -68430,6 +81178,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutLeaveRequestsInput = {
@@ -68474,6 +81228,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -68491,6 +81246,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutLeaveRequestsInput = {
@@ -68530,6 +81286,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -68547,6 +81304,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutLeaveRequestsInput = {
@@ -68571,6 +81329,7 @@ export namespace Prisma {
     acknowledgedAlerts?: AlertCreateNestedManyWithoutAcknowledgedByInput
     assignedTickets?: TicketCreateNestedManyWithoutAssignedToInput
     submittedTickets?: TicketCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutReviewedLeavesInput = {
@@ -68590,6 +81349,7 @@ export namespace Prisma {
     acknowledgedAlerts?: AlertUncheckedCreateNestedManyWithoutAcknowledgedByInput
     assignedTickets?: TicketUncheckedCreateNestedManyWithoutAssignedToInput
     submittedTickets?: TicketUncheckedCreateNestedManyWithoutSubmitterUserInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutReviewedLeavesInput = {
@@ -68622,6 +81382,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -68636,6 +81397,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutLeaveRequestsInput = {
@@ -68652,6 +81419,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -68666,6 +81434,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithoutLeaveRequestsInput = {
@@ -68716,6 +81490,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -68733,6 +81508,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutLeaveRequestsInput = {
@@ -68772,6 +81548,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -68789,6 +81566,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type UserUpsertWithoutReviewedLeavesInput = {
@@ -68819,6 +81597,7 @@ export namespace Prisma {
     acknowledgedAlerts?: AlertUpdateManyWithoutAcknowledgedByNestedInput
     assignedTickets?: TicketUpdateManyWithoutAssignedToNestedInput
     submittedTickets?: TicketUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutReviewedLeavesInput = {
@@ -68838,6 +81617,7 @@ export namespace Prisma {
     acknowledgedAlerts?: AlertUncheckedUpdateManyWithoutAcknowledgedByNestedInput
     assignedTickets?: TicketUncheckedUpdateManyWithoutAssignedToNestedInput
     submittedTickets?: TicketUncheckedUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type TenantCreateWithoutTalabatSessionsInput = {
@@ -68854,6 +81634,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -68868,6 +81649,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutTalabatSessionsInput = {
@@ -68884,6 +81671,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -68898,6 +81686,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutTalabatSessionsInput = {
@@ -68942,6 +81736,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -68959,6 +81754,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutTalabatSessionsInput = {
@@ -68998,6 +81794,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -69015,6 +81812,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutTalabatSessionsInput = {
@@ -69082,7 +81880,6 @@ export namespace Prisma {
   export type TalabatComplianceEventCreateWithoutSessionInput = {
     id?: string
     type: $Enums.ComplianceEventType
-    severity: $Enums.AlertSeverity
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: boolean
@@ -69098,7 +81895,6 @@ export namespace Prisma {
     tenantId: string
     driverId: string
     type: $Enums.ComplianceEventType
-    severity: $Enums.AlertSeverity
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: boolean
@@ -69186,6 +81982,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -69200,6 +81997,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutTalabatSessionsInput = {
@@ -69216,6 +82019,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -69230,6 +82034,12 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithoutTalabatSessionsInput = {
@@ -69280,6 +82090,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -69297,6 +82108,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutTalabatSessionsInput = {
@@ -69336,6 +82148,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -69353,6 +82166,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type ShiftUpsertWithoutTalabatSessionsInput = {
@@ -69464,6 +82278,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -69478,6 +82293,12 @@ export namespace Prisma {
     talabatSessions?: TalabatSessionCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutTalabatComplianceEventsInput = {
@@ -69494,6 +82315,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -69508,6 +82330,12 @@ export namespace Prisma {
     talabatSessions?: TalabatSessionUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutTalabatComplianceEventsInput = {
@@ -69552,6 +82380,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -69569,6 +82398,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutTalabatComplianceEventsInput = {
@@ -69608,6 +82438,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -69625,6 +82456,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutTalabatComplianceEventsInput = {
@@ -69724,6 +82556,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -69738,6 +82571,12 @@ export namespace Prisma {
     talabatSessions?: TalabatSessionUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutTalabatComplianceEventsInput = {
@@ -69754,6 +82593,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -69768,6 +82608,12 @@ export namespace Prisma {
     talabatSessions?: TalabatSessionUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithoutTalabatComplianceEventsInput = {
@@ -69818,6 +82664,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -69835,6 +82682,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutTalabatComplianceEventsInput = {
@@ -69874,6 +82722,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -69891,6 +82740,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type TalabatSessionUpsertWithoutComplianceEventsInput = {
@@ -70003,6 +82853,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -70020,6 +82871,7 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutDriverInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutTalabatDeliveriesInput = {
@@ -70059,6 +82911,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -70076,6 +82929,7 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutDriverInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutTalabatDeliveriesInput = {
@@ -70198,6 +83052,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -70215,6 +83070,7 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutDriverNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutTalabatDeliveriesInput = {
@@ -70254,6 +83110,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -70271,6 +83128,7 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutDriverNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type TalabatSessionUpsertWithoutDeliveryItemsInput = {
@@ -70360,6 +83218,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -70374,6 +83233,12 @@ export namespace Prisma {
     talabatSessions?: TalabatSessionCreateNestedManyWithoutTenantInput
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutKeetaDailyMetricsInput = {
@@ -70390,6 +83255,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -70404,6 +83270,12 @@ export namespace Prisma {
     talabatSessions?: TalabatSessionUncheckedCreateNestedManyWithoutTenantInput
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutKeetaDailyMetricsInput = {
@@ -70448,6 +83320,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -70465,6 +83338,7 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutKeetaDailyMetricsInput = {
@@ -70504,6 +83378,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -70521,6 +83396,7 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutDriverInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutKeetaDailyMetricsInput = {
@@ -70553,6 +83429,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -70567,6 +83444,12 @@ export namespace Prisma {
     talabatSessions?: TalabatSessionUpdateManyWithoutTenantNestedInput
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutKeetaDailyMetricsInput = {
@@ -70583,6 +83466,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -70597,6 +83481,12 @@ export namespace Prisma {
     talabatSessions?: TalabatSessionUncheckedUpdateManyWithoutTenantNestedInput
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithoutKeetaDailyMetricsInput = {
@@ -70647,6 +83537,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -70664,6 +83555,7 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutKeetaDailyMetricsInput = {
@@ -70703,6 +83595,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -70720,6 +83613,411 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
+  }
+
+  export type TenantCreateWithoutPlatformSettingsInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    shifts?: ShiftCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
+    tickets?: TicketCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutPlatformSettingsInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestUncheckedCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    tickets?: TicketUncheckedCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleUncheckedCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionUncheckedCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutPlatformSettingsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutPlatformSettingsInput, TenantUncheckedCreateWithoutPlatformSettingsInput>
+  }
+
+  export type TenantUpsertWithoutPlatformSettingsInput = {
+    update: XOR<TenantUpdateWithoutPlatformSettingsInput, TenantUncheckedUpdateWithoutPlatformSettingsInput>
+    create: XOR<TenantCreateWithoutPlatformSettingsInput, TenantUncheckedCreateWithoutPlatformSettingsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutPlatformSettingsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutPlatformSettingsInput, TenantUncheckedUpdateWithoutPlatformSettingsInput>
+  }
+
+  export type TenantUpdateWithoutPlatformSettingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutPlatformSettingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUncheckedUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUncheckedUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUncheckedUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUncheckedUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantCreateWithoutCompanyInventoryInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    shifts?: ShiftCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
+    tickets?: TicketCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutCompanyInventoryInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestUncheckedCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    tickets?: TicketUncheckedCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleUncheckedCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionUncheckedCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutCompanyInventoryInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutCompanyInventoryInput, TenantUncheckedCreateWithoutCompanyInventoryInput>
+  }
+
+  export type CompanyCreateWithoutCompanyInventoryInput = {
+    id?: string
+    name: string
+    platform: $Enums.Platform
+    licenseCount?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutCompaniesInput
+    drivers?: DriverCreateNestedManyWithoutCompanyInput
+    vehicles?: VehicleCreateNestedManyWithoutCompanyInput
+    recruitmentPipeline?: RecruitmentPipelineCreateNestedManyWithoutAssignedCompanyInput
+    tickets?: TicketCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyUncheckedCreateWithoutCompanyInventoryInput = {
+    id?: string
+    tenantId: string
+    name: string
+    platform: $Enums.Platform
+    licenseCount?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    drivers?: DriverUncheckedCreateNestedManyWithoutCompanyInput
+    vehicles?: VehicleUncheckedCreateNestedManyWithoutCompanyInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedCreateNestedManyWithoutAssignedCompanyInput
+    tickets?: TicketUncheckedCreateNestedManyWithoutCompanyInput
+  }
+
+  export type CompanyCreateOrConnectWithoutCompanyInventoryInput = {
+    where: CompanyWhereUniqueInput
+    create: XOR<CompanyCreateWithoutCompanyInventoryInput, CompanyUncheckedCreateWithoutCompanyInventoryInput>
+  }
+
+  export type TenantUpsertWithoutCompanyInventoryInput = {
+    update: XOR<TenantUpdateWithoutCompanyInventoryInput, TenantUncheckedUpdateWithoutCompanyInventoryInput>
+    create: XOR<TenantCreateWithoutCompanyInventoryInput, TenantUncheckedCreateWithoutCompanyInventoryInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutCompanyInventoryInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutCompanyInventoryInput, TenantUncheckedUpdateWithoutCompanyInventoryInput>
+  }
+
+  export type TenantUpdateWithoutCompanyInventoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutCompanyInventoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUncheckedUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUncheckedUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUncheckedUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUncheckedUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type CompanyUpsertWithoutCompanyInventoryInput = {
+    update: XOR<CompanyUpdateWithoutCompanyInventoryInput, CompanyUncheckedUpdateWithoutCompanyInventoryInput>
+    create: XOR<CompanyCreateWithoutCompanyInventoryInput, CompanyUncheckedCreateWithoutCompanyInventoryInput>
+    where?: CompanyWhereInput
+  }
+
+  export type CompanyUpdateToOneWithWhereWithoutCompanyInventoryInput = {
+    where?: CompanyWhereInput
+    data: XOR<CompanyUpdateWithoutCompanyInventoryInput, CompanyUncheckedUpdateWithoutCompanyInventoryInput>
+  }
+
+  export type CompanyUpdateWithoutCompanyInventoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    platform?: EnumPlatformFieldUpdateOperationsInput | $Enums.Platform
+    licenseCount?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutCompaniesNestedInput
+    drivers?: DriverUpdateManyWithoutCompanyNestedInput
+    vehicles?: VehicleUpdateManyWithoutCompanyNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUpdateManyWithoutAssignedCompanyNestedInput
+    tickets?: TicketUpdateManyWithoutCompanyNestedInput
+  }
+
+  export type CompanyUncheckedUpdateWithoutCompanyInventoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    platform?: EnumPlatformFieldUpdateOperationsInput | $Enums.Platform
+    licenseCount?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    drivers?: DriverUncheckedUpdateManyWithoutCompanyNestedInput
+    vehicles?: VehicleUncheckedUpdateManyWithoutCompanyNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedUpdateManyWithoutAssignedCompanyNestedInput
+    tickets?: TicketUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type TenantCreateWithoutAmericanaDailyOrdersInput = {
@@ -70736,6 +84034,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
@@ -70750,6 +84049,12 @@ export namespace Prisma {
     talabatSessions?: TalabatSessionCreateNestedManyWithoutTenantInput
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutAmericanaDailyOrdersInput = {
@@ -70766,6 +84071,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
@@ -70780,6 +84086,12 @@ export namespace Prisma {
     talabatSessions?: TalabatSessionUncheckedCreateNestedManyWithoutTenantInput
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutAmericanaDailyOrdersInput = {
@@ -70824,6 +84136,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
@@ -70841,6 +84154,7 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutDriverInput
     keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutDriverInput
   }
 
   export type DriverUncheckedCreateWithoutAmericanaDailyOrdersInput = {
@@ -70880,6 +84194,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
     orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
     cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
     vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
     maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
@@ -70897,6 +84212,7 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutDriverInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
     talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutDriverInput
   }
 
   export type DriverCreateOrConnectWithoutAmericanaDailyOrdersInput = {
@@ -70929,6 +84245,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
@@ -70943,6 +84260,12 @@ export namespace Prisma {
     talabatSessions?: TalabatSessionUpdateManyWithoutTenantNestedInput
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutAmericanaDailyOrdersInput = {
@@ -70959,6 +84282,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
@@ -70973,6 +84297,12 @@ export namespace Prisma {
     talabatSessions?: TalabatSessionUncheckedUpdateManyWithoutTenantNestedInput
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type DriverUpsertWithoutAmericanaDailyOrdersInput = {
@@ -71023,6 +84353,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -71040,6 +84371,7 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutDriverNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutAmericanaDailyOrdersInput = {
@@ -71079,6 +84411,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -71096,6 +84429,1135 @@ export namespace Prisma {
     talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutDriverNestedInput
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
+  }
+
+  export type TenantCreateWithoutKpiDefinitionsInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    shifts?: ShiftCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
+    tickets?: TicketCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutKpiDefinitionsInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestUncheckedCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    tickets?: TicketUncheckedCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleUncheckedCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionUncheckedCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutKpiDefinitionsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutKpiDefinitionsInput, TenantUncheckedCreateWithoutKpiDefinitionsInput>
+  }
+
+  export type KpiRecordCreateWithoutKpiDefinitionInput = {
+    id?: string
+    date: Date | string
+    value: Decimal | DecimalJsLike | number | string
+    target?: Decimal | DecimalJsLike | number | string | null
+    score?: Decimal | DecimalJsLike | number | string | null
+    source?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutKpiRecordsInput
+    driver: DriverCreateNestedOneWithoutKpiRecordsInput
+  }
+
+  export type KpiRecordUncheckedCreateWithoutKpiDefinitionInput = {
+    id?: string
+    tenantId: string
+    driverId: string
+    date: Date | string
+    value: Decimal | DecimalJsLike | number | string
+    target?: Decimal | DecimalJsLike | number | string | null
+    score?: Decimal | DecimalJsLike | number | string | null
+    source?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KpiRecordCreateOrConnectWithoutKpiDefinitionInput = {
+    where: KpiRecordWhereUniqueInput
+    create: XOR<KpiRecordCreateWithoutKpiDefinitionInput, KpiRecordUncheckedCreateWithoutKpiDefinitionInput>
+  }
+
+  export type KpiRecordCreateManyKpiDefinitionInputEnvelope = {
+    data: KpiRecordCreateManyKpiDefinitionInput | KpiRecordCreateManyKpiDefinitionInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TenantUpsertWithoutKpiDefinitionsInput = {
+    update: XOR<TenantUpdateWithoutKpiDefinitionsInput, TenantUncheckedUpdateWithoutKpiDefinitionsInput>
+    create: XOR<TenantCreateWithoutKpiDefinitionsInput, TenantUncheckedCreateWithoutKpiDefinitionsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutKpiDefinitionsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutKpiDefinitionsInput, TenantUncheckedUpdateWithoutKpiDefinitionsInput>
+  }
+
+  export type TenantUpdateWithoutKpiDefinitionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutKpiDefinitionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUncheckedUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUncheckedUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUncheckedUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUncheckedUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type KpiRecordUpsertWithWhereUniqueWithoutKpiDefinitionInput = {
+    where: KpiRecordWhereUniqueInput
+    update: XOR<KpiRecordUpdateWithoutKpiDefinitionInput, KpiRecordUncheckedUpdateWithoutKpiDefinitionInput>
+    create: XOR<KpiRecordCreateWithoutKpiDefinitionInput, KpiRecordUncheckedCreateWithoutKpiDefinitionInput>
+  }
+
+  export type KpiRecordUpdateWithWhereUniqueWithoutKpiDefinitionInput = {
+    where: KpiRecordWhereUniqueInput
+    data: XOR<KpiRecordUpdateWithoutKpiDefinitionInput, KpiRecordUncheckedUpdateWithoutKpiDefinitionInput>
+  }
+
+  export type KpiRecordUpdateManyWithWhereWithoutKpiDefinitionInput = {
+    where: KpiRecordScalarWhereInput
+    data: XOR<KpiRecordUpdateManyMutationInput, KpiRecordUncheckedUpdateManyWithoutKpiDefinitionInput>
+  }
+
+  export type TenantCreateWithoutKpiRecordsInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    shifts?: ShiftCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
+    tickets?: TicketCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutKpiRecordsInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestUncheckedCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    tickets?: TicketUncheckedCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleUncheckedCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionUncheckedCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutKpiRecordsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutKpiRecordsInput, TenantUncheckedCreateWithoutKpiRecordsInput>
+  }
+
+  export type DriverCreateWithoutKpiRecordsInput = {
+    id?: string
+    name: string
+    phone: string
+    platform: $Enums.Platform
+    platformDriverId?: string | null
+    utr?: string | null
+    vehicleType: $Enums.VehicleType
+    zone?: string | null
+    batchNumber?: string | null
+    status?: $Enums.DriverStatus
+    hireDate: Date | string
+    photoUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    healthCertExpiry?: Date | string | null
+    healthCertStatus?: string | null
+    workPermitExpiry?: Date | string | null
+    workPermitStatus?: string | null
+    foodHandlingCertExpiry?: Date | string | null
+    foodHandlingCertStatus?: string | null
+    vehicleRegExpiry?: Date | string | null
+    vehicleRegStatus?: string | null
+    vehicleInsuranceExpiry?: Date | string | null
+    vehicleInsuranceStatus?: string | null
+    drivingLicenseExpiry?: Date | string | null
+    drivingLicenseStatus?: string | null
+    civilIdExpiry?: Date | string | null
+    civilIdStatus?: string | null
+    tenant: TenantCreateNestedOneWithoutDriversInput
+    company: CompanyCreateNestedOneWithoutDriversInput
+    supervisor?: UserCreateNestedOneWithoutSupervisedDriversInput
+    inventory?: DriverInventoryCreateNestedManyWithoutDriverInput
+    shifts?: ShiftCreateNestedManyWithoutDriverInput
+    attendanceRecords?: AttendanceRecordCreateNestedManyWithoutDriverInput
+    orderLogs?: OrderLogCreateNestedManyWithoutDriverInput
+    cashRecords?: CashRecordCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutDriverInput
+    pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutDriverInput
+    vehicleInspections?: VehicleInspectionCreateNestedManyWithoutDriverInput
+    maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutDriverInput
+    aiScores?: AiScoreCreateNestedManyWithoutDriverInput
+    alerts?: AlertCreateNestedManyWithoutDriverInput
+    capturedOrders?: CapturedOrderCreateNestedManyWithoutDriverInput
+    locationLogs?: LocationLogCreateNestedManyWithoutDriverInput
+    appUsageLogs?: AppUsageLogCreateNestedManyWithoutDriverInput
+    device?: DeviceCreateNestedOneWithoutDriverInput
+    assignedVehicle?: VehicleCreateNestedOneWithoutAssignedDriverInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutDriverInput
+    tickets?: TicketCreateNestedManyWithoutDriverInput
+    submittedTickets?: TicketCreateNestedManyWithoutSubmitterDriverInput
+    talabatSessions?: TalabatSessionCreateNestedManyWithoutDriverInput
+    talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutDriverInput
+    keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutDriverInput
+    americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutDriverInput
+    talabatDeliveries?: TalabatDeliveryCreateNestedManyWithoutDriverInput
+  }
+
+  export type DriverUncheckedCreateWithoutKpiRecordsInput = {
+    id?: string
+    tenantId: string
+    companyId: string
+    name: string
+    phone: string
+    platform: $Enums.Platform
+    platformDriverId?: string | null
+    utr?: string | null
+    vehicleType: $Enums.VehicleType
+    zone?: string | null
+    batchNumber?: string | null
+    status?: $Enums.DriverStatus
+    hireDate: Date | string
+    photoUrl?: string | null
+    supervisorId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    healthCertExpiry?: Date | string | null
+    healthCertStatus?: string | null
+    workPermitExpiry?: Date | string | null
+    workPermitStatus?: string | null
+    foodHandlingCertExpiry?: Date | string | null
+    foodHandlingCertStatus?: string | null
+    vehicleRegExpiry?: Date | string | null
+    vehicleRegStatus?: string | null
+    vehicleInsuranceExpiry?: Date | string | null
+    vehicleInsuranceStatus?: string | null
+    drivingLicenseExpiry?: Date | string | null
+    drivingLicenseStatus?: string | null
+    civilIdExpiry?: Date | string | null
+    civilIdStatus?: string | null
+    inventory?: DriverInventoryUncheckedCreateNestedManyWithoutDriverInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutDriverInput
+    attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutDriverInput
+    orderLogs?: OrderLogUncheckedCreateNestedManyWithoutDriverInput
+    cashRecords?: CashRecordUncheckedCreateNestedManyWithoutDriverInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutDriverInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutDriverInput
+    vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutDriverInput
+    maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutDriverInput
+    aiScores?: AiScoreUncheckedCreateNestedManyWithoutDriverInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutDriverInput
+    capturedOrders?: CapturedOrderUncheckedCreateNestedManyWithoutDriverInput
+    locationLogs?: LocationLogUncheckedCreateNestedManyWithoutDriverInput
+    appUsageLogs?: AppUsageLogUncheckedCreateNestedManyWithoutDriverInput
+    device?: DeviceUncheckedCreateNestedOneWithoutDriverInput
+    assignedVehicle?: VehicleUncheckedCreateNestedOneWithoutAssignedDriverInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutDriverInput
+    tickets?: TicketUncheckedCreateNestedManyWithoutDriverInput
+    submittedTickets?: TicketUncheckedCreateNestedManyWithoutSubmitterDriverInput
+    talabatSessions?: TalabatSessionUncheckedCreateNestedManyWithoutDriverInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutDriverInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutDriverInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutDriverInput
+    talabatDeliveries?: TalabatDeliveryUncheckedCreateNestedManyWithoutDriverInput
+  }
+
+  export type DriverCreateOrConnectWithoutKpiRecordsInput = {
+    where: DriverWhereUniqueInput
+    create: XOR<DriverCreateWithoutKpiRecordsInput, DriverUncheckedCreateWithoutKpiRecordsInput>
+  }
+
+  export type KpiDefinitionCreateWithoutRecordsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    category: $Enums.KpiCategory
+    unit: $Enums.KpiUnit
+    platform?: $Enums.Platform | null
+    target?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutKpiDefinitionsInput
+  }
+
+  export type KpiDefinitionUncheckedCreateWithoutRecordsInput = {
+    id?: string
+    tenantId: string
+    name: string
+    description?: string | null
+    category: $Enums.KpiCategory
+    unit: $Enums.KpiUnit
+    platform?: $Enums.Platform | null
+    target?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KpiDefinitionCreateOrConnectWithoutRecordsInput = {
+    where: KpiDefinitionWhereUniqueInput
+    create: XOR<KpiDefinitionCreateWithoutRecordsInput, KpiDefinitionUncheckedCreateWithoutRecordsInput>
+  }
+
+  export type TenantUpsertWithoutKpiRecordsInput = {
+    update: XOR<TenantUpdateWithoutKpiRecordsInput, TenantUncheckedUpdateWithoutKpiRecordsInput>
+    create: XOR<TenantCreateWithoutKpiRecordsInput, TenantUncheckedCreateWithoutKpiRecordsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutKpiRecordsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutKpiRecordsInput, TenantUncheckedUpdateWithoutKpiRecordsInput>
+  }
+
+  export type TenantUpdateWithoutKpiRecordsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutKpiRecordsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUncheckedUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUncheckedUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUncheckedUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUncheckedUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type DriverUpsertWithoutKpiRecordsInput = {
+    update: XOR<DriverUpdateWithoutKpiRecordsInput, DriverUncheckedUpdateWithoutKpiRecordsInput>
+    create: XOR<DriverCreateWithoutKpiRecordsInput, DriverUncheckedCreateWithoutKpiRecordsInput>
+    where?: DriverWhereInput
+  }
+
+  export type DriverUpdateToOneWithWhereWithoutKpiRecordsInput = {
+    where?: DriverWhereInput
+    data: XOR<DriverUpdateWithoutKpiRecordsInput, DriverUncheckedUpdateWithoutKpiRecordsInput>
+  }
+
+  export type DriverUpdateWithoutKpiRecordsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    platform?: EnumPlatformFieldUpdateOperationsInput | $Enums.Platform
+    platformDriverId?: NullableStringFieldUpdateOperationsInput | string | null
+    utr?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: EnumVehicleTypeFieldUpdateOperationsInput | $Enums.VehicleType
+    zone?: NullableStringFieldUpdateOperationsInput | string | null
+    batchNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDriverStatusFieldUpdateOperationsInput | $Enums.DriverStatus
+    hireDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    healthCertExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    healthCertStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPermitExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workPermitStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    foodHandlingCertExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    foodHandlingCertStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleRegExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    vehicleRegStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleInsuranceExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    vehicleInsuranceStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    drivingLicenseExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    drivingLicenseStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    civilIdExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    civilIdStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    tenant?: TenantUpdateOneRequiredWithoutDriversNestedInput
+    company?: CompanyUpdateOneRequiredWithoutDriversNestedInput
+    supervisor?: UserUpdateOneWithoutSupervisedDriversNestedInput
+    inventory?: DriverInventoryUpdateManyWithoutDriverNestedInput
+    shifts?: ShiftUpdateManyWithoutDriverNestedInput
+    attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
+    orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
+    cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
+    vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
+    maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
+    aiScores?: AiScoreUpdateManyWithoutDriverNestedInput
+    alerts?: AlertUpdateManyWithoutDriverNestedInput
+    capturedOrders?: CapturedOrderUpdateManyWithoutDriverNestedInput
+    locationLogs?: LocationLogUpdateManyWithoutDriverNestedInput
+    appUsageLogs?: AppUsageLogUpdateManyWithoutDriverNestedInput
+    device?: DeviceUpdateOneWithoutDriverNestedInput
+    assignedVehicle?: VehicleUpdateOneWithoutAssignedDriverNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutDriverNestedInput
+    tickets?: TicketUpdateManyWithoutDriverNestedInput
+    submittedTickets?: TicketUpdateManyWithoutSubmitterDriverNestedInput
+    talabatSessions?: TalabatSessionUpdateManyWithoutDriverNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutDriverNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
+    talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+  }
+
+  export type DriverUncheckedUpdateWithoutKpiRecordsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    companyId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    phone?: StringFieldUpdateOperationsInput | string
+    platform?: EnumPlatformFieldUpdateOperationsInput | $Enums.Platform
+    platformDriverId?: NullableStringFieldUpdateOperationsInput | string | null
+    utr?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleType?: EnumVehicleTypeFieldUpdateOperationsInput | $Enums.VehicleType
+    zone?: NullableStringFieldUpdateOperationsInput | string | null
+    batchNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumDriverStatusFieldUpdateOperationsInput | $Enums.DriverStatus
+    hireDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    photoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    supervisorId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    healthCertExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    healthCertStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    workPermitExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workPermitStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    foodHandlingCertExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    foodHandlingCertStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleRegExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    vehicleRegStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    vehicleInsuranceExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    vehicleInsuranceStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    drivingLicenseExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    drivingLicenseStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    civilIdExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    civilIdStatus?: NullableStringFieldUpdateOperationsInput | string | null
+    inventory?: DriverInventoryUncheckedUpdateManyWithoutDriverNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutDriverNestedInput
+    attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
+    orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
+    cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
+    vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
+    maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
+    aiScores?: AiScoreUncheckedUpdateManyWithoutDriverNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutDriverNestedInput
+    capturedOrders?: CapturedOrderUncheckedUpdateManyWithoutDriverNestedInput
+    locationLogs?: LocationLogUncheckedUpdateManyWithoutDriverNestedInput
+    appUsageLogs?: AppUsageLogUncheckedUpdateManyWithoutDriverNestedInput
+    device?: DeviceUncheckedUpdateOneWithoutDriverNestedInput
+    assignedVehicle?: VehicleUncheckedUpdateOneWithoutAssignedDriverNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutDriverNestedInput
+    tickets?: TicketUncheckedUpdateManyWithoutDriverNestedInput
+    submittedTickets?: TicketUncheckedUpdateManyWithoutSubmitterDriverNestedInput
+    talabatSessions?: TalabatSessionUncheckedUpdateManyWithoutDriverNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutDriverNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
+    talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+  }
+
+  export type KpiDefinitionUpsertWithoutRecordsInput = {
+    update: XOR<KpiDefinitionUpdateWithoutRecordsInput, KpiDefinitionUncheckedUpdateWithoutRecordsInput>
+    create: XOR<KpiDefinitionCreateWithoutRecordsInput, KpiDefinitionUncheckedCreateWithoutRecordsInput>
+    where?: KpiDefinitionWhereInput
+  }
+
+  export type KpiDefinitionUpdateToOneWithWhereWithoutRecordsInput = {
+    where?: KpiDefinitionWhereInput
+    data: XOR<KpiDefinitionUpdateWithoutRecordsInput, KpiDefinitionUncheckedUpdateWithoutRecordsInput>
+  }
+
+  export type KpiDefinitionUpdateWithoutRecordsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: EnumKpiCategoryFieldUpdateOperationsInput | $Enums.KpiCategory
+    unit?: EnumKpiUnitFieldUpdateOperationsInput | $Enums.KpiUnit
+    platform?: NullableEnumPlatformFieldUpdateOperationsInput | $Enums.Platform | null
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutKpiDefinitionsNestedInput
+  }
+
+  export type KpiDefinitionUncheckedUpdateWithoutRecordsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: EnumKpiCategoryFieldUpdateOperationsInput | $Enums.KpiCategory
+    unit?: EnumKpiUnitFieldUpdateOperationsInput | $Enums.KpiUnit
+    platform?: NullableEnumPlatformFieldUpdateOperationsInput | $Enums.Platform | null
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TenantCreateWithoutNotificationsInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    shifts?: ShiftCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
+    tickets?: TicketCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutNotificationsInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestUncheckedCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    tickets?: TicketUncheckedCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleUncheckedCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionUncheckedCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notificationRules?: NotificationRuleUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutNotificationsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutNotificationsInput, TenantUncheckedCreateWithoutNotificationsInput>
+  }
+
+  export type UserCreateWithoutNotificationsInput = {
+    id?: string
+    email: string
+    phone?: string | null
+    passwordHash: string
+    name: string
+    role?: $Enums.UserRole
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutUsersInput
+    supervisedDrivers?: DriverCreateNestedManyWithoutSupervisorInput
+    issuedCommands?: DeviceCommandCreateNestedManyWithoutIssuedByInput
+    acknowledgedAlerts?: AlertCreateNestedManyWithoutAcknowledgedByInput
+    reviewedLeaves?: LeaveRequestCreateNestedManyWithoutReviewedByInput
+    assignedTickets?: TicketCreateNestedManyWithoutAssignedToInput
+    submittedTickets?: TicketCreateNestedManyWithoutSubmitterUserInput
+  }
+
+  export type UserUncheckedCreateWithoutNotificationsInput = {
+    id?: string
+    tenantId: string
+    email: string
+    phone?: string | null
+    passwordHash: string
+    name: string
+    role?: $Enums.UserRole
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    supervisedDrivers?: DriverUncheckedCreateNestedManyWithoutSupervisorInput
+    issuedCommands?: DeviceCommandUncheckedCreateNestedManyWithoutIssuedByInput
+    acknowledgedAlerts?: AlertUncheckedCreateNestedManyWithoutAcknowledgedByInput
+    reviewedLeaves?: LeaveRequestUncheckedCreateNestedManyWithoutReviewedByInput
+    assignedTickets?: TicketUncheckedCreateNestedManyWithoutAssignedToInput
+    submittedTickets?: TicketUncheckedCreateNestedManyWithoutSubmitterUserInput
+  }
+
+  export type UserCreateOrConnectWithoutNotificationsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutNotificationsInput, UserUncheckedCreateWithoutNotificationsInput>
+  }
+
+  export type TenantUpsertWithoutNotificationsInput = {
+    update: XOR<TenantUpdateWithoutNotificationsInput, TenantUncheckedUpdateWithoutNotificationsInput>
+    create: XOR<TenantCreateWithoutNotificationsInput, TenantUncheckedCreateWithoutNotificationsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutNotificationsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutNotificationsInput, TenantUncheckedUpdateWithoutNotificationsInput>
+  }
+
+  export type TenantUpdateWithoutNotificationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutNotificationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUncheckedUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUncheckedUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUncheckedUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUncheckedUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notificationRules?: NotificationRuleUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type UserUpsertWithoutNotificationsInput = {
+    update: XOR<UserUpdateWithoutNotificationsInput, UserUncheckedUpdateWithoutNotificationsInput>
+    create: XOR<UserCreateWithoutNotificationsInput, UserUncheckedCreateWithoutNotificationsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutNotificationsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutNotificationsInput, UserUncheckedUpdateWithoutNotificationsInput>
+  }
+
+  export type UserUpdateWithoutNotificationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutUsersNestedInput
+    supervisedDrivers?: DriverUpdateManyWithoutSupervisorNestedInput
+    issuedCommands?: DeviceCommandUpdateManyWithoutIssuedByNestedInput
+    acknowledgedAlerts?: AlertUpdateManyWithoutAcknowledgedByNestedInput
+    reviewedLeaves?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
+    assignedTickets?: TicketUpdateManyWithoutAssignedToNestedInput
+    submittedTickets?: TicketUpdateManyWithoutSubmitterUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutNotificationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    supervisedDrivers?: DriverUncheckedUpdateManyWithoutSupervisorNestedInput
+    issuedCommands?: DeviceCommandUncheckedUpdateManyWithoutIssuedByNestedInput
+    acknowledgedAlerts?: AlertUncheckedUpdateManyWithoutAcknowledgedByNestedInput
+    reviewedLeaves?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
+    assignedTickets?: TicketUncheckedUpdateManyWithoutAssignedToNestedInput
+    submittedTickets?: TicketUncheckedUpdateManyWithoutSubmitterUserNestedInput
+  }
+
+  export type TenantCreateWithoutNotificationRulesInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyCreateNestedManyWithoutTenantInput
+    users?: UserCreateNestedManyWithoutTenantInput
+    drivers?: DriverCreateNestedManyWithoutTenantInput
+    shifts?: ShiftCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
+    tickets?: TicketCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryCreateNestedManyWithoutTenantInput
+    notifications?: NotificationCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutNotificationRulesInput = {
+    id?: string
+    name: string
+    subscriptionPlan?: $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    companies?: CompanyUncheckedCreateNestedManyWithoutTenantInput
+    users?: UserUncheckedCreateNestedManyWithoutTenantInput
+    drivers?: DriverUncheckedCreateNestedManyWithoutTenantInput
+    shifts?: ShiftUncheckedCreateNestedManyWithoutTenantInput
+    attendanceRecords?: AttendanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    orderLogs?: OrderLogUncheckedCreateNestedManyWithoutTenantInput
+    cashRecords?: CashRecordUncheckedCreateNestedManyWithoutTenantInput
+    cashTransactions?: CashTransactionUncheckedCreateNestedManyWithoutTenantInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedCreateNestedManyWithoutTenantInput
+    vehicleInspections?: VehicleInspectionUncheckedCreateNestedManyWithoutTenantInput
+    maintenanceRecords?: MaintenanceRecordUncheckedCreateNestedManyWithoutTenantInput
+    aiScores?: AiScoreUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    aiDigests?: AiDigestUncheckedCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    tickets?: TicketUncheckedCreateNestedManyWithoutTenantInput
+    leaveRequests?: LeaveRequestUncheckedCreateNestedManyWithoutTenantInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedCreateNestedManyWithoutTenantInput
+    vehicles?: VehicleUncheckedCreateNestedManyWithoutTenantInput
+    talabatSessions?: TalabatSessionUncheckedCreateNestedManyWithoutTenantInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedCreateNestedManyWithoutTenantInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedCreateNestedManyWithoutTenantInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedCreateNestedManyWithoutTenantInput
+    kpiDefinitions?: KpiDefinitionUncheckedCreateNestedManyWithoutTenantInput
+    kpiRecords?: KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    platformSettings?: PlatformSettingsUncheckedCreateNestedManyWithoutTenantInput
+    companyInventory?: CompanyInventoryUncheckedCreateNestedManyWithoutTenantInput
+    notifications?: NotificationUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutNotificationRulesInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutNotificationRulesInput, TenantUncheckedCreateWithoutNotificationRulesInput>
+  }
+
+  export type TenantUpsertWithoutNotificationRulesInput = {
+    update: XOR<TenantUpdateWithoutNotificationRulesInput, TenantUncheckedUpdateWithoutNotificationRulesInput>
+    create: XOR<TenantCreateWithoutNotificationRulesInput, TenantUncheckedCreateWithoutNotificationRulesInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutNotificationRulesInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutNotificationRulesInput, TenantUncheckedUpdateWithoutNotificationRulesInput>
+  }
+
+  export type TenantUpdateWithoutNotificationRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUpdateManyWithoutTenantNestedInput
+    users?: UserUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutNotificationRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    subscriptionPlan?: EnumSubscriptionPlanFieldUpdateOperationsInput | $Enums.SubscriptionPlan
+    settings?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    companies?: CompanyUncheckedUpdateManyWithoutTenantNestedInput
+    users?: UserUncheckedUpdateManyWithoutTenantNestedInput
+    drivers?: DriverUncheckedUpdateManyWithoutTenantNestedInput
+    shifts?: ShiftUncheckedUpdateManyWithoutTenantNestedInput
+    attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    orderLogs?: OrderLogUncheckedUpdateManyWithoutTenantNestedInput
+    cashRecords?: CashRecordUncheckedUpdateManyWithoutTenantNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutTenantNestedInput
+    pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutTenantNestedInput
+    vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutTenantNestedInput
+    maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutTenantNestedInput
+    aiScores?: AiScoreUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    aiDigests?: AiDigestUncheckedUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    tickets?: TicketUncheckedUpdateManyWithoutTenantNestedInput
+    leaveRequests?: LeaveRequestUncheckedUpdateManyWithoutTenantNestedInput
+    recruitmentPipeline?: RecruitmentPipelineUncheckedUpdateManyWithoutTenantNestedInput
+    vehicles?: VehicleUncheckedUpdateManyWithoutTenantNestedInput
+    talabatSessions?: TalabatSessionUncheckedUpdateManyWithoutTenantNestedInput
+    talabatComplianceEvents?: TalabatComplianceEventUncheckedUpdateManyWithoutTenantNestedInput
+    keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutTenantNestedInput
+    americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutTenantNestedInput
+    kpiDefinitions?: KpiDefinitionUncheckedUpdateManyWithoutTenantNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    platformSettings?: PlatformSettingsUncheckedUpdateManyWithoutTenantNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutTenantNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type CompanyCreateManyTenantInput = {
@@ -71221,6 +85683,19 @@ export namespace Prisma {
     pendingDues: Decimal | DecimalJsLike | number | string
     status?: $Enums.CashStatus
     notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CashTransactionCreateManyTenantInput = {
+    id?: string
+    driverId: string
+    date: Date | string
+    type: $Enums.CashTransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    orderNumber?: string | null
+    description?: string | null
+    runningBalance: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -71388,6 +85863,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     assignedDriverId?: string | null
     insuranceExpiry: Date | string
@@ -71430,7 +85907,6 @@ export namespace Prisma {
     driverId: string
     sessionId?: string | null
     type: $Enums.ComplianceEventType
-    severity: $Enums.AlertSeverity
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: boolean
@@ -71489,6 +85965,79 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type KpiDefinitionCreateManyTenantInput = {
+    id?: string
+    name: string
+    description?: string | null
+    category: $Enums.KpiCategory
+    unit: $Enums.KpiUnit
+    platform?: $Enums.Platform | null
+    target?: Decimal | DecimalJsLike | number | string | null
+    isActive?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KpiRecordCreateManyTenantInput = {
+    id?: string
+    driverId: string
+    kpiDefinitionId: string
+    date: Date | string
+    value: Decimal | DecimalJsLike | number | string
+    target?: Decimal | DecimalJsLike | number | string | null
+    score?: Decimal | DecimalJsLike | number | string | null
+    source?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PlatformSettingsCreateManyTenantInput = {
+    id?: string
+    platform: $Enums.Platform
+    targets: JsonNullValueInput | InputJsonValue
+    kpis?: NullableJsonNullValueInput | InputJsonValue
+    shiftRules?: NullableJsonNullValueInput | InputJsonValue
+    zones?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CompanyInventoryCreateManyTenantInput = {
+    id?: string
+    companyId: string
+    itemType: $Enums.InventoryItemType
+    total?: number
+    issued?: number
+    available?: number
+    minStock?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type NotificationCreateManyTenantInput = {
+    id?: string
+    userId: string
+    title: string
+    message: string
+    type: string
+    severity?: string
+    sourceId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: boolean
+    readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
+  export type NotificationRuleCreateManyTenantInput = {
+    id?: string
+    eventType: string
+    role: $Enums.UserRole
+    enabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type CompanyUpdateWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -71501,6 +86050,7 @@ export namespace Prisma {
     vehicles?: VehicleUpdateManyWithoutCompanyNestedInput
     recruitmentPipeline?: RecruitmentPipelineUpdateManyWithoutAssignedCompanyNestedInput
     tickets?: TicketUpdateManyWithoutCompanyNestedInput
+    companyInventory?: CompanyInventoryUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateWithoutTenantInput = {
@@ -71515,6 +86065,7 @@ export namespace Prisma {
     vehicles?: VehicleUncheckedUpdateManyWithoutCompanyNestedInput
     recruitmentPipeline?: RecruitmentPipelineUncheckedUpdateManyWithoutAssignedCompanyNestedInput
     tickets?: TicketUncheckedUpdateManyWithoutCompanyNestedInput
+    companyInventory?: CompanyInventoryUncheckedUpdateManyWithoutCompanyNestedInput
   }
 
   export type CompanyUncheckedUpdateManyWithoutTenantInput = {
@@ -71544,6 +86095,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUpdateManyWithoutReviewedByNestedInput
     assignedTickets?: TicketUpdateManyWithoutAssignedToNestedInput
     submittedTickets?: TicketUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutTenantInput = {
@@ -71563,6 +86115,7 @@ export namespace Prisma {
     reviewedLeaves?: LeaveRequestUncheckedUpdateManyWithoutReviewedByNestedInput
     assignedTickets?: TicketUncheckedUpdateManyWithoutAssignedToNestedInput
     submittedTickets?: TicketUncheckedUpdateManyWithoutSubmitterUserNestedInput
+    notifications?: NotificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutTenantInput = {
@@ -71614,6 +86167,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -71632,6 +86186,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutTenantInput = {
@@ -71670,6 +86225,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -71688,6 +86244,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateManyWithoutTenantInput = {
@@ -71938,6 +86495,45 @@ export namespace Prisma {
     pendingDues?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumCashStatusFieldUpdateOperationsInput | $Enums.CashStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CashTransactionUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: EnumCashTransactionTypeFieldUpdateOperationsInput | $Enums.CashTransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    runningBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    driver?: DriverUpdateOneRequiredWithoutCashTransactionsNestedInput
+  }
+
+  export type CashTransactionUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: EnumCashTransactionTypeFieldUpdateOperationsInput | $Enums.CashTransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    runningBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CashTransactionUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: EnumCashTransactionTypeFieldUpdateOperationsInput | $Enums.CashTransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    runningBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -72406,6 +87002,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
     registrationExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -72432,6 +87030,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     assignedDriverId?: NullableStringFieldUpdateOperationsInput | string | null
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -72457,6 +87057,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     assignedDriverId?: NullableStringFieldUpdateOperationsInput | string | null
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -72559,7 +87161,6 @@ export namespace Prisma {
   export type TalabatComplianceEventUpdateWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumComplianceEventTypeFieldUpdateOperationsInput | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFieldUpdateOperationsInput | $Enums.AlertSeverity
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: BoolFieldUpdateOperationsInput | boolean
@@ -72575,7 +87176,6 @@ export namespace Prisma {
     driverId?: StringFieldUpdateOperationsInput | string
     sessionId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumComplianceEventTypeFieldUpdateOperationsInput | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFieldUpdateOperationsInput | $Enums.AlertSeverity
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: BoolFieldUpdateOperationsInput | boolean
@@ -72589,7 +87189,6 @@ export namespace Prisma {
     driverId?: StringFieldUpdateOperationsInput | string
     sessionId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumComplianceEventTypeFieldUpdateOperationsInput | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFieldUpdateOperationsInput | $Enums.AlertSeverity
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: BoolFieldUpdateOperationsInput | boolean
@@ -72748,6 +87347,227 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type KpiDefinitionUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: EnumKpiCategoryFieldUpdateOperationsInput | $Enums.KpiCategory
+    unit?: EnumKpiUnitFieldUpdateOperationsInput | $Enums.KpiUnit
+    platform?: NullableEnumPlatformFieldUpdateOperationsInput | $Enums.Platform | null
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    records?: KpiRecordUpdateManyWithoutKpiDefinitionNestedInput
+  }
+
+  export type KpiDefinitionUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: EnumKpiCategoryFieldUpdateOperationsInput | $Enums.KpiCategory
+    unit?: EnumKpiUnitFieldUpdateOperationsInput | $Enums.KpiUnit
+    platform?: NullableEnumPlatformFieldUpdateOperationsInput | $Enums.Platform | null
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    records?: KpiRecordUncheckedUpdateManyWithoutKpiDefinitionNestedInput
+  }
+
+  export type KpiDefinitionUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    category?: EnumKpiCategoryFieldUpdateOperationsInput | $Enums.KpiCategory
+    unit?: EnumKpiUnitFieldUpdateOperationsInput | $Enums.KpiUnit
+    platform?: NullableEnumPlatformFieldUpdateOperationsInput | $Enums.Platform | null
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KpiRecordUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    value?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    driver?: DriverUpdateOneRequiredWithoutKpiRecordsNestedInput
+    kpiDefinition?: KpiDefinitionUpdateOneRequiredWithoutRecordsNestedInput
+  }
+
+  export type KpiRecordUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    kpiDefinitionId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    value?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KpiRecordUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    kpiDefinitionId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    value?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlatformSettingsUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    platform?: EnumPlatformFieldUpdateOperationsInput | $Enums.Platform
+    targets?: JsonNullValueInput | InputJsonValue
+    kpis?: NullableJsonNullValueInput | InputJsonValue
+    shiftRules?: NullableJsonNullValueInput | InputJsonValue
+    zones?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlatformSettingsUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    platform?: EnumPlatformFieldUpdateOperationsInput | $Enums.Platform
+    targets?: JsonNullValueInput | InputJsonValue
+    kpis?: NullableJsonNullValueInput | InputJsonValue
+    shiftRules?: NullableJsonNullValueInput | InputJsonValue
+    zones?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlatformSettingsUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    platform?: EnumPlatformFieldUpdateOperationsInput | $Enums.Platform
+    targets?: JsonNullValueInput | InputJsonValue
+    kpis?: NullableJsonNullValueInput | InputJsonValue
+    shiftRules?: NullableJsonNullValueInput | InputJsonValue
+    zones?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompanyInventoryUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    itemType?: EnumInventoryItemTypeFieldUpdateOperationsInput | $Enums.InventoryItemType
+    total?: IntFieldUpdateOperationsInput | number
+    issued?: IntFieldUpdateOperationsInput | number
+    available?: IntFieldUpdateOperationsInput | number
+    minStock?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    company?: CompanyUpdateOneRequiredWithoutCompanyInventoryNestedInput
+  }
+
+  export type CompanyInventoryUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companyId?: StringFieldUpdateOperationsInput | string
+    itemType?: EnumInventoryItemTypeFieldUpdateOperationsInput | $Enums.InventoryItemType
+    total?: IntFieldUpdateOperationsInput | number
+    issued?: IntFieldUpdateOperationsInput | number
+    available?: IntFieldUpdateOperationsInput | number
+    minStock?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompanyInventoryUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    companyId?: StringFieldUpdateOperationsInput | string
+    itemType?: EnumInventoryItemTypeFieldUpdateOperationsInput | $Enums.InventoryItemType
+    total?: IntFieldUpdateOperationsInput | number
+    issued?: IntFieldUpdateOperationsInput | number
+    available?: IntFieldUpdateOperationsInput | number
+    minStock?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: BoolFieldUpdateOperationsInput | boolean
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutNotificationsNestedInput
+  }
+
+  export type NotificationUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: BoolFieldUpdateOperationsInput | boolean
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: BoolFieldUpdateOperationsInput | boolean
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationRuleUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationRuleUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationRuleUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    eventType?: StringFieldUpdateOperationsInput | string
+    role?: EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type DriverCreateManyCompanyInput = {
     id?: string
     tenantId: string
@@ -72793,6 +87613,8 @@ export namespace Prisma {
     chassisNumber?: string | null
     mileage?: number
     fuelType?: string
+    ownerCompany?: string | null
+    driverIqama?: string | null
     status?: $Enums.VehicleStatus
     assignedDriverId?: string | null
     insuranceExpiry: Date | string
@@ -72838,6 +87660,18 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type CompanyInventoryCreateManyCompanyInput = {
+    id?: string
+    tenantId: string
+    itemType: $Enums.InventoryItemType
+    total?: number
+    issued?: number
+    available?: number
+    minStock?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type DriverUpdateWithoutCompanyInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -72874,6 +87708,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -72892,6 +87727,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutCompanyInput = {
@@ -72930,6 +87766,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -72948,6 +87785,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateManyWithoutCompanyInput = {
@@ -72994,6 +87832,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
     registrationExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -73020,6 +87860,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     assignedDriverId?: NullableStringFieldUpdateOperationsInput | string | null
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -73045,6 +87887,8 @@ export namespace Prisma {
     chassisNumber?: NullableStringFieldUpdateOperationsInput | string | null
     mileage?: IntFieldUpdateOperationsInput | number
     fuelType?: StringFieldUpdateOperationsInput | string
+    ownerCompany?: NullableStringFieldUpdateOperationsInput | string | null
+    driverIqama?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumVehicleStatusFieldUpdateOperationsInput | $Enums.VehicleStatus
     assignedDriverId?: NullableStringFieldUpdateOperationsInput | string | null
     insuranceExpiry?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -73160,6 +88004,42 @@ export namespace Prisma {
     platform?: NullableEnumPlatformFieldUpdateOperationsInput | $Enums.Platform | null
     driverId?: NullableStringFieldUpdateOperationsInput | string | null
     vehicleId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompanyInventoryUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    itemType?: EnumInventoryItemTypeFieldUpdateOperationsInput | $Enums.InventoryItemType
+    total?: IntFieldUpdateOperationsInput | number
+    issued?: IntFieldUpdateOperationsInput | number
+    available?: IntFieldUpdateOperationsInput | number
+    minStock?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutCompanyInventoryNestedInput
+  }
+
+  export type CompanyInventoryUncheckedUpdateWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    itemType?: EnumInventoryItemTypeFieldUpdateOperationsInput | $Enums.InventoryItemType
+    total?: IntFieldUpdateOperationsInput | number
+    issued?: IntFieldUpdateOperationsInput | number
+    available?: IntFieldUpdateOperationsInput | number
+    minStock?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CompanyInventoryUncheckedUpdateManyWithoutCompanyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    itemType?: EnumInventoryItemTypeFieldUpdateOperationsInput | $Enums.InventoryItemType
+    total?: IntFieldUpdateOperationsInput | number
+    issued?: IntFieldUpdateOperationsInput | number
+    available?: IntFieldUpdateOperationsInput | number
+    minStock?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -73286,6 +88166,20 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type NotificationCreateManyUserInput = {
+    id?: string
+    tenantId: string
+    title: string
+    message: string
+    type: string
+    severity?: string
+    sourceId?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: boolean
+    readAt?: Date | string | null
+    createdAt?: Date | string
+  }
+
   export type DriverUpdateWithoutSupervisorInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -73322,6 +88216,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUpdateManyWithoutDriverNestedInput
@@ -73340,6 +88235,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateWithoutSupervisorInput = {
@@ -73378,6 +88274,7 @@ export namespace Prisma {
     attendanceRecords?: AttendanceRecordUncheckedUpdateManyWithoutDriverNestedInput
     orderLogs?: OrderLogUncheckedUpdateManyWithoutDriverNestedInput
     cashRecords?: CashRecordUncheckedUpdateManyWithoutDriverNestedInput
+    cashTransactions?: CashTransactionUncheckedUpdateManyWithoutDriverNestedInput
     pendingDuesLedgers?: PendingDuesLedgerUncheckedUpdateManyWithoutDriverNestedInput
     vehicleInspections?: VehicleInspectionUncheckedUpdateManyWithoutDriverNestedInput
     maintenanceRecords?: MaintenanceRecordUncheckedUpdateManyWithoutDriverNestedInput
@@ -73396,6 +88293,7 @@ export namespace Prisma {
     keetaDailyMetrics?: KeetaDailyMetricsUncheckedUpdateManyWithoutDriverNestedInput
     americanaDailyOrders?: AmericanaDailyOrdersUncheckedUpdateManyWithoutDriverNestedInput
     talabatDeliveries?: TalabatDeliveryUncheckedUpdateManyWithoutDriverNestedInput
+    kpiRecords?: KpiRecordUncheckedUpdateManyWithoutDriverNestedInput
   }
 
   export type DriverUncheckedUpdateManyWithoutSupervisorInput = {
@@ -73698,6 +88596,48 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type NotificationUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: BoolFieldUpdateOperationsInput | boolean
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutNotificationsNestedInput
+  }
+
+  export type NotificationUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: BoolFieldUpdateOperationsInput | boolean
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type NotificationUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    read?: BoolFieldUpdateOperationsInput | boolean
+    readAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type DriverInventoryCreateManyDriverInput = {
     id?: string
     itemType: $Enums.InventoryItemType
@@ -73776,6 +88716,19 @@ export namespace Prisma {
     pendingDues: Decimal | DecimalJsLike | number | string
     status?: $Enums.CashStatus
     notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type CashTransactionCreateManyDriverInput = {
+    id?: string
+    tenantId: string
+    date: Date | string
+    type: $Enums.CashTransactionType
+    amount: Decimal | DecimalJsLike | number | string
+    orderNumber?: string | null
+    description?: string | null
+    runningBalance: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -73984,7 +88937,6 @@ export namespace Prisma {
     tenantId: string
     sessionId?: string | null
     type: $Enums.ComplianceEventType
-    severity: $Enums.AlertSeverity
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: boolean
@@ -74056,6 +89008,19 @@ export namespace Prisma {
     tip?: Decimal | DecimalJsLike | number | string
     distanceKm?: Decimal | DecimalJsLike | number | string | null
     status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KpiRecordCreateManyDriverInput = {
+    id?: string
+    tenantId: string
+    kpiDefinitionId: string
+    date: Date | string
+    value: Decimal | DecimalJsLike | number | string
+    target?: Decimal | DecimalJsLike | number | string | null
+    score?: Decimal | DecimalJsLike | number | string | null
+    source?: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -74308,6 +89273,45 @@ export namespace Prisma {
     pendingDues?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumCashStatusFieldUpdateOperationsInput | $Enums.CashStatus
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CashTransactionUpdateWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: EnumCashTransactionTypeFieldUpdateOperationsInput | $Enums.CashTransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    runningBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutCashTransactionsNestedInput
+  }
+
+  export type CashTransactionUncheckedUpdateWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: EnumCashTransactionTypeFieldUpdateOperationsInput | $Enums.CashTransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    runningBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CashTransactionUncheckedUpdateManyWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    type?: EnumCashTransactionTypeFieldUpdateOperationsInput | $Enums.CashTransactionType
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    runningBalance?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -74916,7 +89920,6 @@ export namespace Prisma {
   export type TalabatComplianceEventUpdateWithoutDriverInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumComplianceEventTypeFieldUpdateOperationsInput | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFieldUpdateOperationsInput | $Enums.AlertSeverity
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: BoolFieldUpdateOperationsInput | boolean
@@ -74932,7 +89935,6 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     sessionId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumComplianceEventTypeFieldUpdateOperationsInput | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFieldUpdateOperationsInput | $Enums.AlertSeverity
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: BoolFieldUpdateOperationsInput | boolean
@@ -74946,7 +89948,6 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     sessionId?: NullableStringFieldUpdateOperationsInput | string | null
     type?: EnumComplianceEventTypeFieldUpdateOperationsInput | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFieldUpdateOperationsInput | $Enums.AlertSeverity
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: BoolFieldUpdateOperationsInput | boolean
@@ -75152,6 +90153,45 @@ export namespace Prisma {
     tip?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     distanceKm?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KpiRecordUpdateWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    value?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutKpiRecordsNestedInput
+    kpiDefinition?: KpiDefinitionUpdateOneRequiredWithoutRecordsNestedInput
+  }
+
+  export type KpiRecordUncheckedUpdateWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    kpiDefinitionId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    value?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KpiRecordUncheckedUpdateManyWithoutDriverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    kpiDefinitionId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    value?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    source?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -75897,7 +90937,6 @@ export namespace Prisma {
     tenantId: string
     driverId: string
     type: $Enums.ComplianceEventType
-    severity: $Enums.AlertSeverity
     description: string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: boolean
@@ -75926,7 +90965,6 @@ export namespace Prisma {
   export type TalabatComplianceEventUpdateWithoutSessionInput = {
     id?: StringFieldUpdateOperationsInput | string
     type?: EnumComplianceEventTypeFieldUpdateOperationsInput | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFieldUpdateOperationsInput | $Enums.AlertSeverity
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: BoolFieldUpdateOperationsInput | boolean
@@ -75942,7 +90980,6 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     driverId?: StringFieldUpdateOperationsInput | string
     type?: EnumComplianceEventTypeFieldUpdateOperationsInput | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFieldUpdateOperationsInput | $Enums.AlertSeverity
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: BoolFieldUpdateOperationsInput | boolean
@@ -75956,7 +90993,6 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     driverId?: StringFieldUpdateOperationsInput | string
     type?: EnumComplianceEventTypeFieldUpdateOperationsInput | $Enums.ComplianceEventType
-    severity?: EnumAlertSeverityFieldUpdateOperationsInput | $Enums.AlertSeverity
     description?: StringFieldUpdateOperationsInput | string
     metadata?: NullableJsonNullValueInput | InputJsonValue
     resolved?: BoolFieldUpdateOperationsInput | boolean
@@ -76016,6 +91052,58 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type KpiRecordCreateManyKpiDefinitionInput = {
+    id?: string
+    tenantId: string
+    driverId: string
+    date: Date | string
+    value: Decimal | DecimalJsLike | number | string
+    target?: Decimal | DecimalJsLike | number | string | null
+    score?: Decimal | DecimalJsLike | number | string | null
+    source?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type KpiRecordUpdateWithoutKpiDefinitionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    value?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutKpiRecordsNestedInput
+    driver?: DriverUpdateOneRequiredWithoutKpiRecordsNestedInput
+  }
+
+  export type KpiRecordUncheckedUpdateWithoutKpiDefinitionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    value?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type KpiRecordUncheckedUpdateManyWithoutKpiDefinitionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    driverId?: StringFieldUpdateOperationsInput | string
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    value?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    target?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    score?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    source?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
 
 
   /**
@@ -76053,6 +91141,10 @@ export namespace Prisma {
      * @deprecated Use TalabatSessionCountOutputTypeDefaultArgs instead
      */
     export type TalabatSessionCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = TalabatSessionCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use KpiDefinitionCountOutputTypeDefaultArgs instead
+     */
+    export type KpiDefinitionCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = KpiDefinitionCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use TenantDefaultArgs instead
      */
@@ -76097,6 +91189,10 @@ export namespace Prisma {
      * @deprecated Use CashRecordDefaultArgs instead
      */
     export type CashRecordArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CashRecordDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use CashTransactionDefaultArgs instead
+     */
+    export type CashTransactionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CashTransactionDefaultArgs<ExtArgs>
     /**
      * @deprecated Use PendingDuesLedgerDefaultArgs instead
      */
@@ -76170,9 +91266,33 @@ export namespace Prisma {
      */
     export type KeetaDailyMetricsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = KeetaDailyMetricsDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use PlatformSettingsDefaultArgs instead
+     */
+    export type PlatformSettingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PlatformSettingsDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use CompanyInventoryDefaultArgs instead
+     */
+    export type CompanyInventoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CompanyInventoryDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use AmericanaDailyOrdersDefaultArgs instead
      */
     export type AmericanaDailyOrdersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AmericanaDailyOrdersDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use KpiDefinitionDefaultArgs instead
+     */
+    export type KpiDefinitionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = KpiDefinitionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use KpiRecordDefaultArgs instead
+     */
+    export type KpiRecordArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = KpiRecordDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use NotificationDefaultArgs instead
+     */
+    export type NotificationArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = NotificationDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use NotificationRuleDefaultArgs instead
+     */
+    export type NotificationRuleArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = NotificationRuleDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

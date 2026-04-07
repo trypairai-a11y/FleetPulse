@@ -64,9 +64,10 @@ export default function MissingDocsPage() {
     {
       key: "driverName",
       label: "Driver",
-      render: (_: any, r: DriverMissingDoc) => (
-        <span className="font-medium text-sm">{r.driverName}</span>
-      ),
+      render: (_: any, r: DriverMissingDoc) => {
+        const clean = r.driverName.replace(/\s+\d+[A-Za-z]?\s*[-–—]\s*\w+$/i, "").trim();
+        return <span className="font-medium text-sm">{clean || r.driverName}</span>;
+      },
     },
     { key: "platformDriverId", label: "Talabat ID" },
     {
@@ -74,7 +75,7 @@ export default function MissingDocsPage() {
       label: "Batch",
       render: (v: string) => (
         <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-orange-50 text-orange-700">
-          {v || "—"}
+          {v || "-"}
         </span>
       ),
     },

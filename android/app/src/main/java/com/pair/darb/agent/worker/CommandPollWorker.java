@@ -31,10 +31,10 @@ import java.util.concurrent.TimeUnit;
  * and executes them locally.
  *
  * Supported commands:
- *   LOCK            — lock the device screen immediately
- *   SEND_MESSAGE    — display a notification to the driver
- *   ENABLE_KIOSK    — pin the current task (screen pinning)
- *   DISABLE_KIOSK   — stop task pinning
+ *   LOCK            - lock the device screen immediately
+ *   SEND_MESSAGE    - display a notification to the driver
+ *   ENABLE_KIOSK    - pin the current task (screen pinning)
+ *   DISABLE_KIOSK   - stop task pinning
  *
  * Note: WorkManager enforces a minimum periodic interval of 15 minutes.
  * For near-real-time polling the expedited one-time + re-enqueue pattern
@@ -104,7 +104,7 @@ public class CommandPollWorker extends Worker {
         try {
             JSONArray commands = repository.fetchPendingCommandsSync();
             if (commands == null) {
-                Log.w(TAG, "fetchPendingCommands returned null — retry");
+                Log.w(TAG, "fetchPendingCommands returned null - retry");
                 return Result.retry();
             }
 
@@ -161,7 +161,7 @@ public class CommandPollWorker extends Worker {
                 dpm.lockNow();
                 Log.d(TAG, "Device locked");
             } else {
-                Log.w(TAG, "DeviceAdmin not active — cannot lock");
+                Log.w(TAG, "DeviceAdmin not active - cannot lock");
             }
         } catch (Exception e) {
             Log.e(TAG, "executeLock error", e);
@@ -178,7 +178,7 @@ public class CommandPollWorker extends Worker {
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(
                     ctx, Constants.NOTIFICATION_CHANNEL_COMMANDS)
-                    .setContentTitle("Darb — Message")
+                    .setContentTitle("Darb - Message")
                     .setContentText(message)
                     .setSmallIcon(android.R.drawable.ic_dialog_info)
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -200,7 +200,7 @@ public class CommandPollWorker extends Worker {
                                 Context.ACTIVITY_SERVICE);
                 if (am != null) {
                     // startLockTask must be called from an Activity; log intent here
-                    Log.d(TAG, "ENABLE_KIOSK received — startLockTask must be called from Activity");
+                    Log.d(TAG, "ENABLE_KIOSK received - startLockTask must be called from Activity");
                 }
             }
         } catch (Exception e) {
@@ -216,7 +216,7 @@ public class CommandPollWorker extends Worker {
                         (android.app.ActivityManager) ctx.getSystemService(
                                 Context.ACTIVITY_SERVICE);
                 if (am != null) {
-                    Log.d(TAG, "DISABLE_KIOSK received — stopLockTask must be called from Activity");
+                    Log.d(TAG, "DISABLE_KIOSK received - stopLockTask must be called from Activity");
                 }
             }
         } catch (Exception e) {

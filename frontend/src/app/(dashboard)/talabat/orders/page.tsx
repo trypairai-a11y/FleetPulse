@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { useApiGet } from "@/hooks/useApi";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
@@ -8,19 +8,27 @@ import { cn } from "@/lib/cn";
 import api from "@/lib/api";
 import {
   Package, UploadCloud, Sparkles, Banknote,
-  ChevronRight, Image as ImageIcon, Clock,
+  ChevronRight, Clock,
   ArrowUp, ArrowDown, Minus, Receipt, ShoppingBag, Zap,
-  MessageCircle, X, Check, AlertCircle, MapPin, TrendingUp,
+  MessageCircle, X, Check, AlertCircle, MapPin,
+  Download, ChevronsLeft, ChevronsRight, ChevronLeft,
 } from "lucide-react";
 
-type PageTab = "orders" | "deliveries" | "performance";
+type PageTab = "orders" | "performance";
+type SortField = "date" | "driver" | "deliveries" | "cash" | "zone";
+type SortDir = "asc" | "desc";
+
+/** Strip batch number and company suffix from driver name, e.g. "MUKESH AMBANI 1 - WAHI" → "MUKESH AMBANI" */
+function cleanDriverName(raw: string) {
+  return raw.replace(/\s+\d+[A-Z]?\s*(?:\u2013|\u2014|-)\s*\w+$/i, "").trim();
+}
 
 const TALABAT_ZONES = [
   "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
 ];
 
 function ChangeIndicator({ current, previous }: { current: number; previous: number }) {
-  if (previous === 0) return <span className="text-xs text-secondary font-mono">—</span>;
+  if (previous === 0) return <span className="text-xs text-secondary font-mono">-</span>;
   const pctChange = ((current - previous) / previous) * 100;
   const isUp = pctChange > 0;
   const isFlat = Math.abs(pctChange) < 0.5;
@@ -33,6 +41,107 @@ function ChangeIndicator({ current, previous }: { current: number; previous: num
       {isFlat ? <Minus size={11} /> : isUp ? <ArrowUp size={11} /> : <ArrowDown size={11} />}
       {Math.abs(pctChange).toFixed(1)}%
     </span>
+  );
+}
+
+function SortableHeader({
+  label, field, currentSort, currentDir, onSort, align = "left",
+}: {
+  label: string; field: SortField; currentSort: SortField; currentDir: SortDir;
+  onSort: (f: SortField) => void; align?: "left" | "right";
+}) {
+  const active = currentSort === field;
+  return (
+    <th
+      className={cn(
+        "text-xs font-medium text-secondary px-5 py-3 cursor-pointer select-none hover:text-foreground transition-colors group",
+        align === "right" ? "text-right" : "text-left"
+      )}
+      onClick={() => onSort(field)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {align === "right" && active && (
+          currentDir === "asc" ? <ArrowUp size={11} /> : <ArrowDown size={11} />
+        )}
+        {label}
+        {align === "left" && active && (
+          currentDir === "asc" ? <ArrowUp size={11} /> : <ArrowDown size={11} />
+        )}
+        {!active && (
+          <span className="opacity-0 group-hover:opacity-40 transition-opacity">
+            <ArrowDown size={11} />
+          </span>
+        )}
+      </span>
+    </th>
+  );
+}
+
+function Pagination({
+  page, totalPages, onPageChange,
+}: {
+  page: number; totalPages: number; onPageChange: (p: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+
+  const pages: (number | "...")[] = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (page > 3) pages.push("...");
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
+    if (page < totalPages - 2) pages.push("...");
+    pages.push(totalPages);
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={() => onPageChange(1)}
+        disabled={page === 1}
+        className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      >
+        <ChevronsLeft size={16} />
+      </button>
+      <button
+        onClick={() => onPageChange(page - 1)}
+        disabled={page === 1}
+        className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      >
+        <ChevronLeft size={16} />
+      </button>
+      {pages.map((p, i) =>
+        p === "..." ? (
+          <span key={`dots-${i}`} className="px-2 text-xs text-secondary">...</span>
+        ) : (
+          <button
+            key={p}
+            onClick={() => onPageChange(p as number)}
+            className={cn(
+              "w-8 h-8 rounded-lg text-xs font-medium transition-colors",
+              p === page ? "bg-orange-500 text-white" : "hover:bg-gray-100 text-secondary"
+            )}
+          >
+            {p}
+          </button>
+        )
+      )}
+      <button
+        onClick={() => onPageChange(page + 1)}
+        disabled={page === totalPages}
+        className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      >
+        <ChevronRight size={16} />
+      </button>
+      <button
+        onClick={() => onPageChange(totalPages)}
+        disabled={page === totalPages}
+        className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      >
+        <ChevronsRight size={16} />
+      </button>
+    </div>
   );
 }
 
@@ -52,14 +161,40 @@ export default function TalabatOrdersPage() {
   const [waSuccess, setWaSuccess] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const params = new URLSearchParams({ platform: "TALABAT", limit: "100" });
-  if (filters.dateFrom) params.set("dateFrom", filters.dateFrom);
-  if (filters.dateTo) params.set("dateTo", filters.dateTo);
-  if (filters.driver) params.set("search", filters.driver);
-  if (filters.zone) params.set("zone", filters.zone);
+  const [sortField, setSortField] = useState<SortField>("date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  function handleSort(field: SortField) {
+    if (sortField === field) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDir("desc");
+    }
+    setCurrentPage(1);
+  }
 
-  const { data, refetch } = useApiGet<any>(`/api/orders?${params}`);
-  const { data: summary } = useApiGet<any>(`/api/orders/summary?platform=TALABAT${filters.dateFrom ? `&dateFrom=${filters.dateFrom}` : ""}`);
+  // Individual orders (flat list)
+  const ordersParams = new URLSearchParams({ platform: "TALABAT", limit: "50", page: String(currentPage) });
+  if (filters.dateFrom) ordersParams.set("dateFrom", filters.dateFrom);
+  if (filters.dateTo) ordersParams.set("dateTo", filters.dateTo);
+  if (filters.driverId) ordersParams.set("search", filters.driverId);
+  if (filters.zone) ordersParams.set("zone", filters.zone);
+  if (filters.companyId) ordersParams.set("companyId", filters.companyId);
+  if (filters.timeFrom) ordersParams.set("timeFrom", filters.timeFrom);
+  if (filters.timeTo) ordersParams.set("timeTo", filters.timeTo);
+  ordersParams.set("sortBy", sortField);
+  ordersParams.set("sortOrder", sortDir);
+
+  const { data: ordersData, refetch } = useApiGet<any>(
+    pageTab === "orders" ? `/api/orders?${ordersParams}` : null
+  );
+  const orders = ordersData?.data || [];
+  const ordersPagination = ordersData?.pagination;
+
+  const { data: summary } = useApiGet<any>(
+    `/api/orders/summary?platform=TALABAT${filters.dateFrom ? `&dateFrom=${filters.dateFrom}` : ""}${filters.dateTo ? `&dateTo=${filters.dateTo}` : ""}`
+  );
   const { data: perfSummary } = useApiGet<any>(
     pageTab === "performance"
       ? `/api/talabat/orders/summary?dateFrom=${filters.dateFrom || ""}&dateTo=${filters.dateTo || ""}`
@@ -69,22 +204,21 @@ export default function TalabatOrdersPage() {
     `/api/talabat/orders/hourly?${filters.dateFrom ? `dateFrom=${filters.dateFrom}` : ""}${filters.dateTo ? `&dateTo=${filters.dateTo}` : ""}`
   );
 
-  // Individual deliveries
-  const deliveryParams = new URLSearchParams({ limit: "200" });
-  if (filters.dateFrom) deliveryParams.set("dateFrom", filters.dateFrom);
-  if (filters.dateTo) deliveryParams.set("dateTo", filters.dateTo);
-  if (filters.driver) deliveryParams.set("driverId", filters.driver);
-  const { data: deliveriesData } = useApiGet<any>(
-    pageTab === "deliveries" ? `/api/talabat/deliveries?${deliveryParams}` : null
+  // Drivers list for dropdown
+  const { data: driversList } = useApiGet<any[]>("/api/orders/drivers?platform=TALABAT");
+  const driverOptions = useMemo(
+    () => (driversList || []).map((d: any) => ({ value: d.name, label: d.name })),
+    [driversList]
   );
-  const { data: deliverySummary } = useApiGet<any>(
-    pageTab === "deliveries"
-      ? `/api/talabat/deliveries/summary?${filters.dateFrom ? `dateFrom=${filters.dateFrom}` : ""}${filters.dateTo ? `&dateTo=${filters.dateTo}` : ""}`
-      : null
-  );
-  const deliveries = deliveriesData?.data || [];
 
-  const orders = data?.data || [];
+  // Company name from settings
+  const { data: companiesData } = useApiGet<any>("/api/companies?platform=TALABAT");
+  const companyName = companiesData?.data?.[0]?.name || companiesData?.[0]?.name || "Wahoo International";
+  const companyOptions = useMemo(() => {
+    const list = companiesData?.data || companiesData || [];
+    return (Array.isArray(list) ? list : []).map((c: any) => ({ value: c.id, label: c.name }));
+  }, [companiesData]);
+
 
   async function handleScreenshotUpload(file: File) {
     setUploading(true);
@@ -143,14 +277,26 @@ export default function TalabatOrdersPage() {
     }
   }
 
+  function handleExportCsv() {
+    const params = new URLSearchParams({ platform: "TALABAT" });
+    if (filters.dateFrom) params.set("dateFrom", filters.dateFrom);
+    if (filters.dateTo) params.set("dateTo", filters.dateTo);
+    if (filters.zone) params.set("zone", filters.zone);
+    if (filters.driverId) params.set("search", filters.driverId);
+    if (filters.companyId) params.set("companyId", filters.companyId);
+    window.open(`${api.defaults.baseURL || ""}/api/orders/export-csv?${params}`, "_blank");
+  }
+
+  const zones = summary?.zones || [];
+
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-talabat" />
-          <h1 className="text-xl font-semibold">Talabat — Orders</h1>
-          <span className="text-sm text-secondary">Wahoo International</span>
+          <h1 className="text-xl font-semibold">Talabat - Orders</h1>
+          <span className="text-sm text-secondary">{companyName}</span>
         </div>
         <div className="flex items-center gap-2">
           <input
@@ -164,6 +310,13 @@ export default function TalabatOrdersPage() {
               e.target.value = "";
             }}
           />
+          <button
+            onClick={handleExportCsv}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors"
+          >
+            <Download size={15} className="text-secondary" />
+            Export CSV
+          </button>
           <button
             onClick={() => { setWaOpen(true); setWaText(""); setWaParsed([]); setWaError(null); setWaSuccess(null); }}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors"
@@ -191,7 +344,7 @@ export default function TalabatOrdersPage() {
 
       {/* Tab Bar */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-        {(["orders", "deliveries", "performance"] as PageTab[]).map((t) => (
+        {(["orders", "performance"] as PageTab[]).map((t) => (
           <button
             key={t}
             onClick={() => setPageTab(t)}
@@ -200,18 +353,18 @@ export default function TalabatOrdersPage() {
               pageTab === t ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
             )}
           >
-            {t === "orders" ? "Orders List" : t === "deliveries" ? "All Deliveries" : "Performance"}
+            {t === "orders" ? "Orders List" : "Performance"}
           </button>
         ))}
       </div>
 
-      {/* ── ORDERS LIST TAB ── */}
+      {/* ORDERS LIST TAB */}
       {pageTab === "orders" && (
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-3 gap-4">
             <StatCard
-              title="Total Deliveries"
+              title="Total Orders"
               value={summary?.totalDeliveries || 0}
               icon={Package}
             />
@@ -219,6 +372,7 @@ export default function TalabatOrdersPage() {
               title="Orders / Hour"
               value={summary?.ordersPerHour || 0}
               icon={Clock}
+              trend={summary?.ordersPerHour === 0 ? "No session data" : undefined}
             />
             <StatCard
               title="Cash Collected"
@@ -226,6 +380,26 @@ export default function TalabatOrdersPage() {
               icon={Banknote}
             />
           </div>
+
+          {/* Zone Breakdown */}
+          {zones.length > 0 && (
+            <div className="flex gap-3 flex-wrap">
+              {zones.map((z: any) => (
+                <div
+                  key={z.zone}
+                  className="flex items-center gap-3 bg-white rounded-xl px-4 py-2.5 shadow-sm border border-gray-50"
+                >
+                  <MapPin size={13} className="text-orange-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium">{z.zone}</p>
+                    <p className="text-[10px] text-secondary font-mono">
+                      {z.deliveries} deliveries · {z.cash.toFixed(3)} KD
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Orders by Hour Chart */}
           {hourlyData && hourlyData.some((h) => h.orders > 0) && (() => {
@@ -260,16 +434,27 @@ export default function TalabatOrdersPage() {
           {/* Filters */}
           <FilterBar
             filters={[
-              { key: "driver", type: "search", label: "Search", placeholder: "Search driver name..." },
+              {
+                key: "driverId", type: "select", label: "All Drivers",
+                options: driverOptions,
+              },
               { key: "dateFrom", type: "date", label: "From" },
               { key: "dateTo", type: "date", label: "To" },
+              { key: "timeFrom", type: "time", label: "From Time" },
+              { key: "timeTo", type: "time", label: "To Time" },
               {
                 key: "zone", type: "select", label: "All Zones",
                 options: TALABAT_ZONES.map(z => ({ value: z, label: z })),
               },
+              {
+                key: "companyId", type: "select", label: "All Companies",
+                options: companyOptions,
+              },
             ]}
             values={filters}
-            onChange={(k, v) => setFilters({ ...filters, [k]: v })}
+            onChange={(k, v) => { setFilters({ ...filters, [k]: v }); setCurrentPage(1); }}
+            defaultValues={{ dateFrom: new Date().toISOString().split("T")[0] }}
+            onClear={() => { setFilters({ dateFrom: new Date().toISOString().split("T")[0] }); setCurrentPage(1); }}
           />
 
           {/* Orders Table */}
@@ -278,18 +463,21 @@ export default function TalabatOrdersPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-50">
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Date</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Zone</th>
-                    <th className="text-right text-xs font-medium text-secondary px-5 py-3">Deliveries</th>
-                    <th className="text-right text-xs font-medium text-secondary px-5 py-3">Cash (KD)</th>
-                    <th className="px-5 py-3" />
+                    <SortableHeader label="Date" field="date" currentSort={sortField} currentDir={sortDir} onSort={handleSort} />
+                    <th className="text-xs font-medium text-secondary px-5 py-3 text-left">Time</th>
+                    <th className="text-xs font-medium text-secondary px-5 py-3 text-left">Order ID</th>
+                    <SortableHeader label="Driver" field="driver" currentSort={sortField} currentDir={sortDir} onSort={handleSort} />
+                    <th className="text-xs font-medium text-secondary px-5 py-3 text-left">Batch</th>
+                    <th className="text-xs font-medium text-secondary px-5 py-3 text-left">Company</th>
+                    <th className="text-xs font-medium text-secondary px-5 py-3 text-left">Zone</th>
+                    <th className="text-xs font-medium text-secondary px-5 py-3 text-left">Payment</th>
+                    <SortableHeader label="Cash (KD)" field="cash" currentSort={sortField} currentDir={sortDir} onSort={handleSort} align="right" />
                   </tr>
                 </thead>
                 <tbody>
                   {orders.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-5 py-12 text-center text-sm text-secondary">
+                      <td colSpan={9} className="px-5 py-12 text-center text-sm text-secondary">
                         No order records found.{" "}
                         <button
                           onClick={() => fileRef.current?.click()}
@@ -304,20 +492,48 @@ export default function TalabatOrdersPage() {
                     orders.map((order: any) => (
                       <tr
                         key={order.id}
+                        className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors cursor-pointer"
                         onClick={() => setSelected(order)}
-                        className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50 transition-colors"
                       >
-                        <td className="px-5 py-3 text-sm text-secondary">
-                          {order.date ? new Date(order.date).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                        <td className="px-5 py-3 text-sm text-secondary whitespace-nowrap">
+                          {order.date ? new Date(order.date).toLocaleDateString([], { month: "short", day: "numeric" }) : "\u2014"}
                         </td>
-                        <td className="px-5 py-3 text-sm font-medium">{order.driver?.name || order.driverName || "—"}</td>
-                        <td className="px-5 py-3 text-sm text-secondary">{order.zone || "—"}</td>
-                        <td className="px-5 py-3 text-sm text-right font-mono font-medium">{order.deliveriesCount ?? "—"}</td>
-                        <td className="px-5 py-3 text-sm text-right font-mono text-orange-600">
-                          {order.cashCollectedKd != null ? order.cashCollectedKd.toFixed(3) : "—"}
+                        <td className="px-5 py-3 text-sm font-mono text-secondary whitespace-nowrap">
+                          {order.arrivalTime
+                            ? new Date(order.arrivalTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                            : "\u2014"}
+                        </td>
+                        <td className="px-5 py-3 text-sm font-mono whitespace-nowrap">
+                          {order.orderNumber || "\u2014"}
+                        </td>
+                        <td className="px-5 py-3 text-sm font-medium whitespace-nowrap">
+                          {order.driver?.name ? cleanDriverName(order.driver.name) : "\u2014"}
+                        </td>
+                        <td className="px-5 py-3 text-sm text-secondary text-center">
+                          {order.batchNumber || order.driver?.batchNumber || "\u2014"}
+                        </td>
+                        <td className="px-5 py-3 text-sm text-secondary whitespace-nowrap">
+                          {order.companyName || order.driver?.company?.name || "\u2014"}
+                        </td>
+                        <td className="px-5 py-3 text-sm text-secondary whitespace-nowrap">
+                          {order.zone || order.driver?.zone || "\u2014"}
                         </td>
                         <td className="px-5 py-3">
-                          <ChevronRight size={15} className="text-gray-300" />
+                          {order.paymentSource ? (
+                            <span className={cn(
+                              "px-2 py-0.5 rounded-md text-[10px] font-semibold",
+                              order.paymentSource === "CASH" ? "bg-green-50 text-green-600" : "bg-blue-50 text-blue-600"
+                            )}>
+                              {order.paymentSource}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-secondary">&mdash;</span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3 text-sm text-right font-mono text-orange-600 whitespace-nowrap">
+                          {order.paymentSource === "CASH" && order.cashCollectedKd > 0
+                            ? `${order.cashCollectedKd.toFixed(3)}`
+                            : "\u2014"}
                         </td>
                       </tr>
                     ))
@@ -325,24 +541,41 @@ export default function TalabatOrdersPage() {
                 </tbody>
               </table>
             </div>
+            {ordersPagination && ordersPagination.totalPages > 1 && (
+              <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100">
+                <p className="text-xs text-secondary">
+                  Showing {((ordersPagination.page - 1) * ordersPagination.limit) + 1}&ndash;{Math.min(ordersPagination.page * ordersPagination.limit, ordersPagination.total)} of {ordersPagination.total} orders
+                </p>
+                <Pagination
+                  page={ordersPagination.page}
+                  totalPages={ordersPagination.totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
           </div>
 
           {/* Order Detail Panel */}
           <SlidePanel
             open={!!selected}
             onClose={() => setSelected(null)}
-            title={selected?.driver?.name || selected?.driverName || "Order Detail"}
+            title={selected?.driver?.name ? cleanDriverName(selected.driver.name) : "Order Detail"}
             subtitle={`Talabat / ${selected?.date ? new Date(selected.date).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : ""}`}
           >
             {selected && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    ["Date", selected.date ? new Date(selected.date).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "—"],
-                    ["Zone", selected.zone || "—"],
-                    ["Deliveries", selected.deliveriesCount ?? "—"],
-                    ["Cash Collected", selected.cashCollectedKd != null ? `${selected.cashCollectedKd.toFixed(3)} KD` : "—"],
-                    ["Platform Order ID", selected.platformOrderId || "—"],
+                    ["Order #", selected.orderNumber || "\u2014"],
+                    ["Date", selected.date ? new Date(selected.date).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "\u2014"],
+                    ["Time", selected.arrivalTime ? new Date(selected.arrivalTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "\u2014"],
+                    ["Driver", selected.driver?.name ? cleanDriverName(selected.driver.name) : "\u2014"],
+                    ["Batch", selected.batchNumber || selected.driver?.batchNumber || "\u2014"],
+                    ["Company", selected.companyName || selected.driver?.company?.name || "\u2014"],
+                    ["Zone", selected.zone || selected.driver?.zone || "\u2014"],
+                    ["Payment", selected.paymentSource || "\u2014"],
+                    ["Cash (KD)", selected.paymentSource === "CASH" ? `${(selected.cashCollectedKd ?? 0).toFixed(3)} KD` : "\u2014"],
+                    ["Orders", selected.deliveriesCount ?? selected.orderCount ?? "\u2014"],
                   ].map(([label, val]) => (
                     <div key={label} className="bg-gray-50 rounded-xl p-3">
                       <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
@@ -350,179 +583,16 @@ export default function TalabatOrdersPage() {
                     </div>
                   ))}
                 </div>
-
-                {/* Individual Orders */}
-                {selected.items && selected.items.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide mb-3">Individual Orders</h3>
-                    <div className="space-y-2">
-                      {selected.items.map((item: any, i: number) => (
-                        <div key={i} className="flex items-center justify-between py-2.5 px-3 bg-gray-50 rounded-xl">
-                          <div>
-                            <p className="text-sm font-medium">Order #{item.orderId || i + 1}</p>
-                            {item.restaurantName && (
-                              <p className="text-xs text-secondary mt-0.5">{item.restaurantName}</p>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            {item.amount != null && (
-                              <p className="text-sm font-mono font-medium">{item.amount.toFixed(3)} KD</p>
-                            )}
-                            {item.tip != null && (
-                              <p className="text-xs text-green-600 font-mono">+{item.tip.toFixed(3)} tip</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Screenshot */}
-                {selected.screenshotUrl && (
-                  <div>
-                    <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide mb-2">Source Screenshot</h3>
-                    <a href={selected.screenshotUrl} target="_blank" rel="noreferrer">
-                      <img
-                        src={selected.screenshotUrl}
-                        alt="Order screenshot"
-                        className="w-full rounded-xl object-cover max-h-64 border border-gray-100"
-                      />
-                    </a>
-                  </div>
-                )}
-                {!selected.screenshotUrl && (
-                  <div className="flex flex-col items-center gap-2 py-6 bg-gray-50 rounded-xl">
-                    <ImageIcon size={24} className="text-gray-300" />
-                    <p className="text-xs text-secondary">No screenshot attached</p>
-                  </div>
-                )}
               </div>
             )}
           </SlidePanel>
         </>
       )}
 
-      {/* ── DELIVERIES TAB ── */}
-      {pageTab === "deliveries" && (
-        <>
-          {/* Summary Cards */}
-          <div className="grid grid-cols-4 gap-4">
-            <StatCard
-              title="Total Deliveries"
-              value={deliverySummary?.totalDeliveries || 0}
-              icon={Package}
-            />
-            <StatCard
-              title="Total Distance"
-              value={`${(deliverySummary?.totalDistanceKm || 0).toFixed(1)} km`}
-              icon={MapPin}
-            />
-            <StatCard
-              title="Tips"
-              value={`${(deliverySummary?.totalTips || 0).toFixed(3)} KD`}
-              icon={TrendingUp}
-            />
-            <StatCard
-              title="Total Amount"
-              value={`${(deliverySummary?.totalAmount || 0).toFixed(3)} KD`}
-              icon={Banknote}
-            />
-          </div>
-
-          {/* Filters */}
-          <FilterBar
-            filters={[
-              { key: "dateFrom", type: "date", label: "From" },
-              { key: "dateTo", type: "date", label: "To" },
-            ]}
-            values={filters}
-            onChange={(k, v) => setFilters({ ...filters, [k]: v })}
-          />
-
-          {/* Deliveries Table */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-50">
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Order ID</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Code</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Type</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Finished At</th>
-                    <th className="text-right text-xs font-medium text-secondary px-5 py-3">Distance</th>
-                    <th className="text-right text-xs font-medium text-secondary px-5 py-3">Amount</th>
-                    <th className="text-right text-xs font-medium text-secondary px-5 py-3">Tip</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deliveries.length === 0 ? (
-                    <tr>
-                      <td colSpan={9} className="px-5 py-12 text-center text-sm text-secondary">
-                        No individual deliveries found for this date range.
-                      </td>
-                    </tr>
-                  ) : (
-                    deliveries.map((d: any) => {
-                      const TypeIcon = d.orderType === "grocery" ? ShoppingBag : d.orderType === "express" ? Zap : Receipt;
-                      return (
-                        <tr
-                          key={d.id}
-                          onClick={() => setSelected({ ...d, _type: "delivery" })}
-                          className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50 transition-colors"
-                        >
-                          <td className="px-5 py-3 text-sm font-mono font-medium">{d.platformOrderId}</td>
-                          <td className="px-5 py-3">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-orange-50 text-orange-600 font-mono">
-                              {d.shortCode}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3 text-sm font-medium">{d.driver?.name || "—"}</td>
-                          <td className="px-5 py-3">
-                            <span className="inline-flex items-center gap-1 text-xs text-secondary capitalize">
-                              <TypeIcon size={12} />
-                              {d.orderType || "food"}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3 text-sm text-secondary font-mono">
-                            {d.finishedAt ? new Date(d.finishedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
-                          </td>
-                          <td className="px-5 py-3 text-sm text-right font-mono text-secondary">
-                            {d.distanceKm != null ? `${Number(d.distanceKm).toFixed(1)} km` : "—"}
-                          </td>
-                          <td className="px-5 py-3 text-sm text-right font-mono font-medium">
-                            {d.amount != null ? `${Number(d.amount).toFixed(3)} KD` : "—"}
-                          </td>
-                          <td className="px-5 py-3 text-sm text-right font-mono text-green-600">
-                            {d.tip != null && Number(d.tip) > 0 ? `+${Number(d.tip).toFixed(3)}` : "—"}
-                          </td>
-                          <td className="px-5 py-3">
-                            <span className={cn(
-                              "px-2 py-0.5 rounded-md text-[10px] font-semibold",
-                              d.status === "COMPLETED" ? "bg-green-50 text-green-600" :
-                              d.status === "CANCELLED" ? "bg-red-50 text-red-500" :
-                              "bg-gray-100 text-gray-500"
-                            )}>
-                              {d.status}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* ── PERFORMANCE TAB ── */}
+      {/* DELIVERIES TAB */}
+      {/* PERFORMANCE TAB */}
       {pageTab === "performance" && (
         <div className="space-y-6">
-          {/* Date Filters for Performance */}
           <div className="flex gap-3 items-center">
             <input
               type="date"
@@ -539,33 +609,10 @@ export default function TalabatOrdersPage() {
             />
           </div>
 
-          {/* Week-over-Week Comparison Cards */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             {[
-              {
-                title: "Deliveries",
-                current: perfSummary?.thisWeek?.deliveries || 0,
-                previous: perfSummary?.lastWeek?.deliveries || 0,
-                format: (v: number) => String(v),
-              },
-              {
-                title: "Distance (km)",
-                current: perfSummary?.thisWeek?.distanceKm || 0,
-                previous: perfSummary?.lastWeek?.distanceKm || 0,
-                format: (v: number) => v.toFixed(1),
-              },
-              {
-                title: "Tips (KD)",
-                current: perfSummary?.thisWeek?.tipsKd || 0,
-                previous: perfSummary?.lastWeek?.tipsKd || 0,
-                format: (v: number) => v.toFixed(3),
-              },
-              {
-                title: "Cash (KD)",
-                current: perfSummary?.thisWeek?.cashKd || 0,
-                previous: perfSummary?.lastWeek?.cashKd || 0,
-                format: (v: number) => v.toFixed(3),
-              },
+              { title: "Orders", current: perfSummary?.thisWeek?.deliveries || 0, previous: perfSummary?.lastWeek?.deliveries || 0, format: (v: number) => String(v) },
+              { title: "Cash (KD)", current: perfSummary?.thisWeek?.cashKd || 0, previous: perfSummary?.lastWeek?.cashKd || 0, format: (v: number) => v.toFixed(3) },
             ].map((card) => (
               <div key={card.title} className="bg-white rounded-2xl p-5 shadow-sm">
                 <p className="text-xs font-medium text-secondary mb-1">{card.title}</p>
@@ -581,29 +628,26 @@ export default function TalabatOrdersPage() {
             ))}
           </div>
 
-          {/* Top 5 Earners Bar Chart */}
           <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide mb-4">Top 5 Earners (by Deliveries)</h3>
+            <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide mb-4">All Drivers (by Orders)</h3>
             {(perfSummary?.topEarners || []).length === 0 ? (
               <p className="text-sm text-secondary py-6 text-center">No performance data available for this period</p>
             ) : (
               <div className="space-y-3">
-                {(perfSummary?.topEarners || []).slice(0, 5).map((earner: any, i: number) => {
+                {(perfSummary?.topEarners || []).map((earner: any, i: number) => {
                   const maxDeliveries = perfSummary?.topEarners?.[0]?.deliveries || 1;
                   const pct = Math.round((earner.deliveries / maxDeliveries) * 100);
                   return (
                     <div key={earner.driverId || i} className="flex items-center gap-3">
                       <div className="w-32 flex-shrink-0">
-                        <p className="text-sm font-medium truncate">{earner.driverName || "—"}</p>
+                        <p className="text-sm font-medium truncate">{earner.driverName ? cleanDriverName(earner.driverName) : "\u2014"}</p>
                       </div>
                       <div className="flex-1 bg-gray-50 rounded-full h-6 relative overflow-hidden">
                         <div
                           className="h-6 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 flex items-center justify-end pr-2 transition-all duration-500"
                           style={{ width: `${Math.max(pct, 8)}%` }}
                         >
-                          <span className="text-[10px] font-semibold text-white font-mono">
-                            {earner.deliveries}
-                          </span>
+                          <span className="text-[10px] font-semibold text-white font-mono">{earner.deliveries}</span>
                         </div>
                       </div>
                       <div className="w-20 text-right flex-shrink-0">
@@ -619,14 +663,13 @@ export default function TalabatOrdersPage() {
         </div>
       )}
 
-      {/* ── WHATSAPP IMPORT MODAL ── */}
+      {/* WHATSAPP IMPORT MODAL */}
       {waOpen && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setWaOpen(false)}>
           <div
             className="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
@@ -643,7 +686,6 @@ export default function TalabatOrdersPage() {
             </div>
 
             <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-              {/* Instructions */}
               <div className="bg-gray-50 rounded-xl p-4">
                 <p className="text-xs font-medium text-secondary mb-2">Expected message format (each on its own line):</p>
                 <div className="grid grid-cols-5 gap-2">
@@ -655,7 +697,6 @@ export default function TalabatOrdersPage() {
                 </div>
               </div>
 
-              {/* Text Area */}
               <textarea
                 value={waText}
                 onChange={(e) => { setWaText(e.target.value); setWaParsed([]); setWaError(null); setWaSuccess(null); }}
@@ -664,7 +705,6 @@ export default function TalabatOrdersPage() {
                 className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-300 resize-none placeholder:text-gray-300"
               />
 
-              {/* Parse Button */}
               <button
                 onClick={handleWaParse}
                 disabled={waParsing || !waText.trim()}
@@ -678,7 +718,6 @@ export default function TalabatOrdersPage() {
                 Parse Messages
               </button>
 
-              {/* Error */}
               {waError && (
                 <div className="flex items-start gap-2 px-4 py-3 bg-red-50 text-red-600 rounded-xl text-sm">
                   <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
@@ -686,7 +725,6 @@ export default function TalabatOrdersPage() {
                 </div>
               )}
 
-              {/* Success */}
               {waSuccess && (
                 <div className="flex items-center gap-2 px-4 py-3 bg-green-50 text-green-700 rounded-xl text-sm font-medium">
                   <Check size={16} />
@@ -694,7 +732,6 @@ export default function TalabatOrdersPage() {
                 </div>
               )}
 
-              {/* Parsed Preview */}
               {waParsed.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -730,9 +767,9 @@ export default function TalabatOrdersPage() {
                       <tbody>
                         {waParsed.map((order: any, i: number) => (
                           <tr key={i} className="border-b border-gray-50 last:border-0">
-                            <td className="px-4 py-2.5 text-sm font-mono">{order.date || "—"}</td>
-                            <td className="px-4 py-2.5 text-sm font-mono">{order.arrivalTime || "—"}</td>
-                            <td className="px-4 py-2.5 text-sm font-mono font-medium">{order.orderNumber || "—"}</td>
+                            <td className="px-4 py-2.5 text-sm font-mono">{order.date || "\u2014"}</td>
+                            <td className="px-4 py-2.5 text-sm font-mono">{order.arrivalTime || "\u2014"}</td>
+                            <td className="px-4 py-2.5 text-sm font-mono font-medium">{order.orderNumber || "\u2014"}</td>
                             <td className="px-4 py-2.5">
                               {order.paymentSource ? (
                                 <span className={cn(
@@ -741,12 +778,12 @@ export default function TalabatOrdersPage() {
                                 )}>
                                   {order.paymentSource}
                                 </span>
-                              ) : "—"}
+                              ) : "\u2014"}
                             </td>
                             <td className="px-4 py-2.5 text-sm text-right font-mono font-medium text-orange-600">
-                              {order.cashCollected != null ? order.cashCollected.toFixed(3) : "—"}
+                              {order.cashCollected != null ? order.cashCollected.toFixed(3) : "0.000"}
                             </td>
-                            <td className="px-4 py-2.5 text-sm text-secondary truncate max-w-[120px]">{order.driverName || "—"}</td>
+                            <td className="px-4 py-2.5 text-sm text-secondary truncate max-w-[120px]">{order.driverName ? cleanDriverName(order.driverName) : "\u2014"}</td>
                           </tr>
                         ))}
                       </tbody>

@@ -214,7 +214,7 @@ function CoreFleetView() {
           <ChevronLeft size={16} />
         </button>
         <span className="text-sm font-medium">
-          {weekDates[0].toLocaleDateString("en-GB", { day: "numeric", month: "short" })} —{" "}
+          {weekDates[0].toLocaleDateString("en-GB", { day: "numeric", month: "short" })} -{" "}
           {weekDates[6].toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
         </span>
         <button
@@ -281,14 +281,14 @@ function CoreFleetView() {
                             onClick={() => setSelected({ driver, shift, date: d })}
                             className="w-full bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-lg px-1.5 py-1.5 transition-colors text-left"
                           >
-                            <p className="text-[10px] font-semibold truncate">{shift.zone || "—"}</p>
+                            <p className="text-[10px] font-semibold truncate">{shift.zone || "-"}</p>
                             <p className="text-[10px] text-teal-600">
                               {shift.startTime} – {shift.endTime}
                             </p>
                             <p className="text-[10px] text-teal-500">{shift.duration}h</p>
                           </button>
                         ) : (
-                          <div className="text-[10px] text-gray-200 py-1">—</div>
+                          <div className="text-[10px] text-gray-200 py-1">-</div>
                         )}
                       </td>
                     );
@@ -319,7 +319,7 @@ function CoreFleetView() {
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                 </div>
               ))}
             </div>
@@ -369,7 +369,7 @@ export default function DeliverooShiftsPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-teal-500" />
-        <h1 className="text-xl font-semibold">Deliveroo — Shifts</h1>
+        <h1 className="text-xl font-semibold">Deliveroo - Shifts</h1>
         <span className="text-sm text-secondary">Al Hazm</span>
       </div>
 

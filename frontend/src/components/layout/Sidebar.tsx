@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Map, CalendarCheck, Ticket, Users, Settings,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeft,
   Car, Smartphone, ClipboardList, DollarSign, Briefcase,
-  ShieldAlert, BarChart3,
+  ShieldAlert, BarChart3, Target, Gauge, Building2,
 } from "lucide-react";
 
 const PLATFORMS = [
@@ -19,13 +19,15 @@ const PLATFORMS = [
     color: "text-talabat",
     bg: "bg-talabat/10",
     subPages: [
+      { name: "Overview", path: "/talabat/overview", icon: Gauge },
       { name: "Drivers", path: "/talabat/drivers", icon: Users },
       { name: "Shifts", path: "/talabat/shifts", icon: ClipboardList },
       { name: "Orders", path: "/talabat/orders", icon: Briefcase },
-      { name: "Cash & Dues", path: "/talabat/cash", icon: DollarSign },
+      { name: "Cash", path: "/talabat/cash", icon: DollarSign },
       { name: "Violations", path: "/talabat/violations", icon: ShieldAlert },
       { name: "Vehicles", path: "/talabat/vehicles", icon: Car },
       { name: "Phones", path: "/talabat/phones", icon: Smartphone },
+      { name: "Settings", path: "/talabat/settings", icon: Settings },
     ],
   },
   {
@@ -34,12 +36,14 @@ const PLATFORMS = [
     color: "text-keeta",
     bg: "bg-keeta/10",
     subPages: [
+      { name: "Overview", path: "/keeta/overview", icon: Gauge },
       { name: "Drivers", path: "/keeta/drivers", icon: Users },
       { name: "Shifts", path: "/keeta/shifts", icon: ClipboardList },
       { name: "Orders", path: "/keeta/orders", icon: Briefcase },
       { name: "Performance", path: "/keeta/performance", icon: BarChart3 },
       { name: "Vehicles", path: "/keeta/vehicles", icon: Car },
       { name: "Phones", path: "/keeta/phones", icon: Smartphone },
+      { name: "Settings", path: "/keeta/settings", icon: Settings },
     ],
   },
   {
@@ -48,11 +52,13 @@ const PLATFORMS = [
     color: "text-deliveroo",
     bg: "bg-deliveroo/10",
     subPages: [
+      { name: "Overview", path: "/deliveroo/overview", icon: Gauge },
       { name: "Drivers", path: "/deliveroo/drivers", icon: Users },
       { name: "Shifts", path: "/deliveroo/shifts", icon: ClipboardList },
       { name: "Orders & Cash", path: "/deliveroo/orders-cash", icon: Briefcase },
       { name: "Vehicles", path: "/deliveroo/vehicles", icon: Car },
       { name: "Phones", path: "/deliveroo/phones", icon: Smartphone },
+      { name: "Settings", path: "/deliveroo/settings", icon: Settings },
     ],
   },
   {
@@ -61,18 +67,22 @@ const PLATFORMS = [
     color: "text-americana",
     bg: "bg-americana/10",
     subPages: [
+      { name: "Overview", path: "/americana/overview", icon: Gauge },
       { name: "Drivers", path: "/americana/drivers", icon: Users },
       { name: "Shifts", path: "/americana/shifts", icon: ClipboardList },
       { name: "Orders", path: "/americana/orders", icon: Briefcase },
       { name: "Performance", path: "/americana/performance", icon: BarChart3 },
       { name: "Vehicles", path: "/americana/vehicles", icon: Car },
       { name: "Phones", path: "/americana/phones", icon: Smartphone },
+      { name: "Settings", path: "/americana/settings", icon: Settings },
     ],
   },
 ];
 
 const GLOBAL_NAV = [
   { name: "Overview", path: "/", icon: LayoutDashboard },
+  { name: "Companies", path: "/companies", icon: Building2 },
+  { name: "KPIs", path: "/kpis", icon: Target },
   { name: "Analytics", path: "/analytics", icon: BarChart3 },
   { name: "Live Map", path: "/map", icon: Map },
   { name: "Attendance", path: "/attendance", icon: CalendarCheck },

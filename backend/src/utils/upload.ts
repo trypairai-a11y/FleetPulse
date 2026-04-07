@@ -10,7 +10,7 @@ try {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
 } catch {
-  // Read-only filesystem (serverless) — multer won't be used for file uploads
+  // Read-only filesystem (serverless) - multer won't be used for file uploads
 }
 
 const storage = multer.diskStorage({

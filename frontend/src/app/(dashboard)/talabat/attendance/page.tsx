@@ -20,6 +20,12 @@ const FACE_FAIL_REASONS: Record<string, string> = {
   LOW_QUALITY: "Image too dark / blurry",
 };
 
+function parseDriverDisplay(raw: string) {
+  const m = raw.match(/^(.+?)\s+(\d+[A-Za-z]?)\s*[-–—]\s*(.+)$/);
+  if (m) return { name: m[1].trim(), batch: m[2].trim(), company: m[3].trim() };
+  return { name: raw, batch: "-", company: "-" };
+}
+
 const TALABAT_ZONES = [
   "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
 ];
@@ -42,6 +48,9 @@ export default function TalabatAttendancePage() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
 
+  const { data: companiesData } = useApiGet<any>("/api/companies?platform=TALABAT");
+  const companies = companiesData?.data || [];
+
   const params = new URLSearchParams({
     platform: "TALABAT",
     dateFrom: date,
@@ -51,8 +60,12 @@ export default function TalabatAttendancePage() {
   if (filters.zone) params.set("zone", filters.zone);
   if (filters.status) params.set("status", filters.status);
   if (filters.search) params.set("search", filters.search);
+  if (filters.company) params.set("companyId", filters.company);
 
-  const { data: summary } = useApiGet<any>("/api/attendance/summary?platform=TALABAT");
+  const summaryParams = new URLSearchParams({ platform: "TALABAT" });
+  if (filters.company) summaryParams.set("companyId", filters.company);
+
+  const { data: summary } = useApiGet<any>(`/api/attendance/summary?${summaryParams}`);
   const { data: records } = useApiGet<any>(`/api/attendance?${params}`);
   const { data: monthly } = useApiGet<any>(
     tab === "monthly" ? `/api/attendance/monthly?platform=TALABAT&month=${date.slice(0, 7)}` : null
@@ -79,7 +92,7 @@ export default function TalabatAttendancePage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-talabat" />
-        <h1 className="text-xl font-semibold">Talabat — Attendance</h1>
+        <h1 className="text-xl font-semibold">Talabat - Attendance</h1>
         <span className="text-sm text-secondary">Wahoo International</span>
       </div>
 
@@ -133,6 +146,7 @@ export default function TalabatAttendancePage() {
             />
             <FilterBar
               filters={[
+                { key: "company", type: "select", label: "All Companies", options: companies.map((c: any) => ({ value: c.id, label: c.name })) },
                 { key: "search", type: "search", label: "Search", placeholder: "Search driver..." },
                 {
                   key: "zone", type: "select", label: "All Zones",
@@ -163,6 +177,8 @@ export default function TalabatAttendancePage() {
                 <thead>
                   <tr className="border-b border-gray-50">
                     <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
+                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Batch</th>
+                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Company</th>
                     <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
                     <th className="text-left text-xs font-medium text-secondary px-5 py-3">Clock In</th>
                     <th className="text-left text-xs font-medium text-secondary px-5 py-3">Clock-in Location</th>
@@ -174,7 +190,7 @@ export default function TalabatAttendancePage() {
                 <tbody>
                   {attendanceList.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-5 py-12 text-center text-sm text-secondary">
+                      <td colSpan={9} className="px-5 py-12 text-center text-sm text-secondary">
                         No attendance records for this date
                       </td>
                     </tr>
@@ -193,9 +209,11 @@ export default function TalabatAttendancePage() {
                             {record.gpsZoneMismatch && (
                               <AlertTriangle size={13} className="text-amber-500 flex-shrink-0" />
                             )}
-                            <span className="text-sm font-medium">{record.driver?.name}</span>
+                            <span className="text-sm font-medium">{parseDriverDisplay(record.driver?.name || "").name}</span>
                           </div>
                         </td>
+                        <td className="px-5 py-3 text-sm text-secondary">{parseDriverDisplay(record.driver?.name || "").batch}</td>
+                        <td className="px-5 py-3 text-sm text-secondary">{parseDriverDisplay(record.driver?.name || "").company}</td>
                         <td className="px-5 py-3">
                           <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
                             "bg-green-100 text-green-700": record.status === "PRESENT",
@@ -209,13 +227,13 @@ export default function TalabatAttendancePage() {
                         <td className="px-5 py-3 text-sm text-secondary font-mono">
                           {record.shift?.actualStart
                             ? new Date(record.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                            : "—"}
+                            : "-"}
                         </td>
                         <td className="px-5 py-3">
                           <div className="flex items-center gap-1.5 text-sm text-secondary">
                             <MapPin size={12} className={record.gpsZoneMismatch ? "text-amber-500" : "text-gray-400"} />
                             <span className={record.gpsZoneMismatch ? "text-amber-600 font-medium" : ""}>
-                              {record.clockInLocation || "—"}
+                              {record.clockInLocation || "-"}
                             </span>
                           </div>
                         </td>
@@ -234,7 +252,7 @@ export default function TalabatAttendancePage() {
                               )}
                             </div>
                           ) : (
-                            <span className="text-xs text-secondary">—</span>
+                            <span className="text-xs text-secondary">-</span>
                           )}
                         </td>
                         <td className="px-5 py-3">
@@ -254,7 +272,7 @@ export default function TalabatAttendancePage() {
                               )}
                             </div>
                           ) : (
-                            <span className="text-xs text-secondary">—</span>
+                            <span className="text-xs text-secondary">-</span>
                           )}
                         </td>
                         <td className="px-5 py-3">
@@ -287,6 +305,8 @@ export default function TalabatAttendancePage() {
                 <thead>
                   <tr className="border-b border-gray-50">
                     <th className="text-left text-xs font-medium text-secondary px-5 py-3 sticky left-0 bg-white">Driver</th>
+                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Batch</th>
+                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Company</th>
                     <th className="text-left text-xs font-medium text-secondary px-5 py-3">Days Present</th>
                     <th className="text-left text-xs font-medium text-secondary px-5 py-3">Days Absent</th>
                     <th className="text-left text-xs font-medium text-secondary px-5 py-3">Late Count</th>
@@ -298,14 +318,16 @@ export default function TalabatAttendancePage() {
                 <tbody>
                   {monthlyList.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-5 py-12 text-center text-sm text-secondary">
+                      <td colSpan={9} className="px-5 py-12 text-center text-sm text-secondary">
                         No monthly data available
                       </td>
                     </tr>
                   ) : (
                     monthlyList.map((row: any) => (
                       <tr key={row.driverId} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
-                        <td className="px-5 py-3 text-sm font-medium sticky left-0 bg-white">{row.driverName}</td>
+                        <td className="px-5 py-3 text-sm font-medium sticky left-0 bg-white">{parseDriverDisplay(row.driverName || "").name}</td>
+                        <td className="px-5 py-3 text-sm text-secondary">{parseDriverDisplay(row.driverName || "").batch}</td>
+                        <td className="px-5 py-3 text-sm text-secondary">{parseDriverDisplay(row.driverName || "").company}</td>
                         <td className="px-5 py-3 text-sm text-green-600 font-medium">{row.present}</td>
                         <td className="px-5 py-3 text-sm text-red-500">{row.absent}</td>
                         <td className="px-5 py-3 text-sm text-orange-500">{row.late}</td>
@@ -319,7 +341,7 @@ export default function TalabatAttendancePage() {
                             <span className="text-sm text-secondary">0</span>
                           )}
                         </td>
-                        <td className="px-5 py-3 text-sm text-secondary font-mono">{row.totalHours || "—"}</td>
+                        <td className="px-5 py-3 text-sm text-secondary font-mono">{row.totalHours || "-"}</td>
                       </tr>
                     ))
                   )}
@@ -399,8 +421,8 @@ export default function TalabatAttendancePage() {
             <div className="grid grid-cols-2 gap-3">
               {[
                 ["Status", selected.status],
-                ["Clock In", selected.shift?.actualStart ? new Date(selected.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"],
-                ["Clock Out", selected.shift?.actualEnd ? new Date(selected.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"],
+                ["Clock In", selected.shift?.actualStart ? new Date(selected.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
+                ["Clock Out", selected.shift?.actualEnd ? new Date(selected.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
                 ["Late (min)", selected.lateMinutes || "0"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
@@ -440,7 +462,7 @@ export default function TalabatAttendancePage() {
                   <YesNoBadge value={!selected.gpsZoneMismatch} falseLabel="Mismatch" />
                   {selected.gpsZoneMismatch && (
                     <p className="text-[11px] text-amber-600 mt-1">
-                      Logged from: {selected.clockInLocation || "Unknown"} — Assigned: {selected.assignedZone || "—"}
+                      Logged from: {selected.clockInLocation || "Unknown"} - Assigned: {selected.assignedZone || "-"}
                     </p>
                   )}
                 </div>

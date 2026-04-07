@@ -35,21 +35,21 @@ public class SyncWorker extends Worker {
             // Sync unsynced notifications captured by OrderNotificationListener
             boolean notifOk = repository.syncNotificationsSync();
             if (!notifOk) {
-                Log.w(TAG, "syncNotifications returned false — scheduling retry");
+                Log.w(TAG, "syncNotifications returned false - scheduling retry");
                 return Result.retry();
             }
 
             // Sync unsynced GPS locations captured by LocationTrackingService
             boolean locOk = repository.syncLocationsSync();
             if (!locOk) {
-                Log.w(TAG, "syncLocations returned false — scheduling retry");
+                Log.w(TAG, "syncLocations returned false - scheduling retry");
                 return Result.retry();
             }
 
             // Sync app usage statistics
             boolean usageOk = repository.syncAppUsageSync();
             if (!usageOk) {
-                Log.w(TAG, "syncAppUsage returned false — scheduling retry");
+                Log.w(TAG, "syncAppUsage returned false - scheduling retry");
                 return Result.retry();
             }
 

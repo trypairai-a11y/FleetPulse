@@ -46,8 +46,8 @@ const PAYMENT_STATUS_STYLES: Record<string, string> = {
   CANCELLED: "bg-red-50 text-red-600",
 };
 
-function formatKWD(value: number): string {
-  return `${value.toFixed(3)} KWD`;
+function formatKD(value: number): string {
+  return `${value.toFixed(3)} KD`;
 }
 
 export default function AmericanaOrdersPage() {
@@ -106,16 +106,16 @@ export default function AmericanaOrdersPage() {
     {
       key: "orderId",
       label: "Order ID",
-      render: (v: string) => <span className="font-mono text-sm font-medium">{v || "—"}</span>,
+      render: (v: string) => <span className="font-mono text-sm font-medium">{v || "-"}</span>,
     },
     {
       key: "amount",
-      label: "Amount (KWD)",
-      render: (v: number) => <span className="text-sm font-semibold">{v != null ? formatKWD(v) : "—"}</span>,
+      label: "Amount (KD)",
+      render: (v: number) => <span className="text-sm font-semibold">{v != null ? formatKD(v) : "-"}</span>,
     },
-    { key: "posNumber", label: "POS", render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "—"}</span> },
-    { key: "storeName", label: "Store", render: (v: string) => <span className="text-sm text-secondary">{v || "—"}</span> },
-    { key: "driverName", label: "Driver", render: (v: string) => <span className="text-sm">{v || "—"}</span> },
+    { key: "posNumber", label: "POS", render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "-"}</span> },
+    { key: "storeName", label: "Store", render: (v: string) => <span className="text-sm text-secondary">{v || "-"}</span> },
+    { key: "driverName", label: "Driver", render: (v: string) => <span className="text-sm">{v || "-"}</span> },
     {
       key: "timestamp",
       label: "Time",
@@ -125,7 +125,7 @@ export default function AmericanaOrdersPage() {
             {new Date(v).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
         ) : (
-          <span className="text-secondary text-sm">—</span>
+          <span className="text-secondary text-sm">-</span>
         ),
     },
     {
@@ -133,7 +133,7 @@ export default function AmericanaOrdersPage() {
       label: "Payment",
       render: (v: string) => (
         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", PAYMENT_STATUS_STYLES[v] || "bg-gray-100 text-gray-600")}>
-          {v || "—"}
+          {v || "-"}
         </span>
       ),
     },
@@ -147,7 +147,7 @@ export default function AmericanaOrdersPage() {
           "bg-red-50 text-red-600": v === "CANCELLED",
           "bg-blue-50 text-blue-600": v === "IN_TRANSIT",
         })}>
-          {v || "—"}
+          {v || "-"}
         </span>
       ),
     },
@@ -159,7 +159,7 @@ export default function AmericanaOrdersPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-americana" />
-          <h1 className="text-xl font-semibold">Americana — Orders</h1>
+          <h1 className="text-xl font-semibold">Americana - Orders</h1>
           <span className="text-sm text-secondary">Al Hazm Express</span>
         </div>
         <div className="flex items-center gap-3">
@@ -201,7 +201,7 @@ export default function AmericanaOrdersPage() {
         <StatCard title="Total Orders" value={summary?.totalOrders ?? orders.length} icon={ShoppingBag} />
         <StatCard
           title="Total Amount"
-          value={summary?.totalAmount != null ? formatKWD(summary.totalAmount) : "—"}
+          value={summary?.totalAmount != null ? formatKD(summary.totalAmount) : "-"}
           icon={TrendingUp}
         />
         <StatCard
@@ -280,9 +280,9 @@ export default function AmericanaOrdersPage() {
         <h3 className="text-sm font-semibold mb-4">Daily Comparison</h3>
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: "Today", value: summary?.todayOrders ?? "—", sub: summary?.todayAmount != null ? formatKWD(summary.todayAmount) : "" },
-            { label: "Yesterday", value: summary?.yesterdayOrders ?? "—", sub: summary?.yesterdayAmount != null ? formatKWD(summary.yesterdayAmount) : "" },
-            { label: "7-Day Avg", value: summary?.avgOrders ?? "—", sub: summary?.avgAmount != null ? formatKWD(summary.avgAmount) : "" },
+            { label: "Today", value: summary?.todayOrders ?? "-", sub: summary?.todayAmount != null ? formatKD(summary.todayAmount) : "" },
+            { label: "Yesterday", value: summary?.yesterdayOrders ?? "-", sub: summary?.yesterdayAmount != null ? formatKD(summary.yesterdayAmount) : "" },
+            { label: "7-Day Avg", value: summary?.avgOrders ?? "-", sub: summary?.avgAmount != null ? formatKD(summary.avgAmount) : "" },
           ].map(({ label, value, sub }) => (
             <div key={label} className="bg-gray-50 rounded-2xl p-4">
               <p className="text-xs text-secondary font-medium mb-1">{label}</p>
@@ -311,17 +311,17 @@ export default function AmericanaOrdersPage() {
             <div className="grid grid-cols-2 gap-3">
               {[
                 ["Order ID", selected.orderId],
-                ["Amount", selected.amount != null ? formatKWD(selected.amount) : "—"],
+                ["Amount", selected.amount != null ? formatKD(selected.amount) : "-"],
                 ["POS Number", selected.posNumber],
                 ["Store", selected.storeName],
                 ["Driver", selected.driverName],
                 ["Payment Type", selected.paymentType],
                 ["Status", selected.status],
-                ["Timestamp", selected.timestamp ? new Date(selected.timestamp).toLocaleString() : "—"],
+                ["Timestamp", selected.timestamp ? new Date(selected.timestamp).toLocaleString() : "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                 </div>
               ))}
             </div>

@@ -46,7 +46,7 @@ function HoursBar({ hours, target = 12 }: { hours: number; target?: number }) {
 
 function FaceVerifCell({ status }: { status: "VERIFIED" | "FAILED" | "PENDING" | null }) {
   if (!status || status === "PENDING") {
-    return <span className="text-xs text-secondary">—</span>;
+    return <span className="text-xs text-secondary">-</span>;
   }
   if (status === "VERIFIED") {
     return (
@@ -91,7 +91,7 @@ export default function DeliverooAttendancePage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-teal-500" />
-        <h1 className="text-xl font-semibold">Deliveroo — Attendance</h1>
+        <h1 className="text-xl font-semibold">Deliveroo - Attendance</h1>
         <span className="text-sm text-secondary">Al Hazm</span>
       </div>
 
@@ -116,7 +116,7 @@ export default function DeliverooAttendancePage() {
         {mode === "FREELANCE" && (
           <span className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-xl">
             <Clock size={12} />
-            12h daily target — no fixed clock-in/out
+            12h daily target - no fixed clock-in/out
           </span>
         )}
         {mode === "CORE_FLEET" && (
@@ -264,14 +264,14 @@ export default function DeliverooAttendancePage() {
                             <td className="px-5 py-3 text-sm text-secondary">
                               {record.shift?.actualStart
                                 ? new Date(record.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                                : "—"}
+                                : "-"}
                             </td>
                             <td className="px-5 py-3 text-sm text-secondary">
                               {record.shift?.actualEnd
                                 ? new Date(record.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                                : "—"}
+                                : "-"}
                             </td>
-                            <td className="px-5 py-3 text-sm text-secondary">{record.lateMinutes || "—"}</td>
+                            <td className="px-5 py-3 text-sm text-secondary">{record.lateMinutes || "-"}</td>
                           </>
                         )}
                         <td className="px-5 py-3">
@@ -333,7 +333,7 @@ export default function DeliverooAttendancePage() {
                           <td className="px-5 py-3 text-sm tabular-nums">{row.totalHours?.toFixed(1)}h</td>
                           <td className="px-5 py-3 text-sm">
                             <span className={cn(row.daysBelowTarget > 0 ? "text-amber-600 font-medium" : "text-secondary")}>
-                              {row.daysBelowTarget ?? "—"}
+                              {row.daysBelowTarget ?? "-"}
                             </span>
                           </td>
                           <td className="px-5 py-3 text-sm">
@@ -342,13 +342,13 @@ export default function DeliverooAttendancePage() {
                         </>
                       ) : (
                         <>
-                          <td className="px-5 py-3 text-sm">{row.daysPresent ?? "—"}</td>
-                          <td className="px-5 py-3 text-sm text-red-500">{row.daysAbsent ?? "—"}</td>
+                          <td className="px-5 py-3 text-sm">{row.daysPresent ?? "-"}</td>
+                          <td className="px-5 py-3 text-sm text-red-500">{row.daysAbsent ?? "-"}</td>
                           <td className="px-5 py-3 text-sm tabular-nums">{row.avgHours?.toFixed(1)}h</td>
                         </>
                       )}
                       <td className="px-5 py-3 text-sm">
-                        <span className="text-teal-600 font-medium">{row.faceVerifRate ?? "—"}%</span>
+                        <span className="text-teal-600 font-medium">{row.faceVerifRate ?? "-"}%</span>
                       </td>
                     </tr>
                   ))

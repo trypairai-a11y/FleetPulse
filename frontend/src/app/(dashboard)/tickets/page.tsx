@@ -75,7 +75,7 @@ export default function TicketsPage() {
       <div className="grid grid-cols-4 gap-4">
         <StatCard title="Open Tickets" value={openCount} icon={Ticket} />
         <StatCard title="Overdue" value={overdueCount} icon={AlertTriangle} highlight={overdueCount > 0} />
-        <StatCard title="Avg Resolution" value="—" icon={Clock} />
+        <StatCard title="Avg Resolution" value="-" icon={Clock} />
         <StatCard title="Resolved This Week" value={resolvedWeek} icon={CheckCircle} />
       </div>
 

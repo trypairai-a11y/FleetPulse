@@ -9,11 +9,12 @@ router.use(authMiddleware, tenantScope);
 
 router.get("/summary", async (req: Request, res: Response) => {
   try {
-    const { platform } = req.query;
+    const { platform, companyId } = req.query;
     const where: any = {
       driver: { tenantId: req.user!.tenantId },
     };
     if (platform) where.driver.platform = platform as string;
+    if (companyId) where.driver.companyId = companyId as string;
 
     const [total, online, lowBattery, lost] = await Promise.all([
       prisma.device.count({ where }),
@@ -31,11 +32,12 @@ router.get("/summary", async (req: Request, res: Response) => {
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
-    const { status, search, platform } = req.query;
+    const { status, search, platform, companyId } = req.query;
     const where: any = {
       driver: { tenantId: req.user!.tenantId },
     };
     if (platform) where.driver.platform = platform as string;
+    if (companyId) where.driver.companyId = companyId as string;
     if (status) where.status = status;
     if (search) {
       where.OR = [
@@ -68,6 +70,46 @@ router.get("/", async (req: Request, res: Response) => {
     res.json(paginatedResponse(enriched, total, page, limit));
   } catch (err: any) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+router.post("/", async (req: Request, res: Response) => {
+  try {
+    const { imei, model, osVersion, driverId } = req.body;
+    if (!imei || !model || !osVersion) {
+      res.status(400).json({ error: "imei, model, and osVersion are required" });
+      return;
+    }
+
+    // If driverId provided, verify it belongs to this tenant
+    if (driverId) {
+      const driver = await prisma.driver.findFirst({
+        where: { id: driverId, tenantId: req.user!.tenantId },
+      });
+      if (!driver) {
+        res.status(400).json({ error: "Driver not found" });
+        return;
+      }
+    }
+
+    const device = await prisma.device.create({
+      data: {
+        tenantId: req.user!.tenantId,
+        imei,
+        model,
+        osVersion,
+        driverId: driverId || null,
+      },
+      include: { driver: { select: { id: true, name: true, phone: true, platform: true, zone: true } } },
+    });
+
+    res.status(201).json(device);
+  } catch (err: any) {
+    if (err.code === "P2002") {
+      res.status(409).json({ error: "A device with this IMEI already exists" });
+      return;
+    }
+    res.status(400).json({ error: err.message });
   }
 });
 
@@ -129,7 +171,7 @@ router.post("/:id/command", async (req: Request, res: Response) => {
   }
 });
 
-// GET /trail/:driverId — Location history for polyline trail
+// GET /trail/:driverId - Location history for polyline trail
 router.get("/trail/:driverId", async (req: Request, res: Response) => {
   try {
     const { hours } = req.query;

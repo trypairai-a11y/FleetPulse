@@ -15,6 +15,7 @@ import {
   XCircle,
   WifiOff,
   Signal,
+  Loader2,
 } from "lucide-react";
 
 const STORES = [
@@ -38,7 +39,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 function OnlineIndicator({ online }: { online: boolean | null }) {
-  if (online === null) return <span className="text-xs text-secondary">—</span>;
+  if (online === null) return <span className="text-xs text-secondary">-</span>;
   return online ? (
     <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
       <Signal size={12} /> Online
@@ -54,33 +55,37 @@ export default function AmericanaPhonePage() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [addForm, setAddForm] = useState({ imei: "", model: "", osVersion: "", driverId: "" });
+  const [addError, setAddError] = useState("");
+  const [adding, setAdding] = useState(false);
 
   const params = new URLSearchParams({ platform: "AMERICANA", limit: "100" });
   if (filters.search) params.set("search", filters.search);
   if (filters.store) params.set("store", filters.store);
   if (filters.status) params.set("status", filters.status);
 
-  const { data } = useApiGet<any>(`/api/devices?${params}`);
+  const { data, refetch } = useApiGet<any>(`/api/devices?${params}`);
   const { data: summary } = useApiGet<any>("/api/devices/summary?platform=AMERICANA");
+  const { data: driversData } = useApiGet<any>("/api/drivers?platform=AMERICANA&limit=500");
   const devices = data?.data || [];
 
   const columns = [
     {
       key: "imei",
       label: "IMEI",
-      render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "—"}</span>,
+      render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "-"}</span>,
     },
     {
       key: "model",
       label: "Model",
-      render: (v: string) => <span className="text-sm">{v || "—"}</span>,
+      render: (v: string) => <span className="text-sm">{v || "-"}</span>,
     },
     {
       key: "storeName",
       label: "Store",
       render: (v: string) => (
         <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700">
-          {v || "—"}
+          {v || "-"}
         </span>
       ),
     },
@@ -95,7 +100,7 @@ export default function AmericanaPhonePage() {
       key: "mobileNumber",
       label: "Mobile Number",
       render: (_: any, r: any) => (
-        <span className="font-mono text-xs text-secondary">{r.driver?.phone || "—"}</span>
+        <span className="font-mono text-xs text-secondary">{r.driver?.phone || "-"}</span>
       ),
     },
     {
@@ -106,16 +111,7 @@ export default function AmericanaPhonePage() {
     {
       key: "appVersion",
       label: "App Version",
-      render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "—"}</span>,
-    },
-    {
-      key: "status",
-      label: "Status",
-      render: (v: string) => (
-        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", STATUS_STYLES[v] || "bg-gray-100 text-gray-600")}>
-          {v || "—"}
-        </span>
-      ),
+      render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "-"}</span>,
     },
   ];
 
@@ -125,7 +121,7 @@ export default function AmericanaPhonePage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-americana" />
-          <h1 className="text-xl font-semibold">Americana — Phones</h1>
+          <h1 className="text-xl font-semibold">Americana - Phones</h1>
           <span className="text-sm text-secondary">Al Hazm Express</span>
         </div>
         <button
@@ -197,12 +193,12 @@ export default function AmericanaPhonePage() {
                 ["Assigned Driver", selected.driver?.name || selected.assignedDriver || "Unassigned"],
                 ["Status", selected.status],
                 ["Connectivity", selected.online ? "Online" : "Offline"],
-                ["Last Seen", selected.lastSeen ? new Date(selected.lastSeen).toLocaleString() : "—"],
-                ["Last Location", selected.lastLocation || "—"],
+                ["Last Seen", selected.lastSeen ? new Date(selected.lastSeen).toLocaleString() : "-"],
+                ["Last Location", selected.lastLocation || "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                 </div>
               ))}
             </div>
@@ -243,11 +239,91 @@ export default function AmericanaPhonePage() {
           <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold">Add Americana Device</h2>
-              <button onClick={() => setShowAdd(false)} className="p-1 hover:bg-gray-50 rounded-lg">
+              <button onClick={() => { setShowAdd(false); setAddError(""); }} className="p-1 hover:bg-gray-50 rounded-lg">
                 <X size={18} />
               </button>
             </div>
-            <p className="text-sm text-secondary">Device form — connects to POST /api/devices with platform=AMERICANA</p>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setAddError("");
+                setAdding(true);
+                try {
+                  await api.post("/api/devices", {
+                    imei: addForm.imei,
+                    model: addForm.model,
+                    osVersion: addForm.osVersion,
+                    driverId: addForm.driverId || undefined,
+                  });
+                  setShowAdd(false);
+                  setAddForm({ imei: "", model: "", osVersion: "", driverId: "" });
+                  refetch();
+                } catch (err: any) {
+                  setAddError(err.response?.data?.error || "Failed to add device");
+                } finally {
+                  setAdding(false);
+                }
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1">IMEI *</label>
+                <input
+                  type="text"
+                  required
+                  value={addForm.imei}
+                  onChange={(e) => setAddForm({ ...addForm, imei: e.target.value })}
+                  placeholder="e.g. 353456789012345"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1">Model *</label>
+                <input
+                  type="text"
+                  required
+                  value={addForm.model}
+                  onChange={(e) => setAddForm({ ...addForm, model: e.target.value })}
+                  placeholder="e.g. Samsung Galaxy A14"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1">OS Version *</label>
+                <input
+                  type="text"
+                  required
+                  value={addForm.osVersion}
+                  onChange={(e) => setAddForm({ ...addForm, osVersion: e.target.value })}
+                  placeholder="e.g. Android 14"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1">Assign to Driver</label>
+                <select
+                  value={addForm.driverId}
+                  onChange={(e) => setAddForm({ ...addForm, driverId: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white"
+                >
+                  <option value="">Unassigned</option>
+                  {(driversData?.data || []).map((d: any) => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
+              {addError && (
+                <p className="text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2">{addError}</p>
+              )}
+              <button
+                type="submit"
+                disabled={adding}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-50"
+              >
+                {adding && <Loader2 size={14} className="animate-spin" />}
+                {adding ? "Adding..." : "Add Device"}
+              </button>
+            </form>
           </div>
         </div>
       )}

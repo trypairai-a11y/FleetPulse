@@ -114,7 +114,7 @@ public class LocationTrackingService extends Service {
 
         Notification notification = new NotificationCompat.Builder(this,
                 Constants.NOTIFICATION_CHANNEL_TRACKING)
-                .setContentTitle("Darb — Location Active")
+                .setContentTitle("Darb - Location Active")
                 .setContentText("Tracking your location during shift")
                 .setSmallIcon(android.R.drawable.ic_menu_mylocation)
                 .setContentIntent(pendingIntent)
@@ -133,7 +133,7 @@ public class LocationTrackingService extends Service {
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-            Log.w(TAG, "Location permission not granted — cannot start tracking");
+            Log.w(TAG, "Location permission not granted - cannot start tracking");
             return;
         }
 

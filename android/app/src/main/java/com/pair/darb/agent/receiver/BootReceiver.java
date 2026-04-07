@@ -41,7 +41,7 @@ public class BootReceiver extends BroadcastReceiver {
             return;
         }
 
-        Log.d(TAG, "Boot completed — starting Darb background services");
+        Log.d(TAG, "Boot completed - starting Darb background services");
 
         PrefsManager prefs = PrefsManager.getInstance(context);
 

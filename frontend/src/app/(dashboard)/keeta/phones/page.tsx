@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 function timeAgo(dateStr: string): string {
-  if (!dateStr) return "—";
+  if (!dateStr) return "-";
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return "just now";
@@ -59,7 +59,7 @@ export default function KeetaPhonesPage() {
   const [messageText, setMessageText] = useState("");
   const [showMessageInput, setShowMessageInput] = useState(false);
 
-  const params = new URLSearchParams({ limit: "100" });
+  const params = new URLSearchParams({ platform: "KEETA", limit: "100" });
   if (filters.search) params.set("search", filters.search);
   if (filters.status) params.set("online", filters.status === "online" ? "true" : "false");
 
@@ -89,7 +89,7 @@ export default function KeetaPhonesPage() {
     {
       key: "imei",
       label: "IMEI",
-      render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "—"}</span>,
+      render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "-"}</span>,
     },
     {
       key: "model",
@@ -99,7 +99,7 @@ export default function KeetaPhonesPage() {
           <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
             <Smartphone size={13} className="text-gray-400" />
           </div>
-          <span className="text-sm font-medium">{r.model || r.phoneModel || "—"}</span>
+          <span className="text-sm font-medium">{r.model || r.phoneModel || "-"}</span>
         </div>
       ),
     },
@@ -114,7 +114,7 @@ export default function KeetaPhonesPage() {
       key: "mobileNumber",
       label: "Mobile Number",
       render: (_: any, r: any) => (
-        <span className="font-mono text-xs text-secondary">{r.driver?.phone || "—"}</span>
+        <span className="font-mono text-xs text-secondary">{r.driver?.phone || "-"}</span>
       ),
     },
     {
@@ -131,16 +131,11 @@ export default function KeetaPhonesPage() {
         const outdated = v && r.latestAgentVersion && v !== r.latestAgentVersion;
         return (
           <span className={cn("text-xs font-mono", outdated ? "text-orange-500" : "text-secondary")}>
-            {v || "—"}
+            {v || "-"}
             {outdated && <AlertTriangle size={11} className="inline ml-1" />}
           </span>
         );
       },
-    },
-    {
-      key: "isOnline",
-      label: "Status",
-      render: (v: boolean, r: any) => <OnlineIndicator online={v ?? r.online ?? false} />,
     },
   ];
 
@@ -149,7 +144,7 @@ export default function KeetaPhonesPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-keeta" />
-        <h1 className="text-xl font-semibold">Keeta — Phones</h1>
+        <h1 className="text-xl font-semibold">Keeta - Phones</h1>
         <span className="text-sm text-secondary">Sidra</span>
       </div>
 
@@ -225,16 +220,16 @@ export default function KeetaPhonesPage() {
                 ["IMEI", selected.imei],
                 ["Model", selected.model || selected.phoneModel],
                 ["Assigned Driver", selected.driver?.name || selected.assignedDriver || "Unassigned"],
-                ["Agent Version", selected.agentVersion || "—"],
-                ["Latest Agent", selected.latestAgentVersion || "—"],
-                ["OS Version", selected.osVersion || "—"],
-                ["Serial", selected.serialNumber || "—"],
-                ["Last Seen", selected.lastSeen ? new Date(selected.lastSeen).toLocaleString() : "—"],
-                ["Enrolled", selected.enrolledAt ? new Date(selected.enrolledAt).toLocaleDateString() : "—"],
+                ["Agent Version", selected.agentVersion || "-"],
+                ["Latest Agent", selected.latestAgentVersion || "-"],
+                ["OS Version", selected.osVersion || "-"],
+                ["Serial", selected.serialNumber || "-"],
+                ["Last Seen", selected.lastSeen ? new Date(selected.lastSeen).toLocaleString() : "-"],
+                ["Enrolled", selected.enrolledAt ? new Date(selected.enrolledAt).toLocaleDateString() : "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5 truncate">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5 truncate">{val || "-"}</p>
                 </div>
               ))}
             </div>

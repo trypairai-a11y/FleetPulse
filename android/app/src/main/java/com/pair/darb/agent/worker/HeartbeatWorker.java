@@ -54,11 +54,11 @@ public class HeartbeatWorker extends Worker {
                     coordinates[0], coordinates[1]);
 
             if (ok) {
-                Log.d(TAG, "Heartbeat sent — battery=" + batteryLevel
+                Log.d(TAG, "Heartbeat sent - battery=" + batteryLevel
                         + "% lat=" + coordinates[0] + " lng=" + coordinates[1]);
                 return Result.success();
             } else {
-                Log.w(TAG, "Heartbeat API returned failure — will retry");
+                Log.w(TAG, "Heartbeat API returned failure - will retry");
                 return Result.retry();
             }
 

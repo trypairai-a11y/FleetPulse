@@ -125,7 +125,7 @@ export default function DataTable({ columns, data, onRowClick, emptyMessage = "N
                 >
                   {columns.map((col) => (
                     <td key={col.key} className={cn("px-5 py-3 text-sm whitespace-nowrap", col.className)}>
-                      {col.render ? col.render(row[col.key], row, i) : row[col.key] ?? "—"}
+                      {col.render ? col.render(row[col.key], row, i) : row[col.key] ?? "-"}
                     </td>
                   ))}
                 </tr>

@@ -56,7 +56,7 @@ type ShiftCell = { time: string; slot: "AM" | "PM" } | "OFF" | null;
 
 function ShiftCellDisplay({ cell }: { cell: ShiftCell }) {
   if (cell === null) {
-    return <span className="text-xs text-gray-300">—</span>;
+    return <span className="text-xs text-gray-300">-</span>;
   }
   if (cell === "OFF") {
     return (
@@ -134,7 +134,7 @@ export default function AmericanaShiftsPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-americana" />
-          <h1 className="text-xl font-semibold">Americana — Shifts</h1>
+          <h1 className="text-xl font-semibold">Americana - Shifts</h1>
           <span className="text-sm text-secondary">Al Hazm Express</span>
         </div>
         <div className="flex items-center gap-3">
@@ -167,7 +167,7 @@ export default function AmericanaShiftsPage() {
         <Info size={16} className="text-blue-500 mt-0.5 shrink-0" />
         <p className="text-xs text-blue-700">
           <span className="font-semibold">Americana shift structure is unique:</span> Weekly schedule is managed per branch with AM/PM designations.
-          Americana has <span className="font-semibold">no native face verification</span> — Darb injects face check via the Android agent at clock-in.
+          Americana has <span className="font-semibold">no native face verification</span> - Darb injects face check via the Android agent at clock-in.
         </p>
       </div>
 
@@ -175,7 +175,7 @@ export default function AmericanaShiftsPage() {
       <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-start gap-3">
         <Moon size={16} className="text-amber-600 mt-0.5 shrink-0" />
         <p className="text-sm text-amber-800">
-          <span className="font-semibold">Ramadan Schedule Active</span> — drivers must stay until all orders are delivered after 4:00 AM.
+          <span className="font-semibold">Ramadan Schedule Active</span> - drivers must stay until all orders are delivered after 4:00 AM.
         </p>
       </div>
 
@@ -246,9 +246,9 @@ export default function AmericanaShiftsPage() {
               ) : (
                 scheduleRows.map((row: any) => (
                   <tr key={row.driverId} className="border-b border-gray-50 last:border-0 hover:bg-gray-25 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-secondary">{row.employeeId || "—"}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-secondary">{row.employeeId || "-"}</td>
                     <td className="px-4 py-3 text-sm font-medium">{row.driverName}</td>
-                    <td className="px-4 py-3 text-xs text-secondary">{row.storeName || "—"}</td>
+                    <td className="px-4 py-3 text-xs text-secondary">{row.storeName || "-"}</td>
                     {DAYS_OF_WEEK.map((_, i) => {
                       const cell: ShiftCell = row.days?.[i] ?? null;
                       return (

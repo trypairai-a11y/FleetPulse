@@ -63,7 +63,7 @@ router.get("/fleet-overview", async (req: Request, res: Response) => {
         _sum: { orderCount: true },
       }),
 
-      // Cash pending — current month ledgers
+      // Cash pending - current month ledgers
       prisma.pendingDuesLedger.aggregate({
         where: { tenantId, month: { gte: currentMonth }, status: "OPEN" },
         _sum: { closingBalance: true },

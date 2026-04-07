@@ -103,7 +103,7 @@ public class SelfieActivity extends AppCompatActivity {
 
         // Title bar
         TextView tvTitle = new TextView(this);
-        String titleText = Constants.ACTION_CLOCK_IN.equals(action) ? "Clock In — Selfie" : "Clock Out — Selfie";
+        String titleText = Constants.ACTION_CLOCK_IN.equals(action) ? "Clock In - Selfie" : "Clock Out - Selfie";
         tvTitle.setText(titleText);
         tvTitle.setTextSize(18f);
         tvTitle.setTypeface(null, Typeface.BOLD);

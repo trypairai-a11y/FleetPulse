@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useApiGet } from "@/hooks/useApi";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
@@ -7,9 +7,17 @@ import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
 import {
   Clock, CheckCircle2, XCircle, AlertTriangle,
-  ShieldCheck, Camera, MapPin, CalendarDays, ChevronRight,
+  ShieldCheck, Camera, MapPin, CalendarDays, ChevronRight, ChevronUp, ChevronDown,
   Phone, UserCheck, UserX, Users,
 } from "lucide-react";
+
+type SortKey = "driverName" | "phone" | "batchNumber" | "company" | "zone" | "booking" | "bookedHours" | "actualHours" | "actualStart" | "actualEnd";
+
+/** Strip batch number and company suffix from driver name, e.g. "AKHIL MATHEW 4 - WAHI" → "AKHIL MATHEW" */
+function cleanDriverName(raw: string) {
+  return raw.replace(/\s+\d+\s*-\s*\w+$/i, "").trim();
+}
+type SortDir = "asc" | "desc";
 
 const TALABAT_ZONES = [
   "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
@@ -38,12 +46,18 @@ export default function TalabatShiftsPage() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const { data: companiesData } = useApiGet<any>("/api/companies?platform=TALABAT");
+  const companies = companiesData?.data || [];
 
   const params = new URLSearchParams({ platform: "TALABAT", date });
   if (filters.zone) params.set("zone", filters.zone);
   if (filters.batch) params.set("batchNumber", filters.batch);
   if (filters.bookingFilter) params.set("bookingFilter", filters.bookingFilter);
   if (filters.search) params.set("search", filters.search);
+  if (filters.company) params.set("companyId", filters.company);
 
   const { data: bookingData } = useApiGet<any>(`/api/shifts/booking-status?${params}`);
   const { data: summary } = useApiGet<any>("/api/shifts/summary?platform=TALABAT");
@@ -54,12 +68,60 @@ export default function TalabatShiftsPage() {
   const totalDrivers = bookingData?.totalDrivers || 0;
   const bookingRate = totalDrivers > 0 ? Math.round((bookedCount / totalDrivers) * 100) : 0;
 
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const sortedDrivers = useMemo(() => {
+    if (!sortKey) return driverList;
+    return [...driverList].sort((a: any, b: any) => {
+      let aVal: any, bVal: any;
+      switch (sortKey) {
+        case "driverName": aVal = a.driverName || ""; bVal = b.driverName || ""; break;
+        case "phone": aVal = a.phone || ""; bVal = b.phone || ""; break;
+        case "batchNumber": aVal = Number(a.batchNumber) || 0; bVal = Number(b.batchNumber) || 0; break;
+        case "company": aVal = a.companyName || ""; bVal = b.companyName || ""; break;
+        case "zone": aVal = a.zone || ""; bVal = b.zone || ""; break;
+        case "booking": aVal = a.hasBooked ? 1 : 0; bVal = b.hasBooked ? 1 : 0; break;
+        case "bookedHours": aVal = a.bookedHours || 0; bVal = b.bookedHours || 0; break;
+        case "actualHours": aVal = a.actualHours || 0; bVal = b.actualHours || 0; break;
+        case "actualStart": aVal = a.actualStart || ""; bVal = b.actualStart || ""; break;
+        case "actualEnd": aVal = a.actualEnd || ""; bVal = b.actualEnd || ""; break;
+        default: return 0;
+      }
+      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [driverList, sortKey, sortDir]);
+
+  const SortHeader = ({ label, colKey }: { label: string; colKey: SortKey }) => (
+    <th
+      className="text-left text-xs font-medium text-secondary px-5 py-3 cursor-pointer select-none hover:text-primary transition-colors"
+      onClick={() => toggleSort(colKey)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {sortKey === colKey ? (
+          sortDir === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+        ) : (
+          <ChevronDown size={12} className="opacity-0 group-hover:opacity-30" />
+        )}
+      </span>
+    </th>
+  );
+
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-talabat" />
-        <h1 className="text-xl font-semibold">Talabat — Shifts</h1>
+        <h1 className="text-xl font-semibold">Talabat - Shifts</h1>
         <span className="text-sm text-secondary">Wahoo International</span>
         <span className="ml-2 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
           Released Tue 8–11 AM by batch
@@ -99,6 +161,7 @@ export default function TalabatShiftsPage() {
         />
         <FilterBar
           filters={[
+            { key: "company", type: "select", label: "All Companies", options: companies.map((c: any) => ({ value: c.id, label: c.name })) },
             { key: "search", type: "search", label: "Search", placeholder: "Search driver..." },
             {
               key: "zone", type: "select", label: "All Zones",
@@ -106,7 +169,7 @@ export default function TalabatShiftsPage() {
             },
             {
               key: "batch", type: "select", label: "All Batches",
-              options: ["Batch A", "Batch B", "Batch C", "Batch D"].map(b => ({ value: b, label: b })),
+              options: ["1", "2", "3", "4", "5", "6", "7"].map(b => ({ value: b, label: `Batch ${b}` })),
             },
             {
               key: "bookingFilter", type: "select", label: "All Drivers", options: [
@@ -126,16 +189,16 @@ export default function TalabatShiftsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-50">
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Phone</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Batch</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Zone</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Booking</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Booked</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Actual</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">In</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Out</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
+                <SortHeader label="Driver" colKey="driverName" />
+                <SortHeader label="Phone" colKey="phone" />
+                <SortHeader label="Batch" colKey="batchNumber" />
+                <SortHeader label="Company" colKey="company" />
+                <SortHeader label="Zone" colKey="zone" />
+                <SortHeader label="Booking" colKey="booking" />
+                <SortHeader label="Booked" colKey="bookedHours" />
+                <SortHeader label="Actual" colKey="actualHours" />
+                <SortHeader label="In" colKey="actualStart" />
+                <SortHeader label="Out" colKey="actualEnd" />
                 <th className="px-5 py-3" />
               </tr>
             </thead>
@@ -147,7 +210,7 @@ export default function TalabatShiftsPage() {
                   </td>
                 </tr>
               ) : (
-                driverList.map((d: any) => {
+                sortedDrivers.map((d: any) => {
                   const hoursMatch = !d.bookedHours || !d.actualHours || Math.abs(d.bookedHours - d.actualHours) < 0.5;
                   return (
                     <tr
@@ -160,7 +223,7 @@ export default function TalabatShiftsPage() {
                     >
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{d.driverName}</span>
+                          <span className="text-sm font-medium">{cleanDriverName(d.driverName)}</span>
                         </div>
                       </td>
                       <td className="px-5 py-3">
@@ -175,55 +238,48 @@ export default function TalabatShiftsPage() {
                       </td>
                       <td className="px-5 py-3">
                         <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-orange-50 text-orange-700">
-                          {d.batchNumber || "—"}
+                          {d.batchNumber || "-"}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-sm text-secondary">{d.zone || "—"}</td>
+                      <td className="px-5 py-3 text-sm text-secondary">{d.companyName || "-"}</td>
+                      <td className="px-5 py-3 text-sm text-secondary">{d.zone || "-"}</td>
                       <td className="px-5 py-3">
                         {d.hasBooked ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
-                            <CheckCircle2 size={11} /> Booked
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700">
+                            <CheckCircle2 size={14} className="shrink-0" /> Booked
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600">
-                            <XCircle size={11} /> Not Booked
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-red-50 text-red-700">
+                            <XCircle size={14} className="shrink-0" /> Not Booked
                           </span>
                         )}
                       </td>
                       <td className="px-5 py-3 text-sm font-mono text-secondary">
-                        {d.bookedHours ? `${d.bookedHours.toFixed(1)}h` : "—"}
+                        {d.scheduledStart && d.scheduledEnd
+                          ? <div className="flex flex-col leading-tight">
+                              <span>{new Date(d.scheduledStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                              <span>{new Date(d.scheduledEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                            </div>
+                          : d.bookedHours ? `${d.bookedHours.toFixed(1)}h` : "-"}
                       </td>
                       <td className="px-5 py-3">
                         <span className={cn(
                           "text-sm font-mono",
                           !hoursMatch ? "text-amber-600 font-medium" : "text-secondary"
                         )}>
-                          {d.actualHours ? `${d.actualHours.toFixed(1)}h` : "—"}
+                          {d.actualHours ? `${d.actualHours.toFixed(1)}h` : "-"}
                           {!hoursMatch && <AlertTriangle size={11} className="inline ml-1" />}
                         </span>
                       </td>
                       <td className="px-5 py-3 text-sm font-mono text-secondary">
                         {d.actualStart
                           ? new Date(d.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                          : "—"}
+                          : "-"}
                       </td>
                       <td className="px-5 py-3 text-sm font-mono text-secondary">
                         {d.actualEnd
                           ? new Date(d.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                          : "—"}
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
-                          "bg-green-50 text-green-600": d.status === "COMPLETED",
-                          "bg-blue-50 text-blue-600": d.status === "IN_PROGRESS",
-                          "bg-red-50 text-red-600": d.status === "MISSED",
-                          "bg-gray-100 text-gray-500": d.status === "CANCELLED",
-                          "bg-amber-50 text-amber-700 border border-amber-200": d.status === "NO_SHOW",
-                          "bg-gray-50 text-gray-400": d.status === "NOT_BOOKED",
-                          "bg-orange-50 text-orange-600": d.status === "BOOKED",
-                        })}>
-                          {d.status === "NOT_BOOKED" ? "Not Booked" : d.status === "NO_SHOW" ? "No Show" : d.status}
-                        </span>
+                          : "-"}
                       </td>
                       <td className="px-5 py-3">
                         <ChevronRight size={15} className="text-gray-300" />
@@ -242,7 +298,7 @@ export default function TalabatShiftsPage() {
         open={!!selected}
         onClose={() => setSelected(null)}
         title={selected?.driverName || "Driver Detail"}
-        subtitle={`Talabat — ${selected?.batchNumber || ""} · ${selected?.zone || ""}`}
+        subtitle={`Talabat - ${selected?.batchNumber || ""} · ${selected?.zone || ""}`}
       >
         {selected && (
           <div className="space-y-5">
@@ -296,11 +352,11 @@ export default function TalabatShiftsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">Booked Hours</p>
-                  <p className="text-xl font-semibold mt-0.5 font-mono">{selected.bookedHours ? `${selected.bookedHours.toFixed(1)}h` : "—"}</p>
+                  <p className="text-xl font-semibold mt-0.5 font-mono">{selected.bookedHours ? `${selected.bookedHours.toFixed(1)}h` : "-"}</p>
                 </div>
                 <div className={cn("rounded-xl p-3", Math.abs((selected.bookedHours || 0) - (selected.actualHours || 0)) > 0.5 ? "bg-amber-50" : "bg-gray-50")}>
                   <p className="text-[10px] text-secondary uppercase font-medium">Actual Hours</p>
-                  <p className="text-xl font-semibold mt-0.5 font-mono">{selected.actualHours ? `${selected.actualHours.toFixed(1)}h` : "—"}</p>
+                  <p className="text-xl font-semibold mt-0.5 font-mono">{selected.actualHours ? `${selected.actualHours.toFixed(1)}h` : "-"}</p>
                 </div>
               </div>
             )}
@@ -328,7 +384,7 @@ export default function TalabatShiftsPage() {
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                 </div>
               ))}
             </div>

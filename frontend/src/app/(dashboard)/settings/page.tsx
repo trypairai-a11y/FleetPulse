@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useApiGet } from "@/hooks/useApi";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/cn";
 import PlatformBadge from "@/components/shared/PlatformBadge";
-import { Plus, X, Shield, UserX, UserCheck, Loader2 } from "lucide-react";
+import { Plus, X, Shield, UserX, UserCheck, Loader2, Bell, Check } from "lucide-react";
 import api from "@/lib/api";
 
 const ROLES = ["ADMIN", "OPS_MANAGER", "SUPERVISOR", "ACCOUNTANT", "VIEWER"] as const;
@@ -17,7 +17,7 @@ const ROLE_COLORS: Record<string, string> = {
   VIEWER: "bg-gray-100 text-gray-500",
 };
 
-type Tab = "companies" | "users" | "profile";
+type Tab = "companies" | "users" | "notifications" | "profile";
 
 function UsersTab() {
   const { data, refetch } = useApiGet<any>("/api/users?limit=100");
@@ -207,6 +207,160 @@ function UsersTab() {
   );
 }
 
+const VIOLATION_TYPES = [
+  { key: "CASH_THRESHOLD_EXCEEDED", label: "Cash Threshold Exceeded", severity: "CRITICAL" },
+  { key: "GPS_OFF", label: "GPS Off", severity: "HIGH" },
+  { key: "OUT_OF_ZONE", label: "Out of Zone", severity: "HIGH" },
+  { key: "ZONE_MISMATCH", label: "Zone Mismatch", severity: "HIGH" },
+  { key: "SELFIE_FAIL", label: "Selfie Fail", severity: "HIGH" },
+  { key: "SHIFT_NOT_BOOKED", label: "Shift Not Booked", severity: "HIGH" },
+  { key: "LATE_CLOCK_IN", label: "Late Clock In", severity: "MEDIUM" },
+  { key: "EARLY_CLOCK_OUT", label: "Early Clock Out", severity: "MEDIUM" },
+  { key: "EQUIPMENT_MISSING", label: "Equipment Missing", severity: "MEDIUM" },
+  { key: "ORDER_CLICK_THROUGH", label: "Order Click Through", severity: "MEDIUM" },
+  { key: "cash_overdue", label: "Cash Overdue (Alert)", severity: "HIGH" },
+  { key: "shift_not_booked", label: "Shift Booking Reminder", severity: "HIGH" },
+];
+
+const SEVERITY_DOT: Record<string, string> = {
+  CRITICAL: "bg-red-500",
+  HIGH: "bg-orange-400",
+  MEDIUM: "bg-yellow-400",
+  LOW: "bg-blue-400",
+};
+
+interface NotificationRule {
+  id: string;
+  eventType: string;
+  role: string;
+  enabled: boolean;
+}
+
+function NotificationsTab() {
+  const [rules, setRules] = useState<NotificationRule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [saved, setSaved] = useState<string | null>(null);
+
+  const fetchRules = useCallback(async () => {
+    try {
+      const { data } = await api.get("/api/notifications/rules");
+      setRules(data);
+    } catch {}
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchRules(); }, [fetchRules]);
+
+  function isEnabled(eventType: string, role: string): boolean {
+    const rule = rules.find((r) => r.eventType === eventType && r.role === role);
+    return rule?.enabled ?? false;
+  }
+
+  async function toggleRule(eventType: string, role: string) {
+    const key = `${eventType}-${role}`;
+    setSaving(key);
+    const current = isEnabled(eventType, role);
+    try {
+      await api.put("/api/notifications/rules", { eventType, role, enabled: !current });
+      setRules((prev) => {
+        const idx = prev.findIndex((r) => r.eventType === eventType && r.role === role);
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx] = { ...updated[idx], enabled: !current };
+          return updated;
+        }
+        return [...prev, { id: "", eventType, role, enabled: !current }];
+      });
+      setSaved(key);
+      setTimeout(() => setSaved(null), 1200);
+    } catch {}
+    setSaving(null);
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 size={20} className="animate-spin text-secondary" />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <p className="text-sm text-secondary mb-4">
+        Configure which roles receive in-app notifications for each violation type. Toggle cells to enable or disable.
+      </p>
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-100">
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3 sticky left-0 bg-white min-w-[220px]">
+                  Violation Type
+                </th>
+                {ROLES.map((role) => (
+                  <th key={role} className="text-center text-xs font-medium text-secondary px-4 py-3 min-w-[100px]">
+                    {role.replace("_", " ")}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {VIOLATION_TYPES.map((vt) => (
+                <tr key={vt.key} className="border-b border-gray-50 last:border-0 hover:bg-gray-25">
+                  <td className="px-5 py-3 sticky left-0 bg-white">
+                    <div className="flex items-center gap-2">
+                      <span className={cn("w-2 h-2 rounded-full flex-shrink-0", SEVERITY_DOT[vt.severity])} />
+                      <span className="text-sm font-medium text-foreground">{vt.label}</span>
+                    </div>
+                  </td>
+                  {ROLES.map((role) => {
+                    const key = `${vt.key}-${role}`;
+                    const enabled = isEnabled(vt.key, role);
+                    const isSaving = saving === key;
+                    const justSaved = saved === key;
+                    return (
+                      <td key={role} className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => toggleRule(vt.key, role)}
+                          disabled={isSaving}
+                          className={cn(
+                            "w-9 h-9 rounded-xl flex items-center justify-center mx-auto transition-all",
+                            enabled
+                              ? "bg-primary/10 text-primary hover:bg-primary/20"
+                              : "bg-gray-50 text-gray-300 hover:bg-gray-100 hover:text-gray-400"
+                          )}
+                        >
+                          {isSaving ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : justSaved ? (
+                            <Check size={14} className="text-green-500" />
+                          ) : enabled ? (
+                            <Bell size={14} />
+                          ) : (
+                            <Bell size={14} />
+                          )}
+                        </button>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center gap-6 text-xs text-secondary">
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-red-500" /> Critical</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-orange-400" /> High</span>
+        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400" /> Medium</span>
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>("companies");
   const { user } = useAuth();
@@ -243,7 +397,7 @@ export default function SettingsPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-        {(["companies", "users", "profile"] as Tab[]).map((t) => (
+        {(["companies", "users", "notifications", "profile"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize",
@@ -324,6 +478,8 @@ export default function SettingsPage() {
       )}
 
       {tab === "users" && <UsersTab />}
+
+      {tab === "notifications" && <NotificationsTab />}
 
       {tab === "profile" && (
         <div className="bg-white rounded-2xl shadow-sm p-6 max-w-lg">

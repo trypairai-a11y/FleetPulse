@@ -44,7 +44,7 @@ const ORDER_PATTERN = /^[A-Za-z]*[-#]?\d{3,}[A-Za-z0-9\-]*$/;
 const PAYMENT_PATTERN = /^(cash|knet|k-?net|كاش|كي نت)$/i;
 
 // Amount: numeric with optional decimals
-const AMOUNT_PATTERN = /^(\d+(?:\.\d{1,3})?)(?:\s*(?:KD|KWD|د\.ك))?$/i;
+const AMOUNT_PATTERN = /^(\d+(?:\.\d{1,3})?)(?:\s*(?:KD|د\.ك))?$/i;
 
 // WhatsApp timestamp pattern: [DD/MM/YYYY, HH:MM:SS] or just timestamps to strip
 const WA_TIMESTAMP = /^\[?\d{1,2}\/\d{1,2}\/\d{2,4},?\s+\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM|am|pm)?\]?\s*[-–]?\s*/;

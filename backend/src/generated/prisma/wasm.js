@@ -229,6 +229,8 @@ exports.Prisma.VehicleScalarFieldEnum = {
   chassisNumber: 'chassisNumber',
   mileage: 'mileage',
   fuelType: 'fuelType',
+  ownerCompany: 'ownerCompany',
+  driverIqama: 'driverIqama',
   status: 'status',
   assignedDriverId: 'assignedDriverId',
   insuranceExpiry: 'insuranceExpiry',
@@ -308,6 +310,20 @@ exports.Prisma.CashRecordScalarFieldEnum = {
   pendingDues: 'pendingDues',
   status: 'status',
   notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CashTransactionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  date: 'date',
+  type: 'type',
+  amount: 'amount',
+  orderNumber: 'orderNumber',
+  description: 'description',
+  runningBalance: 'runningBalance',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -555,7 +571,6 @@ exports.Prisma.TalabatComplianceEventScalarFieldEnum = {
   driverId: 'driverId',
   sessionId: 'sessionId',
   type: 'type',
-  severity: 'severity',
   description: 'description',
   metadata: 'metadata',
   resolved: 'resolved',
@@ -616,6 +631,31 @@ exports.Prisma.KeetaDailyMetricsScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.PlatformSettingsScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  platform: 'platform',
+  targets: 'targets',
+  kpis: 'kpis',
+  shiftRules: 'shiftRules',
+  zones: 'zones',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CompanyInventoryScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  companyId: 'companyId',
+  itemType: 'itemType',
+  total: 'total',
+  issued: 'issued',
+  available: 'available',
+  minStock: 'minStock',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.AmericanaDailyOrdersScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -630,6 +670,60 @@ exports.Prisma.AmericanaDailyOrdersScalarFieldEnum = {
   dailyOrders: 'dailyOrders',
   totalOrders: 'totalOrders',
   source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.KpiDefinitionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  description: 'description',
+  category: 'category',
+  unit: 'unit',
+  platform: 'platform',
+  target: 'target',
+  isActive: 'isActive',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.KpiRecordScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  kpiDefinitionId: 'kpiDefinitionId',
+  date: 'date',
+  value: 'value',
+  target: 'target',
+  score: 'score',
+  source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.NotificationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  title: 'title',
+  message: 'message',
+  type: 'type',
+  severity: 'severity',
+  sourceId: 'sourceId',
+  metadata: 'metadata',
+  read: 'read',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.NotificationRuleScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  eventType: 'eventType',
+  role: 'role',
+  enabled: 'enabled',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -776,6 +870,12 @@ exports.CashStatus = exports.$Enums.CashStatus = {
   SETTLED: 'SETTLED'
 };
 
+exports.CashTransactionType = exports.$Enums.CashTransactionType = {
+  COLLECTION: 'COLLECTION',
+  CASH_OUT: 'CASH_OUT',
+  INVOICE_DEDUCTION: 'INVOICE_DEDUCTION'
+};
+
 exports.LedgerStatus = exports.$Enums.LedgerStatus = {
   OPEN: 'OPEN',
   CLOSED: 'CLOSED'
@@ -905,6 +1005,24 @@ exports.ComplianceEventType = exports.$Enums.ComplianceEventType = {
   CASH_THRESHOLD_EXCEEDED: 'CASH_THRESHOLD_EXCEEDED'
 };
 
+exports.KpiCategory = exports.$Enums.KpiCategory = {
+  ATTENDANCE: 'ATTENDANCE',
+  ORDERS: 'ORDERS',
+  DELIVERY_EFFICIENCY: 'DELIVERY_EFFICIENCY',
+  FINANCIAL: 'FINANCIAL',
+  COMPLIANCE: 'COMPLIANCE',
+  CUSTOM: 'CUSTOM'
+};
+
+exports.KpiUnit = exports.$Enums.KpiUnit = {
+  PERCENTAGE: 'PERCENTAGE',
+  COUNT: 'COUNT',
+  MINUTES: 'MINUTES',
+  HOURS: 'HOURS',
+  CURRENCY: 'CURRENCY',
+  SCORE: 'SCORE'
+};
+
 exports.Prisma.ModelName = {
   Tenant: 'Tenant',
   Company: 'Company',
@@ -917,6 +1035,7 @@ exports.Prisma.ModelName = {
   AttendanceRecord: 'AttendanceRecord',
   OrderLog: 'OrderLog',
   CashRecord: 'CashRecord',
+  CashTransaction: 'CashTransaction',
   PendingDuesLedger: 'PendingDuesLedger',
   VehicleInspection: 'VehicleInspection',
   MaintenanceRecord: 'MaintenanceRecord',
@@ -935,7 +1054,13 @@ exports.Prisma.ModelName = {
   TalabatComplianceEvent: 'TalabatComplianceEvent',
   TalabatDelivery: 'TalabatDelivery',
   KeetaDailyMetrics: 'KeetaDailyMetrics',
-  AmericanaDailyOrders: 'AmericanaDailyOrders'
+  PlatformSettings: 'PlatformSettings',
+  CompanyInventory: 'CompanyInventory',
+  AmericanaDailyOrders: 'AmericanaDailyOrders',
+  KpiDefinition: 'KpiDefinition',
+  KpiRecord: 'KpiRecord',
+  Notification: 'Notification',
+  NotificationRule: 'NotificationRule'
 };
 
 /**

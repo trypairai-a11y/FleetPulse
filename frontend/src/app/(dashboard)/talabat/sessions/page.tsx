@@ -55,12 +55,19 @@ export default function TalabatSessionsPage() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
 
+  const { data: companiesData } = useApiGet<any>("/api/companies?platform=TALABAT");
+  const companies = companiesData?.data || [];
+
   const params = new URLSearchParams({ dateFrom: date, dateTo: date, limit: "100" });
   if (filters.zone) params.set("zone", filters.zone);
   if (filters.status) params.set("status", filters.status);
   if (filters.search) params.set("search", filters.search);
+  if (filters.company) params.set("companyId", filters.company);
 
-  const { data: summary } = useApiGet<any>(`/api/talabat/sessions/summary?date=${date}`);
+  const summaryParams = new URLSearchParams({ date });
+  if (filters.company) summaryParams.set("companyId", filters.company);
+
+  const { data: summary } = useApiGet<any>(`/api/talabat/sessions/summary?${summaryParams}`);
   const { data } = useApiGet<any>(`/api/talabat/sessions?${params}`);
   const sessions = (data?.data || []).map((s: any, i: number) => ({
     ...s,
@@ -81,7 +88,7 @@ export default function TalabatSessionsPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-talabat" />
-        <h1 className="text-xl font-semibold">Talabat — Working Days</h1>
+        <h1 className="text-xl font-semibold">Talabat - Working Days</h1>
         <span className="text-sm text-secondary">Wahoo International</span>
       </div>
 
@@ -126,6 +133,7 @@ export default function TalabatSessionsPage() {
         />
         <FilterBar
           filters={[
+            { key: "company", type: "select", label: "All Companies", options: companies.map((c: any) => ({ value: c.id, label: c.name })) },
             { key: "search", type: "search", label: "Search", placeholder: "Search driver..." },
             {
               key: "zone", type: "select", label: "All Zones",
@@ -158,7 +166,7 @@ export default function TalabatSessionsPage() {
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Planned</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Approved Hrs</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Actual Hrs</th>
-                <th className="text-right text-xs font-medium text-secondary px-5 py-3">Deliveries</th>
+                <th className="text-right text-xs font-medium text-secondary px-5 py-3">Orders</th>
                 <th className="text-right text-xs font-medium text-secondary px-5 py-3">Cash (KD)</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Face</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Equipment</th>
@@ -183,40 +191,40 @@ export default function TalabatSessionsPage() {
                       onClick={() => setSelected(session)}
                       className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50 transition-colors"
                     >
-                      <td className="px-5 py-3 text-sm font-medium">{session.driver?.name || session.driverName || "—"}</td>
+                      <td className="px-5 py-3 text-sm font-medium">{session.driver?.name || session.driverName || "-"}</td>
                       <td className="px-5 py-3">
                         <span className="font-mono text-xs font-medium text-orange-700 bg-orange-50 px-2 py-0.5 rounded-md">
-                          {session.vehicleType || "—"}
+                          {session.vehicleType || "-"}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-sm text-secondary">{session.zone || "—"}</td>
+                      <td className="px-5 py-3 text-sm text-secondary">{session.zone || "-"}</td>
                       <td className="px-5 py-3">
                         <div className="font-mono text-xs text-secondary leading-tight">
                           {session.plannedStart
                             ? new Date(session.plannedStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                            : "—"}
+                            : "-"}
                           {session.plannedEnd
                             ? `–${new Date(session.plannedEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
                             : ""}
                         </div>
                       </td>
                       <td className="px-5 py-3 text-sm font-mono text-secondary">
-                        {session.approvedHours != null ? `${n(session.approvedHours).toFixed(1)}h` : "—"}
+                        {session.approvedHours != null ? `${n(session.approvedHours).toFixed(1)}h` : "-"}
                       </td>
                       <td className="px-5 py-3">
                         <span className={cn(
                           "text-sm font-mono",
                           !hoursMatch ? "text-amber-600 font-medium" : "text-secondary"
                         )}>
-                          {session.actualHours != null ? `${n(session.actualHours).toFixed(1)}h` : "—"}
+                          {session.actualHours != null ? `${n(session.actualHours).toFixed(1)}h` : "-"}
                           {!hoursMatch && <AlertTriangle size={11} className="inline ml-1" />}
                         </span>
                       </td>
                       <td className="px-5 py-3 text-sm text-right font-mono font-medium">
-                        {session.deliveries ?? "—"}
+                        {session.deliveries ?? "-"}
                       </td>
                       <td className="px-5 py-3 text-sm text-right font-mono text-orange-600">
-                        {session.cashCollected != null ? n(session.cashCollected).toFixed(3) : "—"}
+                        {session.cashCollected != null ? n(session.cashCollected).toFixed(3) : "-"}
                       </td>
                       <td className="px-5 py-3">
                         {session.faceMismatch ? (
@@ -226,19 +234,19 @@ export default function TalabatSessionsPage() {
                         ) : session.faceVerified !== undefined ? (
                           <VerifiedBadge value={session.faceVerified} />
                         ) : (
-                          <span className="text-xs text-secondary">—</span>
+                          <span className="text-xs text-secondary">-</span>
                         )}
                       </td>
                       <td className="px-5 py-3">
                         {session.equipmentVerified !== undefined
                           ? <VerifiedBadge value={session.equipmentVerified} label="Equip" />
-                          : <span className="text-xs text-secondary">—</span>
+                          : <span className="text-xs text-secondary">-</span>
                         }
                       </td>
                       <td className="px-5 py-3">
                         {session.gpsCompliance !== undefined
                           ? <GpsBar compliance={session.gpsCompliance} />
-                          : <span className="text-xs text-secondary">—</span>
+                          : <span className="text-xs text-secondary">-</span>
                         }
                       </td>
                       <td className="px-5 py-3">
@@ -269,7 +277,7 @@ export default function TalabatSessionsPage() {
         open={!!selected}
         onClose={() => setSelected(null)}
         title={selected?.driver?.name || selected?.driverName || "Working Day Detail"}
-        subtitle={`Talabat Working Day — ${selected?.sessionCode || ""}`}
+        subtitle={`Talabat Working Day - ${selected?.sessionCode || ""}`}
       >
         {selected && (
           <div className="space-y-5">
@@ -277,10 +285,10 @@ export default function TalabatSessionsPage() {
             <div className="p-4 bg-orange-50 rounded-xl border border-orange-100">
               <p className="text-xs text-orange-600 font-medium uppercase tracking-wide mb-1">Working Day</p>
               <p className="text-lg font-semibold text-orange-800 font-mono">
-                {selected.sessionCode || "—"}
+                {selected.sessionCode || "-"}
               </p>
               <p className="text-sm text-orange-600 font-mono mt-0.5">
-                {selected.zone || "—"} &middot;{" "}
+                {selected.zone || "-"} &middot;{" "}
                 {selected.plannedStart
                   ? new Date(selected.plannedStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
                   : "?"}
@@ -295,7 +303,7 @@ export default function TalabatSessionsPage() {
               <div className="bg-gray-50 rounded-xl p-3">
                 <p className="text-[10px] text-secondary uppercase font-medium">Planned</p>
                 <p className="text-xl font-semibold mt-0.5 font-mono">
-                  {selected.approvedHours != null ? `${n(selected.approvedHours).toFixed(1)}h` : "—"}
+                  {selected.approvedHours != null ? `${n(selected.approvedHours).toFixed(1)}h` : "-"}
                 </p>
               </div>
               <div className={cn("rounded-xl p-3",
@@ -304,13 +312,13 @@ export default function TalabatSessionsPage() {
               )}>
                 <p className="text-[10px] text-secondary uppercase font-medium">Actual</p>
                 <p className="text-xl font-semibold mt-0.5 font-mono">
-                  {selected.actualHours != null ? `${n(selected.actualHours).toFixed(1)}h` : "—"}
+                  {selected.actualHours != null ? `${n(selected.actualHours).toFixed(1)}h` : "-"}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-[10px] text-secondary uppercase font-medium">Deliveries</p>
+                <p className="text-[10px] text-secondary uppercase font-medium">Orders</p>
                 <p className="text-xl font-semibold mt-0.5 font-mono">
-                  {selected.deliveries ?? "—"}
+                  {selected.deliveries ?? "-"}
                 </p>
               </div>
             </div>
@@ -320,13 +328,13 @@ export default function TalabatSessionsPage() {
               <div className="bg-gray-50 rounded-xl p-3">
                 <p className="text-[10px] text-secondary uppercase font-medium">Cash Collected</p>
                 <p className="text-lg font-semibold mt-0.5 font-mono text-orange-600">
-                  {selected.cashCollected != null ? `${n(selected.cashCollected).toFixed(3)} KD` : "—"}
+                  {selected.cashCollected != null ? `${n(selected.cashCollected).toFixed(3)} KD` : "-"}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
                 <p className="text-[10px] text-secondary uppercase font-medium">Tips</p>
                 <p className="text-lg font-semibold mt-0.5 font-mono text-green-600">
-                  {selected.tips != null ? `${n(selected.tips).toFixed(3)} KD` : "—"}
+                  {selected.tips != null ? `${n(selected.tips).toFixed(3)} KD` : "-"}
                 </p>
               </div>
             </div>
@@ -341,7 +349,7 @@ export default function TalabatSessionsPage() {
                 </div>
                 {selected.faceVerified !== undefined
                   ? <VerifiedBadge value={selected.faceVerified} />
-                  : <span className="text-xs text-secondary">—</span>
+                  : <span className="text-xs text-secondary">-</span>
                 }
               </div>
 
@@ -351,7 +359,7 @@ export default function TalabatSessionsPage() {
                 </div>
                 {selected.equipmentVerified !== undefined
                   ? <VerifiedBadge value={selected.equipmentVerified} label="Equip" />
-                  : <span className="text-xs text-secondary">—</span>
+                  : <span className="text-xs text-secondary">-</span>
                 }
               </div>
 
@@ -361,7 +369,7 @@ export default function TalabatSessionsPage() {
                 </div>
                 {selected.gpsCompliance !== undefined
                   ? <GpsBar compliance={selected.gpsCompliance} />
-                  : <span className="text-xs text-secondary">—</span>
+                  : <span className="text-xs text-secondary">-</span>
                 }
               </div>
             </div>
@@ -371,14 +379,14 @@ export default function TalabatSessionsPage() {
               {[
                 ["Zone", selected.zone],
                 ["Status", selected.status],
-                ["Date", selected.plannedStart ? new Date(selected.plannedStart).toLocaleDateString() : "—"],
-                ["Distance", selected.distanceKm != null ? `${n(selected.distanceKm).toFixed(1)} km` : "—"],
-                ["Platform ID", selected.platformSessionId || "—"],
-                ["Driver ID", selected.driver?.platformDriverId || "—"],
+                ["Date", selected.plannedStart ? new Date(selected.plannedStart).toLocaleDateString() : "-"],
+                ["Distance", selected.distanceKm != null ? `${n(selected.distanceKm).toFixed(1)} km` : "-"],
+                ["Platform ID", selected.platformSessionId || "-"],
+                ["Driver ID", selected.driver?.platformDriverId || "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                 </div>
               ))}
             </div>
@@ -392,13 +400,8 @@ export default function TalabatSessionsPage() {
                     <div key={evt.id} className="flex items-start justify-between py-2.5 px-3 bg-gray-50 rounded-xl">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-medium", {
-                            "bg-gray-100 text-gray-500": evt.severity === "LOW",
-                            "bg-yellow-50 text-yellow-600": evt.severity === "MEDIUM",
-                            "bg-orange-50 text-orange-600": evt.severity === "HIGH",
-                            "bg-red-50 text-red-600": evt.severity === "CRITICAL",
-                          })}>
-                            {evt.severity}
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-gray-100 text-gray-600">
+                            {(evt.type || "").replace(/_/g, " ")}
                           </span>
                           <span className="text-xs text-secondary">
                             {evt.createdAt ? new Date(evt.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
@@ -406,12 +409,6 @@ export default function TalabatSessionsPage() {
                         </div>
                         <p className="text-sm mt-1">{evt.description || evt.type}</p>
                       </div>
-                      <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
-                        "bg-green-50 text-green-600": evt.status === "RESOLVED",
-                        "bg-red-50 text-red-600": evt.status === "OPEN",
-                      })}>
-                        {evt.status}
-                      </span>
                     </div>
                   ))}
                 </div>

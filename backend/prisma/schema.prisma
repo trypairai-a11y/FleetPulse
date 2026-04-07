@@ -253,6 +253,30 @@ enum ComplianceEventType {
   CASH_THRESHOLD_EXCEEDED
 }
 
+enum CashTransactionType {
+  COLLECTION
+  CASH_OUT
+  INVOICE_DEDUCTION
+}
+
+enum KpiCategory {
+  ATTENDANCE
+  ORDERS
+  DELIVERY_EFFICIENCY
+  FINANCIAL
+  COMPLIANCE
+  CUSTOM
+}
+
+enum KpiUnit {
+  PERCENTAGE
+  COUNT
+  MINUTES
+  HOURS
+  CURRENCY
+  SCORE
+}
+
 // ─── Models ─────────────────────────────────────────────
 
 // 1. Tenant
@@ -271,6 +295,7 @@ model Tenant {
   attendanceRecords  AttendanceRecord[]
   orderLogs          OrderLog[]
   cashRecords        CashRecord[]
+  cashTransactions   CashTransaction[]
   pendingDuesLedgers PendingDuesLedger[]
   vehicleInspections VehicleInspection[]
   maintenanceRecords MaintenanceRecord[]
@@ -286,6 +311,12 @@ model Tenant {
   talabatComplianceEvents TalabatComplianceEvent[]
   keetaDailyMetrics       KeetaDailyMetrics[]
   americanaDailyOrders    AmericanaDailyOrders[]
+  kpiDefinitions          KpiDefinition[]
+  kpiRecords              KpiRecord[]
+  platformSettings        PlatformSettings[]
+  companyInventory        CompanyInventory[]
+  notifications           Notification[]
+  notificationRules       NotificationRule[]
 }
 
 // 2. Company
@@ -304,6 +335,7 @@ model Company {
   vehicles Vehicle[]
   recruitmentPipeline RecruitmentPipeline[]
   tickets Ticket[]
+  companyInventory CompanyInventory[]
 
   @@index([tenantId])
 }
@@ -329,6 +361,7 @@ model User {
   reviewedLeaves    LeaveRequest[]    @relation("LeaveReviewer")
   assignedTickets   Ticket[]          @relation("TicketAssignee")
   submittedTickets  Ticket[]          @relation("TicketSubmitterUser")
+  notifications     Notification[]
 
   @@index([tenantId])
 }
@@ -378,6 +411,7 @@ model Driver {
   attendanceRecords  AttendanceRecord[]
   orderLogs          OrderLog[]
   cashRecords        CashRecord[]
+  cashTransactions   CashTransaction[]
   pendingDuesLedgers PendingDuesLedger[]
   vehicleInspections VehicleInspection[]
   maintenanceRecords MaintenanceRecord[]
@@ -396,6 +430,7 @@ model Driver {
   keetaDailyMetrics       KeetaDailyMetrics[]
   americanaDailyOrders    AmericanaDailyOrders[]
   talabatDeliveries       TalabatDelivery[]
+  kpiRecords              KpiRecord[]
 
   @@index([tenantId])
   @@index([companyId])
@@ -453,6 +488,8 @@ model Vehicle {
   chassisNumber      String?
   mileage            Int           @default(0)
   fuelType           String        @default("Petrol")
+  ownerCompany       String?
+  driverIqama        String?
   status             VehicleStatus @default(ACTIVE)
   assignedDriverId   String?       @unique
   insuranceExpiry    DateTime
@@ -526,6 +563,7 @@ model AttendanceRecord {
   driver Driver  @relation(fields: [driverId], references: [id])
   shift  Shift?  @relation(fields: [shiftId], references: [id])
 
+  @@unique([tenantId, driverId, date], name: "tenantId_driverId_date")
   @@index([tenantId])
   @@index([driverId])
   @@index([date])
@@ -577,6 +615,28 @@ model CashRecord {
   notes             String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([date])
+}
+
+// 11b. CashTransaction
+model CashTransaction {
+  id             String              @id @default(uuid())
+  tenantId       String
+  driverId       String
+  date           DateTime
+  type           CashTransactionType
+  amount         Decimal             @db.Decimal(10, 3)
+  orderNumber    String?
+  description    String?
+  runningBalance Decimal             @db.Decimal(10, 3)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
   driver Driver @relation(fields: [driverId], references: [id])
@@ -954,7 +1014,6 @@ model TalabatComplianceEvent {
   driverId    String
   sessionId   String?
   type        ComplianceEventType
-  severity    AlertSeverity
   description String
   metadata    Json?
   resolved    Boolean             @default(false)
@@ -972,7 +1031,7 @@ model TalabatComplianceEvent {
   @@index([createdAt])
 }
 
-// 28. TalabatDelivery — individual delivery items within a session
+// 28. TalabatDelivery - individual delivery items within a session
 model TalabatDelivery {
   id              String         @id @default(uuid())
   tenantId        String
@@ -999,7 +1058,7 @@ model TalabatDelivery {
   @@index([date])
 }
 
-// 29. KeetaDailyMetrics — mirrors the 27-column Keeta dashboard export
+// 29. KeetaDailyMetrics - mirrors the 27-column Keeta dashboard export
 model KeetaDailyMetrics {
   id                    String      @id @default(uuid())
   tenantId              String
@@ -1042,7 +1101,46 @@ model KeetaDailyMetrics {
   @@index([date])
 }
 
-// 29. AmericanaDailyOrders — daily order counts per driver per store
+// 30. PlatformSettings - configurable targets, KPIs, and inventory per platform
+model PlatformSettings {
+  id         String   @id @default(uuid())
+  tenantId   String
+  platform   Platform
+  targets    Json     // { mainTarget: {...}, subTargets: [...] }
+  kpis       Json?    // { weights: {...}, thresholds: {...}, gradingScale: [...] }
+  shiftRules Json?    // { defaultHours: 12, maxLateMinutes: 1, ... }
+  zones      Json?    // ["Ardiya", "Hawally", ...]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, platform])
+  @@index([tenantId])
+}
+
+// 31. CompanyInventory - total stock of equipment items per company
+model CompanyInventory {
+  id        String            @id @default(uuid())
+  tenantId  String
+  companyId String
+  itemType  InventoryItemType
+  total     Int               @default(0)
+  issued    Int               @default(0)
+  available Int               @default(0)
+  minStock  Int               @default(0)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, itemType])
+  @@index([tenantId])
+  @@index([companyId])
+}
+
+// 29. AmericanaDailyOrders - daily order counts per driver per store
 model AmericanaDailyOrders {
   id          String   @id @default(uuid())
   tenantId    String
@@ -1067,4 +1165,92 @@ model AmericanaDailyOrders {
   @@index([tenantId])
   @@index([driverId])
   @@index([month])
+}
+
+// 30. KpiDefinition - configurable KPI definitions with targets per platform
+model KpiDefinition {
+  id          String       @id @default(uuid())
+  tenantId    String
+  name        String       // e.g. "On-Time Attendance", "Daily Orders", "Delivery Efficiency"
+  description String?
+  category    KpiCategory
+  unit        KpiUnit
+  platform    Platform?    // null = common across all platforms
+  target      Decimal?     @db.Decimal(10, 3)
+  isActive    Boolean      @default(true)
+  sortOrder   Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  tenant  Tenant      @relation(fields: [tenantId], references: [id])
+  records KpiRecord[]
+
+  @@unique([tenantId, name, platform])
+  @@index([tenantId])
+  @@index([platform])
+}
+
+// 31. KpiRecord - daily KPI values per driver
+model KpiRecord {
+  id              String   @id @default(uuid())
+  tenantId        String
+  driverId        String
+  kpiDefinitionId String
+  date            DateTime
+  value           Decimal  @db.Decimal(10, 3)
+  target          Decimal? @db.Decimal(10, 3)
+  score           Decimal? @db.Decimal(5, 2) // percentage of target achieved
+  source          String   @default("COMPUTED") // COMPUTED, MANUAL, IMPORT
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id])
+  driver        Driver        @relation(fields: [driverId], references: [id])
+  kpiDefinition KpiDefinition @relation(fields: [kpiDefinitionId], references: [id])
+
+  @@unique([tenantId, driverId, kpiDefinitionId, date])
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([kpiDefinitionId])
+  @@index([date])
+}
+
+// 32. Notification - in-app notification for users
+model Notification {
+  id        String   @id @default(uuid())
+  tenantId  String
+  userId    String
+  title     String
+  message   String
+  type      String   // violation type or alert type (e.g. "GPS_OFF", "cash_overdue")
+  severity  String   @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  sourceId  String?  // ID of the compliance event or alert that triggered this
+  metadata  Json?
+  read      Boolean  @default(false)
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+// 33. NotificationRule - maps violation types to user roles
+model NotificationRule {
+  id        String   @id @default(uuid())
+  tenantId  String
+  eventType String   // ComplianceEventType value or alert type
+  role      UserRole
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, eventType, role])
+  @@index([tenantId])
 }

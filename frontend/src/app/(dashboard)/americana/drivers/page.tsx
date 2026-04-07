@@ -50,17 +50,17 @@ export default function AmericanaDriversPage() {
       label: "Driver Name",
       render: (_: any, r: any) => <span className="font-medium">{r.name}</span>,
     },
-    { key: "employeeId", label: "Emp ID", render: (v: string) => <span className="font-mono text-sm text-secondary">{v || "—"}</span> },
+    { key: "employeeId", label: "Emp ID", render: (v: string) => <span className="font-mono text-sm text-secondary">{v || "-"}</span> },
     {
       key: "chain",
       label: "Chain",
       render: (v: string) => (
         <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700">
-          {v || "—"}
+          {v || "-"}
         </span>
       ),
     },
-    { key: "storeName", label: "Store", render: (v: string) => <span className="text-sm text-secondary">{v || "—"}</span> },
+    { key: "storeName", label: "Store", render: (v: string) => <span className="text-sm text-secondary">{v || "-"}</span> },
     {
       key: "vehicleType",
       label: "Position",
@@ -72,7 +72,7 @@ export default function AmericanaDriversPage() {
         </span>
       ),
     },
-    { key: "costCenter", label: "CC", render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "—"}</span> },
+    { key: "costCenter", label: "CC", render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "-"}</span> },
     {
       key: "faceVerified",
       label: "Face",
@@ -92,7 +92,7 @@ export default function AmericanaDriversPage() {
             </span>
           )
         ) : (
-          <span className="text-xs text-secondary">—</span>
+          <span className="text-xs text-secondary">-</span>
         ),
     },
     {
@@ -116,7 +116,7 @@ export default function AmericanaDriversPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-americana" />
-          <h1 className="text-xl font-semibold">Americana — Drivers</h1>
+          <h1 className="text-xl font-semibold">Americana - Drivers</h1>
           <span className="text-sm text-secondary">Al Hazm Express</span>
         </div>
         <button
@@ -185,11 +185,11 @@ export default function AmericanaDriversPage() {
                 ["Status", selected.status],
                 ["Company Phone", selected.phone],
                 ["Personal Phone", selected.personalPhone],
-                ["Hire Date", selected.hireDate ? new Date(selected.hireDate).toLocaleDateString() : "—"],
+                ["Hire Date", selected.hireDate ? new Date(selected.hireDate).toLocaleDateString() : "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                 </div>
               ))}
             </div>
@@ -206,7 +206,7 @@ export default function AmericanaDriversPage() {
                   ].map(([label, val]) => (
                     <div key={label} className="bg-gray-50 rounded-xl p-3">
                       <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                      <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                      <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                     </div>
                   ))}
                 </div>

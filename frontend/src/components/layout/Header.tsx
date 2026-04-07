@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, PanelLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSidebar } from "@/contexts/SidebarContext";
+import NotificationDropdown from "./NotificationDropdown";
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -44,6 +45,7 @@ export default function Header() {
         </div>
       </div>
       <div className="flex items-center gap-4">
+        <NotificationDropdown />
         <div className="text-right mr-2">
           <p className="text-sm font-medium text-foreground">{user?.name}</p>
           <p className="text-xs text-secondary">{user?.role?.replace("_", " ")}</p>

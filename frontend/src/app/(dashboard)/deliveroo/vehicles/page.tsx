@@ -56,7 +56,7 @@ export default function DeliverooVehiclesPage() {
       key: "plateNumber",
       label: "Plate",
       render: (v: string) => (
-        <span className="font-mono text-xs bg-gray-50 px-2 py-0.5 rounded-md">{v || "—"}</span>
+        <span className="font-mono text-xs bg-gray-50 px-2 py-0.5 rounded-md">{v || "-"}</span>
       ),
     },
     {
@@ -73,7 +73,7 @@ export default function DeliverooVehiclesPage() {
       key: "make",
       label: "Model",
       render: (_: any, r: any) => (
-        <span className="text-sm">{[r.make, r.model].filter(Boolean).join(" ") || "—"}</span>
+        <span className="text-sm">{[r.make, r.model].filter(Boolean).join(" ") || "-"}</span>
       ),
     },
     { key: "year", label: "Year" },
@@ -101,7 +101,7 @@ export default function DeliverooVehiclesPage() {
       key: "insuranceExpiry",
       label: "Insurance",
       render: (v: string) => {
-        if (!v) return <span className="text-xs text-secondary">—</span>;
+        if (!v) return <span className="text-xs text-secondary">-</span>;
         const days = Math.ceil((new Date(v).getTime() - Date.now()) / 86400000);
         const urgent = days < 30;
         return (
@@ -120,7 +120,7 @@ export default function DeliverooVehiclesPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-teal-500" />
-          <h1 className="text-xl font-semibold">Deliveroo — Vehicles</h1>
+          <h1 className="text-xl font-semibold">Deliveroo - Vehicles</h1>
           <span className="text-sm text-secondary">Al Hazm</span>
         </div>
         <button
@@ -134,8 +134,8 @@ export default function DeliverooVehiclesPage() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
         <StatCard title="Total Vehicles" value={summary?.total || vehicles.length} icon={Bike} />
-        <StatCard title="Motorcycles" value={summary?.motorcycles || "—"} icon={Bike} />
-        <StatCard title="Cars" value={summary?.cars || "—"} icon={Car} />
+        <StatCard title="Motorcycles" value={summary?.motorcycles || "-"} icon={Bike} />
+        <StatCard title="Cars" value={summary?.cars || "-"} icon={Car} />
         <StatCard
           title="In Maintenance"
           value={summary?.maintenance || 0}
@@ -203,9 +203,9 @@ export default function DeliverooVehiclesPage() {
               <VehicleIcon type={selected.vehicleType} />
               <div>
                 <p className="text-sm font-semibold">
-                  {[selected.make, selected.model].filter(Boolean).join(" ") || "—"}
+                  {[selected.make, selected.model].filter(Boolean).join(" ") || "-"}
                 </p>
-                <p className="text-xs text-secondary">{selected.year || "—"}</p>
+                <p className="text-xs text-secondary">{selected.year || "-"}</p>
               </div>
               <span className={cn("ml-auto px-2 py-0.5 rounded-md text-xs font-medium", STATUS_STYLES[selected.status] || "bg-gray-100 text-gray-500")}>
                 {selected.status}
@@ -223,7 +223,7 @@ export default function DeliverooVehiclesPage() {
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                 </div>
               ))}
             </div>
@@ -258,7 +258,7 @@ export default function DeliverooVehiclesPage() {
                       {label}
                     </div>
                     <span className={cn("text-xs font-medium", urgent ? "text-red-600" : "text-foreground")}>
-                      {isExpiry ? new Date(value).toLocaleDateString() : value || "—"}
+                      {isExpiry ? new Date(value).toLocaleDateString() : value || "-"}
                       {urgent && <span className="ml-1 text-red-400">({daysLeft}d)</span>}
                     </span>
                   </div>
@@ -283,7 +283,7 @@ export default function DeliverooVehiclesPage() {
               </button>
             </div>
             <p className="text-sm text-secondary">
-              Vehicle form — connects to POST /api/vehicles with platform=DELIVEROO
+              Vehicle form - connects to POST /api/vehicles with platform=DELIVEROO
             </p>
           </div>
         </div>

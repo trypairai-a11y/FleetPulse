@@ -5,6 +5,7 @@ import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
 import { upload } from "../utils/upload";
 import { parseWhatsAppMessages } from "../services/whatsappParser";
+import { sendXlsx } from "../utils/xlsxExport";
 import fs from "fs";
 
 const router = Router();
@@ -16,11 +17,12 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
     const tenantId = req.user!.tenantId;
-    const { platform, driverId, dateFrom, dateTo, source, zone, search } = req.query;
+    const { platform, driverId, dateFrom, dateTo, source, zone, search, companyId, sortBy, sortOrder, timeFrom, timeTo } = req.query;
     const where: any = { tenantId };
     if (platform) where.platform = platform;
     if (driverId) where.driverId = driverId;
     if (source) where.source = source;
+    if (companyId) where.driver = { ...where.driver, companyId: companyId as string };
     if (zone) where.driver = { ...where.driver, zone: zone as string };
     if (search) where.driver = { ...where.driver, name: { contains: search as string, mode: "insensitive" } };
     if (dateFrom || dateTo) {
@@ -28,49 +30,49 @@ router.get("/", async (req: Request, res: Response) => {
       if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
       if (dateTo) where.date.lte = parseLocalDateEnd(dateTo as string);
     }
+    // Time-of-day filter on arrivalTime (HH:mm format)
+    if (timeFrom || timeTo) {
+      const refDate = dateFrom || dateTo;
+      const refDateStr = refDate ? (refDate as string) : new Date().toISOString().split("T")[0];
+      if (timeFrom) {
+        const from = parseLocalDate(refDateStr);
+        const [hf, mf] = (timeFrom as string).split(":").map(Number);
+        from.setHours(hf, mf, 0, 0);
+        where.arrivalTime = { ...where.arrivalTime, gte: from };
+      }
+      if (timeTo) {
+        const to = dateTo ? parseLocalDateEnd(dateTo as string) : parseLocalDateEnd(refDateStr);
+        const [ht, mt] = (timeTo as string).split(":").map(Number);
+        to.setHours(ht, mt, 59, 999);
+        where.arrivalTime = { ...where.arrivalTime, lte: to };
+      }
+    }
+
+    // Sorting
+    const allowedSortFields: Record<string, any> = {
+      date: { date: sortOrder === "asc" ? "asc" : "desc" },
+      driver: { driver: { name: sortOrder === "asc" ? "asc" : "desc" } },
+      deliveries: { orderCount: sortOrder === "asc" ? "asc" : "desc" },
+      cash: { cashCollected: sortOrder === "asc" ? "asc" : "desc" },
+    };
+    const orderBy = allowedSortFields[sortBy as string] || { date: "desc" };
 
     let [data, total] = await Promise.all([
       prisma.orderLog.findMany({
         where, skip, take: limit,
-        orderBy: { date: "desc" },
-        include: { driver: { select: { id: true, name: true, platform: true, zone: true } } },
+        orderBy,
+        include: { driver: { select: { id: true, name: true, platform: true, zone: true, batchNumber: true, company: { select: { name: true } } } } },
       }),
       prisma.orderLog.count({ where }),
     ]);
 
-    // Smart date fallback: if no data for the requested date, find most recent date
-    if (data.length === 0 && (dateFrom || dateTo) && !driverId) {
-      const fallbackWhere: any = { tenantId };
-      if (platform) fallbackWhere.platform = platform;
-      const latest = await prisma.orderLog.findFirst({
-        where: fallbackWhere,
-        orderBy: { date: "desc" },
-        select: { date: true },
-      });
-      if (latest) {
-        const latestDate = new Date(latest.date);
-        latestDate.setHours(0, 0, 0, 0);
-        const nextDay = new Date(latestDate);
-        nextDay.setDate(nextDay.getDate() + 1);
-        fallbackWhere.date = { gte: latestDate, lt: nextDay };
-        if (zone) fallbackWhere.driver = { ...fallbackWhere.driver, zone: zone as string };
-        if (search) fallbackWhere.driver = { ...fallbackWhere.driver, name: { contains: search as string, mode: "insensitive" } };
-        [data, total] = await Promise.all([
-          prisma.orderLog.findMany({
-            where: fallbackWhere, skip, take: limit,
-            orderBy: { date: "desc" },
-            include: { driver: { select: { id: true, name: true, platform: true, zone: true } } },
-          }),
-          prisma.orderLog.count({ where: fallbackWhere }),
-        ]);
-      }
-    }
-
     const enriched = data.map((o: any) => ({
       ...o,
       zone: o.driver?.zone || null,
+      companyName: o.driver?.company?.name || null,
+      batchNumber: o.driver?.batchNumber || null,
       deliveriesCount: o.orderCount,
-      cashCollectedKd: o.cashCollected ? Number(o.cashCollected) : null,
+      cashCollectedKd: o.cashCollected != null ? Number(o.cashCollected) : 0,
     }));
 
     res.json(paginatedResponse(enriched, total, page, limit));
@@ -82,9 +84,10 @@ router.get("/", async (req: Request, res: Response) => {
 router.get("/summary", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
-    const { platform, dateFrom, dateTo } = req.query;
+    const { platform, dateFrom, dateTo, companyId } = req.query;
     const where: any = { tenantId };
     if (platform) where.platform = platform;
+    if (companyId) where.driver = { companyId: companyId as string };
     if (dateFrom || dateTo) {
       where.date = {};
       if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
@@ -101,7 +104,7 @@ router.get("/summary", async (req: Request, res: Response) => {
       },
     });
 
-    // Calculate orders per hour from TalabatSession actual hours
+    // Calculate orders per hour from TalabatSession actual hours, fallback to OrderLog time span
     let ordersPerHour = 0;
     if (platform === "TALABAT") {
       const sessionAgg = await prisma.talabatSession.aggregate({
@@ -115,16 +118,265 @@ router.get("/summary", async (req: Request, res: Response) => {
       });
       const totalHours = Number(sessionAgg._sum.actualHours || 0);
       const totalDel = Number(sessionAgg._sum.deliveries || 0);
-      ordersPerHour = totalHours > 0 ? Math.round((totalDel / totalHours) * 10) / 10 : 0;
+      if (totalHours > 0) {
+        ordersPerHour = Math.round((totalDel / totalHours) * 10) / 10;
+      } else {
+        // Fallback: estimate from order arrival times
+        const ordersWithTime = await prisma.orderLog.findMany({
+          where: { ...where, arrivalTime: { not: null } },
+          select: { arrivalTime: true },
+          orderBy: { arrivalTime: "asc" },
+        });
+        if (ordersWithTime.length >= 2) {
+          const first = new Date(ordersWithTime[0].arrivalTime!).getTime();
+          const last = new Date(ordersWithTime[ordersWithTime.length - 1].arrivalTime!).getTime();
+          const spanHours = (last - first) / (1000 * 60 * 60);
+          if (spanHours > 0) {
+            ordersPerHour = Math.round((ordersWithTime.length / spanHours) * 10) / 10;
+          }
+        }
+      }
     }
 
+    // Zone breakdown + driver stats
+    const driverBreakdown = await prisma.orderLog.groupBy({
+      by: ["driverId"],
+      where,
+      _sum: { orderCount: true, cashCollected: true },
+      orderBy: { _sum: { orderCount: "desc" } },
+    });
+    const driverIds = driverBreakdown.map((z) => z.driverId);
+    const drivers = driverIds.length > 0
+      ? await prisma.driver.findMany({
+          where: { id: { in: driverIds } },
+          select: { id: true, name: true, zone: true },
+        })
+      : [];
+    const driverMap = Object.fromEntries(drivers.map((d) => [d.id, d]));
+    const zoneMap: Record<string, { deliveries: number; cash: number }> = {};
+    for (const row of driverBreakdown) {
+      const zone = driverMap[row.driverId]?.zone || "Unknown";
+      if (!zoneMap[zone]) zoneMap[zone] = { deliveries: 0, cash: 0 };
+      zoneMap[zone].deliveries += row._sum.orderCount || 0;
+      zoneMap[zone].cash += Number(row._sum.cashCollected || 0);
+    }
+    const zones = Object.entries(zoneMap)
+      .map(([zone, stats]) => ({ zone, ...stats }))
+      .sort((a, b) => b.deliveries - a.deliveries);
+
+    // Enhanced summary fields
+    const totalDeliveries = agg._sum.orderCount || 0;
+    const totalCashKd = Number(agg._sum.cashCollected || 0);
+    const avgCashPerOrder = totalDeliveries > 0 ? Math.round((totalCashKd / totalDeliveries) * 1000) / 1000 : 0;
+
+    // Peak hour from arrivalTime
+    let peakHour: number | null = null;
+    const ordersWithArrival = await prisma.orderLog.findMany({
+      where: { ...where, arrivalTime: { not: null } },
+      select: { arrivalTime: true },
+    });
+    if (ordersWithArrival.length > 0) {
+      const hourCounts: Record<number, number> = {};
+      for (const o of ordersWithArrival) {
+        const h = new Date(o.arrivalTime!).getHours();
+        hourCounts[h] = (hourCounts[h] || 0) + 1;
+      }
+      peakHour = Number(Object.entries(hourCounts).sort((a, b) => b[1] - a[1])[0][0]);
+    }
+
+    // Top driver
+    const topDriverRow = driverBreakdown[0];
+    const topDriverName = topDriverRow ? (driverMap[topDriverRow.driverId]?.name || null) : null;
+
+    // Top zone
+    const topZone = zones.length > 0 ? zones[0].zone : null;
+
     res.json({
-      totalDeliveries: agg._sum.orderCount || 0,
+      totalDeliveries,
       totalDistanceKm: Number(agg._sum.distanceKm || 0),
       totalTipsKd: Number(agg._sum.tips || 0),
-      totalCashKd: Number(agg._sum.cashCollected || 0),
+      totalCashKd,
       ordersPerHour,
+      avgCashPerOrder,
+      peakHour,
+      topDriverName,
+      topZone,
+      zones,
     });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /aggregated - Orders grouped by driver + date
+router.get("/aggregated", async (req: Request, res: Response) => {
+  try {
+    const { skip, limit, page } = getPagination(req);
+    const tenantId = req.user!.tenantId;
+    const { platform, dateFrom, dateTo, zone, search, sortBy, sortOrder } = req.query;
+    const where: any = { tenantId };
+    if (platform) where.platform = platform;
+    if (zone) where.driver = { ...where.driver, zone: zone as string };
+    if (search) where.driver = { ...where.driver, name: { contains: search as string, mode: "insensitive" } };
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
+      if (dateTo) where.date.lte = parseLocalDateEnd(dateTo as string);
+    }
+
+    // Get all matching orders
+    let allOrders = await prisma.orderLog.findMany({
+      where,
+      orderBy: { date: "desc" },
+      include: { driver: { select: { id: true, name: true, platform: true, zone: true, batchNumber: true, company: { select: { name: true } } } } },
+    });
+
+    // Group by driverId + date (day)
+    const groupMap = new Map<string, any>();
+    for (const o of allOrders) {
+      const dateKey = new Date(o.date).toISOString().split("T")[0];
+      const key = `${o.driverId}_${dateKey}`;
+      if (!groupMap.has(key)) {
+        groupMap.set(key, {
+          driverId: o.driverId,
+          driverName: (o as any).driver?.name || "-",
+          zone: (o as any).driver?.zone || null,
+          date: dateKey,
+          totalDeliveries: 0,
+          totalCash: 0,
+          orderIds: [],
+          orders: [],
+        });
+      }
+      const group = groupMap.get(key)!;
+      group.totalDeliveries += o.orderCount;
+      group.totalCash += Number(o.cashCollected || 0);
+      group.orderIds.push(o.id);
+      group.orders.push({
+        id: o.id,
+        orderNumber: o.orderNumber,
+        arrivalTime: o.arrivalTime,
+        paymentSource: o.paymentSource,
+        cashCollected: o.cashCollected != null ? Number(o.cashCollected) : 0,
+        deliveries: o.orderCount,
+      });
+    }
+
+    let groups = Array.from(groupMap.values());
+
+    // Sort
+    const dir = sortOrder === "asc" ? 1 : -1;
+    if (sortBy === "driver") groups.sort((a, b) => dir * a.driverName.localeCompare(b.driverName));
+    else if (sortBy === "deliveries") groups.sort((a, b) => dir * (a.totalDeliveries - b.totalDeliveries));
+    else if (sortBy === "cash") groups.sort((a, b) => dir * (a.totalCash - b.totalCash));
+    else groups.sort((a, b) => dir * (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+
+    const total = groups.length;
+    const paginated = groups.slice(skip, skip + limit);
+
+    res.json(paginatedResponse(paginated, total, page, limit));
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /export-csv - Download orders as CSV
+router.get("/export-csv", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { platform, dateFrom, dateTo, zone, search } = req.query;
+    const where: any = { tenantId };
+    if (platform) where.platform = platform;
+    if (zone) where.driver = { ...where.driver, zone: zone as string };
+    if (search) where.driver = { ...where.driver, name: { contains: search as string, mode: "insensitive" } };
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
+      if (dateTo) where.date.lte = parseLocalDateEnd(dateTo as string);
+    }
+
+    const orders = await prisma.orderLog.findMany({
+      where,
+      orderBy: { date: "desc" },
+      include: { driver: { select: { name: true, zone: true } } },
+    });
+
+    const header = "Date,Driver,Zone,Deliveries,Cash (KD),Order Number,Payment Source,Arrival Time\n";
+    const rows = orders.map((o: any) => {
+      const date = new Date(o.date).toISOString().split("T")[0];
+      const driver = (o.driver?.name || "").replace(/,/g, " ");
+      const zone = (o.driver?.zone || "").replace(/,/g, " ");
+      const deliveries = o.orderCount;
+      const cash = o.cashCollected != null ? Number(o.cashCollected).toFixed(3) : "0.000";
+      const orderNum = (o.orderNumber || "").replace(/,/g, " ");
+      const payment = o.paymentSource || "";
+      const arrival = o.arrivalTime ? new Date(o.arrivalTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+      return `${date},${driver},${zone},${deliveries},${cash},${orderNum},${payment},${arrival}`;
+    }).join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename=orders-${dateFrom || "all"}.csv`);
+    res.send(header + rows);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /export - Download orders as XLSX
+router.get("/export", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { platform, dateFrom, dateTo, zone, search } = req.query;
+    const where: any = { tenantId };
+    if (platform) where.platform = platform;
+    if (zone) where.driver = { ...where.driver, zone: zone as string };
+    if (search) where.driver = { ...where.driver, name: { contains: search as string, mode: "insensitive" } };
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
+      if (dateTo) where.date.lte = parseLocalDateEnd(dateTo as string);
+    }
+
+    const orders = await prisma.orderLog.findMany({
+      where,
+      orderBy: { date: "desc" },
+      include: { driver: { select: { name: true, zone: true, batchNumber: true, company: { select: { name: true } } } } },
+    });
+
+    const rows = orders.map((o: any) => ({
+      "Date": new Date(o.date).toLocaleDateString(),
+      "Time": o.arrivalTime ? new Date(o.arrivalTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "",
+      "Order #": o.orderNumber || "",
+      "Driver Name": o.driver?.name || "",
+      "Company": o.driver?.company?.name || "",
+      "Batch #": o.driver?.batchNumber || "",
+      "Zone": o.driver?.zone || "",
+      "Payment": o.paymentSource || "",
+      "Deliveries": o.orderCount,
+      "Cash (KD)": o.cashCollected != null ? Number(o.cashCollected).toFixed(3) : "0.000",
+    }));
+
+    sendXlsx(res, rows, "Orders", `orders-${dateFrom || "all"}.xlsx`);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /drivers - Distinct driver names for a platform (for dropdown)
+router.get("/drivers", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { platform } = req.query;
+    const where: any = { tenantId };
+    if (platform) where.platform = platform;
+
+    const drivers = await prisma.driver.findMany({
+      where,
+      select: { id: true, name: true, zone: true },
+      orderBy: { name: "asc" },
+    });
+
+    res.json(drivers);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -227,7 +479,7 @@ router.post("/upload-screenshot", upload.single("screenshot"), async (req: Reque
       const cashCollected =
         "cashCollectedKD" in ocrResult ? (ocrResult.cashCollectedKD ?? undefined) :
         "cashKD" in ocrResult ? (ocrResult.cashKD ?? undefined) :
-        "totalAmountKWD" in ocrResult ? (ocrResult.totalAmountKWD ?? undefined) : undefined;
+        "totalAmountKD" in ocrResult ? (ocrResult.totalAmountKD ?? undefined) : undefined;
 
       const tips =
         "tipsKD" in ocrResult ? (ocrResult.tipsKD ?? undefined) : undefined;

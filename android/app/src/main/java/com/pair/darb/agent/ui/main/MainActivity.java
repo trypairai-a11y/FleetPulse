@@ -272,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
                 + "\nEnrolled:   " + prefsManager.isEnrolled()
                 + "\nOn Shift:   " + prefsManager.isOnShift()
                 + "\nShift ID:   " + (prefsManager.getCurrentShiftId() != null
-                                        ? prefsManager.getCurrentShiftId() : "—");
+                                        ? prefsManager.getCurrentShiftId() : "-");
 
         new AlertDialog.Builder(this)
                 .setTitle("Device Info")

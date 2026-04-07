@@ -12,7 +12,7 @@ router.use(authMiddleware, tenantScope);
 
 // ─── Orders ──────────────────────────────────────────────────────────────────
 
-// GET /orders — List AmericanaDailyOrders with filters, paginated
+// GET /orders - List AmericanaDailyOrders with filters, paginated
 router.get("/orders", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
@@ -49,7 +49,7 @@ router.get("/orders", async (req: Request, res: Response) => {
   }
 });
 
-// GET /orders/summary — Aggregate stats for a given month
+// GET /orders/summary - Aggregate stats for a given month
 router.get("/orders/summary", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -101,7 +101,7 @@ router.get("/orders/summary", async (req: Request, res: Response) => {
   }
 });
 
-// GET /orders/:id — Single record with driver
+// GET /orders/:id - Single record with driver
 router.get("/orders/:id", async (req: Request, res: Response) => {
   try {
     const record = await prisma.americanaDailyOrders.findFirst({
@@ -115,7 +115,7 @@ router.get("/orders/:id", async (req: Request, res: Response) => {
   }
 });
 
-// POST /orders — Create
+// POST /orders - Create
 router.post("/orders", async (req: Request, res: Response) => {
   try {
     const record = await prisma.americanaDailyOrders.create({
@@ -127,7 +127,7 @@ router.post("/orders", async (req: Request, res: Response) => {
   }
 });
 
-// PUT /orders/:id — Update
+// PUT /orders/:id - Update
 router.put("/orders/:id", async (req: Request, res: Response) => {
   try {
     const record = await prisma.americanaDailyOrders.updateMany({
@@ -144,7 +144,7 @@ router.put("/orders/:id", async (req: Request, res: Response) => {
 
 // ─── Driver Summary ──────────────────────────────────────────────────────────
 
-// GET /drivers/summary — Americana driver stats
+// GET /drivers/summary - Americana driver stats
 router.get("/drivers/summary", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -196,7 +196,7 @@ router.get("/drivers/summary", async (req: Request, res: Response) => {
 
 // ─── Import ──────────────────────────────────────────────────────────────────
 
-// POST /import — Parse uploaded Americana monthly XLSX file
+// POST /import - Parse uploaded Americana monthly XLSX file
 router.post("/import", upload.single("file"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }

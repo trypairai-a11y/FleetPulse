@@ -26,6 +26,10 @@ import keetaRoutes from "./routes/keeta";
 import analyticsRoutes from "./routes/analytics";
 import userRoutes from "./routes/users";
 import deliverooRoutes from "./routes/deliveroo";
+import kpiRoutes from "./routes/kpis";
+import platformSettingsRoutes from "./routes/platformSettings";
+import platformOverviewRoutes from "./routes/platformOverview";
+import notificationRoutes from "./routes/notifications";
 
 const app = express();
 
@@ -67,6 +71,10 @@ app.use("/api/keeta", keetaRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/deliveroo", deliverooRoutes);
+app.use("/api/kpi", kpiRoutes);
+app.use("/api/platform-settings", platformSettingsRoutes);
+app.use("/api/platform-overview", platformOverviewRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Root & health check
 app.get("/", (_req, res) => {

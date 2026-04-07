@@ -93,7 +93,7 @@ export default function DeliverooDriversPage() {
       label: "Rider ID",
       render: (v: string) => (
         <span className="font-mono text-xs text-secondary">
-          #{v || "—"}
+          #{v || "-"}
         </span>
       ),
     },
@@ -138,7 +138,7 @@ export default function DeliverooDriversPage() {
             </span>
           )
         ) : (
-          <span className="text-xs text-secondary">—</span>
+          <span className="text-xs text-secondary">-</span>
         ),
     },
     {
@@ -164,7 +164,7 @@ export default function DeliverooDriversPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-teal-500" />
-          <h1 className="text-xl font-semibold">Deliveroo — Drivers</h1>
+          <h1 className="text-xl font-semibold">Deliveroo - Drivers</h1>
           <span className="text-sm text-secondary">Al Hazm</span>
         </div>
         <button
@@ -179,18 +179,18 @@ export default function DeliverooDriversPage() {
       <div className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3">
         <AlertCircle size={16} className="text-amber-500 mt-0.5 shrink-0" />
         <p className="text-xs text-amber-700">
-          <span className="font-semibold">Note:</span> Deliveroo does not have native face verification. Darb adds this capability via the Android agent — see the "Face Verif (Darb)" column.
+          <span className="font-semibold">Note:</span> Deliveroo does not have native face verification. Darb adds this capability via the Android agent - see the "Face Verif (Darb)" column.
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
         <StatCard title="Total Drivers" value={summary?.total || drivers.length} icon={Users} />
-        <StatCard title="Freelance" value={summary?.freelance || "—"} icon={Bike} />
-        <StatCard title="Core Fleet" value={summary?.coreFleet || "—"} icon={Users} />
+        <StatCard title="Freelance" value={summary?.freelance || "-"} icon={Bike} />
+        <StatCard title="Core Fleet" value={summary?.coreFleet || "-"} icon={Users} />
         <StatCard
           title="Face Verified"
-          value={summary?.faceVerified || "—"}
+          value={summary?.faceVerified || "-"}
           icon={ShieldCheck}
         />
       </div>
@@ -257,17 +257,17 @@ export default function DeliverooDriversPage() {
 
             <div className="grid grid-cols-2 gap-3">
               {[
-                ["Rider ID", `#${selected.platformDriverId || "—"}`],
+                ["Rider ID", `#${selected.platformDriverId || "-"}`],
                 ["Zone", selected.zone],
                 ["Vehicle", selected.vehicleType],
                 ["Status", selected.status],
                 ["Company Phone", selected.phone],
                 ["Personal Phone", selected.personalPhone],
-                ["Hire Date", selected.hireDate ? new Date(selected.hireDate).toLocaleDateString() : "—"],
+                ["Hire Date", selected.hireDate ? new Date(selected.hireDate).toLocaleDateString() : "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5">{val || "—"}</p>
+                  <p className="text-sm font-medium mt-0.5">{val || "-"}</p>
                 </div>
               ))}
             </div>
@@ -281,7 +281,7 @@ export default function DeliverooDriversPage() {
                 <span className="text-sm text-teal-800">
                   {selected.faceVerified
                     ? "Selfie captured & matched at last clock-in"
-                    : "Not yet verified — Android agent required"}
+                    : "Not yet verified - Android agent required"}
                 </span>
               </div>
               {selected.lastFaceVerifAt && (
@@ -307,7 +307,7 @@ export default function DeliverooDriversPage() {
               </p>
               <div className="flex items-center gap-2 text-sm text-secondary">
                 <Phone size={14} />
-                <span>{selected.phone || "—"}</span>
+                <span>{selected.phone || "-"}</span>
               </div>
             </div>
           </div>

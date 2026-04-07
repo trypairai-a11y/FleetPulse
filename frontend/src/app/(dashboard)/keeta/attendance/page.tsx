@@ -34,7 +34,7 @@ const STATUS_STYLES: Record<string, string> = {
 const MONTH_DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
 
 function ShiftValidity({ valid }: { valid: boolean | null }) {
-  if (valid === null) return <span className="text-xs text-secondary">—</span>;
+  if (valid === null) return <span className="text-xs text-secondary">-</span>;
   return valid ? (
     <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
       <CheckCircle2 size={13} /> Valid
@@ -90,14 +90,14 @@ export default function KeetaAttendancePage() {
       key: "driver",
       label: "Driver",
       render: (_: any, r: any) => (
-        <span className="font-medium text-sm">{r.driver?.name || "—"}</span>
+        <span className="font-medium text-sm">{r.driver?.name || "-"}</span>
       ),
     },
     {
       key: "zone",
       label: "Zone",
       render: (_: any, r: any) => (
-        <span className="text-sm text-secondary">{r.driver?.zone || r.zone || "—"}</span>
+        <span className="text-sm text-secondary">{r.driver?.zone || r.zone || "-"}</span>
       ),
     },
     {
@@ -109,7 +109,7 @@ export default function KeetaAttendancePage() {
             {new Date(r.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
         ) : (
-          <span className="text-secondary text-sm">—</span>
+          <span className="text-secondary text-sm">-</span>
         ),
     },
     {
@@ -121,7 +121,7 @@ export default function KeetaAttendancePage() {
             {new Date(r.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
         ) : (
-          <span className="text-secondary text-sm">—</span>
+          <span className="text-secondary text-sm">-</span>
         ),
     },
     {
@@ -146,7 +146,7 @@ export default function KeetaAttendancePage() {
             {r.gpsLocation}
           </span>
         ) : (
-          <span className="text-secondary text-sm">—</span>
+          <span className="text-secondary text-sm">-</span>
         ),
     },
     {
@@ -168,7 +168,7 @@ export default function KeetaAttendancePage() {
             </span>
           )
         ) : (
-          <span className="text-xs text-secondary">—</span>
+          <span className="text-xs text-secondary">-</span>
         ),
     },
     {
@@ -196,7 +196,7 @@ export default function KeetaAttendancePage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-keeta" />
-        <h1 className="text-xl font-semibold">Keeta — Attendance</h1>
+        <h1 className="text-xl font-semibold">Keeta - Attendance</h1>
         <span className="text-sm text-secondary">Sidra</span>
       </div>
 
@@ -259,7 +259,7 @@ export default function KeetaAttendancePage() {
       {tab === "monthly" && (
         <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Monthly Summary — {new Date().toLocaleString("default", { month: "long", year: "numeric" })}</h2>
+            <h2 className="text-sm font-semibold">Monthly Summary - {new Date().toLocaleString("default", { month: "long", year: "numeric" })}</h2>
             <select className="px-3 py-1.5 rounded-xl border border-gray-200 text-sm focus:outline-none">
               <option>All Zones</option>
               {ZONES.map((z) => <option key={z}>{z}</option>)}
@@ -292,7 +292,7 @@ export default function KeetaAttendancePage() {
                           <span className="w-5 h-5 rounded-full inline-flex items-center justify-center bg-gray-100 text-gray-400">·</span>
                         </td>
                       ))}
-                      <td className="px-3 py-2 text-right font-medium">—</td>
+                      <td className="px-3 py-2 text-right font-medium">-</td>
                     </tr>
                   ))
                 )}
@@ -337,7 +337,7 @@ export default function KeetaAttendancePage() {
                       <td className="px-5 py-3 text-sm text-secondary">{leave.type}</td>
                       <td className="px-5 py-3 text-sm text-secondary">{new Date(leave.startDate).toLocaleDateString()}</td>
                       <td className="px-5 py-3 text-sm text-secondary">{new Date(leave.endDate).toLocaleDateString()}</td>
-                      <td className="px-5 py-3 text-sm text-secondary">{leave.days || "—"}</td>
+                      <td className="px-5 py-3 text-sm text-secondary">{leave.days || "-"}</td>
                       <td className="px-5 py-3">
                         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
                           "bg-yellow-50 text-yellow-700": actionTaken === "PENDING",
@@ -386,13 +386,13 @@ export default function KeetaAttendancePage() {
             <div className="grid grid-cols-2 gap-3">
               {[
                 ["Date", filters.date],
-                ["Zone", selected.driver?.zone || selected.zone || "—"],
+                ["Zone", selected.driver?.zone || selected.zone || "-"],
                 ["Status", selected.status],
-                ["Clock In", selected.shift?.actualStart ? new Date(selected.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"],
-                ["Clock Out", selected.shift?.actualEnd ? new Date(selected.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"],
-                ["Late (min)", selected.lateMinutes ?? "—"],
-                ["Shift Validity", selected.shift?.isValid === true ? "Valid" : selected.shift?.isValid === false ? "Invalid" : "—"],
-                ["GPS", selected.gpsLocation || "—"],
+                ["Clock In", selected.shift?.actualStart ? new Date(selected.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
+                ["Clock Out", selected.shift?.actualEnd ? new Date(selected.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
+                ["Late (min)", selected.lateMinutes ?? "-"],
+                ["Shift Validity", selected.shift?.isValid === true ? "Valid" : selected.shift?.isValid === false ? "Invalid" : "-"],
+                ["GPS", selected.gpsLocation || "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>

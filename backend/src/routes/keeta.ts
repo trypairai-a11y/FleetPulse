@@ -12,7 +12,7 @@ router.use(authMiddleware, tenantScope);
 
 // ─── Metrics ─────────────────────────────────────────────────────────────────
 
-// GET /metrics — List KeetaDailyMetrics with filters, paginated
+// GET /metrics - List KeetaDailyMetrics with filters, paginated
 router.get("/metrics", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
@@ -50,7 +50,7 @@ router.get("/metrics", async (req: Request, res: Response) => {
   }
 });
 
-// GET /metrics/summary — Aggregate stats for a date range
+// GET /metrics/summary - Aggregate stats for a date range
 router.get("/metrics/summary", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -98,7 +98,7 @@ router.get("/metrics/summary", async (req: Request, res: Response) => {
   }
 });
 
-// GET /metrics/:id — Single record with driver
+// GET /metrics/:id - Single record with driver
 router.get("/metrics/:id", async (req: Request, res: Response) => {
   try {
     const record = await prisma.keetaDailyMetrics.findFirst({
@@ -112,7 +112,7 @@ router.get("/metrics/:id", async (req: Request, res: Response) => {
   }
 });
 
-// POST /metrics — Create
+// POST /metrics - Create
 router.post("/metrics", async (req: Request, res: Response) => {
   try {
     const record = await prisma.keetaDailyMetrics.create({
@@ -124,7 +124,7 @@ router.post("/metrics", async (req: Request, res: Response) => {
   }
 });
 
-// PUT /metrics/:id — Update
+// PUT /metrics/:id - Update
 router.put("/metrics/:id", async (req: Request, res: Response) => {
   try {
     const result = await prisma.keetaDailyMetrics.updateMany({
@@ -141,7 +141,7 @@ router.put("/metrics/:id", async (req: Request, res: Response) => {
 
 // ─── Driver Summary ──────────────────────────────────────────────────────────
 
-// GET /drivers/summary — Keeta driver stats
+// GET /drivers/summary - Keeta driver stats
 router.get("/drivers/summary", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -191,7 +191,7 @@ router.get("/drivers/summary", async (req: Request, res: Response) => {
 
 // ─── Import ──────────────────────────────────────────────────────────────────
 
-// POST /import — Parse uploaded Keeta XLSX and upsert metrics
+// POST /import - Parse uploaded Keeta XLSX and upsert metrics
 router.post("/import", upload.single("file"), async (req: Request, res: Response) => {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }

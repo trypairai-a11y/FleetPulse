@@ -317,7 +317,7 @@ export class AiChatService {
     if (!env.ANTHROPIC_API_KEY) {
       return {
         response:
-          "AI chat is not available — ANTHROPIC_API_KEY is not configured.",
+          "AI chat is not available - ANTHROPIC_API_KEY is not configured.",
       };
     }
 
@@ -342,7 +342,7 @@ Company context:
 - Plan: ${tenant?.subscriptionPlan ?? "Unknown"}
 - Active drivers: ${driverCount}
 - Operating platforms: KEETA, TALABAT, DELIVEROO, AMERICANA
-- Currency: Kuwaiti Dinar (KWD), 3 decimal places
+- Currency: Kuwaiti Dinar (KD), 3 decimal places
 - Location: Kuwait
 
 Your role:
@@ -393,7 +393,7 @@ Today's date: ${new Date().toISOString().split("T")[0]}`;
       );
 
       if (response.stop_reason === "end_turn" || toolUseBlocks.length === 0) {
-        // Final answer — return the text
+        // Final answer - return the text
         const finalText = textBlocks.map((b) => b.text).join("\n").trim();
         return {
           response: finalText || "I couldn't generate a response. Please try again.",
@@ -435,7 +435,7 @@ Today's date: ${new Date().toISOString().split("T")[0]}`;
       messages.push({ role: "user", content: toolResultContent });
     }
 
-    // Exceeded max iterations — return what we have
+    // Exceeded max iterations - return what we have
     return {
       response: "I reached the maximum number of tool calls while processing your request. Please try a more specific question.",
       toolResults: collectedToolResults.length > 0 ? collectedToolResults : undefined,

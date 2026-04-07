@@ -269,7 +269,7 @@ export default function AddDriverModal({ platform, onClose, onSuccess }: AddDriv
 
               {/* Company */}
               <div>
-                <label className={labelClass}>Company *</label>
+                <label className={labelClass}>Driver Company *</label>
                 <select
                   required
                   value={form.companyId}
