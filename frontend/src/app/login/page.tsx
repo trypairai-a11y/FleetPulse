@@ -21,15 +21,15 @@ export default function LoginPage() {
     try {
       await login(email, password);
       router.push("/");
-    } catch {
-      setError("Invalid email or password");
+    } catch (err: any) {
+      setError(err?.response?.data?.error || err?.message || "Invalid email or password");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen w-full bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8 flex flex-col items-center">
           <div className="overflow-hidden" style={{ maxWidth: 210 }}>

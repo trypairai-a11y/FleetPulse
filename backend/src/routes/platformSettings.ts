@@ -18,11 +18,36 @@ router.get("/:platform", async (req: Request, res: Response) => {
 
     if (!settings) {
       // Return defaults based on platform
-      res.json({ platform, targets: getDefaultTargets(platform), kpis: getDefaultKpis(platform), shiftRules: getDefaultShiftRules(), zones: getDefaultZones(platform) });
+      res.json({
+        platform,
+        targets: getDefaultTargets(platform),
+        kpis: getDefaultKpis(platform),
+        shiftRules: getDefaultShiftRules(),
+        zones: getDefaultZones(platform),
+        violationRules: getDefaultViolationRules(platform),
+        cashRules: getDefaultCashRules(),
+        bookingRules: getDefaultBookingRules(platform),
+        documentRules: getDefaultDocumentRules(),
+        notificationConfig: getDefaultNotificationConfig(),
+        supervisorTargets: getDefaultSupervisorTargets(),
+      });
       return;
     }
 
-    res.json(settings);
+    // Merge defaults for any null fields
+    res.json({
+      ...settings,
+      targets: settings.targets || getDefaultTargets(platform),
+      kpis: settings.kpis || getDefaultKpis(platform),
+      shiftRules: settings.shiftRules || getDefaultShiftRules(),
+      zones: settings.zones || getDefaultZones(platform),
+      violationRules: settings.violationRules || getDefaultViolationRules(platform),
+      cashRules: settings.cashRules || getDefaultCashRules(),
+      bookingRules: settings.bookingRules || getDefaultBookingRules(platform),
+      documentRules: settings.documentRules || getDefaultDocumentRules(),
+      notificationConfig: settings.notificationConfig || getDefaultNotificationConfig(),
+      supervisorTargets: settings.supervisorTargets || getDefaultSupervisorTargets(),
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -33,12 +58,12 @@ router.put("/:platform", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
     const platform = req.params.platform.toUpperCase();
-    const { targets, kpis, shiftRules, zones } = req.body;
+    const { targets, kpis, shiftRules, zones, violationRules, cashRules, bookingRules, documentRules, notificationConfig, supervisorTargets } = req.body;
 
     const settings = await prisma.platformSettings.upsert({
       where: { tenantId_platform: { tenantId, platform: platform as any } },
-      create: { tenantId, platform: platform as any, targets: targets || getDefaultTargets(platform), kpis, shiftRules, zones },
-      update: { targets, kpis, shiftRules, zones },
+      create: { tenantId, platform: platform as any, targets: targets || getDefaultTargets(platform), kpis, shiftRules, zones, violationRules, cashRules, bookingRules, documentRules, notificationConfig, supervisorTargets },
+      update: { targets, kpis, shiftRules, zones, violationRules, cashRules, bookingRules, documentRules, notificationConfig, supervisorTargets },
     });
 
     res.json(settings);
@@ -53,21 +78,12 @@ router.get("/:platform/inventory", async (req: Request, res: Response) => {
     const tenantId = req.user!.tenantId;
     const platform = req.params.platform.toUpperCase();
 
-    // Get companies for this platform
-    const companies = await prisma.company.findMany({
+    const inventory = await prisma.platformInventory.findMany({
       where: { tenantId, platform: platform as any },
-      select: { id: true, name: true },
-    });
-
-    const companyIds = companies.map((c) => c.id);
-
-    const inventory = await prisma.companyInventory.findMany({
-      where: { tenantId, companyId: { in: companyIds } },
-      include: { company: { select: { name: true, platform: true } } },
       orderBy: { itemType: "asc" },
     });
 
-    res.json({ data: inventory, companies });
+    res.json({ data: inventory });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -77,14 +93,15 @@ router.get("/:platform/inventory", async (req: Request, res: Response) => {
 router.put("/:platform/inventory", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
-    const { items } = req.body; // [{ companyId, itemType, total, minStock }]
+    const platform = req.params.platform.toUpperCase();
+    const { items } = req.body; // [{ itemType, total, minStock }]
 
     const results = [];
     for (const item of items) {
       const issued = item.issued || 0;
-      const result = await prisma.companyInventory.upsert({
-        where: { companyId_itemType: { companyId: item.companyId, itemType: item.itemType } },
-        create: { tenantId, companyId: item.companyId, itemType: item.itemType, total: item.total, issued, available: item.total - issued, minStock: item.minStock || 0 },
+      const result = await prisma.platformInventory.upsert({
+        where: { tenantId_platform_itemType: { tenantId, platform: platform as any, itemType: item.itemType } },
+        create: { tenantId, platform: platform as any, itemType: item.itemType, total: item.total, issued, available: item.total - issued, minStock: item.minStock || 0 },
         update: { total: item.total, issued, available: item.total - issued, minStock: item.minStock || 0 },
       });
       results.push(result);
@@ -96,15 +113,15 @@ router.put("/:platform/inventory", async (req: Request, res: Response) => {
   }
 });
 
-function getDefaultTargets(platform: string) {
+function getDefaultTargetsBase(platform: string) {
   switch (platform) {
     case "TALABAT":
       return {
-        mainTarget: { name: "Orders per Day", key: "ordersPerDay", value: 18, unit: "orders", description: "Target number of orders per shift" },
+        mainTarget: { name: "Orders per Month", key: "ordersPerMonth", value: 18, unit: "orders", description: "Target number of orders per month" },
         subTargets: [
           { name: "Batch Number", key: "batchNumber", value: 1, unit: "batch", description: "Target batch number (1 = best, 7 = worst)" },
-          { name: "Daily Hours", key: "dailyHours", value: 12, unit: "hours", description: "Expected hours per shift" },
-          { name: "UTR", key: "utr", value: 100, unit: "%", description: "Utilization rate target" },
+          { name: "Daily Hours", key: "dailyHours", value: 12, unit: "hours", description: "Expected hours per day" },
+          { name: "UTR", key: "utr", value: 2, unit: "decimal (0–2)", description: "Utilization rate target" },
         ],
       };
     case "KEETA":
@@ -119,21 +136,26 @@ function getDefaultTargets(platform: string) {
       };
     case "AMERICANA":
       return {
-        mainTarget: { name: "Orders per Day", key: "ordersPerDay", value: 20, unit: "orders", description: "Target orders per day" },
+        mainTarget: { name: "Orders per Month", key: "ordersPerMonth", value: 20, unit: "orders", description: "Target orders per month" },
         subTargets: [
           { name: "Arrive on Time", key: "arriveOnTime", value: 100, unit: "%", description: "Arrive to store on time" },
         ],
       };
     case "DELIVEROO":
       return {
-        mainTarget: { name: "Orders per Day", key: "ordersPerDay", value: 15, unit: "orders", description: "Target orders per day" },
+        mainTarget: { name: "Orders per Month", key: "ordersPerMonth", value: 15, unit: "orders", description: "Target orders per month" },
         subTargets: [
           { name: "Daily Hours", key: "dailyHours", value: 10, unit: "hours", description: "Target online hours" },
         ],
       };
     default:
-      return { mainTarget: { name: "Orders per Day", key: "ordersPerDay", value: 15, unit: "orders" }, subTargets: [] };
+      return { mainTarget: { name: "Orders per Month", key: "ordersPerMonth", value: 15, unit: "orders" }, subTargets: [] };
   }
+}
+
+function getDefaultTargets(platform: string) {
+  const base = getDefaultTargetsBase(platform);
+  return { MOTORCYCLE: base, CAR: JSON.parse(JSON.stringify(base)) };
 }
 
 function getDefaultKpis(platform: string) {
@@ -148,15 +170,15 @@ function getDefaultKpis(platform: string) {
           { label: "Failed", minPercent: 0, maxPercent: 29, color: "#ef4444" },
         ],
         weights: {
-          ordersPerDay: 40,
+          utr: 40,
           batchNumber: 30,
           attendance: 20,
-          compliance: 10,
+          violation: 10,
         },
         thresholds: {
-          ordersExcellent: 18,
-          ordersGood: 12,
-          ordersMinimum: 8,
+          utrExcellent: 1.5,
+          utrGood: 1.2,
+          utrMinimum: 0.8,
           batchBest: 1,
           batchWorst: 7,
         },
@@ -186,29 +208,207 @@ function getDefaultKpis(platform: string) {
           { label: "Average", minPercent: 50, maxPercent: 69, color: "#f59e0b" },
           { label: "Failed", minPercent: 0, maxPercent: 49, color: "#ef4444" },
         ],
-        weights: { ordersPerDay: 50, attendance: 30, compliance: 20 },
+        weights: { ordersPerDay: 50, attendance: 30, violation: 20 },
       };
   }
 }
 
 function getDefaultShiftRules() {
-  return {
-    defaultHoursPerShift: 12,
+  const base = {
+    defaultHoursPerDay: 12,
     maxLateMinutes: 1,
-    earlyClockOutMinutes: 15,
+    earlyLogOutMinutes: 15,
     maxCashHoldKD: 50,
   };
+  return { MOTORCYCLE: base, CAR: { ...base } };
 }
 
 function getDefaultZones(platform: string) {
   switch (platform) {
     case "TALABAT":
-      return ["Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem"];
+      return ["Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabah Al Salem"];
     case "KEETA":
-      return ["Zone A", "Zone B", "Zone C"];
+      return ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"];
+    case "DELIVEROO":
+      return ["Salmiya", "Hawally", "Sharq", "Kuwait City", "Fintas", "Mangaf"];
+    case "AMERICANA":
+      return ["Salmiya", "Hawally", "Jabriya", "Farwaniya", "Fahaheel", "Jahra"];
     default:
       return [];
   }
+}
+
+function getDefaultViolationRules(platform: string) {
+  const baseRules = [
+    { type: "LATE_CLOCK_IN", label: "Late Clock-In", penaltyPoints: 2, autoDetect: true, description: "Driver clocks in after scheduled start time" },
+    { type: "EARLY_CLOCK_OUT", label: "Early Clock-Out", penaltyPoints: 2, autoDetect: true, description: "Driver clocks out before shift end" },
+    { type: "SHIFT_NOT_BOOKED", label: "Shift Not Booked", penaltyPoints: 3, autoDetect: true, description: "Driver did not book required shifts" },
+    { type: "CASH_THRESHOLD_EXCEEDED", label: "Cash Threshold Exceeded", penaltyPoints: 5, autoDetect: true, description: "Driver holding cash above allowed limit" },
+    { type: "ZONE_MISMATCH", label: "Zone Mismatch", penaltyPoints: 1, autoDetect: false, description: "Driver working in wrong zone" },
+    { type: "OUT_OF_ZONE", label: "Out of Zone", penaltyPoints: 1, autoDetect: false, description: "Driver left assigned delivery zone" },
+  ];
+
+  if (platform === "TALABAT") {
+    return {
+      rules: [
+        ...baseRules,
+        { type: "SELFIE_FAIL", label: "Selfie Verification Failed", penaltyPoints: 3, autoDetect: false, description: "Driver failed selfie verification on Talabat app" },
+        { type: "GPS_OFF", label: "GPS Turned Off", penaltyPoints: 4, autoDetect: false, description: "Driver disabled GPS during active shift" },
+        { type: "EQUIPMENT_MISSING", label: "Equipment Missing", penaltyPoints: 2, autoDetect: false, description: "Driver missing required equipment (helmet, bag, etc.)" },
+        { type: "ORDER_CLICK_THROUGH", label: "Order Click-Through", penaltyPoints: 3, autoDetect: false, description: "Driver accepted order without proper verification" },
+      ],
+      maxPointsBeforeWarning: 5,
+      maxPointsBeforeSuspension: 10,
+      pointsResetDays: 30,
+    };
+  }
+
+  return {
+    rules: baseRules,
+    maxPointsBeforeWarning: 5,
+    maxPointsBeforeSuspension: 10,
+    pointsResetDays: 30,
+  };
+}
+
+function getDefaultCashRules() {
+  return {
+    maxCashHoldKD: 50,
+    overdueDays: 3,
+    depositReminderHours: 24,
+    allowedDepositMethods: ["CASH", "BANK_TRANSFER", "AL_MUZAINI"],
+    autoAlertOnOverdue: true,
+    dailyCollectionRequired: false,
+    collectionDays: ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY"],
+    receiptRequired: true,
+    penaltyPerOverdueDay: 0,
+  };
+}
+
+function getDefaultBookingRules(platform: string) {
+  if (platform === "TALABAT") {
+    return {
+      bookingWindowDay: "TUESDAY",
+      bookingWindowStartHour: 8,
+      bookingWindowEndHour: 11,
+      reminderEnabled: true,
+      reminderBeforeHours: 24,
+      maxShiftsPerWeek: 7,
+      minShiftsPerWeek: 5,
+      allowSameDay: false,
+      autoAssignZone: false,
+      defaultShiftDuration: 12,
+      breakDurationMinutes: 0,
+      maxConsecutiveDays: 7,
+    };
+  }
+  return {
+    bookingWindowDay: null,
+    bookingWindowStartHour: null,
+    bookingWindowEndHour: null,
+    reminderEnabled: true,
+    reminderBeforeHours: 24,
+    maxShiftsPerWeek: 7,
+    minShiftsPerWeek: 4,
+    allowSameDay: true,
+    autoAssignZone: false,
+    defaultShiftDuration: 10,
+    breakDurationMinutes: 30,
+    maxConsecutiveDays: 6,
+  };
+}
+
+function getDefaultDocumentRules() {
+  return {
+    requiredDocuments: [
+      { key: "healthCert", label: "Health Certificate", required: true, expiryWarningDays: 30 },
+      { key: "workPermit", label: "Work Permit", required: true, expiryWarningDays: 60 },
+      { key: "foodHandlingCert", label: "Food Handling Certificate", required: true, expiryWarningDays: 30 },
+      { key: "vehicleReg", label: "Vehicle Registration", required: true, expiryWarningDays: 30 },
+      { key: "vehicleInsurance", label: "Vehicle Insurance", required: true, expiryWarningDays: 45 },
+      { key: "drivingLicense", label: "Driving License", required: true, expiryWarningDays: 60 },
+      { key: "civilId", label: "Civil ID", required: true, expiryWarningDays: 90 },
+    ],
+    autoSuspendOnExpiry: true,
+    notifyDriverBeforeExpiry: true,
+    notifySupervisorBeforeExpiry: true,
+    blockShiftBookingOnExpiry: true,
+  };
+}
+
+function getDefaultSupervisorTargets() {
+  return {
+    enabled: true,
+    metric: "darbGradeAvg", // "darbGradeAvg" | "attendanceRate"
+    minDriversRequired: 3,
+    // Per job-grade bonus tiers — each grade has its own thresholds and bonus amounts
+    grades: [
+      {
+        label: "Team Leader",
+        tiers: [
+          { label: "Bronze", minScore: 60, bonusKD: 25 },
+          { label: "Silver", minScore: 75, bonusKD: 50 },
+          { label: "Gold",   minScore: 90, bonusKD: 100 },
+        ],
+      },
+      {
+        label: "Supervisor",
+        tiers: [
+          { label: "Bronze", minScore: 60, bonusKD: 50 },
+          { label: "Silver", minScore: 75, bonusKD: 100 },
+          { label: "Gold",   minScore: 90, bonusKD: 200 },
+        ],
+      },
+      {
+        label: "Senior Supervisor",
+        tiers: [
+          { label: "Bronze", minScore: 60, bonusKD: 100 },
+          { label: "Silver", minScore: 75, bonusKD: 200 },
+          { label: "Gold",   minScore: 90, bonusKD: 350 },
+        ],
+      },
+      {
+        label: "Area Manager",
+        tiers: [
+          { label: "Bronze", minScore: 60, bonusKD: 150 },
+          { label: "Silver", minScore: 75, bonusKD: 300 },
+          { label: "Gold",   minScore: 90, bonusKD: 500 },
+        ],
+      },
+    ],
+    // Score added to raw team score before tier matching — levels playing field for larger teams
+    sizeAdjustments: [
+      { label: "Small",  minDrivers: 3,  maxDrivers: 7,   scoreAdjustment: 0  },
+      { label: "Medium", minDrivers: 8,  maxDrivers: 15,  scoreAdjustment: 5  },
+      { label: "Large",  minDrivers: 16, maxDrivers: 999, scoreAdjustment: 10 },
+    ],
+  };
+}
+
+function getDefaultNotificationConfig() {
+  return {
+    channels: {
+      inApp: true,
+      whatsapp: false,
+      sms: false,
+      email: false,
+    },
+    events: [
+      { type: "cash_overdue", label: "Cash Deposit Overdue", enabled: true, roles: ["ADMIN", "OPS_MANAGER", "SUPERVISOR"] },
+      { type: "SHIFT_NOT_BOOKED", label: "Shift Not Booked", enabled: true, roles: ["ADMIN", "OPS_MANAGER"] },
+      { type: "LATE_CLOCK_IN", label: "Late Clock-In", enabled: true, roles: ["SUPERVISOR"] },
+      { type: "EARLY_CLOCK_OUT", label: "Early Clock-Out", enabled: true, roles: ["SUPERVISOR"] },
+      { type: "doc_expiring", label: "Document Expiring Soon", enabled: true, roles: ["ADMIN", "OPS_MANAGER"] },
+      { type: "doc_expired", label: "Document Expired", enabled: true, roles: ["ADMIN", "OPS_MANAGER", "SUPERVISOR"] },
+      { type: "low_stock", label: "Low Inventory Stock", enabled: true, roles: ["ADMIN", "OPS_MANAGER"] },
+      { type: "driver_suspended", label: "Driver Suspended", enabled: true, roles: ["ADMIN", "OPS_MANAGER"] },
+      { type: "batch_change", label: "Batch Number Changed", enabled: false, roles: ["SUPERVISOR"] },
+      { type: "vehicle_maintenance", label: "Vehicle Maintenance Due", enabled: true, roles: ["OPS_MANAGER"] },
+    ],
+    quietHoursEnabled: false,
+    quietHoursStart: "22:00",
+    quietHoursEnd: "07:00",
+  };
 }
 
 export default router;

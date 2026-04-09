@@ -275,13 +275,7 @@ export default function DeliverooAttendancePage() {
                           </>
                         )}
                         <td className="px-5 py-3">
-                          {record.faceMismatch ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
-                              <XCircle size={12} /> Mismatch
-                            </span>
-                          ) : (
-                            <FaceVerifCell status={record.faceVerifStatus} />
-                          )}
+                          <FaceVerifCell status={record.faceVerifStatus} />
                         </td>
                       </tr>
                     );

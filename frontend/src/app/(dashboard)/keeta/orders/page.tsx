@@ -40,7 +40,7 @@ export default function KeetaOrdersPage() {
   const avgOnTime = orders.length
     ? Math.round(orders.reduce((acc, o) => acc + (o.onTimeRate ?? 0), 0) / orders.length)
     : 0;
-  const totalDistance = orders.reduce((acc, o) => acc + (o.distanceKm ?? o.distance ?? 0), 0);
+  const totalDistance = orders.reduce((acc, o) => acc + Number(o.distanceKm ?? o.distance ?? 0), 0);
 
   const columns = [
     {
@@ -114,7 +114,7 @@ export default function KeetaOrdersPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="space-y-6 w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

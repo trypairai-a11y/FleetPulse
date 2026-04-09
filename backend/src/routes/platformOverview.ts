@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { prisma } from "../config";
 import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
+import { cacheGet, cacheSet } from "../utils/cache";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -12,6 +13,12 @@ router.get("/:platform", async (req: Request, res: Response) => {
     const tenantId = req.user!.tenantId;
     const platform = req.params.platform.toUpperCase() as any;
     const companyId = req.query.companyId as string | undefined;
+    const trendDays = req.query.days ? Math.min(parseInt(req.query.days as string), 30) : 0;
+
+    // Cache key: 5 minute TTL (today's data refreshed frequently)
+    const cacheKey = `platform_overview:${tenantId}:${platform}:${companyId || ""}:${trendDays}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) { res.json(cached); return; }
 
     // Today's date range
     const now = new Date();
@@ -54,7 +61,7 @@ router.get("/:platform", async (req: Request, res: Response) => {
       }),
       // Today's violations (Talabat compliance events)
       platform === "TALABAT"
-        ? prisma.talabatComplianceEvent.findMany({
+        ? prisma.talabatViolationEvent.findMany({
             where: { tenantId, createdAt: { gte: todayStart, lt: todayEnd }, ...(companyId ? { driver: { companyId } } : {}) },
             select: { id: true, driverId: true, type: true, description: true, resolved: true, driver: { select: { name: true } } },
             orderBy: { createdAt: "desc" },
@@ -138,7 +145,75 @@ router.get("/:platform", async (req: Request, res: Response) => {
     const absentCount = driverRows.filter((d) => d.attendance === "ABSENT").length;
     const activeViolations = (todayViolations as any[]).filter((v) => !v.resolved).length;
 
-    res.json({
+    // UTR: average UTR of drivers who had orders today
+    const driversWithOrders = driverRows.filter((d) => d.todayOrders > 0 && d.utr != null);
+    const avgUtr = driversWithOrders.length > 0
+      ? driversWithOrders.reduce((sum, d) => sum + Number(d.utr), 0) / driversWithOrders.length
+      : null;
+
+    // Historical trend data (if days param provided)
+    let trend: any[] = [];
+    if (trendDays > 0) {
+      const trendStart = new Date(todayStart);
+      trendStart.setDate(trendStart.getDate() - trendDays);
+
+      const [trendOrders, trendAttendance, trendViolations] = await Promise.all([
+        prisma.orderLog.groupBy({
+          by: ["date"],
+          where: { tenantId, platform, date: { gte: trendStart, lt: todayEnd }, ...(companyId ? { driver: { companyId } } : {}) },
+          _sum: { orderCount: true },
+          _count: { id: true },
+          orderBy: { date: "asc" },
+        }),
+        prisma.attendanceRecord.groupBy({
+          by: ["date", "status"],
+          where: { tenantId, date: { gte: trendStart, lt: todayEnd }, ...(companyId ? { driver: { companyId, platform } } : { driver: { platform } }) },
+          _count: { id: true },
+          orderBy: { date: "asc" },
+        }),
+        platform === "TALABAT"
+          ? prisma.talabatViolationEvent.groupBy({
+              by: ["createdAt"],
+              where: { tenantId, createdAt: { gte: trendStart, lt: todayEnd }, ...(companyId ? { driver: { companyId } } : {}) },
+              _count: { id: true },
+            })
+          : Promise.resolve([]),
+      ]);
+
+      // Build per-day trend map
+      const trendMap = new Map<string, any>();
+      for (const o of trendOrders) {
+        const key = new Date(o.date).toISOString().split("T")[0];
+        trendMap.set(key, { ...(trendMap.get(key) || {}), orders: o._sum.orderCount || 0 });
+      }
+      for (const a of trendAttendance) {
+        const key = new Date(a.date).toISOString().split("T")[0];
+        const entry = trendMap.get(key) || {};
+        if (a.status === "PRESENT" || a.status === "LATE") {
+          entry.present = (entry.present || 0) + a._count.id;
+        } else if (a.status === "ABSENT") {
+          entry.absent = (entry.absent || 0) + a._count.id;
+        }
+        trendMap.set(key, entry);
+      }
+
+      // Generate a day-by-day array for the range
+      for (let i = trendDays; i >= 0; i--) {
+        const d = new Date(todayStart);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().split("T")[0];
+        trend.push({ date: key, orders: 0, present: 0, absent: 0, violations: 0, ...(trendMap.get(key) || {}) });
+      }
+
+      // Overlay violation counts
+      for (const v of trendViolations as any[]) {
+        const key = new Date(v.createdAt).toISOString().split("T")[0];
+        const entry = trend.find((t) => t.date === key);
+        if (entry) entry.violations = (entry.violations || 0) + v._count.id;
+      }
+    }
+
+    const responsePayload = {
       drivers: driverRows,
       summary: {
         totalDrivers: drivers.length,
@@ -150,10 +225,19 @@ router.get("/:platform", async (req: Request, res: Response) => {
         lateCount,
         absentCount,
         activeViolations,
+        utr: avgUtr != null ? Math.round(avgUtr * 100) / 100 : null,
       },
       violations: todayViolations,
-      alerts: recentAlerts,
-    });
+      alerts: recentAlerts.sort((a: any, b: any) => {
+        const severityOrder = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+        return (severityOrder[a.severity as keyof typeof severityOrder] ?? 4) -
+               (severityOrder[b.severity as keyof typeof severityOrder] ?? 4);
+      }),
+      ...(trendDays > 0 ? { trend } : {}),
+    };
+
+    await cacheSet(cacheKey, responsePayload, 300); // 5 minute TTL
+    res.json(responsePayload);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

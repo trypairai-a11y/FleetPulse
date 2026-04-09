@@ -11,18 +11,17 @@ import {
   Banknote,
 } from "lucide-react";
 
+function parseDriverDisplay(raw: string) {
+  const m = raw.match(/^(.+?)\s+(\d+[A-Za-z]?)\s*[-–—]\s*(.+)$/);
+  if (m) return { name: m[1].trim(), batch: m[2].trim(), company: m[3].trim() };
+  return { name: raw, batch: "-", company: "-" };
+}
+
 const TALABAT_ZONES = [
   "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
 ];
 
 function VerifiedBadge({ value, label }: { value: boolean | "mismatch"; label?: string }) {
-  if (value === "mismatch") {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
-        <AlertTriangle size={11} /> {label ? `${label} Mismatch` : "Mismatch"}
-      </span>
-    );
-  }
   return value ? (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
       <CheckCircle2 size={11} /> {label || "Pass"}
@@ -160,6 +159,8 @@ export default function TalabatSessionsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-50">
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Company</th>
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Batch</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Vehicle Type</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Zone</th>
@@ -178,7 +179,7 @@ export default function TalabatSessionsPage() {
             <tbody>
               {sessions.length === 0 ? (
                 <tr>
-                  <td colSpan={13} className="px-5 py-12 text-center text-sm text-secondary">
+                  <td colSpan={15} className="px-5 py-12 text-center text-sm text-secondary">
                     No working days found for this date
                   </td>
                 </tr>
@@ -191,7 +192,13 @@ export default function TalabatSessionsPage() {
                       onClick={() => setSelected(session)}
                       className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50 transition-colors"
                     >
-                      <td className="px-5 py-3 text-sm font-medium">{session.driver?.name || session.driverName || "-"}</td>
+                      <td className="px-5 py-3 text-sm text-secondary">{parseDriverDisplay(session.driver?.name || session.driverName || "").company}</td>
+                      <td className="px-5 py-3">
+                        <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-orange-50 text-orange-700">
+                          {parseDriverDisplay(session.driver?.name || session.driverName || "").batch}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-sm font-medium">{parseDriverDisplay(session.driver?.name || session.driverName || "").name}</td>
                       <td className="px-5 py-3">
                         <span className="font-mono text-xs font-medium text-orange-700 bg-orange-50 px-2 py-0.5 rounded-md">
                           {session.vehicleType || "-"}
@@ -227,11 +234,7 @@ export default function TalabatSessionsPage() {
                         {session.cashCollected != null ? n(session.cashCollected).toFixed(3) : "-"}
                       </td>
                       <td className="px-5 py-3">
-                        {session.faceMismatch ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
-                            <XCircle size={11} /> Mismatch
-                          </span>
-                        ) : session.faceVerified !== undefined ? (
+                        {session.faceVerified !== undefined ? (
                           <VerifiedBadge value={session.faceVerified} />
                         ) : (
                           <span className="text-xs text-secondary">-</span>
@@ -276,7 +279,7 @@ export default function TalabatSessionsPage() {
       <SlidePanel
         open={!!selected}
         onClose={() => setSelected(null)}
-        title={selected?.driver?.name || selected?.driverName || "Working Day Detail"}
+        title={parseDriverDisplay(selected?.driver?.name || selected?.driverName || "").name || "Working Day Detail"}
         subtitle={`Talabat Working Day - ${selected?.sessionCode || ""}`}
       >
         {selected && (

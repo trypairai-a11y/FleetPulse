@@ -33,6 +33,13 @@ enum DriverStatus {
   TERMINATED
   LEAVE
   TERMINATION
+  RESTRICTED
+  RESTRICTED_PERMANENTLY
+}
+
+enum RestrictionType {
+  TEMPORARY
+  PERMANENT
 }
 
 enum VehicleType {
@@ -60,6 +67,8 @@ enum AttendanceStatus {
   ABSENT
   EARLY_LEAVE
   EXCUSED
+  OFF
+  DEDUCTION
 }
 
 enum OrderSource {
@@ -174,6 +183,19 @@ enum RecruitmentStage {
   COMPLETED
 }
 
+enum ComplianceEventType {
+  SELFIE_FAIL
+  GPS_OFF
+  EQUIPMENT_MISSING
+  SHIFT_NOT_BOOKED
+  ORDER_CLICK_THROUGH
+  LATE_CLOCK_IN
+  EARLY_CLOCK_OUT
+  ZONE_MISMATCH
+  OUT_OF_ZONE
+  CASH_THRESHOLD_EXCEEDED
+}
+
 enum InventoryItemType {
   HELMET
   TSHIRT
@@ -240,7 +262,7 @@ enum TalabatSessionStatus {
   NO_SHOW
 }
 
-enum ComplianceEventType {
+enum ViolationEventType {
   SELFIE_FAIL
   GPS_OFF
   EQUIPMENT_MISSING
@@ -264,7 +286,7 @@ enum KpiCategory {
   ORDERS
   DELIVERY_EFFICIENCY
   FINANCIAL
-  COMPLIANCE
+  VIOLATION
   CUSTOM
 }
 
@@ -308,15 +330,16 @@ model Tenant {
   recruitmentPipeline     RecruitmentPipeline[]
   vehicles                Vehicle[]
   talabatSessions         TalabatSession[]
-  talabatComplianceEvents TalabatComplianceEvent[]
+  talabatViolationEvents TalabatViolationEvent[]
   keetaDailyMetrics       KeetaDailyMetrics[]
   americanaDailyOrders    AmericanaDailyOrders[]
   kpiDefinitions          KpiDefinition[]
   kpiRecords              KpiRecord[]
   platformSettings        PlatformSettings[]
-  companyInventory        CompanyInventory[]
+  platformInventory       PlatformInventory[]
   notifications           Notification[]
   notificationRules       NotificationRule[]
+  driverRestrictions      DriverRestriction[]
 }
 
 // 2. Company
@@ -335,7 +358,6 @@ model Company {
   vehicles Vehicle[]
   recruitmentPipeline RecruitmentPipeline[]
   tickets Ticket[]
-  companyInventory CompanyInventory[]
 
   @@index([tenantId])
 }
@@ -349,6 +371,7 @@ model User {
   passwordHash String
   name         String
   role         UserRole  @default(VIEWER)
+  jobGrade     String?   // e.g. "Team Leader", "Supervisor", "Senior Supervisor", "Area Manager"
   isActive     Boolean   @default(true)
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
@@ -383,6 +406,9 @@ model Driver {
   hireDate         DateTime
   photoUrl         String?
   supervisorId     String?
+  monthlySalary    Float?
+  monthlyOffDaysUsed Int        @default(0)
+  offDaysResetMonth  String?    // format: "YYYY-MM", reset tracker
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
@@ -423,10 +449,11 @@ model Driver {
   device             Device?
   assignedVehicle    Vehicle?           @relation("AssignedDriver")
   leaveRequests           LeaveRequest[]
+  restrictions            DriverRestriction[]
   tickets                 Ticket[]           @relation("TicketDriver")
   submittedTickets        Ticket[]           @relation("TicketSubmitterDriver")
   talabatSessions         TalabatSession[]
-  talabatComplianceEvents TalabatComplianceEvent[]
+  talabatViolationEvents TalabatViolationEvent[]
   keetaDailyMetrics       KeetaDailyMetrics[]
   americanaDailyOrders    AmericanaDailyOrders[]
   talabatDeliveries       TalabatDelivery[]
@@ -437,7 +464,28 @@ model Driver {
   @@index([platform])
 }
 
-// 5. DriverInventory
+// 5. DriverRestriction
+model DriverRestriction {
+  id          String          @id @default(uuid())
+  tenantId    String
+  driverId    String
+  type        RestrictionType
+  startDate   DateTime
+  endDate     DateTime?       // null = permanent
+  reason      String?
+  processedAt DateTime?       // when attendance records were auto-generated
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@index([tenantId])
+  @@index([driverId])
+  @@index([startDate])
+}
+
+// 6. DriverInventory
 model DriverInventory {
   id           String        @id @default(uuid())
   driverId     String
@@ -582,9 +630,10 @@ model OrderLog {
   cashCollected Decimal?    @db.Decimal(10, 3)
   tips          Decimal?    @db.Decimal(10, 3)
   totalAmount   Decimal?    @db.Decimal(10, 3)
-  orderNumber   String?
-  paymentSource String?
-  arrivalTime   DateTime?
+  orderNumber    String?
+  paymentSource  String?
+  restaurantName String?
+  arrivalTime    DateTime?
   screenshotUrl String?
   source        OrderSource @default(MANUAL)
   rawData       Json?
@@ -991,14 +1040,14 @@ model TalabatSession {
   status            TalabatSessionStatus @default(PLANNED)
   faceVerified      Boolean              @default(false)
   equipmentVerified Boolean              @default(false)
-  gpsCompliance     Int?
+  gpsViolation      Int?
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
 
   tenant           Tenant                    @relation(fields: [tenantId], references: [id])
   driver           Driver                    @relation(fields: [driverId], references: [id])
   shift            Shift?                    @relation(fields: [shiftId], references: [id])
-  complianceEvents TalabatComplianceEvent[]
+  violationEvents TalabatViolationEvent[]
   deliveryItems    TalabatDelivery[]
 
   @@index([tenantId])
@@ -1007,13 +1056,13 @@ model TalabatSession {
   @@index([zone, date])
 }
 
-// 27. TalabatComplianceEvent
-model TalabatComplianceEvent {
+// 27. TalabatViolationEvent
+model TalabatViolationEvent {
   id          String              @id @default(uuid())
   tenantId    String
   driverId    String
   sessionId   String?
-  type        ComplianceEventType
+  type        ViolationEventType
   description String
   metadata    Json?
   resolved    Boolean             @default(false)
@@ -1106,12 +1155,18 @@ model PlatformSettings {
   id         String   @id @default(uuid())
   tenantId   String
   platform   Platform
-  targets    Json     // { mainTarget: {...}, subTargets: [...] }
-  kpis       Json?    // { weights: {...}, thresholds: {...}, gradingScale: [...] }
-  shiftRules Json?    // { defaultHours: 12, maxLateMinutes: 1, ... }
-  zones      Json?    // ["Ardiya", "Hawally", ...]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  targets            Json     // { mainTarget: {...}, subTargets: [...] }
+  kpis               Json?    // { weights: {...}, thresholds: {...}, gradingScale: [...] }
+  shiftRules         Json?    // { defaultHours: 12, maxLateMinutes: 1, ... }
+  zones              Json?    // ["Ardiya", "Hawally", ...]
+  violationRules     Json?    // penalty points, auto-detect toggles per violation type
+  cashRules          Json?    // deposit deadlines, overdue thresholds, collection policies
+  bookingRules       Json?    // shift booking windows, reminders, limits
+  documentRules      Json?    // required docs, expiry warning days
+  notificationConfig Json?    // notification preferences per event type
+  supervisorTargets  Json?    // bonus tiers, metric config
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
 
@@ -1119,11 +1174,11 @@ model PlatformSettings {
   @@index([tenantId])
 }
 
-// 31. CompanyInventory - total stock of equipment items per company
-model CompanyInventory {
+// 31. PlatformInventory - total stock of equipment items per platform
+model PlatformInventory {
   id        String            @id @default(uuid())
   tenantId  String
-  companyId String
+  platform  Platform
   itemType  InventoryItemType
   total     Int               @default(0)
   issued    Int               @default(0)
@@ -1132,12 +1187,10 @@ model CompanyInventory {
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
 
-  tenant  Tenant  @relation(fields: [tenantId], references: [id])
-  company Company @relation(fields: [companyId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
 
-  @@unique([companyId, itemType])
+  @@unique([tenantId, platform, itemType])
   @@index([tenantId])
-  @@index([companyId])
 }
 
 // 29. AmericanaDailyOrders - daily order counts per driver per store
@@ -1224,7 +1277,7 @@ model Notification {
   message   String
   type      String   // violation type or alert type (e.g. "GPS_OFF", "cash_overdue")
   severity  String   @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
-  sourceId  String?  // ID of the compliance event or alert that triggered this
+  sourceId  String?  // ID of the violation event or alert that triggered this
   metadata  Json?
   read      Boolean  @default(false)
   readAt    DateTime?
@@ -1243,7 +1296,7 @@ model Notification {
 model NotificationRule {
   id        String   @id @default(uuid())
   tenantId  String
-  eventType String   // ComplianceEventType value or alert type
+  eventType String   // ViolationEventType value or alert type
   role      UserRole
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())

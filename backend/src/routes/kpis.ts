@@ -3,6 +3,8 @@ import { prisma } from "../config";
 import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
+import { cacheGet, cacheSet } from "../utils/cache";
+import { validateBody, createKpiRecordSchema } from "../utils/validate";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -82,10 +84,10 @@ router.post("/definitions/seed", async (req: Request, res: Response) => {
       { name: "Delivery Efficiency", description: "Average delivery time in minutes", category: "DELIVERY_EFFICIENCY" as const, unit: "MINUTES" as const, platform: null, target: 30, sortOrder: 3 },
 
       // Talabat-specific
-      { name: "GPS Compliance", description: "Percentage of time GPS was active during shift", category: "COMPLIANCE" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 98, sortOrder: 10 },
-      { name: "Face Verification Rate", description: "Percentage of sessions with successful face verification", category: "COMPLIANCE" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 100, sortOrder: 11 },
+      { name: "GPS Violation", description: "Percentage of time GPS was active during shift", category: "VIOLATION" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 98, sortOrder: 10 },
+      { name: "Face Verification Rate", description: "Percentage of sessions with successful face verification", category: "VIOLATION" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 100, sortOrder: 11 },
       { name: "Cash Collection Rate", description: "Percentage of cash collected vs sales amount", category: "FINANCIAL" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 100, sortOrder: 12 },
-      { name: "Zone Compliance", description: "Percentage of deliveries within assigned zone", category: "COMPLIANCE" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 95, sortOrder: 13 },
+      { name: "Zone Violation", description: "Percentage of deliveries within assigned zone", category: "VIOLATION" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 95, sortOrder: 13 },
 
       // Keeta-specific
       { name: "Completion Rate", description: "Percentage of accepted tasks completed", category: "ORDERS" as const, unit: "PERCENTAGE" as const, platform: "KEETA" as const, target: 95, sortOrder: 20 },
@@ -169,8 +171,34 @@ router.get("/records", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/kpi/records:
+ *   post:
+ *     tags: [KPIs]
+ *     summary: Create or update a KPI record for a driver
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [driverId, kpiDefinitionId, date, value]
+ *             properties:
+ *               driverId: { type: string, format: uuid }
+ *               kpiDefinitionId: { type: string, format: uuid }
+ *               date: { type: string, format: date }
+ *               value: { type: number }
+ *               target: { type: number }
+ *               source: { type: string, enum: [MANUAL, AUTO, IMPORT] }
+ *     responses:
+ *       201:
+ *         description: KPI record created or updated
+ *       422:
+ *         description: Validation error
+ */
 // POST /records - Create/update a KPI record
-router.post("/records", async (req: Request, res: Response) => {
+router.post("/records", validateBody(createKpiRecordSchema), async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
     const { driverId, kpiDefinitionId, date, value, target, source } = req.body;
@@ -201,6 +229,30 @@ router.post("/records", async (req: Request, res: Response) => {
 
 // ─── Summary / Dashboard ────────────────────────────────────────────────────
 
+/**
+ * @swagger
+ * /api/kpi/summary:
+ *   get:
+ *     tags: [KPIs]
+ *     summary: Aggregate KPI scores across all drivers, weighted by shifts worked
+ *     parameters:
+ *       - in: query
+ *         name: platform
+ *         schema: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *       - in: query
+ *         name: dateFrom
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: dateTo
+ *         schema: { type: string, format: date }
+ *     responses:
+ *       200:
+ *         description: Weighted KPI summary with per-driver breakdown and platform averages
+ *         headers:
+ *           X-Cache:
+ *             schema: { type: string }
+ *             description: HIT if served from Redis cache
+ */
 // GET /summary - Aggregate KPI performance across drivers for a date range
 router.get("/summary", async (req: Request, res: Response) => {
   try {
@@ -211,6 +263,10 @@ router.get("/summary", async (req: Request, res: Response) => {
     startDate.setHours(0, 0, 0, 0);
     const endDate = dateTo ? new Date(dateTo as string) : new Date();
     endDate.setHours(23, 59, 59, 999);
+
+    const cacheKey = `kpi_summary:${tenantId}:${platform || ""}:${startDate.toISOString()}:${endDate.toISOString()}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) { res.json(cached); return; }
 
     // Get active definitions
     const defWhere: any = { tenantId, isActive: true };
@@ -235,13 +291,35 @@ router.get("/summary", async (req: Request, res: Response) => {
       },
     });
 
-    // Aggregate by KPI definition
+    // Count shifts per driver in the date range for weighted aggregation
+    const shiftCounts = await prisma.shift.groupBy({
+      by: ["driverId"],
+      where: {
+        tenantId,
+        date: { gte: startDate, lte: endDate },
+        status: { in: ["COMPLETED", "IN_PROGRESS"] },
+        ...(platform ? { platform: platform as any } : {}),
+      },
+      _count: { id: true },
+    });
+    const shiftCountMap = new Map(shiftCounts.map((s) => [s.driverId, s._count.id]));
+
+    // Aggregate by KPI definition using shift-count-weighted averages
     const kpiSummaries = definitions.map((def) => {
       const defRecords = records.filter((r) => r.kpiDefinitionId === def.id);
-      const values = defRecords.map((r) => Number(r.value));
-      const scores = defRecords.filter((r) => r.score != null).map((r) => Number(r.score));
-      const avg = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
-      const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+
+      // Weighted average: each driver's score weighted by their shift count
+      let weightedValueSum = 0;
+      let weightedScoreSum = 0;
+      let totalWeight = 0;
+      for (const r of defRecords) {
+        const weight = shiftCountMap.get(r.driverId) || 1;
+        weightedValueSum += Number(r.value) * weight;
+        if (r.score != null) weightedScoreSum += Number(r.score) * weight;
+        totalWeight += weight;
+      }
+      const avg = totalWeight > 0 ? weightedValueSum / totalWeight : 0;
+      const avgScore = totalWeight > 0 ? weightedScoreSum / totalWeight : 0;
 
       return {
         id: def.id,
@@ -258,17 +336,27 @@ router.get("/summary", async (req: Request, res: Response) => {
       };
     });
 
-    // Overall stats
+    // Overall weighted score across all KPIs
     const totalDrivers = new Set(records.map((r) => r.driverId)).size;
-    const allScores = records.filter((r) => r.score != null).map((r) => Number(r.score));
-    const overallScore = allScores.length > 0 ? Math.round((allScores.reduce((a, b) => a + b, 0) / allScores.length) * 100) / 100 : 0;
+    let overallWeightedSum = 0;
+    let overallTotalWeight = 0;
+    for (const r of records.filter((r) => r.score != null)) {
+      const w = shiftCountMap.get(r.driverId) || 1;
+      overallWeightedSum += Number(r.score) * w;
+      overallTotalWeight += w;
+    }
+    const overallScore = overallTotalWeight > 0
+      ? Math.round((overallWeightedSum / overallTotalWeight) * 100) / 100
+      : 0;
 
-    res.json({
+    const summaryPayload = {
       totalDrivers,
       totalRecords: records.length,
       overallScore,
       kpis: kpiSummaries,
-    });
+    };
+    await cacheSet(cacheKey, summaryPayload, 300); // 5 minute TTL
+    res.json(summaryPayload);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -436,10 +524,10 @@ router.post("/compute", async (req: Request, res: Response) => {
             }
             break;
           }
-          case "GPS Compliance": {
-            const sessions = talabatSessions.filter((s) => s.driverId === driver.id && s.gpsCompliance != null);
+          case "GPS Violation": {
+            const sessions = talabatSessions.filter((s) => s.driverId === driver.id && s.gpsViolation != null);
             if (sessions.length > 0) {
-              value = Math.round((sessions.reduce((sum, s) => sum + (s.gpsCompliance || 0), 0) / sessions.length) * 100) / 100;
+              value = Math.round((sessions.reduce((sum, s) => sum + (s.gpsViolation || 0), 0) / sessions.length) * 100) / 100;
             }
             break;
           }

@@ -28,7 +28,7 @@ interface FleetOverview {
   totalOrdersThisWeek: number;
   platformBreakdown: PlatformBreakdown[];
   cashPending: { total: number; overdue: number };
-  complianceScore: number;
+  violationScore: number;
   alerts: { active: number; critical: number };
 }
 
@@ -37,7 +37,7 @@ interface PlatformComparison {
   drivers: number;
   ordersPerDriverPerDay: number;
   revenuePerOrder: number;
-  complianceRate: number;
+  violationRate: number;
   attendanceRate: number;
   avgShiftHours: number;
 }
@@ -92,7 +92,7 @@ export default function AnalyticsPage() {
   const bestOrders = bestInColumn(comparisonData, "ordersPerDriverPerDay");
   const bestShift = bestInColumn(comparisonData, "avgShiftHours");
   const bestAttendance = bestInColumn(comparisonData, "attendanceRate");
-  const bestCompliance = bestInColumn(comparisonData, "complianceRate");
+  const bestViolation = bestInColumn(comparisonData, "violationRate");
 
   return (
     <div className="space-y-8 max-w-7xl">
@@ -177,8 +177,8 @@ export default function AnalyticsPage() {
           highlight={(overview?.cashPending?.total || 0) > 1000}
         />
         <StatCard
-          title="Compliance Score"
-          value={`${overview?.complianceScore || 0}%`}
+          title="Violation Score"
+          value={`${overview?.violationScore || 0}%`}
           icon={ShieldCheck}
         />
       </div>
@@ -195,7 +195,7 @@ export default function AnalyticsPage() {
                 <th className="text-right text-xs font-medium text-secondary px-5 py-3">Avg Orders/Day</th>
                 <th className="text-right text-xs font-medium text-secondary px-5 py-3">Avg Shift Hours</th>
                 <th className="text-right text-xs font-medium text-secondary px-5 py-3">Attendance Rate</th>
-                <th className="text-right text-xs font-medium text-secondary px-5 py-3">Compliance</th>
+                <th className="text-right text-xs font-medium text-secondary px-5 py-3">Violation</th>
               </tr>
             </thead>
             <tbody>
@@ -245,9 +245,9 @@ export default function AnalyticsPage() {
                     </td>
                     <td className={cn(
                       "text-right px-5 py-3 text-sm font-mono",
-                      row.platform === bestCompliance ? "text-green-600 font-semibold" : "text-foreground"
+                      row.platform === bestViolation ? "text-green-600 font-semibold" : "text-foreground"
                     )}>
-                      {row.complianceRate}%
+                      {row.violationRate}%
                     </td>
                   </tr>
                 ))

@@ -1,4 +1,4 @@
-import { PrismaClient, Platform, UserRole, DriverStatus, VehicleType, VehicleStatus, ShiftStatus, AttendanceStatus, OrderSource, CashStatus, DepositMethod, DeviceStatus, AlertSeverity, AlertStatus, ScoreTrend, TicketCategory, TicketPriority, TicketStatus, SubmitterType, LeaveType, LeaveStatus, RecruitmentStage, LedgerStatus, InspectionStatus, MaintenanceCategory, MaintenanceStatus, TalabatSessionStatus, ComplianceEventType } from "../src/generated/prisma";
+import { PrismaClient, Platform, UserRole, DriverStatus, VehicleType, VehicleStatus, ShiftStatus, AttendanceStatus, OrderSource, CashStatus, DepositMethod, DeviceStatus, AlertSeverity, AlertStatus, ScoreTrend, TicketCategory, TicketPriority, TicketStatus, SubmitterType, LeaveType, LeaveStatus, RecruitmentStage, LedgerStatus, InspectionStatus, MaintenanceCategory, MaintenanceStatus, TalabatSessionStatus, ViolationEventType } from "../src/generated/prisma";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient({
@@ -50,7 +50,7 @@ async function main() {
   // Clean existing data
   // Clean existing data - safe to skip on fresh DB
   try {
-    await prisma.$executeRawUnsafe(`TRUNCATE TABLE "TalabatDelivery", "AmericanaDailyOrders", "KeetaDailyMetrics", "TalabatComplianceEvent", "TalabatSession", "AuditLog", "AiDigest", "Alert", "AiScore", "DeviceCommand", "AppUsageLog", "LocationLog", "CapturedOrder", "Device", "VehicleInspection", "MaintenanceRecord", "PendingDuesLedger", "CashRecord", "CashTransaction", "OrderLog", "AttendanceRecord", "Shift", "DriverInventory", "LeaveRequest", "Ticket", "RecruitmentPipeline", "KpiRecord", "KpiDefinition", "PlatformSettings", "CompanyInventory", "Notification", "NotificationRule", "Vehicle", "Driver", "User", "Company", "Tenant" CASCADE`);
+    await prisma.$executeRawUnsafe(`TRUNCATE TABLE "TalabatDelivery", "AmericanaDailyOrders", "KeetaDailyMetrics", "TalabatViolationEvent", "TalabatSession", "AuditLog", "AiDigest", "Alert", "AiScore", "DeviceCommand", "AppUsageLog", "LocationLog", "CapturedOrder", "Device", "VehicleInspection", "MaintenanceRecord", "PendingDuesLedger", "CashRecord", "CashTransaction", "OrderLog", "AttendanceRecord", "Shift", "DriverInventory", "LeaveRequest", "Ticket", "RecruitmentPipeline", "KpiRecord", "KpiDefinition", "PlatformSettings", "PlatformInventory", "Notification", "NotificationRule", "Vehicle", "Driver", "User", "Company", "Tenant" CASCADE`);
   } catch (e: any) { console.log("Truncate issue:", e.message?.slice(0, 200)); }
 
   // 1. Tenant
@@ -290,18 +290,23 @@ async function main() {
     for (let driverIdx = 0; driverIdx < talabatDrivers.length; driverIdx++) {
       const driver = talabatDrivers[driverIdx];
 
-      // Today: ~3 drivers get no shift (NOT_BOOKED) - deterministic via index
+      // Today: ~5 drivers get no shift (NOT_BOOKED) - deterministic via index
       if (isToday && driverIdx % 7 === 0) continue;
-      // Future: all get BOOKED shifts
-      // Past: existing COMPLETED/MISSED logic
 
-      const startHour = rand(8, 16);
-      const duration = rand(8, 13);
+      // Weekly flag simulation: ~15% of drivers skip 1-2 past weekdays to generate flag reasons
+      const isWeeklyFlagDriver = driverIdx % 6 === 0;
+      if (!isToday && !isFuture && isWeeklyFlagDriver && (dayOffset === 5 || dayOffset === 12)) continue;
+
+      // Shift time: deterministic based on driver index for consistent demo data
+      // Batch 1: 8am–4pm (8h), Batch 2: 10am–6pm (8h), Batch 3: 12pm–8pm (8h), Batch 4+: 2pm–10pm (8h)
+      const batchNum = parseInt(driver.batchNumber || "1") || 1;
+      const startHour = [8, 10, 12, 14][Math.min(batchNum - 1, 3)];
+      const duration = rand(6, 9);
       const endHour = startHour + duration;
-      const start = new Date(date); start.setHours(startHour);
-      const end = new Date(date); end.setHours(endHour);
+      const start = new Date(date); start.setHours(startHour, rand(0, 30), 0, 0);
+      const end = new Date(date); end.setHours(endHour, rand(0, 30), 0, 0);
 
-      // Determine status based on day type and time
+      // Determine status deterministically (not time-based) so demo data is always rich
       let shiftStatus: ShiftStatus;
       let sessStatus: TalabatSessionStatus;
       let missed = false;
@@ -311,24 +316,25 @@ async function main() {
         shiftStatus = "BOOKED";
         sessStatus = "PLANNED";
       } else if (isToday) {
-        if (endHour <= nowHour) {
-          // Shift already ended
-          if (Math.random() < 0.08) {
-            missed = true; shiftStatus = "MISSED"; sessStatus = "NO_SHOW";
-          } else {
-            shiftStatus = "COMPLETED"; sessStatus = "COMPLETED";
-            lateMin = Math.random() < 0.15 ? rand(3, 25) : 0;
-          }
-        } else if (startHour <= nowHour) {
-          // Shift in progress
-          shiftStatus = "IN_PROGRESS"; sessStatus = "ACTIVE";
-          lateMin = Math.random() < 0.1 ? rand(3, 15) : 0;
-        } else {
-          // Shift hasn't started yet
+        // Deterministic mix: ~65% COMPLETED, ~20% IN_PROGRESS, ~15% BOOKED
+        const todayBucket = driverIdx % 20;
+        if (todayBucket === 18 || todayBucket === 19) {
+          // ~10% BOOKED (not started yet)
           shiftStatus = "BOOKED"; sessStatus = "PLANNED";
+        } else if (todayBucket === 15 || todayBucket === 16 || todayBucket === 17) {
+          // ~15% IN_PROGRESS
+          shiftStatus = "IN_PROGRESS"; sessStatus = "ACTIVE";
+          lateMin = todayBucket === 16 ? rand(3, 15) : 0;
+        } else if (todayBucket === 1) {
+          // ~5% MISSED
+          missed = true; shiftStatus = "MISSED"; sessStatus = "NO_SHOW";
+        } else {
+          // ~65% COMPLETED — Out time will show
+          shiftStatus = "COMPLETED"; sessStatus = "COMPLETED";
+          lateMin = todayBucket % 5 === 0 ? rand(3, 25) : 0;
         }
       } else {
-        // Past days - existing logic
+        // Past days
         missed = Math.random() < 0.05;
         lateMin = !missed && Math.random() < 0.1 ? rand(5, 30) : 0;
         shiftStatus = missed ? "MISSED" : "COMPLETED";
@@ -366,18 +372,29 @@ async function main() {
 
       // Orders & cash - only for completed or in-progress shifts
       if (isCompleted || isInProgress) {
+        const inProgressFraction = isInProgress ? 0.5 : 1; // IN_PROGRESS = ~half shift done
         const numOrders = isInProgress
-          ? Math.max(1, Math.round(rand(15, 25) * Math.max(0.1, (nowHour - startHour) / duration)))
+          ? Math.max(1, Math.round(rand(8, 14)))
           : rand(15, 25);
         const shiftStartHour = startHour;
         let totalCash = 0;
         const orderBatch: any[] = [];
 
+        const fakeRestaurants = [
+          "Al Baik", "Hardee's", "McDonald's", "KFC", "Burger King",
+          "Pizza Hut", "Domino's Pizza", "Subway", "Shake Shack", "Five Guys",
+          "Zaatar w Zeit", "PAUL Bakery", "Tim Hortons", "Starbucks", "The Cheesecake Factory",
+          "Applebee's", "TGI Fridays", "Chili's", "Nando's", "Popeyes",
+          "Moti Mahal", "Biryani Pot", "Al Makan", "Bait Al Mandi", "Samad Al Iraqi",
+          "Kudu", "Johnny Rockets", "Carl's Jr", "Smashburger", "The Halal Guys",
+          "Ennabi Seafood", "Bu Qtair", "Al Tazaj", "Zad Al Khair", "Dar Al Hawa",
+        ];
+
         for (let oi = 0; oi < numOrders; oi++) {
           const isCash = Math.random() < 0.4;
           const orderCash = isCash ? decimal(0.5, 5) : 0;
           totalCash += orderCash;
-          const finishHour = shiftStartHour + Math.floor((oi / numOrders) * (isInProgress ? (nowHour - startHour) : duration));
+          const finishHour = shiftStartHour + Math.floor((oi / numOrders) * duration * inProgressFraction);
           const finishMin = rand(0, 59);
           const finishTime = new Date(date);
           finishTime.setHours(finishHour, finishMin, 0, 0);
@@ -387,6 +404,7 @@ async function main() {
             platform: "TALABAT" as Platform, orderCount: 1,
             orderNumber: `${3538000000 + rand(0, 999999)}`,
             paymentSource: isCash ? "CASH" : "KNET",
+            restaurantName: fakeRestaurants[rand(0, fakeRestaurants.length - 1)],
             arrivalTime: finishTime,
             cashCollected: isCash ? orderCash : null,
             distanceKm: decimal(1, 8),
@@ -439,9 +457,9 @@ async function main() {
           sessEnd.setHours(si === 0 ? startHour + Math.ceil(duration / 2) : endHour);
         }
         const sessPlannedHrs = (sessEnd.getTime() - sessStart.getTime()) / 3600000;
-        const faceOk = isBooked ? false : Math.random() < 0.9;
-        const equipOk = isBooked ? false : Math.random() < 0.95;
-        const gps = isBooked ? null : rand(70, 100);
+        const faceOk = isBooked ? false : Math.random() < 0.75;
+        const equipOk = isBooked ? false : Math.random() < 0.85;
+        const gps = isBooked ? null : rand(65, 100);
         const approvedHrs = hasStarted ? sessPlannedHrs - decimal(0, 0.5) : null;
         const actualHrs = isCompleted ? sessPlannedHrs + decimal(-1, 0.5) : null;
         const sessDeliveries = isCompleted ? rand(6, 14) : isInProgress ? Math.max(1, rand(2, 8)) : 0;
@@ -468,7 +486,7 @@ async function main() {
             status: sessStatus,
             faceVerified: isBooked ? false : faceOk,
             equipmentVerified: isBooked ? false : equipOk,
-            gpsCompliance: gps,
+            gpsViolation: gps,
           },
         });
 
@@ -500,9 +518,9 @@ async function main() {
           await prisma.talabatDelivery.createMany({ data: deliveryBatch });
         }
 
-        // Compliance events - only for started/missed sessions
+        // Violation events - only for started/missed sessions
         if (!isBooked && !faceOk) {
-          await prisma.talabatComplianceEvent.create({
+          await prisma.talabatViolationEvent.create({
             data: {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
               type: "SELFIE_FAIL",
@@ -512,7 +530,7 @@ async function main() {
           });
         }
         if (!isBooked && !equipOk) {
-          await prisma.talabatComplianceEvent.create({
+          await prisma.talabatViolationEvent.create({
             data: {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
               type: "EQUIPMENT_MISSING",
@@ -520,8 +538,8 @@ async function main() {
             },
           });
         }
-        if (!isBooked && gps && gps < 80 && Math.random() < 0.4) {
-          await prisma.talabatComplianceEvent.create({
+        if (!isBooked && gps && gps < 85 && Math.random() < 0.6) {
+          await prisma.talabatViolationEvent.create({
             data: {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
               type: "GPS_OFF",
@@ -531,7 +549,7 @@ async function main() {
           });
         }
         if (missed) {
-          await prisma.talabatComplianceEvent.create({
+          await prisma.talabatViolationEvent.create({
             data: {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
               type: "SHIFT_NOT_BOOKED",
@@ -540,10 +558,10 @@ async function main() {
           });
         }
         // Out of zone ~15% of completed/active sessions
-        if ((isCompleted || isInProgress) && Math.random() < 0.15) {
+        if ((isCompleted || isInProgress) && Math.random() < 0.25) {
           const assignedZone = pick(["AHMADI", "HAWALLY", "SALMIYA", "FARWANIYA"]);
           const detectedZone = pick(["JAHRA", "MANGAF", "FINTAS", "KHAITAN"].filter(z => z !== assignedZone));
-          await prisma.talabatComplianceEvent.create({
+          await prisma.talabatViolationEvent.create({
             data: {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
               type: "OUT_OF_ZONE",
@@ -553,9 +571,9 @@ async function main() {
           });
         }
         // Late clock in ~10% of started sessions
-        if (!isBooked && !missed && Math.random() < 0.1) {
+        if (!isBooked && !missed && Math.random() < 0.2) {
           const lateMinutes = rand(2, 25);
-          await prisma.talabatComplianceEvent.create({
+          await prisma.talabatViolationEvent.create({
             data: {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
               type: "LATE_CLOCK_IN",
@@ -564,15 +582,53 @@ async function main() {
             },
           });
         }
-        // Cash threshold exceeded ~8% of completed sessions
-        if (isCompleted && (Number(session.cashCollected) > 100 || Math.random() < 0.08)) {
+        // Cash threshold exceeded ~18% of completed sessions
+        if (isCompleted && (Number(session.cashCollected) > 100 || Math.random() < 0.18)) {
           const cashAmt = Number(session.cashCollected) > 100 ? Number(session.cashCollected) : rand(101, 250);
-          await prisma.talabatComplianceEvent.create({
+          await prisma.talabatViolationEvent.create({
             data: {
               tenantId: tid, driverId: driver.id, sessionId: session.id,
               type: "CASH_THRESHOLD_EXCEEDED",
               description: `Cash collected reached KD ${cashAmt.toFixed(3)} - exceeds 100 KD threshold`,
               metadata: { cashCollected: cashAmt, threshold: 100 },
+            },
+          });
+        }
+        // Early clock out ~12% of completed sessions
+        if (isCompleted && Math.random() < 0.12) {
+          const earlyMinutes = rand(5, 30);
+          await prisma.talabatViolationEvent.create({
+            data: {
+              tenantId: tid, driverId: driver.id, sessionId: session.id,
+              type: "EARLY_CLOCK_OUT",
+              description: `Driver clocked out ${earlyMinutes} minutes early`,
+              metadata: { earlyMinutes },
+            },
+          });
+        }
+        // Order click-through ~10% of completed sessions
+        if (isCompleted && Math.random() < 0.1) {
+          const count = rand(1, 4);
+          await prisma.talabatViolationEvent.create({
+            data: {
+              tenantId: tid, driverId: driver.id, sessionId: session.id,
+              type: "ORDER_CLICK_THROUGH",
+              description: `${count} order${count > 1 ? "s" : ""} accepted but not delivered`,
+              metadata: { clickThroughCount: count },
+            },
+          });
+        }
+        // Zone mismatch ~8% of completed/active sessions
+        if ((isCompleted || isInProgress) && Math.random() < 0.08) {
+          const zones = ["AHMADI", "HAWALLY", "SALMIYA", "FARWANIYA", "JAHRA"];
+          const assigned = pick(zones);
+          const detected = pick(zones.filter(z => z !== assigned));
+          await prisma.talabatViolationEvent.create({
+            data: {
+              tenantId: tid, driverId: driver.id, sessionId: session.id,
+              type: "ZONE_MISMATCH",
+              description: `GPS zone mismatch: assigned ${assigned}, detected in ${detected}`,
+              metadata: { assignedZone: assigned, detectedZone: detected },
             },
           });
         }
@@ -1205,10 +1261,10 @@ async function main() {
     { name: "On-Time Attendance", description: "Percentage of shifts where driver clocked in on time", category: "ATTENDANCE" as const, unit: "PERCENTAGE" as const, platform: null, target: 95, sortOrder: 1 },
     { name: "Daily Orders", description: "Number of orders completed per day", category: "ORDERS" as const, unit: "COUNT" as const, platform: null, target: 15, sortOrder: 2 },
     { name: "Delivery Efficiency", description: "Average delivery time in minutes", category: "DELIVERY_EFFICIENCY" as const, unit: "MINUTES" as const, platform: null, target: 30, sortOrder: 3 },
-    { name: "GPS Compliance", description: "Percentage of time GPS was active during shift", category: "COMPLIANCE" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 98, sortOrder: 10 },
-    { name: "Face Verification Rate", description: "Percentage of sessions with successful face verification", category: "COMPLIANCE" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 100, sortOrder: 11 },
+    { name: "GPS Violation", description: "Percentage of time GPS was active during shift", category: "VIOLATION" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 98, sortOrder: 10 },
+    { name: "Face Verification Rate", description: "Percentage of sessions with successful face verification", category: "VIOLATION" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 100, sortOrder: 11 },
     { name: "Cash Collection Rate", description: "Percentage of cash collected vs sales amount", category: "FINANCIAL" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 100, sortOrder: 12 },
-    { name: "Zone Compliance", description: "Percentage of deliveries within assigned zone", category: "COMPLIANCE" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 95, sortOrder: 13 },
+    { name: "Zone Violation", description: "Percentage of deliveries within assigned zone", category: "VIOLATION" as const, unit: "PERCENTAGE" as const, platform: "TALABAT" as const, target: 95, sortOrder: 13 },
     { name: "Completion Rate", description: "Percentage of accepted tasks completed", category: "ORDERS" as const, unit: "PERCENTAGE" as const, platform: "KEETA" as const, target: 95, sortOrder: 20 },
     { name: "On-Time Delivery Rate", description: "Percentage of deliveries on time", category: "DELIVERY_EFFICIENCY" as const, unit: "PERCENTAGE" as const, platform: "KEETA" as const, target: 90, sortOrder: 21 },
     { name: "Online Hours", description: "Hours online per day", category: "ATTENDANCE" as const, unit: "HOURS" as const, platform: "KEETA" as const, target: 8, sortOrder: 22 },
@@ -1251,7 +1307,7 @@ async function main() {
           case "Delivery Efficiency":
             value = decimal(18, 42, 1);
             break;
-          case "GPS Compliance":
+          case "GPS Violation":
             value = decimal(85, 100, 1);
             break;
           case "Face Verification Rate":
@@ -1260,7 +1316,7 @@ async function main() {
           case "Cash Collection Rate":
             value = decimal(80, 100, 1);
             break;
-          case "Zone Compliance":
+          case "Zone Violation":
             value = decimal(82, 100, 1);
             break;
           case "Completion Rate":
@@ -1306,21 +1362,22 @@ async function main() {
   }
   console.log(`Created ${kpiRecordCount} KPI records`);
 
-  // ─── 24. Company Inventory ────────────────────────────────────────────────────
+  // ─── 24. Platform Inventory ───────────────────────────────────────────────────
   const inventoryItemTypes = [
     "HELMET", "TSHIRT", "PANTS", "COOLING_VEST", "SAFETY_VEST",
     "BIG_BAG", "SMALL_BAG", "GLOVES", "CAP", "MOBILE_PHONE",
     "SIM_CARD", "PETROL_CARD", "WATER_BOTTLE", "SAFETY_KIT",
   ];
-  for (const comp of companies) {
-    const driverCount = allDrivers.filter(d => d.companyId === comp.id).length;
+  const platforms = ["KEETA", "TALABAT", "DELIVEROO", "AMERICANA"];
+  for (const plat of platforms) {
+    const driverCount = allDrivers.filter(d => companies.find(c => c.id === d.companyId)?.platform === plat).length || 5;
     for (const itemType of inventoryItemTypes) {
       const total = driverCount + rand(2, 8);
       const issued = Math.min(driverCount - rand(0, 3), total);
-      await prisma.companyInventory.upsert({
-        where: { companyId_itemType: { companyId: comp.id, itemType: itemType as any } },
+      await prisma.platformInventory.upsert({
+        where: { tenantId_platform_itemType: { tenantId: tid, platform: plat as any, itemType: itemType as any } },
         create: {
-          tenantId: tid, companyId: comp.id, itemType: itemType as any,
+          tenantId: tid, platform: plat as any, itemType: itemType as any,
           total, issued: Math.max(0, issued), available: total - Math.max(0, issued),
           minStock: Math.max(2, Math.floor(driverCount * 0.2)),
         },
@@ -1328,18 +1385,18 @@ async function main() {
       });
     }
   }
-  console.log("Created company inventory");
+  console.log("Created platform inventory");
 
   // ─── 25. Platform Settings (persisted records) ────────────────────────────────
   const platformConfigs: { platform: any; targets: any; kpis: any; shiftRules: any; zones: any }[] = [
     {
       platform: "TALABAT",
       targets: {
-        mainTarget: { name: "Orders per Day", key: "ordersPerDay", value: 18, unit: "orders", description: "Target number of orders per shift" },
+        mainTarget: { name: "Orders per Month", key: "ordersPerMonth", value: 18, unit: "orders", description: "Target number of orders per month" },
         subTargets: [
           { name: "Batch Number", key: "batchNumber", value: 1, unit: "batch", description: "Target batch number (1 = best, 7 = worst)" },
           { name: "Daily Hours", key: "dailyHours", value: 12, unit: "hours", description: "Expected hours per shift" },
-          { name: "UTR", key: "utr", value: 100, unit: "%", description: "Utilization rate target" },
+          { name: "UTR", key: "utr", value: 2, unit: "decimal (0–2)", description: "Utilization rate target" },
         ],
       },
       kpis: {
@@ -1350,7 +1407,7 @@ async function main() {
           { label: "Below Average", minPercent: 30, maxPercent: 49, color: "#f97316" },
           { label: "Failed", minPercent: 0, maxPercent: 29, color: "#ef4444" },
         ],
-        weights: { ordersPerDay: 40, batchNumber: 30, attendance: 20, compliance: 10 },
+        weights: { ordersPerDay: 40, batchNumber: 30, attendance: 20, violation: 10 },
         thresholds: { ordersExcellent: 18, ordersGood: 12, ordersMinimum: 8, batchBest: 1, batchWorst: 7 },
       },
       shiftRules: { defaultHoursPerShift: 12, maxLateMinutes: 1, earlyClockOutMinutes: 15, maxCashHoldKD: 50 },
@@ -1383,7 +1440,7 @@ async function main() {
     {
       platform: "DELIVEROO",
       targets: {
-        mainTarget: { name: "Orders per Day", key: "ordersPerDay", value: 15, unit: "orders", description: "Target orders per day" },
+        mainTarget: { name: "Orders per Month", key: "ordersPerMonth", value: 15, unit: "orders", description: "Target orders per month" },
         subTargets: [
           { name: "Daily Hours", key: "dailyHours", value: 10, unit: "hours", description: "Target online hours" },
         ],
@@ -1395,7 +1452,7 @@ async function main() {
           { label: "Average", minPercent: 50, maxPercent: 69, color: "#f59e0b" },
           { label: "Failed", minPercent: 0, maxPercent: 49, color: "#ef4444" },
         ],
-        weights: { ordersPerDay: 50, attendance: 30, compliance: 20 },
+        weights: { ordersPerDay: 50, attendance: 30, violation: 20 },
       },
       shiftRules: { defaultHoursPerShift: 10, maxLateMinutes: 1, earlyClockOutMinutes: 15, maxCashHoldKD: 50 },
       zones: ["Hawally"],
@@ -1403,7 +1460,7 @@ async function main() {
     {
       platform: "AMERICANA",
       targets: {
-        mainTarget: { name: "Orders per Day", key: "ordersPerDay", value: 20, unit: "orders", description: "Target orders per day" },
+        mainTarget: { name: "Orders per Month", key: "ordersPerMonth", value: 20, unit: "orders", description: "Target orders per month" },
         subTargets: [
           { name: "Arrive on Time", key: "arriveOnTime", value: 100, unit: "%", description: "Arrive to store on time" },
         ],
@@ -1415,7 +1472,7 @@ async function main() {
           { label: "Average", minPercent: 50, maxPercent: 69, color: "#f59e0b" },
           { label: "Failed", minPercent: 0, maxPercent: 49, color: "#ef4444" },
         ],
-        weights: { ordersPerDay: 50, attendance: 30, compliance: 20 },
+        weights: { ordersPerDay: 50, attendance: 30, violation: 20 },
       },
       shiftRules: { defaultHoursPerShift: 12, maxLateMinutes: 1, earlyClockOutMinutes: 15, maxCashHoldKD: 50 },
       zones: ["KFC Audiliya", "KFC Salwa", "Hardees Salmiya"],

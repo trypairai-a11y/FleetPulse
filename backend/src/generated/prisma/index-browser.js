@@ -150,6 +150,7 @@ exports.Prisma.UserScalarFieldEnum = {
   passwordHash: 'passwordHash',
   name: 'name',
   role: 'role',
+  jobGrade: 'jobGrade',
   isActive: 'isActive',
   lastLoginAt: 'lastLoginAt',
   createdAt: 'createdAt',
@@ -172,6 +173,9 @@ exports.Prisma.DriverScalarFieldEnum = {
   hireDate: 'hireDate',
   photoUrl: 'photoUrl',
   supervisorId: 'supervisorId',
+  monthlySalary: 'monthlySalary',
+  monthlyOffDaysUsed: 'monthlyOffDaysUsed',
+  offDaysResetMonth: 'offDaysResetMonth',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   healthCertExpiry: 'healthCertExpiry',
@@ -188,6 +192,19 @@ exports.Prisma.DriverScalarFieldEnum = {
   drivingLicenseStatus: 'drivingLicenseStatus',
   civilIdExpiry: 'civilIdExpiry',
   civilIdStatus: 'civilIdStatus'
+};
+
+exports.Prisma.DriverRestrictionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  type: 'type',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  reason: 'reason',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.DriverInventoryScalarFieldEnum = {
@@ -290,6 +307,7 @@ exports.Prisma.OrderLogScalarFieldEnum = {
   totalAmount: 'totalAmount',
   orderNumber: 'orderNumber',
   paymentSource: 'paymentSource',
+  restaurantName: 'restaurantName',
   arrivalTime: 'arrivalTime',
   screenshotUrl: 'screenshotUrl',
   source: 'source',
@@ -560,12 +578,12 @@ exports.Prisma.TalabatSessionScalarFieldEnum = {
   status: 'status',
   faceVerified: 'faceVerified',
   equipmentVerified: 'equipmentVerified',
-  gpsCompliance: 'gpsCompliance',
+  gpsViolation: 'gpsViolation',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.TalabatComplianceEventScalarFieldEnum = {
+exports.Prisma.TalabatViolationEventScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   driverId: 'driverId',
@@ -639,14 +657,20 @@ exports.Prisma.PlatformSettingsScalarFieldEnum = {
   kpis: 'kpis',
   shiftRules: 'shiftRules',
   zones: 'zones',
+  violationRules: 'violationRules',
+  cashRules: 'cashRules',
+  bookingRules: 'bookingRules',
+  documentRules: 'documentRules',
+  notificationConfig: 'notificationConfig',
+  supervisorTargets: 'supervisorTargets',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.CompanyInventoryScalarFieldEnum = {
+exports.Prisma.PlatformInventoryScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
-  companyId: 'companyId',
+  platform: 'platform',
   itemType: 'itemType',
   total: 'total',
   issued: 'issued',
@@ -789,7 +813,14 @@ exports.DriverStatus = exports.$Enums.DriverStatus = {
   SUSPENDED: 'SUSPENDED',
   TERMINATED: 'TERMINATED',
   LEAVE: 'LEAVE',
-  TERMINATION: 'TERMINATION'
+  TERMINATION: 'TERMINATION',
+  RESTRICTED: 'RESTRICTED',
+  RESTRICTED_PERMANENTLY: 'RESTRICTED_PERMANENTLY'
+};
+
+exports.RestrictionType = exports.$Enums.RestrictionType = {
+  TEMPORARY: 'TEMPORARY',
+  PERMANENT: 'PERMANENT'
 };
 
 exports.InventoryItemType = exports.$Enums.InventoryItemType = {
@@ -847,7 +878,9 @@ exports.AttendanceStatus = exports.$Enums.AttendanceStatus = {
   LATE: 'LATE',
   ABSENT: 'ABSENT',
   EARLY_LEAVE: 'EARLY_LEAVE',
-  EXCUSED: 'EXCUSED'
+  EXCUSED: 'EXCUSED',
+  OFF: 'OFF',
+  DEDUCTION: 'DEDUCTION'
 };
 
 exports.OrderSource = exports.$Enums.OrderSource = {
@@ -992,7 +1025,7 @@ exports.TalabatSessionStatus = exports.$Enums.TalabatSessionStatus = {
   NO_SHOW: 'NO_SHOW'
 };
 
-exports.ComplianceEventType = exports.$Enums.ComplianceEventType = {
+exports.ViolationEventType = exports.$Enums.ViolationEventType = {
   SELFIE_FAIL: 'SELFIE_FAIL',
   GPS_OFF: 'GPS_OFF',
   EQUIPMENT_MISSING: 'EQUIPMENT_MISSING',
@@ -1010,7 +1043,7 @@ exports.KpiCategory = exports.$Enums.KpiCategory = {
   ORDERS: 'ORDERS',
   DELIVERY_EFFICIENCY: 'DELIVERY_EFFICIENCY',
   FINANCIAL: 'FINANCIAL',
-  COMPLIANCE: 'COMPLIANCE',
+  VIOLATION: 'VIOLATION',
   CUSTOM: 'CUSTOM'
 };
 
@@ -1028,6 +1061,7 @@ exports.Prisma.ModelName = {
   Company: 'Company',
   User: 'User',
   Driver: 'Driver',
+  DriverRestriction: 'DriverRestriction',
   DriverInventory: 'DriverInventory',
   RecruitmentPipeline: 'RecruitmentPipeline',
   Vehicle: 'Vehicle',
@@ -1051,11 +1085,11 @@ exports.Prisma.ModelName = {
   Ticket: 'Ticket',
   LeaveRequest: 'LeaveRequest',
   TalabatSession: 'TalabatSession',
-  TalabatComplianceEvent: 'TalabatComplianceEvent',
+  TalabatViolationEvent: 'TalabatViolationEvent',
   TalabatDelivery: 'TalabatDelivery',
   KeetaDailyMetrics: 'KeetaDailyMetrics',
   PlatformSettings: 'PlatformSettings',
-  CompanyInventory: 'CompanyInventory',
+  PlatformInventory: 'PlatformInventory',
   AmericanaDailyOrders: 'AmericanaDailyOrders',
   KpiDefinition: 'KpiDefinition',
   KpiRecord: 'KpiRecord',

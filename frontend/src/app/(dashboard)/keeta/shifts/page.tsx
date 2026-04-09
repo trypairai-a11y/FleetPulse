@@ -98,7 +98,7 @@ export default function KeetaShiftsPage() {
     shiftMap[key].push(shift);
   }
 
-  // Compliance stats
+  // Violation stats
   const total = shifts.length;
   const booked = shifts.filter((s) => s.status === "BOOKED" || s.status === "COMPLETED").length;
   const completed = shifts.filter((s) => s.status === "COMPLETED").length;
@@ -118,7 +118,7 @@ export default function KeetaShiftsPage() {
         <span className="text-sm text-secondary">Sidra</span>
       </div>
 
-      {/* Compliance Cards */}
+      {/* Violation Cards */}
       <div className="grid grid-cols-4 gap-4">
         <StatCard title="Total Shifts" value={total} icon={CalendarCheck} />
         <StatCard

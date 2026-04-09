@@ -1,13 +1,13 @@
 "use client";
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { useApiGet } from "@/hooks/useApi";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
 import api from "@/lib/api";
 import {
   Wallet, AlertTriangle, TrendingUp, Download, Upload,
-  ChevronDown, ChevronRight, ChevronLeft, Plus, X, Check, Loader2,
-  Calendar,
+  ChevronDown, ChevronRight, ChevronLeft, X, Check, Loader2,
+  Calendar, Bell,
 } from "lucide-react";
 
 const DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0"));
@@ -338,89 +338,35 @@ function DepositModal({ rider, onClose, onSuccess }: { rider: LedgerRow; onClose
   );
 }
 
-function DailyBreakdown({ row, highlightDays }: { row: LedgerRow; highlightDays?: string[] }) {
-  return (
-    <tr className="bg-orange-50/50">
-      <td colSpan={11} className="px-3 py-3">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr>
-                <th className="text-left font-medium text-secondary py-1 pr-3 min-w-[80px]">Type</th>
-                {DAYS.map((d) => {
-                  const isHighlighted = highlightDays && highlightDays.length > 0 && highlightDays.includes(d);
-                  const isDimmed = highlightDays && highlightDays.length > 0 && !highlightDays.includes(d);
-                  return (
-                    <th key={d} className={cn(
-                      "text-center font-medium py-1 px-1 min-w-[36px]",
-                      isHighlighted ? "text-orange-600 bg-orange-50 rounded" : isDimmed ? "text-gray-300" : "text-secondary"
-                    )}>
-                      {d}
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {/* Sales Row */}
-              <tr>
-                <td className="font-medium text-orange-700 pr-3 py-1">Sales</td>
-                {DAYS.map((d) => {
-                  const sale = row.dailySales?.[d];
-                  const collection = row.dailyCollections?.[d];
-                  const hasSaleNoCollection = sale != null && sale > 0 && (!collection || collection === 0);
-                  const isDimmed = highlightDays && highlightDays.length > 0 && !highlightDays.includes(d);
-                  return (
-                    <td
-                      key={d}
-                      className={cn(
-                        "text-center py-1 px-1 rounded font-mono",
-                        isDimmed ? "opacity-20" :
-                        hasSaleNoCollection ? "bg-orange-200 text-orange-800 font-medium" : "text-foreground"
-                      )}
-                    >
-                      {sale != null && sale > 0 ? Number(sale).toFixed(2) : ""}
-                    </td>
-                  );
-                })}
-              </tr>
-              {/* Collections Row */}
-              <tr>
-                <td className="font-medium text-green-700 pr-3 py-1">Collected</td>
-                {DAYS.map((d) => {
-                  const coll = row.dailyCollections?.[d];
-                  const isDimmed = highlightDays && highlightDays.length > 0 && !highlightDays.includes(d);
-                  return (
-                    <td key={d} className={cn(
-                      "text-center py-1 px-1 font-mono text-green-700",
-                      isDimmed && "opacity-20"
-                    )}>
-                      {coll != null && coll > 0 ? Number(coll).toFixed(2) : ""}
-                    </td>
-                  );
-                })}
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </td>
-    </tr>
-  );
-}
+const REFRESH_INTERVAL = 30_000; // 30 seconds
 
 export default function TalabatCashPage() {
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [companyFilter, setCompanyFilter] = useState("");
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [depositRider, setDepositRider] = useState<LedgerRow | null>(null);
   const [importLoading, setImportLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [refreshing, setRefreshing] = useState(false);
 
   const { data: settingsData } = useApiGet<any>(`/api/platform-settings/TALABAT`);
   const cashThreshold = settingsData?.shiftRules?.maxCashHoldKD ?? 100;
 
-  const { data, refetch } = useApiGet<any>(`/api/cash/ledger?month=${month}&limit=100`);
+  const { data, refetch: rawRefetch } = useApiGet<any>(`/api/cash/ledger?month=${month}&limit=100`);
+
+  const refetch = useCallback(async () => {
+    setRefreshing(true);
+    await rawRefetch();
+    setLastUpdated(new Date());
+    setRefreshing(false);
+  }, [rawRefetch]);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const id = setInterval(refetch, REFRESH_INTERVAL);
+    return () => clearInterval(id);
+  }, [refetch]);
   // Map Prisma fields to LedgerRow shape
   const ledger: LedgerRow[] = (data?.data || []).map((r: any) => ({
     id: r.id,
@@ -475,6 +421,14 @@ export default function TalabatCashPage() {
     return selectedDays.reduce((sum, d) => sum + (Number(row[field]?.[d]) || 0), 0);
   }
 
+  // Month-1 alert: flag any driver with non-zero remaining balance on the 1st of the month
+  const today = new Date();
+  const isMonthStart = today.getDate() === 1;
+  const isCurrentMonth = month === today.toISOString().slice(0, 7);
+  const overdueDrivers = (isMonthStart && isCurrentMonth)
+    ? filtered.filter((r) => r.pendingDues > 0)
+    : [];
+
   // Summary calculations
   const totalCollected = hasDayFilter
     ? ledger.reduce((s, r) => s + sumForDays(r, "dailyCollections"), 0)
@@ -483,15 +437,6 @@ export default function TalabatCashPage() {
   const totalPending = hasDayFilter
     ? ledger.reduce((s, r) => s + sumForDays(r, "dailySales") - sumForDays(r, "dailyCollections"), 0)
     : ledger.reduce((s, r) => s + r.pendingDues, 0);
-
-  function toggleRow(id: string) {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
 
   async function handleExport() {
     try {
@@ -535,6 +480,12 @@ export default function TalabatCashPage() {
           <span className="w-3 h-3 rounded-full bg-talabat" />
           <h1 className="text-xl font-semibold">Talabat - Cash</h1>
           <span className="text-sm text-secondary">Wahoo International</span>
+          <div className="flex items-center gap-1.5 ml-1">
+            <span className={cn("w-2 h-2 rounded-full", refreshing ? "bg-orange-400 animate-pulse" : "bg-green-400 animate-pulse")} />
+            <span className="text-xs text-secondary">
+              {refreshing ? "Updating…" : `Updated ${lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <DatePicker month={month} onMonthChange={setMonth} selectedDays={selectedDays} onDaysChange={setSelectedDays} />
@@ -585,6 +536,29 @@ export default function TalabatCashPage() {
         />
       </div>
 
+      {/* Month-start alert: flag unsettled balances */}
+      {overdueDrivers.length > 0 && (
+        <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl">
+          <Bell size={18} className="text-red-600 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-red-700">
+              {overdueDrivers.length} driver{overdueDrivers.length > 1 ? "s" : ""} still have outstanding cash balance at start of month
+            </p>
+            <p className="text-xs text-red-500 mt-1">
+              Remaining balances must be cleared by end of each month. The following riders have unsettled dues:
+            </p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {overdueDrivers.map((r) => (
+                <span key={r.id} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-lg">
+                  {parseRiderName(r.riderName).name}
+                  <span className="font-mono font-bold">{kd(r.pendingDues)} KD</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Search & Filter */}
       <div className="flex gap-3 items-center">
         <input
@@ -615,7 +589,6 @@ export default function TalabatCashPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/50">
-                <th className="w-8 px-3 py-3" />
                 <th className="text-left text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Driver ID</th>
                 <th className="text-left text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Rider Name</th>
                 <th className="text-left text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Batch</th>
@@ -629,13 +602,12 @@ export default function TalabatCashPage() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-5 py-12 text-center text-sm text-secondary">
+                  <td colSpan={8} className="px-5 py-12 text-center text-sm text-secondary">
                     No ledger data for {month}
                   </td>
                 </tr>
               ) : (
                 filtered.map((row) => {
-                  const isExpanded = expandedRows.has(row.id);
                   const rowPending = hasDayFilter
                     ? sumForDays(row, "dailySales") - sumForDays(row, "dailyCollections")
                     : row.pendingDues;
@@ -644,19 +616,11 @@ export default function TalabatCashPage() {
                     <>
                       <tr
                         key={row.id}
-                        onClick={() => toggleRow(row.id)}
                         className={cn(
-                          "border-b border-gray-50 cursor-pointer transition-colors",
-                          isExpanded ? "bg-orange-50/30 border-orange-100" : "hover:bg-gray-50/50",
-                          highDue && !isExpanded && "bg-red-50/20"
+                          "border-b border-gray-50 transition-colors hover:bg-gray-50/50",
+                          highDue && "bg-red-50/20"
                         )}
                       >
-                        <td className="px-3 py-3 text-gray-300">
-                          {isExpanded
-                            ? <ChevronDown size={15} className="text-orange-500" />
-                            : <ChevronRight size={15} />
-                          }
-                        </td>
                         <td className="px-4 py-3 text-sm font-mono text-secondary">{row.riderId}</td>
                         <td className="px-4 py-3 text-sm font-medium">{parseRiderName(row.riderName).name}</td>
                         <td className="px-4 py-3 text-sm font-mono text-secondary">{parseRiderName(row.riderName).batch}</td>
@@ -697,8 +661,6 @@ export default function TalabatCashPage() {
                           );
                         })()}
                       </tr>
-
-                      {isExpanded && <DailyBreakdown key={`${row.id}-breakdown`} row={row} highlightDays={selectedDays} />}
                     </>
                   );
                 })
@@ -707,20 +669,6 @@ export default function TalabatCashPage() {
           </table>
         </div>
 
-        {/* Legend */}
-        {filtered.length > 0 && (
-          <div className="flex items-center gap-4 px-5 py-3 border-t border-gray-50 bg-gray-50/50">
-            <span className="text-xs text-secondary">Daily breakdown legend:</span>
-            <span className="inline-flex items-center gap-1.5 text-xs text-orange-700">
-              <span className="w-4 h-4 rounded bg-orange-200 inline-block" />
-              Sales with no collection
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-xs text-green-700">
-              <span className="w-4 h-4 rounded bg-green-100 inline-block" />
-              Collections
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Deposit Modal */}

@@ -17,6 +17,15 @@ const ROLE_COLORS: Record<string, string> = {
   VIEWER: "bg-gray-100 text-gray-500",
 };
 
+const JOB_GRADES = ["Team Leader", "Supervisor", "Senior Supervisor", "Area Manager"] as const;
+
+const GRADE_COLORS: Record<string, string> = {
+  "Team Leader": "bg-sky-50 text-sky-600",
+  "Supervisor": "bg-violet-50 text-violet-600",
+  "Senior Supervisor": "bg-indigo-50 text-indigo-600",
+  "Area Manager": "bg-rose-50 text-rose-600",
+};
+
 type Tab = "companies" | "users" | "notifications" | "profile";
 
 function UsersTab() {
@@ -65,6 +74,15 @@ function UsersTab() {
     }
   }
 
+  async function handleGradeChange(userId: string, grade: string) {
+    try {
+      await api.put(`/api/users/${userId}`, { jobGrade: grade });
+      refetch();
+    } catch (err: any) {
+      console.error(err);
+    }
+  }
+
   return (
     <div>
       <div className="flex justify-end mb-4">
@@ -81,6 +99,7 @@ function UsersTab() {
               <th className="text-left text-xs font-medium text-secondary px-5 py-3">Name</th>
               <th className="text-left text-xs font-medium text-secondary px-5 py-3">Email</th>
               <th className="text-left text-xs font-medium text-secondary px-5 py-3">Role</th>
+              <th className="text-left text-xs font-medium text-secondary px-5 py-3">Job Grade</th>
               <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
               <th className="text-left text-xs font-medium text-secondary px-5 py-3">Last Login</th>
               <th className="text-right text-xs font-medium text-secondary px-5 py-3">Actions</th>
@@ -105,6 +124,33 @@ function UsersTab() {
                   <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium sr-only", ROLE_COLORS[u.role])}>
                     {u.role.replace("_", " ")}
                   </span>
+                </td>
+                <td className="px-5 py-3">
+                  {u.role === "SUPERVISOR" ? (
+                    <>
+                      <select
+                        value={u.jobGrade || ""}
+                        onChange={(e) => handleGradeChange(u.id, e.target.value)}
+                        className={cn(
+                          "appearance-none px-2 py-0.5 rounded-md text-xs font-medium border-0 cursor-pointer focus:outline-none",
+                          u.jobGrade ? GRADE_COLORS[u.jobGrade] : "text-secondary"
+                        )}
+                        style={{ backgroundColor: "transparent" }}
+                      >
+                        <option value="">— Select Grade</option>
+                        {JOB_GRADES.map((g) => (
+                          <option key={g} value={g}>{g}</option>
+                        ))}
+                      </select>
+                      {u.jobGrade && (
+                        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium sr-only", GRADE_COLORS[u.jobGrade])}>
+                          {u.jobGrade}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-xs text-secondary">—</span>
+                  )}
                 </td>
                 <td className="px-5 py-3">
                   <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium",
@@ -132,7 +178,7 @@ function UsersTab() {
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-sm text-secondary">No users found</td>
+                <td colSpan={7} className="px-5 py-8 text-center text-sm text-secondary">No users found</td>
               </tr>
             )}
           </tbody>

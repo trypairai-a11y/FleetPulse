@@ -189,6 +189,113 @@ router.get("/drivers/summary", async (req: Request, res: Response) => {
   }
 });
 
+// ─── Overview ─────────────────────────────────────────────────────────────────
+
+// GET /overview - Today's Keeta overview (drivers + metrics + attendance)
+router.get("/overview", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const companyId = req.query.companyId as string | undefined;
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Keeta dates are stored with a day offset due to UTC, so include yesterday too
+    const yesterday = new Date(todayStart);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+    const driverWhere: any = { tenantId, platform: "KEETA", status: "ACTIVE" };
+    if (companyId) driverWhere.companyId = companyId;
+    const metricsWhere: any = { tenantId, date: { gte: yesterday, lt: todayEnd } };
+    if (companyId) metricsWhere.driverId = { in: await prisma.driver.findMany({ where: driverWhere, select: { id: true } }).then(d => d.map(x => x.id)) };
+    const attWhere: any = { tenantId, date: { gte: todayStart, lt: todayEnd }, driver: { platform: "KEETA" } };
+    if (companyId) attWhere.driver = { platform: "KEETA" as any, companyId };
+
+    const [drivers, todayMetrics, todayAttendance, driversOnLeave] = await Promise.all([
+      prisma.driver.findMany({
+        where: driverWhere,
+        select: {
+          id: true, name: true, phone: true, utr: true, zone: true, status: true,
+          companyId: true, company: { select: { name: true } },
+          aiScores: { orderBy: { date: "desc" }, take: 1, select: { compositeScore: true, trend: true } },
+        },
+        orderBy: { name: "asc" },
+      }),
+      prisma.keetaDailyMetrics.findMany({
+        where: metricsWhere,
+        select: {
+          driverId: true, deliveredTasks: true, acceptedTasks: true, cancelledTasks: true,
+          onlineTime: true, validOnlineTime: true, validDay: true,
+          completionRate: true, onTimeRate: true, avgDeliveryMinutes: true, cancellationRate: true,
+        },
+      }),
+      prisma.attendanceRecord.findMany({
+        where: attWhere,
+        select: { driverId: true, status: true, lateMinutes: true },
+      }),
+      prisma.leaveRequest.count({
+        where: { tenantId, status: "APPROVED", startDate: { lte: todayStart }, endDate: { gte: todayStart }, driver: { platform: "KEETA" } },
+      }),
+    ]);
+
+    const metricsByDriver = new Map<string, any>();
+    for (const m of todayMetrics) metricsByDriver.set(m.driverId, m);
+    const attendanceByDriver = new Map<string, string>();
+    for (const a of todayAttendance) attendanceByDriver.set(a.driverId, a.status);
+
+    const driverRows = drivers.map((d: any) => {
+      const m = metricsByDriver.get(d.id);
+      const score = d.aiScores[0] || null;
+      return {
+        id: d.id, name: d.name, phone: d.phone, utr: d.utr, zone: d.zone,
+        company: d.company.name, companyId: d.companyId,
+        darbGrade: score?.compositeScore || null, gradeTrend: score?.trend || null,
+        deliveries: m?.deliveredTasks || 0,
+        accepted: m?.acceptedTasks || 0,
+        cancelled: m?.cancelledTasks || 0,
+        onlineMinutes: m?.onlineTime || 0,
+        validDay: m?.validDay || false,
+        completionRate: m ? Number(m.completionRate || 0) : null,
+        onTimeRate: m ? Number(m.onTimeRate || 0) : null,
+        avgDeliveryMinutes: m ? Number(m.avgDeliveryMinutes || 0) : null,
+        attendance: attendanceByDriver.get(d.id) || null,
+        hasMetrics: !!m,
+      };
+    });
+
+    driverRows.sort((a: any, b: any) => (b.darbGrade || 0) - (a.darbGrade || 0));
+    driverRows.forEach((d: any, i: number) => d.rank = i + 1);
+
+    const totalDeliveries = driverRows.reduce((s: number, d: any) => s + d.deliveries, 0);
+    const validDays = driverRows.filter((d: any) => d.validDay).length;
+    const presentCount = driverRows.filter((d: any) => d.attendance === "PRESENT").length;
+    const lateCount = driverRows.filter((d: any) => d.attendance === "LATE").length;
+    const absentCount = driverRows.filter((d: any) => d.attendance === "ABSENT").length;
+    const driversWithMetrics = driverRows.filter((d: any) => d.hasMetrics && d.completionRate !== null);
+    const avgCompletionRate = driversWithMetrics.length > 0
+      ? Math.round(driversWithMetrics.reduce((s: number, d: any) => s + d.completionRate, 0) / driversWithMetrics.length * 100) / 100
+      : null;
+    const avgOnTimeRate = driversWithMetrics.length > 0
+      ? Math.round(driversWithMetrics.reduce((s: number, d: any) => s + d.onTimeRate, 0) / driversWithMetrics.length * 100) / 100
+      : null;
+
+    res.json({
+      drivers: driverRows,
+      summary: {
+        totalDrivers: drivers.length,
+        totalDeliveries,
+        validDays,
+        presentCount, lateCount, absentCount,
+        driversOnLeave,
+        avgCompletionRate,
+        avgOnTimeRate,
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Import ──────────────────────────────────────────────────────────────────
 
 // POST /import - Parse uploaded Keeta XLSX and upsert metrics

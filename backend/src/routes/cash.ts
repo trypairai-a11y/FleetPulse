@@ -284,8 +284,8 @@ router.delete("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// Import pending dues ledger XLSX
-router.post("/import-ledger", upload.single("file"), async (req: Request, res: Response) => {
+// Import pending dues ledger XLSX (shared handler for both route aliases)
+async function handleLedgerImport(req: Request, res: Response) {
   try {
     if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
     const tenantId = req.user!.tenantId;
@@ -320,7 +320,9 @@ router.post("/import-ledger", upload.single("file"), async (req: Request, res: R
           continue;
         }
 
-        const closingBalance = (row.openingBalance || 0)
+        // Each month starts fresh — opening balance is always 0
+        const openingBalance = 0;
+        const closingBalance = openingBalance
           + (row.totalSales || 0)
           - (row.totalCollection || 0)
           - (row.cashAlMuzaini || 0)
@@ -340,26 +342,26 @@ router.post("/import-ledger", upload.single("file"), async (req: Request, res: R
             tenantId,
             driverId: driver.id,
             month: monthDate,
-            openingBalance: row.openingBalance || 0,
+            openingBalance,
             totalSales: row.totalSales || 0,
             totalCollection: row.totalCollection || 0,
             cashDeposits: row.cashAlMuzaini || 0,
             bankTransfers: row.bankTransfer || 0,
             incentives: row.incentives || 0,
             adjustments: row.adjustments || 0,
-            closingBalance: closingBalance,
+            closingBalance,
             dailySales: row.dailyData || {},
             dailyCollections: {},
           },
           update: {
-            openingBalance: row.openingBalance || 0,
+            openingBalance,
             totalSales: row.totalSales || 0,
             totalCollection: row.totalCollection || 0,
             cashDeposits: row.cashAlMuzaini || 0,
             bankTransfers: row.bankTransfer || 0,
             incentives: row.incentives || 0,
             adjustments: row.adjustments || 0,
-            closingBalance: closingBalance,
+            closingBalance,
             dailySales: row.dailyData || {},
           },
         });
@@ -374,7 +376,11 @@ router.post("/import-ledger", upload.single("file"), async (req: Request, res: R
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }
-});
+}
+
+router.post("/import-ledger", upload.single("file"), handleLedgerImport);
+// Alias used by frontend
+router.post("/ledger/import", upload.single("file"), handleLedgerImport);
 
 // Upload deposit receipt
 router.post("/deposit-receipt", upload.single("receipt"), async (req: Request, res: Response) => {

@@ -97,6 +97,7 @@ export default function TalabatDriversPage() {
     {
       key: "uti",
       label: "UTR",
+      headerTitle: "Utilization Time Rate",
       render: (v: number) => (
         <span className={cn("font-medium text-sm tabular-nums", {
           "text-green-600": v != null && v >= 1.0,
@@ -124,11 +125,7 @@ export default function TalabatDriversPage() {
       key: "faceVerified",
       label: "Face",
       render: (_: any, r: any) =>
-        r.faceMismatch ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
-            <XCircle size={13} /> Mismatch
-          </span>
-        ) : r.faceVerified != null ? (
+        r.faceVerified != null ? (
           r.faceVerified ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
               <CheckCircle2 size={13} /> Pass
@@ -152,18 +149,23 @@ export default function TalabatDriversPage() {
       ),
     },
     {
-      key: "status",
+      key: "talabatStatus",
       label: "Status",
-      render: (v: string) => (
-        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
-          "bg-green-50 text-green-600": v === "ACTIVE",
-          "bg-gray-100 text-gray-500": v === "INACTIVE",
-          "bg-red-50 text-red-600": v === "SUSPENDED" || v === "TERMINATED" || v === "TERMINATION",
-          "bg-orange-50 text-orange-600": v === "LEAVE",
-        })}>
-          {v}
-        </span>
-      ),
+      render: (v: string) => {
+        const cfg: Record<string, { cls: string; label: string; dot?: string }> = {
+          ONLINE:                 { cls: "bg-green-50 text-green-700",   label: "Online",                dot: "bg-green-500" },
+          OFFLINE:                { cls: "bg-gray-100 text-gray-500",    label: "Offline",               dot: "bg-gray-400" },
+          RESTRICTED:             { cls: "bg-amber-50 text-amber-700",   label: "Restricted",            dot: "bg-amber-500" },
+          PERMANENTLY_RESTRICTED: { cls: "bg-red-100 text-red-700",      label: "Perm. Restricted",      dot: "bg-red-600" },
+        };
+        const s = cfg[v] || { cls: "bg-gray-100 text-gray-500", label: v || "—", dot: "bg-gray-400" };
+        return (
+          <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium", s.cls)}>
+            <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", s.dot)} />
+            {s.label}
+          </span>
+        );
+      },
     },
   ];
 
@@ -200,10 +202,11 @@ export default function TalabatDriversPage() {
           { key: "batch", type: "multi-select", label: "All Batches", options: BATCH_NUMBERS.map(b => ({ value: b, label: b })) },
           {
             key: "status", type: "multi-select", label: "All Statuses", options: [
-              { value: "ACTIVE", label: "Active" },
-              { value: "SUSPENDED", label: "Suspended" },
+              { value: "ACTIVE,INACTIVE", label: "Online / Offline" },
+              { value: "RESTRICTED", label: "Restricted" },
+              { value: "RESTRICTED_PERMANENTLY", label: "Permanently Restricted" },
               { value: "LEAVE", label: "Leave" },
-              { value: "TERMINATION", label: "Termination" },
+              { value: "SUSPENDED", label: "Suspended" },
             ]
           },
         ]}
@@ -229,7 +232,13 @@ export default function TalabatDriversPage() {
                 ["Batch", selected.batchNumber],
                 ["Zone", selected.zone],
                 ["Vehicle", selected.vehicleType === "MOTORCYCLE" ? "Bike" : selected.vehicleType === "CAR" ? "Car" : selected.vehicleType],
-                ["Status", selected.status],
+                ["Status", (() => {
+                  const m: Record<string, string> = {
+                    ONLINE: "Online", OFFLINE: "Offline",
+                    RESTRICTED: "Restricted", PERMANENTLY_RESTRICTED: "Permanently Restricted",
+                  };
+                  return m[selected.talabatStatus] || selected.talabatStatus || selected.status;
+                })()],
                 ["Company Phone", selected.phone],
                 ["Personal Phone", selected.personalPhone],
                 ["Hire Date", selected.hireDate ? new Date(selected.hireDate).toLocaleDateString() : "-"],

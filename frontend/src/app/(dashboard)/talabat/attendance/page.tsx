@@ -238,11 +238,7 @@ export default function TalabatAttendancePage() {
                           </div>
                         </td>
                         <td className="px-5 py-3">
-                          {record.faceMismatch ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
-                              <XCircle size={11} /> Mismatch
-                            </span>
-                          ) : record.faceVerified !== undefined ? (
+                          {record.faceVerified !== undefined ? (
                             <div>
                               <YesNoBadge value={record.faceVerified} falseLabel="Fail" />
                               {!record.faceVerified && record.faceFailReason && (
@@ -276,7 +272,7 @@ export default function TalabatAttendancePage() {
                           )}
                         </td>
                         <td className="px-5 py-3">
-                          <YesNoBadge value={!record.gpsZoneMismatch} falseLabel="Mismatch" />
+                          <YesNoBadge value={!record.gpsZoneMismatch} falseLabel="Fail" />
                         </td>
                       </tr>
                     ))
@@ -459,7 +455,7 @@ export default function TalabatAttendancePage() {
                   <MapPin size={15} className="text-secondary" /> GPS Zone Match
                 </div>
                 <div className="text-right">
-                  <YesNoBadge value={!selected.gpsZoneMismatch} falseLabel="Mismatch" />
+                  <YesNoBadge value={!selected.gpsZoneMismatch} falseLabel="Fail" />
                   {selected.gpsZoneMismatch && (
                     <p className="text-[11px] text-amber-600 mt-1">
                       Logged from: {selected.clockInLocation || "Unknown"} - Assigned: {selected.assignedZone || "-"}

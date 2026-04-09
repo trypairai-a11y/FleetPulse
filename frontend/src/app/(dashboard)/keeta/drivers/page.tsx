@@ -42,11 +42,7 @@ export default function KeetaDriversPage() {
       key: "faceVerified",
       label: "Face",
       render: (_: any, r: any) =>
-        r.faceMismatch ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
-            <XCircle size={13} /> Mismatch
-          </span>
-        ) : r.faceVerified != null ? (
+        r.faceVerified != null ? (
           r.faceVerified ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
               <CheckCircle2 size={13} /> Pass

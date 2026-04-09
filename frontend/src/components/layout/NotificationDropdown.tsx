@@ -54,13 +54,6 @@ export default function NotificationDropdown() {
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const fetchUnreadCount = useCallback(async () => {
-    try {
-      const { data } = await api.get("/api/notifications/unread-count");
-      setUnreadCount(data.count);
-    } catch {}
-  }, []);
-
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
@@ -70,12 +63,70 @@ export default function NotificationDropdown() {
     setLoading(false);
   }, []);
 
-  // Poll for unread count every 15 seconds
+  // Use SSE for real-time unread count updates (replaces 15s polling)
   useEffect(() => {
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 15000);
-    return () => clearInterval(interval);
-  }, [fetchUnreadCount]);
+    let es: EventSource | null = null;
+    let fallbackInterval: ReturnType<typeof setInterval> | null = null;
+
+    const connectSSE = () => {
+      // Get token from axios defaults for SSE auth
+      const token = (api.defaults.headers.common["Authorization"] as string)?.replace("Bearer ", "");
+      if (!token) return;
+
+      try {
+        es = new EventSource(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/notifications/stream?token=${token}`);
+
+        es.onmessage = (event) => {
+          try {
+            const payload = JSON.parse(event.data);
+            if (payload.type === "unread_count") {
+              setUnreadCount(payload.count);
+            } else if (payload.type === "notifications" && Array.isArray(payload.items)) {
+              // Prepend new notifications to the list
+              setNotifications((prev) => {
+                const existingIds = new Set(prev.map((n) => n.id));
+                const newItems = payload.items.filter((n: Notification) => !existingIds.has(n.id));
+                return [...newItems, ...prev].slice(0, 50);
+              });
+              setUnreadCount((c) => c + payload.items.filter((n: Notification) => !n.read).length);
+            }
+          } catch {}
+        };
+
+        es.onerror = () => {
+          es?.close();
+          es = null;
+          // Fallback to polling if SSE fails
+          if (!fallbackInterval) {
+            api.get("/api/notifications/unread-count")
+              .then(({ data }) => setUnreadCount(data.count))
+              .catch(() => {});
+            fallbackInterval = setInterval(() => {
+              api.get("/api/notifications/unread-count")
+                .then(({ data }) => setUnreadCount(data.count))
+                .catch(() => {});
+            }, 30000);
+          }
+        };
+      } catch {
+        // SSE not available — use fallback polling
+        fallbackInterval = setInterval(() => {
+          api.get("/api/notifications/unread-count")
+            .then(({ data }) => setUnreadCount(data.count))
+            .catch(() => {});
+        }, 30000);
+      }
+    };
+
+    // Small delay to allow auth to settle
+    const timeout = setTimeout(connectSSE, 1000);
+
+    return () => {
+      clearTimeout(timeout);
+      es?.close();
+      if (fallbackInterval) clearInterval(fallbackInterval);
+    };
+  }, []);
 
   // Fetch full list when dropdown opens
   useEffect(() => {
@@ -108,9 +159,11 @@ export default function NotificationDropdown() {
       <button
         onClick={() => setOpen(!open)}
         className="relative p-2 rounded-xl hover:bg-gray-50 text-secondary transition-colors"
-        title="Notifications"
+        aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
+        aria-expanded={open}
+        aria-haspopup="true"
       >
-        <Bell size={18} />
+        <Bell size={18} aria-hidden="true" />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1 leading-none">
             {unreadCount > 99 ? "99+" : unreadCount}

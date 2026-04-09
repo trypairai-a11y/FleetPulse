@@ -4,10 +4,52 @@ import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
 import { sendXlsx } from "../utils/xlsxExport";
+import { validateBody, createDriverSchema } from "../utils/validate";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
 
+/**
+ * @swagger
+ * /api/drivers:
+ *   get:
+ *     tags: [Drivers]
+ *     summary: List all drivers with today's performance data
+ *     parameters:
+ *       - in: query
+ *         name: platform
+ *         schema: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *       - in: query
+ *         name: status
+ *         schema: { type: string }
+ *       - in: query
+ *         name: companyId
+ *         schema: { type: string }
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *       - in: query
+ *         name: date
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 50 }
+ *     responses:
+ *       200:
+ *         description: Paginated driver list with performance metrics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/PaginatedResponse'
+ *                 - properties:
+ *                     data:
+ *                       type: array
+ *                       items: { $ref: '#/components/schemas/Driver' }
+ */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
@@ -100,7 +142,7 @@ router.get("/", async (req: Request, res: Response) => {
           },
           talabatSessions: {
             where: { date: { gte: targetStart, lt: targetEnd } },
-            select: { actualHours: true, plannedHours: true, cashCollected: true, deliveries: true },
+            select: { actualHours: true, plannedHours: true, cashCollected: true, deliveries: true, status: true },
           },
           cashRecords: {
             where: { date: { gte: targetStart, lt: targetEnd } },
@@ -149,14 +191,24 @@ router.get("/", async (req: Request, res: Response) => {
       );
       const workingHours = shiftHours + sessionHours;
 
-      // UTR: random value 0.70–2.00
-      const uti = Math.round((0.7 + Math.random() * 1.3) * 100) / 100;
+      // UTR: actual orders per working hour (deliveries per hour)
+      const uti = workingHours > 0 ? Math.round((dailyOrders / workingHours) * 100) / 100 : 0;
 
       // Cash deposited from CashRecord
       const cashDeposited = d.cashRecords.reduce(
         (sum, r) => sum + (r.collectionAmount ? Number(r.collectionAmount) : 0),
         0
       );
+
+      // Talabat-specific status: RESTRICTED/PERMANENTLY_RESTRICTED take priority,
+      // then ONLINE if active session exists today, otherwise OFFLINE
+      let talabatStatus: string | undefined;
+      if (d.platform === "TALABAT") {
+        if (d.status === "RESTRICTED_PERMANENTLY") talabatStatus = "PERMANENTLY_RESTRICTED";
+        else if (d.status === "RESTRICTED") talabatStatus = "RESTRICTED";
+        else if (d.talabatSessions.some((s: any) => s.status === "ACTIVE")) talabatStatus = "ONLINE";
+        else talabatStatus = "OFFLINE";
+      }
 
       return {
         ...d,
@@ -166,6 +218,7 @@ router.get("/", async (req: Request, res: Response) => {
         cashDeposited: cashDeposited || null,
         uti,
         workingHours: workingHours || null,
+        talabatStatus,
         orderLogs: undefined,
         shifts: undefined,
         talabatSessions: undefined,
@@ -300,7 +353,7 @@ router.get("/:id/summary", async (req: Request, res: Response) => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [sessionsThisMonth, sessionStats, pendingCash, complianceEvents] = await Promise.all([
+    const [sessionsThisMonth, sessionStats, pendingCash, violationEvents] = await Promise.all([
       // Sessions this month
       prisma.talabatSession.count({
         where: { driverId, tenantId, date: { gte: startOfMonth } },
@@ -316,8 +369,8 @@ router.get("/:id/summary", async (req: Request, res: Response) => {
         where: { driverId, tenantId, status: "PENDING" },
         _sum: { pendingDues: true },
       }),
-      // Compliance events count (unresolved)
-      prisma.talabatComplianceEvent.count({
+      // Violation events count (unresolved)
+      prisma.talabatViolationEvent.count({
         where: { driverId, tenantId, resolved: false },
       }),
     ]);
@@ -331,7 +384,7 @@ router.get("/:id/summary", async (req: Request, res: Response) => {
       sessionsThisMonth,
       avgDeliveriesPerDay,
       pendingDuesKd,
-      complianceEvents,
+      violationEvents,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -356,7 +409,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", validateBody(createDriverSchema.passthrough()), async (req: Request, res: Response) => {
   try {
     const { inventory, ...driverData } = req.body;
 

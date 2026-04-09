@@ -5,11 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { useRole } from "@/hooks/useRole";
 import {
-  LayoutDashboard, Map, CalendarCheck, Ticket, Users, Settings,
+  LayoutDashboard, Map, Ticket, Users, Settings,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeft,
-  Car, Smartphone, ClipboardList, DollarSign, Briefcase,
-  ShieldAlert, BarChart3, Target, Gauge, Building2,
+  ClipboardList, DollarSign, Briefcase,
+  ShieldAlert, BarChart3, Target, Gauge, Building2, Lightbulb,
 } from "lucide-react";
 
 const PLATFORMS = [
@@ -25,8 +26,6 @@ const PLATFORMS = [
       { name: "Orders", path: "/talabat/orders", icon: Briefcase },
       { name: "Cash", path: "/talabat/cash", icon: DollarSign },
       { name: "Violations", path: "/talabat/violations", icon: ShieldAlert },
-      { name: "Vehicles", path: "/talabat/vehicles", icon: Car },
-      { name: "Phones", path: "/talabat/phones", icon: Smartphone },
       { name: "Settings", path: "/talabat/settings", icon: Settings },
     ],
   },
@@ -41,8 +40,6 @@ const PLATFORMS = [
       { name: "Shifts", path: "/keeta/shifts", icon: ClipboardList },
       { name: "Orders", path: "/keeta/orders", icon: Briefcase },
       { name: "Performance", path: "/keeta/performance", icon: BarChart3 },
-      { name: "Vehicles", path: "/keeta/vehicles", icon: Car },
-      { name: "Phones", path: "/keeta/phones", icon: Smartphone },
       { name: "Settings", path: "/keeta/settings", icon: Settings },
     ],
   },
@@ -56,8 +53,6 @@ const PLATFORMS = [
       { name: "Drivers", path: "/deliveroo/drivers", icon: Users },
       { name: "Shifts", path: "/deliveroo/shifts", icon: ClipboardList },
       { name: "Orders & Cash", path: "/deliveroo/orders-cash", icon: Briefcase },
-      { name: "Vehicles", path: "/deliveroo/vehicles", icon: Car },
-      { name: "Phones", path: "/deliveroo/phones", icon: Smartphone },
       { name: "Settings", path: "/deliveroo/settings", icon: Settings },
     ],
   },
@@ -72,8 +67,6 @@ const PLATFORMS = [
       { name: "Shifts", path: "/americana/shifts", icon: ClipboardList },
       { name: "Orders", path: "/americana/orders", icon: Briefcase },
       { name: "Performance", path: "/americana/performance", icon: BarChart3 },
-      { name: "Vehicles", path: "/americana/vehicles", icon: Car },
-      { name: "Phones", path: "/americana/phones", icon: Smartphone },
       { name: "Settings", path: "/americana/settings", icon: Settings },
     ],
   },
@@ -84,15 +77,17 @@ const GLOBAL_NAV = [
   { name: "Companies", path: "/companies", icon: Building2 },
   { name: "KPIs", path: "/kpis", icon: Target },
   { name: "Analytics", path: "/analytics", icon: BarChart3 },
+  { name: "Insights", path: "/insights", icon: Lightbulb },
   { name: "Live Map", path: "/map", icon: Map },
-  { name: "Attendance", path: "/attendance", icon: CalendarCheck },
   { name: "Tickets", path: "/tickets", icon: Ticket },
   { name: "Recruitment", path: "/recruitment", icon: Users },
+  { name: "Supervisors", path: "/supervisors", icon: Users },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { collapsed, toggle, open, setOpen } = useSidebar();
+  const { collapsed, open, setOpen } = useSidebar();
+  const { canManageSettings } = useRole();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const togglePlatform = (key: string) => {
@@ -183,46 +178,50 @@ export default function Sidebar() {
             </button>
             {!collapsed && expanded[platform.key] && (
               <div className="ml-5 mt-0.5 space-y-0.5">
-                {platform.subPages.map((sub) => (
-                  <Link
-                    key={sub.path}
-                    href={sub.path}
-                    className={cn(
-                      "flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[13px] transition-all duration-200",
-                      isActive(sub.path)
-                        ? `${platform.bg} ${platform.color} font-medium`
-                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                    )}
-                  >
-                    <sub.icon size={14} />
-                    <span>{sub.name}</span>
-                  </Link>
-                ))}
+                {platform.subPages
+                  .filter((sub) => sub.name !== "Settings" || canManageSettings)
+                  .map((sub) => (
+                    <Link
+                      key={sub.path}
+                      href={sub.path}
+                      className={cn(
+                        "flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[13px] transition-all duration-200",
+                        isActive(sub.path)
+                          ? `${platform.bg} ${platform.color} font-medium`
+                          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                      )}
+                    >
+                      <sub.icon size={14} aria-hidden="true" />
+                      <span>{sub.name}</span>
+                    </Link>
+                  ))}
               </div>
             )}
           </div>
         ))}
 
-        {/* System */}
-        <div className="mt-6">
-          {!collapsed && (
-            <div className="px-3 mb-2 text-[11px] font-medium text-secondary uppercase tracking-wider">
-              System
-            </div>
-          )}
-          <Link
-            href="/settings"
-            className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
-              isActive("/settings")
-                ? "bg-primary/8 text-primary"
-                : "text-gray-600 hover:bg-gray-50 hover:text-foreground"
+        {/* System — only visible to OPS_MANAGER and above */}
+        {canManageSettings && (
+          <div className="mt-6">
+            {!collapsed && (
+              <div className="px-3 mb-2 text-[11px] font-medium text-secondary uppercase tracking-wider">
+                System
+              </div>
             )}
-          >
-            <Settings size={18} />
-            {!collapsed && <span>Settings</span>}
-          </Link>
-        </div>
+            <Link
+              href="/settings"
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+                isActive("/settings")
+                  ? "bg-primary/8 text-primary"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-foreground"
+              )}
+            >
+              <Settings size={18} aria-hidden="true" />
+              {!collapsed && <span>Settings</span>}
+            </Link>
+          </div>
+        )}
       </nav>
 
     </aside>

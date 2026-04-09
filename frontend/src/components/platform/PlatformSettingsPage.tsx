@@ -1,8 +1,71 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useApiGet } from "@/hooks/useApi";
 import { cn } from "@/lib/cn";
 import api from "@/lib/api";
+
+const PRESET_COLORS = [
+  "#22c55e", "#16a34a", "#15803d",
+  "#3b82f6", "#2563eb", "#1d4ed8",
+  "#f59e0b", "#d97706", "#b45309",
+  "#f97316", "#ea580c", "#c2410c",
+  "#ef4444", "#dc2626", "#b91c1c",
+  "#8b5cf6", "#7c3aed", "#6d28d9",
+  "#ec4899", "#db2777", "#be185d",
+  "#6b7280", "#4b5563", "#374151",
+];
+
+function ColorPicker({ value, onChange }: { value: string; onChange: (color: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-8 h-8 rounded-lg border-2 border-gray-200 cursor-pointer shadow-sm hover:scale-110 transition-transform"
+        style={{ backgroundColor: value }}
+      />
+      {open && (
+        <div className="absolute right-0 top-10 z-50 bg-white rounded-xl shadow-lg border border-gray-200 p-3 w-[200px]">
+          <div className="grid grid-cols-6 gap-1.5 mb-3">
+            {PRESET_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => { onChange(c); setOpen(false); }}
+                className={cn(
+                  "w-7 h-7 rounded-lg cursor-pointer hover:scale-110 transition-transform border-2",
+                  value.toLowerCase() === c.toLowerCase() ? "border-gray-800 ring-2 ring-gray-300" : "border-transparent"
+                )}
+                style={{ backgroundColor: c }}
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+            <div className="w-6 h-6 rounded-md border border-gray-200" style={{ backgroundColor: value }} />
+            <input
+              type="text"
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              className="flex-1 text-xs font-mono px-2 py-1 rounded-md border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20 uppercase"
+              maxLength={7}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 import {
   Save,
   Plus,
@@ -16,13 +79,40 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  DollarSign,
   Timer,
   Hash,
   TrendingUp,
+  ShieldAlert,
+  Banknote,
+  CalendarClock,
+  FileText,
+  Bell,
+  Users,
+  Calendar,
+  Bike,
+  Car,
 } from "lucide-react";
 
-type Tab = "targets" | "inventory" | "kpis" | "zones";
+type Tab = "targets" | "inventory" | "kpis" | "zones" | "violations" | "cash" | "booking" | "documents" | "notifications" | "supervisor";
+
+function getDefaultSupervisorConfig() {
+  return {
+    enabled: true,
+    metric: "darbGradeAvg",
+    minDriversRequired: 3,
+    grades: [
+      { label: "Team Leader",      tiers: [{ label: "Bronze", minScore: 60, bonusKD: 25  }, { label: "Silver", minScore: 75, bonusKD: 50  }, { label: "Gold", minScore: 90, bonusKD: 100 }] },
+      { label: "Supervisor",       tiers: [{ label: "Bronze", minScore: 60, bonusKD: 50  }, { label: "Silver", minScore: 75, bonusKD: 100 }, { label: "Gold", minScore: 90, bonusKD: 200 }] },
+      { label: "Senior Supervisor",tiers: [{ label: "Bronze", minScore: 60, bonusKD: 100 }, { label: "Silver", minScore: 75, bonusKD: 200 }, { label: "Gold", minScore: 90, bonusKD: 350 }] },
+      { label: "Area Manager",     tiers: [{ label: "Bronze", minScore: 60, bonusKD: 150 }, { label: "Silver", minScore: 75, bonusKD: 300 }, { label: "Gold", minScore: 90, bonusKD: 500 }] },
+    ],
+    sizeAdjustments: [
+      { label: "Small",  minDrivers: 3,  maxDrivers: 7,   scoreAdjustment: 0  },
+      { label: "Medium", minDrivers: 8,  maxDrivers: 15,  scoreAdjustment: 5  },
+      { label: "Large",  minDrivers: 16, maxDrivers: 999, scoreAdjustment: 10 },
+    ],
+  };
+}
 
 interface Props {
   platform: string;
@@ -44,6 +134,7 @@ const ITEM_LABELS: Record<string, string> = {
 
 export default function PlatformSettingsPage({ platform, platformLabel, platformColor }: Props) {
   const [tab, setTab] = useState<Tab>("targets");
+  const [vehicleType, setVehicleType] = useState<"MOTORCYCLE" | "CAR">("MOTORCYCLE");
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -56,18 +147,59 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
   const [shiftRules, setShiftRules] = useState<any>(null);
   const [zones, setZones] = useState<string[]>([]);
   const [newZone, setNewZone] = useState("");
+  const [violationRules, setViolationRules] = useState<any>(null);
+  const [cashRules, setCashRules] = useState<any>(null);
+  const [bookingRules, setBookingRules] = useState<any>(null);
+  const [documentRules, setDocumentRules] = useState<any>(null);
+  const [notificationConfig, setNotificationConfig] = useState<any>(null);
+  const [supervisorTargets, setSupervisorTargets] = useState<any>(null);
 
   // Inventory state
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
   const [showAddInventory, setShowAddInventory] = useState(false);
-  const [addItem, setAddItem] = useState({ companyId: "", itemType: "HELMET", total: 0, minStock: 0 });
+  const [addItem, setAddItem] = useState({ itemType: "HELMET", total: 0, minStock: 0 });
 
   useEffect(() => {
     if (settings) {
-      setTargets(settings.targets);
+      // Migrate targets to per-vehicle-type format
+      let t = settings.targets;
+      if (t && !t.MOTORCYCLE) {
+        t = { MOTORCYCLE: t, CAR: JSON.parse(JSON.stringify(t)) };
+      }
+      setTargets(t);
+
+      // Migrate shiftRules to per-vehicle-type format with new field names
+      const migrateVT = (vt: any) => ({
+        defaultHoursPerDay: vt?.defaultHoursPerShift ?? vt?.defaultHoursPerDay ?? 12,
+        maxLateMinutes: vt?.maxLateMinutes ?? 1,
+        earlyLogOutMinutes: vt?.earlyClockOutMinutes ?? vt?.earlyLogOutMinutes ?? 15,
+        maxCashHoldKD: vt?.maxCashHoldKD ?? 50,
+      });
+      let sr = settings.shiftRules;
+      if (sr) {
+        if (!sr.MOTORCYCLE) {
+          sr = { MOTORCYCLE: migrateVT(sr), CAR: migrateVT(sr) };
+        } else {
+          sr = { MOTORCYCLE: migrateVT(sr.MOTORCYCLE), CAR: migrateVT(sr.CAR) };
+        }
+      }
+      setShiftRules(sr);
+
       setKpis(settings.kpis);
-      setShiftRules(settings.shiftRules);
       setZones(settings.zones || []);
+      setViolationRules(settings.violationRules);
+      setCashRules(settings.cashRules);
+      setBookingRules(settings.bookingRules);
+      setDocumentRules(settings.documentRules);
+      setNotificationConfig(settings.notificationConfig);
+      const defSup = getDefaultSupervisorConfig();
+      const rawSup = settings.supervisorTargets || defSup;
+      setSupervisorTargets({
+        ...defSup,
+        ...rawSup,
+        grades: rawSup.grades?.length ? rawSup.grades : defSup.grades,
+        sizeAdjustments: rawSup.sizeAdjustments?.length ? rawSup.sizeAdjustments : defSup.sizeAdjustments,
+      });
     }
   }, [settings]);
 
@@ -76,8 +208,6 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
       setInventoryItems(inventoryData.data);
     }
   }, [inventoryData]);
-
-  const companies = inventoryData?.companies || [];
 
   function showSaveStatus(status: "success" | "error", msg?: string) {
     setSaveStatus(status);
@@ -88,7 +218,7 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
   async function handleSaveSettings() {
     setSaving(true);
     try {
-      await api.put(`/api/platform-settings/${platform}`, { targets, kpis, shiftRules, zones });
+      await api.put(`/api/platform-settings/${platform}`, { targets, kpis, shiftRules, zones, violationRules, cashRules, bookingRules, documentRules, notificationConfig, supervisorTargets });
       showSaveStatus("success");
       refetch();
     } catch (err: any) {
@@ -102,7 +232,6 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
     setSaving(true);
     try {
       const items = inventoryItems.map((item: any) => ({
-        companyId: item.companyId,
         itemType: item.itemType,
         total: item.total,
         issued: item.issued,
@@ -119,14 +248,13 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
   }
 
   async function handleAddInventoryItem() {
-    if (!addItem.companyId) return;
     setSaving(true);
     try {
       await api.put(`/api/platform-settings/${platform}/inventory`, {
-        items: [{ companyId: addItem.companyId, itemType: addItem.itemType, total: addItem.total, issued: 0, minStock: addItem.minStock }],
+        items: [{ itemType: addItem.itemType, total: addItem.total, issued: 0, minStock: addItem.minStock }],
       });
       setShowAddInventory(false);
-      setAddItem({ companyId: "", itemType: "HELMET", total: 0, minStock: 0 });
+      setAddItem({ itemType: "HELMET", total: 0, minStock: 0 });
       showSaveStatus("success");
       refetchInventory();
     } catch (err: any) {
@@ -138,9 +266,14 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
 
   const tabs: { key: Tab; label: string; icon: any }[] = [
     { key: "targets", label: "Targets", icon: Target },
-    { key: "inventory", label: "Inventory", icon: Package },
-    { key: "kpis", label: "KPIs & Grading", icon: BarChart3 },
+    { key: "kpis", label: "KPIs", icon: BarChart3 },
+    { key: "violations", label: "Violations", icon: ShieldAlert },
+    { key: "cash", label: "Cash", icon: Banknote },
+    { key: "booking", label: "Booking", icon: CalendarClock },
+    { key: "notifications", label: "Notifications", icon: Bell },
+    { key: "supervisor", label: "Supervisor", icon: Users },
     { key: "zones", label: "Zones", icon: MapPin },
+    { key: "inventory", label: "Inventory", icon: Package },
   ];
 
   const isLoading = tab === "inventory" ? inventoryLoading : settingsLoading;
@@ -174,12 +307,12 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
   }
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">{platformLabel} Settings</h1>
-          <p className="text-sm text-secondary mt-1">Configure targets, inventory, and KPIs</p>
+          <p className="text-sm text-secondary mt-1">Configure targets, rules, and operational settings</p>
         </div>
         <div className="flex items-center gap-3">
           {tab === "inventory" && (
@@ -188,7 +321,7 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
               <Plus size={16} /> Add Item
             </button>
           )}
-          {(tab === "targets" || tab === "kpis" || tab === "zones") && (
+          {tab !== "inventory" && (
             <SaveButton onClick={handleSaveSettings} />
           )}
           {tab === "inventory" && (
@@ -206,7 +339,7 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto">
         {tabs.map((t) => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={cn(
@@ -238,43 +371,59 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
       {/* ── Targets Tab ── */}
       {tab === "targets" && targets && !isLoading && (
         <div className="space-y-6">
-          {/* Main Target */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-5">
-              <div className={cn("p-2 rounded-xl bg-orange-50", platformColor)}>
-                <Target size={18} />
-              </div>
-              <div>
-                <h2 className="text-base font-semibold">Main Target</h2>
-                <p className="text-xs text-secondary">Primary performance metric for this platform</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-secondary mb-1.5">{targets.mainTarget.name}</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={targets.mainTarget.value}
-                  onChange={(e) => setTargets({ ...targets, mainTarget: { ...targets.mainTarget, value: Number(e.target.value) } })}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-shadow"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-secondary mb-1.5">Unit</label>
-                <input value={targets.mainTarget.unit} disabled
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-100 text-sm bg-gray-50 text-secondary" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-secondary mb-1.5">Description</label>
-                <input value={targets.mainTarget.description || ""} disabled
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-100 text-sm bg-gray-50 text-secondary" />
-              </div>
-            </div>
+          {/* Vehicle Type Toggle */}
+          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+            {(["MOTORCYCLE", "CAR"] as const).map((vt) => (
+              <button key={vt} onClick={() => setVehicleType(vt)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                  vehicleType === vt ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
+                )}>
+                {vt === "MOTORCYCLE" ? <Bike size={14} /> : <Car size={14} />}
+                {vt === "MOTORCYCLE" ? "Motorcycle" : "Car"}
+              </button>
+            ))}
           </div>
 
+          {/* Main Target */}
+          {targets[vehicleType]?.mainTarget && (
+            <div className="bg-white rounded-2xl shadow-sm p-6">
+              <div className="flex items-center gap-3 mb-5">
+                <div className={cn("p-2 rounded-xl bg-orange-50", platformColor)}>
+                  <Target size={18} />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold">Main Target</h2>
+                  <p className="text-xs text-secondary">Primary performance metric for this platform</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-secondary mb-1.5">{targets[vehicleType].mainTarget.name}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={targets[vehicleType].mainTarget.value}
+                    onChange={(e) => setTargets({ ...targets, [vehicleType]: { ...targets[vehicleType], mainTarget: { ...targets[vehicleType].mainTarget, value: Number(e.target.value) } } })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-shadow"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-secondary mb-1.5">Unit</label>
+                  <input value={targets[vehicleType].mainTarget.unit} disabled
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-100 text-sm bg-gray-50 text-secondary" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-secondary mb-1.5">Description</label>
+                  <input value={targets[vehicleType].mainTarget.description || ""} disabled
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-100 text-sm bg-gray-50 text-secondary" />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Sub Targets */}
-          {targets.subTargets?.length > 0 && (
+          {targets[vehicleType]?.subTargets?.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-6">
               <div className="flex items-center gap-3 mb-5">
                 <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
@@ -286,7 +435,7 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
                 </div>
               </div>
               <div className="space-y-0 divide-y divide-gray-100">
-                {targets.subTargets.map((sub: any, idx: number) => (
+                {targets[vehicleType].subTargets.map((sub: any, idx: number) => (
                   <div key={idx} className="grid grid-cols-4 gap-4 py-4 first:pt-0 last:pb-0">
                     <div>
                       <label className="block text-xs font-medium text-secondary mb-1.5">Name</label>
@@ -300,9 +449,9 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
                         min={0}
                         value={sub.value}
                         onChange={(e) => {
-                          const updated = [...targets.subTargets];
+                          const updated = [...targets[vehicleType].subTargets];
                           updated[idx] = { ...sub, value: Number(e.target.value) };
-                          setTargets({ ...targets, subTargets: updated });
+                          setTargets({ ...targets, [vehicleType]: { ...targets[vehicleType], subTargets: updated } });
                         }}
                         className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-shadow"
                       />
@@ -324,7 +473,7 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
           )}
 
           {/* Shift Rules */}
-          {shiftRules && (
+          {shiftRules && shiftRules[vehicleType] && (
             <div className="bg-white rounded-2xl shadow-sm p-6">
               <div className="flex items-center gap-3 mb-5">
                 <div className="p-2 rounded-xl bg-violet-50 text-violet-600">
@@ -339,11 +488,11 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
                 <div>
                   <label className="flex items-center gap-1.5 text-xs font-medium text-secondary mb-1.5">
                     <Timer size={12} />
-                    Default Hours per Shift
+                    Default Hours per Day
                   </label>
                   <div className="relative">
-                    <input type="number" min={1} max={24} value={shiftRules.defaultHoursPerShift}
-                      onChange={(e) => setShiftRules({ ...shiftRules, defaultHoursPerShift: Number(e.target.value) })}
+                    <input type="number" min={1} max={24} value={shiftRules[vehicleType].defaultHoursPerDay}
+                      onChange={(e) => setShiftRules({ ...shiftRules, [vehicleType]: { ...shiftRules[vehicleType], defaultHoursPerDay: Number(e.target.value) } })}
                       className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-shadow pr-14" />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary">hours</span>
                   </div>
@@ -354,8 +503,8 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
                     Max Late Minutes (grace period)
                   </label>
                   <div className="relative">
-                    <input type="number" min={0} max={60} value={shiftRules.maxLateMinutes}
-                      onChange={(e) => setShiftRules({ ...shiftRules, maxLateMinutes: Number(e.target.value) })}
+                    <input type="number" min={0} max={60} value={shiftRules[vehicleType].maxLateMinutes}
+                      onChange={(e) => setShiftRules({ ...shiftRules, [vehicleType]: { ...shiftRules[vehicleType], maxLateMinutes: Number(e.target.value) } })}
                       className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-shadow pr-12" />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary">min</span>
                   </div>
@@ -364,24 +513,24 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
                 <div>
                   <label className="flex items-center gap-1.5 text-xs font-medium text-secondary mb-1.5">
                     <Clock size={12} />
-                    Early Clock-Out Threshold
+                    Early Log-Out Threshold
                   </label>
                   <div className="relative">
-                    <input type="number" min={0} max={120} value={shiftRules.earlyClockOutMinutes}
-                      onChange={(e) => setShiftRules({ ...shiftRules, earlyClockOutMinutes: Number(e.target.value) })}
+                    <input type="number" min={0} max={120} value={shiftRules[vehicleType].earlyLogOutMinutes}
+                      onChange={(e) => setShiftRules({ ...shiftRules, [vehicleType]: { ...shiftRules[vehicleType], earlyLogOutMinutes: Number(e.target.value) } })}
                       className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-shadow pr-12" />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary">min</span>
                   </div>
-                  <p className="text-[11px] text-secondary mt-1">Clock-out this early flags as early departure</p>
+                  <p className="text-[11px] text-secondary mt-1">Log-out this early flags as early departure</p>
                 </div>
                 <div>
                   <label className="flex items-center gap-1.5 text-xs font-medium text-secondary mb-1.5">
-                    <DollarSign size={12} />
+                    <span className="text-xs font-bold text-secondary">KD</span>
                     Max Cash Hold
                   </label>
                   <div className="relative">
-                    <input type="number" min={0} value={shiftRules.maxCashHoldKD ?? ""}
-                      onChange={(e) => setShiftRules({ ...shiftRules, maxCashHoldKD: e.target.value === "" ? 0 : Number(e.target.value) })}
+                    <input type="number" min={0} value={shiftRules[vehicleType].maxCashHoldKD ?? ""}
+                      onChange={(e) => setShiftRules({ ...shiftRules, [vehicleType]: { ...shiftRules[vehicleType], maxCashHoldKD: e.target.value === "" ? 0 : Number(e.target.value) } })}
                       placeholder="0"
                       className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-shadow pr-10" />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary">KD</span>
@@ -402,22 +551,17 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
                   <th className="text-left text-xs font-medium text-secondary px-5 py-3">Item</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Company</th>
                   <th className="text-left text-xs font-medium text-secondary px-5 py-3">Total</th>
                   <th className="text-left text-xs font-medium text-secondary px-5 py-3">Issued</th>
                   <th className="text-left text-xs font-medium text-secondary px-5 py-3">Available</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Min Stock</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {inventoryItems.map((item: any) => {
                   const available = item.total - item.issued;
-                  const isLow = available <= item.minStock;
                   return (
                     <tr key={item.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
                       <td className="px-5 py-3.5 text-sm font-medium">{ITEM_LABELS[item.itemType] || item.itemType}</td>
-                      <td className="px-5 py-3.5 text-sm text-secondary">{item.company?.name || "—"}</td>
                       <td className="px-5 py-3.5">
                         <input type="number" min={0} value={item.total}
                           onChange={(e) => {
@@ -430,26 +574,7 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
                       </td>
                       <td className="px-5 py-3.5 text-sm text-secondary">{item.issued}</td>
                       <td className="px-5 py-3.5">
-                        <span className={cn("text-sm font-medium", isLow ? "text-red-600" : "text-foreground")}>
-                          {available}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <input type="number" min={0} value={item.minStock}
-                          onChange={(e) => {
-                            const updated = inventoryItems.map((i: any) =>
-                              i.id === item.id ? { ...i, minStock: Number(e.target.value) } : i
-                            );
-                            setInventoryItems(updated);
-                          }}
-                          className="w-20 px-2 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow" />
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span className={cn("px-2.5 py-1 rounded-lg text-xs font-medium",
-                          isLow ? "bg-red-50 text-red-600" : "bg-green-50 text-green-600"
-                        )}>
-                          {isLow ? "Low Stock" : "In Stock"}
-                        </span>
+                        <span className="text-sm font-medium">{available}</span>
                       </td>
                     </tr>
                   );
@@ -515,13 +640,11 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
                       }}
                       className="w-14 px-2 py-1.5 rounded-lg border border-gray-200 text-sm text-center bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow" />
                   </div>
-                  <input type="color" value={grade.color}
-                    onChange={(e) => {
+                  <ColorPicker value={grade.color} onChange={(c) => {
                       const updated = [...kpis.gradingScale];
-                      updated[idx] = { ...grade, color: e.target.value };
+                      updated[idx] = { ...grade, color: c };
                       setKpis({ ...kpis, gradingScale: updated });
-                    }}
-                    className="w-8 h-8 rounded-lg border border-gray-200 cursor-pointer bg-white" />
+                    }} />
                 </div>
               ))}
             </div>
@@ -551,25 +674,25 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
                       {isValid ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
                       Total: {total}% {!isValid && "— Must equal 100%"}
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3">
                       {Object.entries(kpis.weights).map(([key, value]) => (
-                        <div key={key} className="flex items-center gap-3">
-                          <label className="text-sm font-medium min-w-[140px] capitalize">
-                            {key.replace(/([A-Z])/g, " $1").trim()}
+                        <div key={key} className="flex items-center gap-4">
+                          <label className="text-sm font-medium w-[140px] shrink-0">
+                            {key === "utr" ? "UTR" : key.replace(/([A-Z])/g, " $1").trim().replace(/^\w/, c => c.toUpperCase())}
                           </label>
-                          <div className="relative flex-1 max-w-[100px]">
+                          <div className="relative w-[90px] shrink-0">
                             <input type="number" min={0} max={100} value={value as number}
                               onChange={(e) => setKpis({ ...kpis, weights: { ...kpis.weights, [key]: Number(e.target.value) } })}
                               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-7" />
                             <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-secondary">%</span>
                           </div>
-                          {/* Visual bar */}
-                          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
                             <div
                               className="h-full bg-primary/60 rounded-full transition-all duration-300"
                               style={{ width: `${Math.min(Number(value), 100)}%` }}
                             />
                           </div>
+                          <span className="text-xs text-secondary w-[30px] text-right shrink-0">{value as number}%</span>
                         </div>
                       ))}
                     </div>
@@ -591,15 +714,15 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
                   <p className="text-xs text-secondary">Boundary values for performance grading calculations</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              <div className="grid grid-cols-3 gap-x-6 gap-y-4">
                 {Object.entries(kpis.thresholds).map(([key, value]) => (
-                  <div key={key}>
-                    <label className="block text-xs font-medium text-secondary mb-1.5 capitalize">
-                      {key.replace(/([A-Z])/g, " $1").trim()}
+                  <div key={key} className="bg-gray-50/50 rounded-xl p-3">
+                    <label className="block text-xs font-medium text-secondary mb-1.5">
+                      {key.replace(/([A-Z])/g, " $1").trim().replace(/\butr\b/gi, "UTR").replace(/^\w/, c => c.toUpperCase())}
                     </label>
                     <input type="number" value={value as number}
                       onChange={(e) => setKpis({ ...kpis, thresholds: { ...kpis.thresholds, [key]: Number(e.target.value) } })}
-                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-shadow" />
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-shadow" />
                   </div>
                 ))}
               </div>
@@ -664,6 +787,809 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
         </div>
       )}
 
+      {/* ── Violations Tab ── */}
+      {tab === "violations" && violationRules && !isLoading && (
+        <div className="space-y-6">
+          {/* Violation Rules */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2 rounded-xl bg-red-50 text-red-600">
+                <ShieldAlert size={18} />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold">Violation Rules</h2>
+                <p className="text-xs text-secondary">Configure penalty points and auto-detection for each violation type</p>
+              </div>
+            </div>
+            <div className="space-y-0 divide-y divide-gray-100">
+              {violationRules.rules?.map((rule: any, idx: number) => (
+                <div key={idx} className="grid grid-cols-[1fr_100px_80px_auto] gap-4 items-center py-4 first:pt-0 last:pb-0">
+                  <div>
+                    <p className="text-sm font-medium">{rule.label}</p>
+                    <p className="text-xs text-secondary mt-0.5">{rule.description}</p>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-medium text-secondary mb-1">Penalty Pts</label>
+                    <input type="number" min={0} max={20} value={rule.penaltyPoints}
+                      onChange={(e) => {
+                        const updated = [...violationRules.rules];
+                        updated[idx] = { ...rule, penaltyPoints: Number(e.target.value) };
+                        setViolationRules({ ...violationRules, rules: updated });
+                      }}
+                      className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow" />
+                  </div>
+                  <div className="text-center">
+                    <label className="block text-[10px] font-medium text-secondary mb-1">Auto</label>
+                    <button
+                      onClick={() => {
+                        const updated = [...violationRules.rules];
+                        updated[idx] = { ...rule, autoDetect: !rule.autoDetect };
+                        setViolationRules({ ...violationRules, rules: updated });
+                      }}
+                      className={cn("px-2.5 py-1 rounded-lg text-xs font-medium transition-colors",
+                        rule.autoDetect ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-400"
+                      )}>
+                      {rule.autoDetect ? "ON" : "OFF"}
+                    </button>
+                  </div>
+                  <div className="w-3">
+                    <div className={cn("w-2.5 h-2.5 rounded-full",
+                      rule.penaltyPoints >= 4 ? "bg-red-500" : rule.penaltyPoints >= 2 ? "bg-amber-500" : "bg-green-500"
+                    )} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Penalty Thresholds */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+                <AlertCircle size={18} />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold">Penalty Thresholds</h2>
+                <p className="text-xs text-secondary">When accumulated points reach these levels, actions are triggered</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Warning Threshold</label>
+                <div className="relative">
+                  <input type="number" min={1} value={violationRules.maxPointsBeforeWarning}
+                    onChange={(e) => setViolationRules({ ...violationRules, maxPointsBeforeWarning: Number(e.target.value) })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-10" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary">pts</span>
+                </div>
+                <p className="text-[11px] text-secondary mt-1">Driver receives a warning at this point count</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Suspension Threshold</label>
+                <div className="relative">
+                  <input type="number" min={1} value={violationRules.maxPointsBeforeSuspension}
+                    onChange={(e) => setViolationRules({ ...violationRules, maxPointsBeforeSuspension: Number(e.target.value) })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-10" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary">pts</span>
+                </div>
+                <p className="text-[11px] text-secondary mt-1">Driver is suspended at this point count</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Points Reset Period</label>
+                <div className="relative">
+                  <input type="number" min={1} value={violationRules.pointsResetDays}
+                    onChange={(e) => setViolationRules({ ...violationRules, pointsResetDays: Number(e.target.value) })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-14" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary">days</span>
+                </div>
+                <p className="text-[11px] text-secondary mt-1">Points reset to 0 after this many days</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Cash Rules Tab ── */}
+      {tab === "cash" && cashRules && !isLoading && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                <Banknote size={18} />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold">Cash Management Rules</h2>
+                <p className="text-xs text-secondary">Configure deposit limits, deadlines, and collection policies</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-medium text-secondary mb-1.5">
+                  <span className="text-xs font-bold text-secondary">KD</span>
+                  Maximum Cash Hold
+                </label>
+                <div className="relative">
+                  <input type="number" min={0} value={cashRules.maxCashHoldKD}
+                    onChange={(e) => setCashRules({ ...cashRules, maxCashHoldKD: Number(e.target.value) })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-10" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary">KD</span>
+                </div>
+                <p className="text-[11px] text-secondary mt-1">Max cash a driver can hold before mandatory deposit</p>
+              </div>
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-medium text-secondary mb-1.5">
+                  <Clock size={12} />
+                  Overdue After
+                </label>
+                <div className="relative">
+                  <input type="number" min={1} value={cashRules.overdueDays}
+                    onChange={(e) => setCashRules({ ...cashRules, overdueDays: Number(e.target.value) })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-14" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary">days</span>
+                </div>
+                <p className="text-[11px] text-secondary mt-1">Days without deposit before flagging as overdue</p>
+              </div>
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-medium text-secondary mb-1.5">
+                  <Bell size={12} />
+                  Deposit Reminder
+                </label>
+                <div className="relative">
+                  <input type="number" min={1} value={cashRules.depositReminderHours}
+                    onChange={(e) => setCashRules({ ...cashRules, depositReminderHours: Number(e.target.value) })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-14" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary">hours</span>
+                </div>
+                <p className="text-[11px] text-secondary mt-1">Send reminder this many hours before deposit deadline</p>
+              </div>
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-medium text-secondary mb-1.5">
+                  <span className="text-xs font-bold text-secondary">KD</span>
+                  Penalty Per Overdue Day
+                </label>
+                <div className="relative">
+                  <input type="number" min={0} step={0.5} value={cashRules.penaltyPerOverdueDay}
+                    onChange={(e) => setCashRules({ ...cashRules, penaltyPerOverdueDay: Number(e.target.value) })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-10" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary">KD</span>
+                </div>
+                <p className="text-[11px] text-secondary mt-1">Deducted per day after overdue (0 = no penalty)</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Toggles & Collection Days */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                <Calendar size={18} />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold">Collection Policies</h2>
+                <p className="text-xs text-secondary">When and how cash should be collected</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              {/* Toggles */}
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { key: "autoAlertOnOverdue", label: "Auto Alert on Overdue" },
+                  { key: "dailyCollectionRequired", label: "Daily Collection Required" },
+                  { key: "receiptRequired", label: "Receipt Required" },
+                ].map((toggle) => (
+                  <button key={toggle.key}
+                    onClick={() => setCashRules({ ...cashRules, [toggle.key]: !cashRules[toggle.key] })}
+                    className={cn("flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition-colors",
+                      cashRules[toggle.key] ? "border-green-200 bg-green-50 text-green-700" : "border-gray-200 bg-gray-50 text-gray-500"
+                    )}>
+                    <div className={cn("w-8 h-5 rounded-full relative transition-colors", cashRules[toggle.key] ? "bg-green-500" : "bg-gray-300")}>
+                      <div className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all", cashRules[toggle.key] ? "left-3.5" : "left-0.5")} />
+                    </div>
+                    {toggle.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Collection Days */}
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-2">Collection Days</label>
+                <div className="flex gap-2">
+                  {["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"].map((day) => (
+                    <button key={day}
+                      onClick={() => {
+                        const days = cashRules.collectionDays || [];
+                        setCashRules({
+                          ...cashRules,
+                          collectionDays: days.includes(day) ? days.filter((d: string) => d !== day) : [...days, day],
+                        });
+                      }}
+                      className={cn("px-3 py-2 rounded-lg text-xs font-medium transition-colors",
+                        (cashRules.collectionDays || []).includes(day)
+                          ? "bg-primary text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      )}>
+                      {day.slice(0, 3)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Allowed Deposit Methods */}
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-2">Allowed Deposit Methods</label>
+                <div className="flex gap-2">
+                  {[
+                    { key: "CASH", label: "Cash" },
+                    { key: "BANK_TRANSFER", label: "Bank Transfer" },
+                    { key: "AL_MUZAINI", label: "Al Muzaini" },
+                  ].map((method) => (
+                    <button key={method.key}
+                      onClick={() => {
+                        const methods = cashRules.allowedDepositMethods || [];
+                        setCashRules({
+                          ...cashRules,
+                          allowedDepositMethods: methods.includes(method.key) ? methods.filter((m: string) => m !== method.key) : [...methods, method.key],
+                        });
+                      }}
+                      className={cn("px-4 py-2 rounded-lg text-xs font-medium transition-colors",
+                        (cashRules.allowedDepositMethods || []).includes(method.key)
+                          ? "bg-primary text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      )}>
+                      {method.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Booking Rules Tab ── */}
+      {tab === "booking" && bookingRules && !isLoading && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+                <CalendarClock size={18} />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold">Shift Booking Rules</h2>
+                <p className="text-xs text-secondary">Configure booking windows, limits, and scheduling rules</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Booking Window Day</label>
+                <select value={bookingRules.bookingWindowDay || ""}
+                  onChange={(e) => setBookingRules({ ...bookingRules, bookingWindowDay: e.target.value || null })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow">
+                  <option value="">No specific day</option>
+                  {["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"].map((d) => (
+                    <option key={d} value={d}>{d.charAt(0) + d.slice(1).toLowerCase()}</option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-secondary mt-1">Day when shift booking opens each week</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-secondary mb-1.5">Window Start</label>
+                  <div className="relative">
+                    <input type="number" min={0} max={23} value={bookingRules.bookingWindowStartHour ?? ""}
+                      onChange={(e) => setBookingRules({ ...bookingRules, bookingWindowStartHour: e.target.value === "" ? null : Number(e.target.value) })}
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-14" />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-secondary">:00</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-secondary mb-1.5">Window End</label>
+                  <div className="relative">
+                    <input type="number" min={0} max={23} value={bookingRules.bookingWindowEndHour ?? ""}
+                      onChange={(e) => setBookingRules({ ...bookingRules, bookingWindowEndHour: e.target.value === "" ? null : Number(e.target.value) })}
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-14" />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-secondary">:00</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Min Hours per Week</label>
+                <input type="number" min={0} max={7} value={bookingRules.minShiftsPerWeek}
+                  onChange={(e) => setBookingRules({ ...bookingRules, minShiftsPerWeek: Number(e.target.value) })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow" />
+                <p className="text-[11px] text-secondary mt-1">Minimum hours a driver must work per week</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Max Hours per Week</label>
+                <input type="number" min={1} max={7} value={bookingRules.maxShiftsPerWeek}
+                  onChange={(e) => setBookingRules({ ...bookingRules, maxShiftsPerWeek: Number(e.target.value) })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow" />
+                <p className="text-[11px] text-secondary mt-1">Maximum hours allowed per week</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Break Duration</label>
+                <div className="relative">
+                  <input type="number" min={0} max={120} value={bookingRules.breakDurationMinutes}
+                    onChange={(e) => setBookingRules({ ...bookingRules, breakDurationMinutes: Number(e.target.value) })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-12" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary">min</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Max Consecutive Days</label>
+                <input type="number" min={1} max={14} value={bookingRules.maxConsecutiveDays}
+                  onChange={(e) => setBookingRules({ ...bookingRules, maxConsecutiveDays: Number(e.target.value) })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow" />
+                <p className="text-[11px] text-secondary mt-1">Max days a driver can work without a break</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Reminder Before Booking</label>
+                <div className="relative">
+                  <input type="number" min={1} max={72} value={bookingRules.reminderBeforeHours}
+                    onChange={(e) => setBookingRules({ ...bookingRules, reminderBeforeHours: Number(e.target.value) })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-14" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary">hours</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Booking Toggles */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <h3 className="text-sm font-semibold mb-4">Booking Options</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { key: "reminderEnabled", label: "Send Booking Reminders", desc: "Notify drivers before booking window opens" },
+                { key: "allowSameDay", label: "Allow Same-Day Booking", desc: "Drivers can book shifts for today" },
+              ].map((toggle) => (
+                <button key={toggle.key}
+                  onClick={() => setBookingRules({ ...bookingRules, [toggle.key]: !bookingRules[toggle.key] })}
+                  className={cn("flex items-start gap-3 px-4 py-3 rounded-xl border text-left transition-colors",
+                    bookingRules[toggle.key] ? "border-green-200 bg-green-50" : "border-gray-200 bg-gray-50"
+                  )}>
+                  <div className={cn("mt-0.5 w-8 h-5 rounded-full relative transition-colors flex-shrink-0", bookingRules[toggle.key] ? "bg-green-500" : "bg-gray-300")}>
+                    <div className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all", bookingRules[toggle.key] ? "left-3.5" : "left-0.5")} />
+                  </div>
+                  <div>
+                    <p className={cn("text-sm font-medium", bookingRules[toggle.key] ? "text-green-700" : "text-gray-500")}>{toggle.label}</p>
+                    <p className="text-[11px] text-secondary mt-0.5">{toggle.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* ── Notifications Tab ── */}
+      {tab === "notifications" && notificationConfig && !isLoading && (
+        <div className="space-y-6">
+          {/* Channels */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2 rounded-xl bg-violet-50 text-violet-600">
+                <Bell size={18} />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold">Notification Channels</h2>
+                <p className="text-xs text-secondary">Enable or disable notification delivery channels</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { key: "inApp", label: "In-App" },
+                { key: "email", label: "Email" },
+              ].map((ch) => (
+                <button key={ch.key}
+                  onClick={() => setNotificationConfig({
+                    ...notificationConfig,
+                    channels: { ...notificationConfig.channels, [ch.key]: !notificationConfig.channels[ch.key] },
+                  })}
+                  className={cn("flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition-colors",
+                    notificationConfig.channels[ch.key]
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-gray-200 bg-gray-50 text-gray-400"
+                  )}>
+                  <div className={cn("w-2 h-2 rounded-full", notificationConfig.channels[ch.key] ? "bg-green-500" : "bg-gray-300")} />
+                  {ch.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Event Notifications */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+                <Users size={18} />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold">Event Notifications</h2>
+                <p className="text-xs text-secondary">Choose which events trigger notifications and who receives them</p>
+              </div>
+            </div>
+            <div className="space-y-0 divide-y divide-gray-100">
+              {notificationConfig.events?.map((event: any, idx: number) => (
+                <div key={idx} className="grid grid-cols-[auto_1fr_auto] gap-4 items-center py-3.5 first:pt-0 last:pb-0">
+                  <button
+                    onClick={() => {
+                      const updated = [...notificationConfig.events];
+                      updated[idx] = { ...event, enabled: !event.enabled };
+                      setNotificationConfig({ ...notificationConfig, events: updated });
+                    }}
+                    className={cn("w-8 h-5 rounded-full relative transition-colors flex-shrink-0",
+                      event.enabled ? "bg-green-500" : "bg-gray-300"
+                    )}>
+                    <div className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all",
+                      event.enabled ? "left-3.5" : "left-0.5"
+                    )} />
+                  </button>
+                  <div>
+                    <p className={cn("text-sm font-medium", event.enabled ? "text-foreground" : "text-gray-400")}>{event.label}</p>
+                  </div>
+                  <div className="flex gap-1">
+                    {["ADMIN", "OPS_MANAGER", "SUPERVISOR", "ACCOUNTANT"].map((role) => (
+                      <button key={role}
+                        onClick={() => {
+                          const updated = [...notificationConfig.events];
+                          const roles = event.roles || [];
+                          updated[idx] = {
+                            ...event,
+                            roles: roles.includes(role) ? roles.filter((r: string) => r !== role) : [...roles, role],
+                          };
+                          setNotificationConfig({ ...notificationConfig, events: updated });
+                        }}
+                        className={cn("px-2 py-1 rounded text-[10px] font-medium transition-colors",
+                          (event.roles || []).includes(role)
+                            ? "bg-primary/10 text-primary" : "bg-gray-100 text-gray-400"
+                        )}>
+                        {role === "OPS_MANAGER" ? "OPS" : role.slice(0, 5)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quiet Hours */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-semibold">Quiet Hours</h3>
+                <p className="text-xs text-secondary mt-0.5">Suppress non-critical notifications during these hours</p>
+              </div>
+              <button
+                onClick={() => setNotificationConfig({ ...notificationConfig, quietHoursEnabled: !notificationConfig.quietHoursEnabled })}
+                className={cn("w-10 h-6 rounded-full relative transition-colors",
+                  notificationConfig.quietHoursEnabled ? "bg-green-500" : "bg-gray-300"
+                )}>
+                <div className={cn("absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all",
+                  notificationConfig.quietHoursEnabled ? "left-5" : "left-1"
+                )} />
+              </button>
+            </div>
+            {notificationConfig.quietHoursEnabled && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-secondary mb-1.5">Start</label>
+                  <input type="time" value={notificationConfig.quietHoursStart}
+                    onChange={(e) => setNotificationConfig({ ...notificationConfig, quietHoursStart: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-secondary mb-1.5">End</label>
+                  <input type="time" value={notificationConfig.quietHoursEnd}
+                    onChange={(e) => setNotificationConfig({ ...notificationConfig, quietHoursEnd: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow" />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Supervisor Bonus Targets Tab ── */}
+      {tab === "supervisor" && supervisorTargets && !isLoading && (
+        <div className="space-y-6">
+          {/* Enable / Metric */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+                <Users size={18} />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold">Supervisor Bonus Targets</h2>
+                <p className="text-xs text-secondary">Configure bonus tiers awarded to supervisors based on their team&apos;s performance</p>
+              </div>
+              <div className="ml-auto">
+                <button
+                  onClick={() => setSupervisorTargets({ ...supervisorTargets, enabled: !supervisorTargets.enabled })}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-colors",
+                    supervisorTargets.enabled ? "border-green-200 bg-green-50 text-green-700" : "border-gray-200 bg-gray-50 text-gray-500"
+                  )}
+                >
+                  <div className={cn("w-8 h-5 rounded-full relative transition-colors", supervisorTargets.enabled ? "bg-green-500" : "bg-gray-300")}>
+                    <div className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all", supervisorTargets.enabled ? "left-3.5" : "left-0.5")} />
+                  </div>
+                  {supervisorTargets.enabled ? "Enabled" : "Disabled"}
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Performance Metric</label>
+                <select
+                  value={supervisorTargets.metric}
+                  onChange={(e) => setSupervisorTargets({ ...supervisorTargets, metric: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow"
+                >
+                  <option value="darbGradeAvg">Darb Grade Avg</option>
+                  <option value="attendanceRate">Attendance Rate</option>
+                </select>
+                <p className="text-[11px] text-secondary mt-1">The metric used to calculate each supervisor&apos;s team score</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Minimum Drivers Required</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={supervisorTargets.minDriversRequired}
+                  onChange={(e) => setSupervisorTargets({ ...supervisorTargets, minDriversRequired: Number(e.target.value) })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow"
+                />
+                <p className="text-[11px] text-secondary mt-1">Supervisor must manage at least this many active drivers to qualify</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Per-Grade Bonus Tiers */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-orange-50 text-orange-600">
+                  <Target size={18} />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold">Per-Grade Bonus Tiers</h2>
+                  <p className="text-xs text-secondary">Each supervisor grade has its own bonus tiers — higher grades earn larger bonuses</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSupervisorTargets({
+                  ...supervisorTargets,
+                  grades: [...(supervisorTargets.grades || []), { label: "New Grade", tiers: [] }],
+                })}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+              >
+                <Plus size={14} />
+                Add Grade
+              </button>
+            </div>
+
+            {(supervisorTargets.grades?.length > 0) ? (
+              <div className="space-y-5">
+                {supervisorTargets.grades.map((grade: any, gIdx: number) => {
+                  const gradeColorMap: Record<string, string> = {
+                    "Team Leader": "bg-sky-50 text-sky-700",
+                    "Supervisor": "bg-violet-50 text-violet-700",
+                    "Senior Supervisor": "bg-indigo-50 text-indigo-700",
+                    "Area Manager": "bg-rose-50 text-rose-700",
+                  };
+                  const gradePill = gradeColorMap[grade.label] || "bg-gray-100 text-gray-600";
+                  return (
+                    <div key={gIdx} className="border border-gray-100 rounded-xl overflow-hidden">
+                      {/* Grade header */}
+                      <div className="flex items-center justify-between px-4 py-3 bg-gray-50/80 border-b border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <span className={cn("px-2.5 py-1 rounded-lg text-xs font-semibold", gradePill)}>
+                            {grade.label}
+                          </span>
+                          <input
+                            value={grade.label}
+                            onChange={(e) => {
+                              const updatedGrades = [...supervisorTargets.grades];
+                              updatedGrades[gIdx] = { ...grade, label: e.target.value };
+                              setSupervisorTargets({ ...supervisorTargets, grades: updatedGrades });
+                            }}
+                            className="px-2 py-1 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 w-44"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              const updatedGrades = [...supervisorTargets.grades];
+                              updatedGrades[gIdx] = { ...grade, tiers: [...(grade.tiers || []), { label: "New Tier", minScore: 0, bonusKD: 0 }] };
+                              setSupervisorTargets({ ...supervisorTargets, grades: updatedGrades });
+                            }}
+                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-gray-200 hover:bg-white transition-colors"
+                          >
+                            <Plus size={12} /> Add Tier
+                          </button>
+                          <button
+                            onClick={() => setSupervisorTargets({
+                              ...supervisorTargets,
+                              grades: supervisorTargets.grades.filter((_: any, i: number) => i !== gIdx),
+                            })}
+                            className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Tiers table */}
+                      {grade.tiers?.length > 0 ? (
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b border-gray-100">
+                              <th className="text-left text-xs font-medium text-secondary px-4 py-2.5">Label</th>
+                              <th className="text-left text-xs font-medium text-secondary px-4 py-2.5">Min Score (%)</th>
+                              <th className="text-left text-xs font-medium text-secondary px-4 py-2.5">Bonus (KD)</th>
+                              <th className="px-4 py-2.5 w-10" />
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {grade.tiers.map((tier: any, tIdx: number) => (
+                              <tr key={tIdx} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/30 transition-colors">
+                                <td className="px-4 py-2.5">
+                                  <input
+                                    value={tier.label}
+                                    onChange={(e) => {
+                                      const updatedGrades = [...supervisorTargets.grades];
+                                      const updatedTiers = [...grade.tiers];
+                                      updatedTiers[tIdx] = { ...tier, label: e.target.value };
+                                      updatedGrades[gIdx] = { ...grade, tiers: updatedTiers };
+                                      setSupervisorTargets({ ...supervisorTargets, grades: updatedGrades });
+                                    }}
+                                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow"
+                                  />
+                                </td>
+                                <td className="px-4 py-2.5">
+                                  <div className="relative w-32">
+                                    <input
+                                      type="number" min={0} max={100}
+                                      value={tier.minScore}
+                                      onChange={(e) => {
+                                        const updatedGrades = [...supervisorTargets.grades];
+                                        const updatedTiers = [...grade.tiers];
+                                        updatedTiers[tIdx] = { ...tier, minScore: Number(e.target.value) };
+                                        updatedGrades[gIdx] = { ...grade, tiers: updatedTiers };
+                                        setSupervisorTargets({ ...supervisorTargets, grades: updatedGrades });
+                                      }}
+                                      className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-7"
+                                    />
+                                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-secondary">%</span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-2.5">
+                                  <div className="relative w-32">
+                                    <input
+                                      type="number" min={0}
+                                      value={tier.bonusKD}
+                                      onChange={(e) => {
+                                        const updatedGrades = [...supervisorTargets.grades];
+                                        const updatedTiers = [...grade.tiers];
+                                        updatedTiers[tIdx] = { ...tier, bonusKD: Number(e.target.value) };
+                                        updatedGrades[gIdx] = { ...grade, tiers: updatedTiers };
+                                        setSupervisorTargets({ ...supervisorTargets, grades: updatedGrades });
+                                      }}
+                                      className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow pr-9"
+                                    />
+                                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-secondary">KD</span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-2.5">
+                                  <button
+                                    onClick={() => {
+                                      const updatedGrades = [...supervisorTargets.grades];
+                                      updatedGrades[gIdx] = { ...grade, tiers: grade.tiers.filter((_: any, i: number) => i !== tIdx) };
+                                      setSupervisorTargets({ ...supervisorTargets, grades: updatedGrades });
+                                    }}
+                                    className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <div className="px-4 py-4 text-center text-xs text-secondary bg-white">
+                          No tiers — click &quot;Add Tier&quot; to configure bonuses for this grade
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-10 bg-gray-50/50 rounded-xl">
+                <Target size={32} className="mx-auto text-gray-200 mb-3" />
+                <p className="text-sm text-secondary">No grades configured</p>
+                <p className="text-xs text-secondary mt-1">Click &quot;Add Grade&quot; to create per-grade bonus tiers</p>
+              </div>
+            )}
+          </div>
+
+          {/* Team Size Adjustments */}
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                  <Users size={18} />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold">Team Size Adjustments</h2>
+                  <p className="text-xs text-secondary">Add score points to supervisors managing larger teams — levels the playing field</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSupervisorTargets({
+                  ...supervisorTargets,
+                  sizeAdjustments: [...(supervisorTargets.sizeAdjustments || []), { label: "New Bracket", minDrivers: 0, maxDrivers: 999, scoreAdjustment: 0 }],
+                })}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+              >
+                <Plus size={14} /> Add Bracket
+              </button>
+            </div>
+            <div className="overflow-hidden rounded-xl border border-gray-100">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50/80 border-b border-gray-100">
+                    <th className="text-left text-xs font-medium text-secondary px-4 py-3">Label</th>
+                    <th className="text-left text-xs font-medium text-secondary px-4 py-3">Min Drivers</th>
+                    <th className="text-left text-xs font-medium text-secondary px-4 py-3">Max Drivers</th>
+                    <th className="text-left text-xs font-medium text-secondary px-4 py-3">Score Bonus</th>
+                    <th className="px-4 py-3 w-10" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {(supervisorTargets.sizeAdjustments || []).map((bracket: any, idx: number) => (
+                    <tr key={idx} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/30 transition-colors">
+                      <td className="px-4 py-3">
+                        <input value={bracket.label}
+                          onChange={(e) => { const u = [...supervisorTargets.sizeAdjustments]; u[idx] = { ...bracket, label: e.target.value }; setSupervisorTargets({ ...supervisorTargets, sizeAdjustments: u }); }}
+                          className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                      </td>
+                      <td className="px-4 py-3">
+                        <input type="number" min={0} value={bracket.minDrivers}
+                          onChange={(e) => { const u = [...supervisorTargets.sizeAdjustments]; u[idx] = { ...bracket, minDrivers: Number(e.target.value) }; setSupervisorTargets({ ...supervisorTargets, sizeAdjustments: u }); }}
+                          className="w-24 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                      </td>
+                      <td className="px-4 py-3">
+                        <input type="number" min={0} value={bracket.maxDrivers}
+                          onChange={(e) => { const u = [...supervisorTargets.sizeAdjustments]; u[idx] = { ...bracket, maxDrivers: Number(e.target.value) }; setSupervisorTargets({ ...supervisorTargets, sizeAdjustments: u }); }}
+                          className="w-24 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="relative w-28">
+                          <input type="number" min={0} max={20} value={bracket.scoreAdjustment}
+                            onChange={(e) => { const u = [...supervisorTargets.sizeAdjustments]; u[idx] = { ...bracket, scoreAdjustment: Number(e.target.value) }; setSupervisorTargets({ ...supervisorTargets, sizeAdjustments: u }); }}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 pr-8" />
+                          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-secondary">pts</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button onClick={() => setSupervisorTargets({ ...supervisorTargets, sizeAdjustments: supervisorTargets.sizeAdjustments.filter((_: any, i: number) => i !== idx) })}
+                          className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors">
+                          <X size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-[11px] text-secondary mt-3">
+              Points are added to the raw team score before tier matching. Example: a supervisor with 18 drivers scoring 80% gets +10 pts → 90% = Gold tier.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Add Inventory Modal */}
       {showAddInventory && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowAddInventory(false)}>
@@ -674,35 +1600,19 @@ export default function PlatformSettingsPage({ platform, platformLabel, platform
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-secondary mb-1.5">Company</label>
-                <select value={addItem.companyId} onChange={(e) => setAddItem({ ...addItem, companyId: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow">
-                  <option value="">Select company...</option>
-                  {companies.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div>
                 <label className="block text-xs font-medium text-secondary mb-1.5">Item Type</label>
                 <select value={addItem.itemType} onChange={(e) => setAddItem({ ...addItem, itemType: e.target.value })}
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow">
                   {INVENTORY_ITEMS.map((item) => <option key={item} value={item}>{ITEM_LABELS[item]}</option>)}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-secondary mb-1.5">Total Quantity</label>
-                  <input type="number" min={0} value={addItem.total}
-                    onChange={(e) => setAddItem({ ...addItem, total: Number(e.target.value) })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-secondary mb-1.5">Min Stock Alert</label>
-                  <input type="number" min={0} value={addItem.minStock}
-                    onChange={(e) => setAddItem({ ...addItem, minStock: Number(e.target.value) })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow" />
-                </div>
+              <div>
+                <label className="block text-xs font-medium text-secondary mb-1.5">Total Quantity</label>
+                <input type="number" min={0} value={addItem.total}
+                  onChange={(e) => setAddItem({ ...addItem, total: Number(e.target.value) })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-shadow" />
               </div>
-              <button onClick={handleAddInventoryItem} disabled={saving || !addItem.companyId}
+              <button onClick={handleAddInventoryItem} disabled={saving}
                 className="w-full py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-40">
                 {saving ? "Adding..." : "Add Item"}
               </button>

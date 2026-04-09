@@ -4,14 +4,15 @@ import { useParams, useRouter } from "next/navigation";
 import { useApiGet } from "@/hooks/useApi";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
+import api from "@/lib/api";
 import {
   ArrowLeft, CalendarClock, Package, Banknote, ShieldAlert,
   CheckCircle2, XCircle, AlertTriangle, Filter, X, Search,
   Calendar, ChevronLeft, ChevronRight, Phone, Truck,
-  Receipt, MapPin, Clock,
+  Receipt, MapPin, Clock, Ban, Plus, Trash2,
 } from "lucide-react";
 
-type Tab = "sessions" | "orders" | "violations";
+type Tab = "sessions" | "orders" | "violations" | "restrictions";
 type PaymentFilter = "ALL" | "CASH" | "KNET";
 
 
@@ -20,6 +21,12 @@ export default function TalabatDriverProfilePage() {
   const router = useRouter();
   const driverId = params.id as string;
   const [tab, setTab] = useState<Tab>("sessions");
+
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const t = p.get("tab") as Tab;
+    if (t) setTab(t);
+  }, []);
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("ALL");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
@@ -27,6 +34,10 @@ export default function TalabatDriverProfilePage() {
   const [violationTypeFilter, setViolationTypeFilter] = useState<string>("ALL");
 
   const [violationSearch, setViolationSearch] = useState<string>("");
+  const [showAddRestriction, setShowAddRestriction] = useState(false);
+  const [restrictionForm, setRestrictionForm] = useState({ type: "TEMPORARY", startDate: "", endDate: "", reason: "" });
+  const [restrictionSaving, setRestrictionSaving] = useState(false);
+  const [restrictionError, setRestrictionError] = useState<string | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [selectingRangeEnd, setSelectingRangeEnd] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => {
@@ -63,6 +74,11 @@ export default function TalabatDriverProfilePage() {
   );
   const violations = violationsData?.data || [];
 
+  const { data: restrictionsData, refetch: refetchRestrictions } = useApiGet<any>(
+    tab === "restrictions" ? `/api/driver-restrictions?driverId=${driverId}` : null
+  );
+  const restrictions: any[] = restrictionsData || [];
+
   // Active order check
   const { data: activeOrderData } = useApiGet<any>(
     `/api/talabat/deliveries?driverId=${driverId}&status=IN_PROGRESS&limit=1`
@@ -73,7 +89,7 @@ export default function TalabatDriverProfilePage() {
 
   if (!driver && driverLoading) {
     return (
-      <div className="space-y-6 max-w-7xl">
+      <div className="space-y-6">
         <div className="flex items-center gap-3">
           <button onClick={() => router.push("/talabat/drivers")} className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
             <ArrowLeft size={18} />
@@ -87,7 +103,7 @@ export default function TalabatDriverProfilePage() {
 
   if (!driver && driverError) {
     return (
-      <div className="space-y-6 max-w-7xl">
+      <div className="space-y-6">
         <div className="flex items-center gap-3">
           <button onClick={() => router.push("/talabat/drivers")} className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
             <ArrowLeft size={18} />
@@ -103,7 +119,7 @@ export default function TalabatDriverProfilePage() {
   if (!driver) return null;
 
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button onClick={() => router.push("/talabat/drivers")} className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
@@ -133,8 +149,10 @@ export default function TalabatDriverProfilePage() {
               "bg-green-50 text-green-600": driver.status === "ACTIVE",
               "bg-gray-100 text-gray-500": driver.status === "INACTIVE",
               "bg-red-50 text-red-600": driver.status === "SUSPENDED" || driver.status === "TERMINATED",
+              "bg-amber-50 text-amber-700": driver.status === "RESTRICTED",
+              "bg-red-100 text-red-700": driver.status === "RESTRICTED_PERMANENTLY",
             })}>
-              {driver.status}
+              {driver.status === "RESTRICTED_PERMANENTLY" ? "Restricted ∞" : driver.status}
             </span>
             {driver.zone && (
               <span className="text-xs text-secondary">Zone: {driver.zone}</span>
@@ -179,12 +197,43 @@ export default function TalabatDriverProfilePage() {
         />
         <StatCard
           title="Violations"
-          value={driverSummary?.complianceEvents || 0}
+          value={driverSummary?.violationEvents || 0}
           icon={ShieldAlert}
-          highlight={(driverSummary?.complianceEvents || 0) > 0}
+          highlight={(driverSummary?.violationEvents || 0) > 0}
           onClick={() => setTab("violations")}
         />
       </div>
+
+      {/* Driver Details Card */}
+      {(() => {
+        const details: { label: string; value: React.ReactNode }[] = [];
+        if (driver.phone) details.push({ label: "Phone", value: <span className="flex items-center gap-1"><Phone size={13} className="text-gray-400" />{driver.phone}</span> });
+        if (driver.vehicleType) details.push({ label: "Vehicle Type", value: driver.vehicleType.replace(/_/g, " ").toLowerCase().replace("motorcycle", "Bike").replace("car", "Car") });
+        if (driver.assignedVehicle?.plateNumber) details.push({ label: "Plate", value: <span className="font-mono">{driver.assignedVehicle.plateNumber}</span> });
+        if (driver.zone) details.push({ label: "Zone", value: driver.zone });
+        if (driver.batchNumber) details.push({ label: "Batch", value: driver.batchNumber });
+        if (driver.joinDate) details.push({ label: "Joined", value: new Date(driver.joinDate).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) });
+        if (driver.contractType) details.push({ label: "Contract", value: driver.contractType });
+        if (driver.nationalId) details.push({ label: "National ID", value: <span className="font-mono">{driver.nationalId}</span> });
+        if (driver.civilId) details.push({ label: "Civil ID", value: <span className="font-mono">{driver.civilId}</span> });
+        if (driver.email) details.push({ label: "Email", value: driver.email });
+        if (driverSummary?.totalDeliveries != null) details.push({ label: "Total Orders", value: driverSummary.totalDeliveries.toLocaleString() });
+        if (driverSummary?.totalSessions != null) details.push({ label: "Total Shifts", value: driverSummary.totalSessions.toLocaleString() });
+        if (details.length === 0) return null;
+        return (
+          <div className="bg-white rounded-2xl shadow-sm px-5 py-4">
+            <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide mb-3">Driver Info</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-3">
+              {details.map((d) => (
+                <div key={d.label}>
+                  <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-0.5">{d.label}</div>
+                  <div className="text-sm text-foreground">{d.value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Tabs */}
       {/* Active Order Banner */}
@@ -229,16 +278,17 @@ export default function TalabatDriverProfilePage() {
       )}
 
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-        {(["sessions", "orders", "violations"] as Tab[]).map((t) => (
+        {(["sessions", "orders", "violations", "restrictions"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize",
-              tab === t ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
+              tab === t ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground",
+              t === "restrictions" && tab !== t && restrictions.length > 0 && "text-amber-600"
             )}
           >
-            {t === "sessions" ? "Shifts" : t}
+            {t === "sessions" ? "Shifts" : t === "restrictions" ? `Restrictions${restrictions.length > 0 ? ` (${restrictions.length})` : ""}` : t}
           </button>
         ))}
       </div>
@@ -297,11 +347,7 @@ export default function TalabatDriverProfilePage() {
                       </td>
                       <td className="px-5 py-2.5">
                         {s.faceVerified !== undefined ? (
-                          s.faceVerified === "mismatch" ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
-                              <AlertTriangle size={11} /> Mismatch
-                            </span>
-                          ) : s.faceVerified ? (
+                          s.faceVerified ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
                               <CheckCircle2 size={11} /> Pass
                             </span>
@@ -562,6 +608,7 @@ export default function TalabatDriverProfilePage() {
                   <tr className="border-b border-gray-100 bg-gray-50/60">
                     <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Time</th>
                     <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Order ID</th>
+                    <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Restaurant</th>
                     <th className="text-center text-xs font-semibold text-secondary px-5 py-3">Payment</th>
                     <th className="text-right text-xs font-semibold text-secondary px-5 py-3">Cash Collected</th>
                   </tr>
@@ -569,7 +616,7 @@ export default function TalabatDriverProfilePage() {
                 <tbody>
                   {orders.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-5 py-12 text-center text-sm text-secondary">
+                      <td colSpan={5} className="px-5 py-12 text-center text-sm text-secondary">
                         No orders found
                       </td>
                     </tr>
@@ -581,7 +628,7 @@ export default function TalabatDriverProfilePage() {
                           <React.Fragment key={group.dateKey}>
                             {/* Date group header */}
                             <tr className="bg-gray-50 border-t border-b border-gray-200">
-                              <td colSpan={4} className="px-5 py-2.5">
+                              <td colSpan={5} className="px-5 py-2.5">
                                 <div className="flex items-center justify-between">
                                   <span className="text-sm font-semibold text-foreground">{group.dateLabel}</span>
                                   <span className="text-xs text-secondary">
@@ -613,6 +660,9 @@ export default function TalabatDriverProfilePage() {
                                   <td className="px-5 py-2.5 text-sm font-mono">
                                     {o.orderNumber || "-"}
                                   </td>
+                                  <td className="px-5 py-2.5 text-sm text-secondary">
+                                    {o.restaurantName || <span className="text-gray-300">-</span>}
+                                  </td>
                                   <td className="px-5 py-2.5 text-sm text-center">
                                     {isCash ? (
                                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-600">Cash</span>
@@ -637,7 +687,7 @@ export default function TalabatDriverProfilePage() {
                       })}
                       {/* Totals row */}
                       <tr className="bg-gray-50 border-t border-gray-200">
-                        <td className="px-5 py-2.5 text-xs font-semibold text-secondary uppercase" colSpan={3}>
+                        <td className="px-5 py-2.5 text-xs font-semibold text-secondary uppercase" colSpan={4}>
                           Total ({filtered.length} orders)
                         </td>
                         <td className="px-5 py-2.5 text-sm text-right font-mono font-bold text-orange-600">
@@ -785,6 +835,209 @@ export default function TalabatDriverProfilePage() {
           </>
         );
       })()}
+
+      {/* Restrictions Tab */}
+      {tab === "restrictions" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-secondary uppercase tracking-wide">Restriction History</h3>
+            <button
+              onClick={() => { setShowAddRestriction(true); setRestrictionError(null); setRestrictionForm({ type: "TEMPORARY", startDate: "", endDate: "", reason: "" }); }}
+              className="flex items-center gap-2 px-3 py-2 bg-amber-600 text-white text-sm font-medium rounded-xl hover:bg-amber-700 transition-colors"
+            >
+              <Ban size={14} /> Add Restriction
+            </button>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/60">
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Type</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Start</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">End</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Reason</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Processed</th>
+                  <th className="text-left text-xs font-semibold text-secondary px-5 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {restrictions.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-12 text-center text-sm text-secondary">
+                      No restrictions on record
+                    </td>
+                  </tr>
+                ) : (
+                  restrictions.map((r: any, i: number) => (
+                    <tr key={r.id} className={cn(
+                      "border-b border-gray-50 last:border-0",
+                      i % 2 === 1 && "bg-gray-50/30"
+                    )}>
+                      <td className="px-5 py-3">
+                        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
+                          "bg-amber-50 text-amber-700": r.type === "TEMPORARY",
+                          "bg-red-100 text-red-700": r.type === "PERMANENT",
+                        })}>
+                          {r.type === "PERMANENT" ? "Permanent" : "Temporary"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-sm font-mono">
+                        {new Date(r.startDate).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
+                      </td>
+                      <td className="px-5 py-3 text-sm font-mono text-secondary">
+                        {r.endDate
+                          ? new Date(r.endDate).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })
+                          : <span className="text-red-500 font-medium">∞</span>}
+                      </td>
+                      <td className="px-5 py-3 text-sm text-secondary max-w-xs truncate">
+                        {r.reason || <span className="text-gray-300">—</span>}
+                      </td>
+                      <td className="px-5 py-3">
+                        {r.processedAt ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-green-600">
+                            <CheckCircle2 size={12} /> Auto-processed
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">Pending</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3">
+                        <button
+                          onClick={async () => {
+                            if (!confirm("Lift this restriction and restore driver to ACTIVE?")) return;
+                            await api.delete(`/api/driver-restrictions/${r.id}`);
+                            refetchRestrictions();
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Lift restriction"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Add Restriction Modal */}
+      {showAddRestriction && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Ban size={18} className="text-amber-600" />
+                <h2 className="text-base font-semibold">Add Restriction</h2>
+              </div>
+              <button onClick={() => setShowAddRestriction(false)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Type */}
+              <div>
+                <label className="text-xs font-medium text-secondary uppercase tracking-wide">Type</label>
+                <div className="flex gap-2 mt-1.5">
+                  {[{ v: "TEMPORARY", label: "Temporary (date range)" }, { v: "PERMANENT", label: "Permanent" }].map(({ v, label }) => (
+                    <button
+                      key={v}
+                      onClick={() => setRestrictionForm(f => ({ ...f, type: v }))}
+                      className={cn(
+                        "flex-1 py-2 text-sm font-medium rounded-xl border transition-colors",
+                        restrictionForm.type === v
+                          ? "border-amber-400 bg-amber-50 text-amber-700"
+                          : "border-gray-200 text-secondary hover:border-gray-300"
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Start Date */}
+              <div>
+                <label className="text-xs font-medium text-secondary uppercase tracking-wide">Start Date</label>
+                <input
+                  type="date"
+                  value={restrictionForm.startDate}
+                  onChange={e => setRestrictionForm(f => ({ ...f, startDate: e.target.value }))}
+                  className="mt-1.5 w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200"
+                />
+              </div>
+
+              {/* End Date (temporary only) */}
+              {restrictionForm.type === "TEMPORARY" && (
+                <div>
+                  <label className="text-xs font-medium text-secondary uppercase tracking-wide">End Date</label>
+                  <input
+                    type="date"
+                    value={restrictionForm.endDate}
+                    min={restrictionForm.startDate}
+                    onChange={e => setRestrictionForm(f => ({ ...f, endDate: e.target.value }))}
+                    className="mt-1.5 w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200"
+                  />
+                </div>
+              )}
+
+              {/* Reason */}
+              <div>
+                <label className="text-xs font-medium text-secondary uppercase tracking-wide">Reason (optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Talabat platform restriction"
+                  value={restrictionForm.reason}
+                  onChange={e => setRestrictionForm(f => ({ ...f, reason: e.target.value }))}
+                  className="mt-1.5 w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-200"
+                />
+              </div>
+
+              {restrictionError && (
+                <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-xl">{restrictionError}</p>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => setShowAddRestriction(false)}
+                className="flex-1 py-2.5 text-sm font-medium rounded-xl border border-gray-200 text-secondary hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={restrictionSaving || !restrictionForm.startDate || (restrictionForm.type === "TEMPORARY" && !restrictionForm.endDate)}
+                onClick={async () => {
+                  setRestrictionSaving(true);
+                  setRestrictionError(null);
+                  try {
+                    await api.post("/api/driver-restrictions", {
+                      driverId,
+                      type: restrictionForm.type,
+                      startDate: restrictionForm.startDate,
+                      endDate: restrictionForm.type === "TEMPORARY" ? restrictionForm.endDate : undefined,
+                      reason: restrictionForm.reason || undefined,
+                    });
+                    setShowAddRestriction(false);
+                    refetchRestrictions();
+                  } catch (err: any) {
+                    setRestrictionError(err.response?.data?.error || "Failed to save restriction");
+                  } finally {
+                    setRestrictionSaving(false);
+                  }
+                }}
+                className="flex-1 py-2.5 text-sm font-medium rounded-xl bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
+              >
+                {restrictionSaving ? "Saving..." : "Confirm Restriction"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

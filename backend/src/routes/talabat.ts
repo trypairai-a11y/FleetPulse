@@ -63,7 +63,7 @@ router.get("/sessions/summary", async (req: Request, res: Response) => {
       prisma.talabatSession.aggregate({
         where: dateFilter,
         _sum: { plannedHours: true, actualHours: true },
-        _avg: { gpsCompliance: true },
+        _avg: { gpsViolation: true },
       }),
       prisma.talabatSession.count({ where: { ...dateFilter, faceVerified: false } }),
       prisma.talabatSession.groupBy({
@@ -80,10 +80,10 @@ router.get("/sessions/summary", async (req: Request, res: Response) => {
 
     res.json({
       totalSessions: sessions,
-      plannedHoursSum: aggregates._sum.plannedHours || 0,
-      actualHoursSum: aggregates._sum.actualHours || 0,
+      plannedHoursSum: aggregates._sum?.plannedHours || 0,
+      actualHoursSum: aggregates._sum?.actualHours || 0,
       faceFailCount,
-      avgGpsCompliance: aggregates._avg.gpsCompliance || 0,
+      avgGpsViolation: aggregates._avg?.gpsViolation || 0,
       zoneBreakdown: zoneBreakdown.map((z) => ({ zone: z.zone, count: z._count.id })),
       statusBreakdown: statusBreakdown.map((s) => ({ status: s.status, count: s._count.id })),
     });
@@ -145,7 +145,7 @@ router.get("/sessions/:id", async (req: Request, res: Response) => {
   try {
     const session = await prisma.talabatSession.findFirst({
       where: { id: req.params.id, tenantId: req.user!.tenantId },
-      include: { driver: true, complianceEvents: true, deliveryItems: { orderBy: { finishedAt: "desc" } } },
+      include: { driver: true, violationEvents: true, deliveryItems: { orderBy: { finishedAt: "desc" } } },
     });
     if (!session) { res.status(404).json({ error: "Session not found" }); return; }
     res.json(session);
@@ -316,7 +316,7 @@ router.get("/compliance", async (req: Request, res: Response) => {
     }
 
     const [data, total] = await Promise.all([
-      prisma.talabatComplianceEvent.findMany({
+      prisma.talabatViolationEvent.findMany({
         where, skip, take: limit,
         orderBy: { createdAt: "desc" },
         include: {
@@ -324,7 +324,7 @@ router.get("/compliance", async (req: Request, res: Response) => {
           session: { select: { id: true, sessionCode: true, zone: true, date: true } },
         },
       }),
-      prisma.talabatComplianceEvent.count({ where }),
+      prisma.talabatViolationEvent.count({ where }),
     ]);
 
     // Enrich SHIFT_NOT_BOOKED events with scheduled shift details
@@ -362,12 +362,12 @@ router.get("/compliance/summary", async (req: Request, res: Response) => {
     if (companyId) summaryWhere.driver = { companyId: companyId as string };
 
     const [byType, unresolvedCount] = await Promise.all([
-      prisma.talabatComplianceEvent.groupBy({
+      prisma.talabatViolationEvent.groupBy({
         by: ["type"],
         where: summaryWhere,
         _count: { id: true },
       }),
-      prisma.talabatComplianceEvent.count({ where: { ...summaryWhere, resolved: false } }),
+      prisma.talabatViolationEvent.count({ where: { ...summaryWhere, resolved: false } }),
     ]);
 
     res.json({
@@ -383,7 +383,7 @@ router.get("/compliance/summary", async (req: Request, res: Response) => {
 router.post("/compliance", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
-    const event = await prisma.talabatComplianceEvent.create({
+    const event = await prisma.talabatViolationEvent.create({
       data: { ...req.body, tenantId },
       include: { driver: { select: { name: true } } },
     });
@@ -406,12 +406,12 @@ router.post("/compliance", async (req: Request, res: Response) => {
 // PUT /compliance/:id/resolve - Mark resolved
 router.put("/compliance/:id/resolve", async (req: Request, res: Response) => {
   try {
-    const event = await prisma.talabatComplianceEvent.updateMany({
+    const event = await prisma.talabatViolationEvent.updateMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },
       data: { resolved: true, resolvedAt: new Date(), resolvedBy: (req.user as any).id },
     });
-    if (event.count === 0) { res.status(404).json({ error: "Compliance event not found" }); return; }
-    const updated = await prisma.talabatComplianceEvent.findUnique({ where: { id: req.params.id } });
+    if (event.count === 0) { res.status(404).json({ error: "Violation event not found" }); return; }
+    const updated = await prisma.talabatViolationEvent.findUnique({ where: { id: req.params.id } });
     res.json(updated);
   } catch (err: any) {
     res.status(400).json({ error: err.message });
@@ -505,7 +505,7 @@ router.get("/orders/summary", async (req: Request, res: Response) => {
       }),
       prisma.driver.findMany({
         where: { tenantId, platform: "TALABAT", status: "ACTIVE" },
-        select: { id: true, name: true },
+        select: { id: true, name: true, utr: true },
       }),
     ]);
 
@@ -520,6 +520,7 @@ router.get("/orders/summary", async (req: Request, res: Response) => {
           deliveries: Number(session?._sum.deliveries || 0),
           cashKd: Number(session?._sum.cashCollected || 0),
           tipsKd: Number(session?._sum.tips || 0),
+          utr: d.utr || null,
         };
       })
       .sort((a, b) => b.deliveries - a.deliveries);
@@ -617,6 +618,372 @@ router.get("/orders/hourly", async (req: Request, res: Response) => {
     }));
 
     res.json(hourly);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Enhanced Overview ─────────────────────────────────────────────────────
+
+// GET /overview - Combined dashboard data for Talabat Overview page
+router.get("/overview", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const companyId = req.query.companyId as string | undefined;
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(todayStart.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const nextWeekEnd = new Date(todayStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const driverWhere: any = { tenantId, platform: "TALABAT", status: "ACTIVE" };
+    if (companyId) driverWhere.companyId = companyId;
+
+    const companyFilter = companyId ? { driver: { companyId } } : {};
+    const companyPlatformFilter = companyId ? { driver: { companyId, platform: "TALABAT" as any } } : { driver: { platform: "TALABAT" as any } };
+
+    const [
+      drivers,
+      todayOrders,
+      todayCash,
+      todayAttendance,
+      todayViolations,
+      recentAlerts,
+      todaySessions,
+      sessionsByZone,
+      sessionsByStatus,
+      violationsByType,
+      unresolvedViolations,
+      violationsPerDriver,
+      thisWeekOrders,
+      lastWeekOrders,
+      hourlyData,
+      weekAttendance,
+      nextWeekShifts,
+      overdueCashRecords,
+      driversOnLeaveToday,
+      restaurantOrders,
+    ] = await Promise.all([
+      // All active drivers
+      prisma.driver.findMany({
+        where: driverWhere,
+        select: {
+          id: true, name: true, phone: true, utr: true, batchNumber: true, zone: true, status: true,
+          companyId: true, company: { select: { name: true } },
+          aiScores: { orderBy: { date: "desc" }, take: 1, select: { compositeScore: true, trend: true } },
+        },
+        orderBy: { name: "asc" },
+      }),
+      // Today's orders
+      prisma.orderLog.findMany({
+        where: { tenantId, platform: "TALABAT", date: { gte: todayStart, lt: todayEnd }, ...companyFilter },
+        select: { driverId: true, orderCount: true, cashCollected: true, tips: true, totalAmount: true },
+      }),
+      // Today's cash
+      prisma.cashRecord.findMany({
+        where: { tenantId, date: { gte: todayStart, lt: todayEnd }, ...companyPlatformFilter },
+        select: { driverId: true, salesAmount: true, collectionAmount: true, pendingDues: true },
+      }),
+      // Today's attendance
+      prisma.attendanceRecord.findMany({
+        where: { tenantId, date: { gte: todayStart, lt: todayEnd }, ...companyPlatformFilter },
+        select: { driverId: true, status: true, lateMinutes: true },
+      }),
+      // Today's violations
+      prisma.talabatViolationEvent.findMany({
+        where: { tenantId, createdAt: { gte: todayStart, lt: todayEnd }, ...companyFilter },
+        select: { id: true, driverId: true, type: true, description: true, resolved: true, driver: { select: { name: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      }),
+      // Active alerts
+      prisma.alert.findMany({
+        where: { tenantId, status: "ACTIVE", ...companyPlatformFilter },
+        select: { id: true, type: true, severity: true, title: true, message: true, driverId: true, driver: { select: { name: true } }, createdAt: true },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      }),
+      // Today's sessions count & hours
+      prisma.talabatSession.aggregate({
+        where: { tenantId, date: { gte: todayStart, lt: todayEnd }, ...(companyId ? { driver: { companyId } } : {}) },
+        _count: { id: true },
+        _sum: { plannedHours: true, actualHours: true, deliveries: true },
+      }),
+      // Sessions by zone (today)
+      prisma.talabatSession.groupBy({
+        by: ["zone"],
+        where: { tenantId, date: { gte: todayStart, lt: todayEnd }, ...(companyId ? { driver: { companyId } } : {}) },
+        _count: { id: true },
+        _sum: { deliveries: true },
+      }),
+      // Sessions by status (today)
+      prisma.talabatSession.groupBy({
+        by: ["status"],
+        where: { tenantId, date: { gte: todayStart, lt: todayEnd }, ...(companyId ? { driver: { companyId } } : {}) },
+        _count: { id: true },
+      }),
+      // Violations by type (all unresolved)
+      prisma.talabatViolationEvent.groupBy({
+        by: ["type"],
+        where: { tenantId, resolved: false, ...companyFilter },
+        _count: { id: true },
+      }),
+      // Unresolved violation count
+      prisma.talabatViolationEvent.count({
+        where: { tenantId, resolved: false, ...companyFilter },
+      }),
+      // Unresolved violations per driver
+      prisma.talabatViolationEvent.groupBy({
+        by: ["driverId"],
+        where: { tenantId, resolved: false, ...companyFilter },
+        _count: { id: true },
+      }),
+      // This week's order totals
+      prisma.talabatSession.aggregate({
+        where: { tenantId, date: { gte: sevenDaysAgo, lt: todayEnd }, ...(companyId ? { driver: { companyId } } : {}) },
+        _sum: { deliveries: true, cashCollected: true, tips: true, distanceKm: true },
+      }),
+      // Last week's order totals
+      prisma.talabatSession.aggregate({
+        where: { tenantId, date: { gte: fourteenDaysAgo, lt: sevenDaysAgo }, ...(companyId ? { driver: { companyId } } : {}) },
+        _sum: { deliveries: true, cashCollected: true, tips: true, distanceKm: true },
+      }),
+      // Hourly distribution (today's sessions)
+      prisma.talabatSession.findMany({
+        where: { tenantId, date: { gte: todayStart, lt: todayEnd }, ...(companyId ? { driver: { companyId } } : {}) },
+        select: { plannedStart: true, actualStart: true, deliveries: true, cashCollected: true },
+      }),
+      // Week attendance trend (last 7 days)
+      prisma.attendanceRecord.findMany({
+        where: { tenantId, date: { gte: sevenDaysAgo, lt: todayEnd }, ...companyPlatformFilter },
+        select: { date: true, status: true },
+      }),
+      // Shifts booked for next 7 days (to find unbooked drivers)
+      prisma.shift.findMany({
+        where: { tenantId, platform: "TALABAT", date: { gte: todayStart, lt: nextWeekEnd }, ...(companyId ? { driver: { companyId } } : {}) },
+        select: { driverId: true },
+      }),
+      // Overdue cash: PENDING cash records older than today
+      prisma.cashRecord.findMany({
+        where: { tenantId, status: "PENDING", date: { lt: todayStart }, ...(companyId ? { driver: { companyId, platform: "TALABAT" as any } } : { driver: { platform: "TALABAT" as any } }) },
+        select: { driverId: true, date: true, pendingDues: true, driver: { select: { name: true, zone: true } } },
+        orderBy: { date: "asc" },
+      }),
+      // Drivers on approved leave today
+      prisma.leaveRequest.count({
+        where: {
+          tenantId,
+          status: "APPROVED",
+          startDate: { lte: todayEnd },
+          endDate: { gte: todayStart },
+          ...(companyId ? { driver: { companyId, platform: "TALABAT" as any } } : { driver: { platform: "TALABAT" as any } }),
+        },
+      }),
+      // Orders with restaurant + hour for time-period breakdown
+      prisma.orderLog.findMany({
+        where: { tenantId, platform: "TALABAT", date: { gte: todayStart, lt: todayEnd }, ...companyFilter, restaurantName: { not: null } },
+        select: { restaurantName: true, orderCount: true, date: true },
+      }),
+    ]);
+
+    // Build per-driver maps
+    const ordersByDriver = new Map<string, { orders: number; cash: number; tips: number }>();
+    for (const o of todayOrders) {
+      const e = ordersByDriver.get(o.driverId) || { orders: 0, cash: 0, tips: 0 };
+      e.orders += o.orderCount; e.cash += Number(o.cashCollected || 0); e.tips += Number(o.tips || 0);
+      ordersByDriver.set(o.driverId, e);
+    }
+    const cashByDriver = new Map<string, { collected: number; pending: number; sales: number }>();
+    for (const c of todayCash) {
+      const e = cashByDriver.get(c.driverId) || { collected: 0, pending: 0, sales: 0 };
+      e.collected += Number(c.collectionAmount); e.pending += Number(c.pendingDues); e.sales += Number(c.salesAmount);
+      cashByDriver.set(c.driverId, e);
+    }
+    const attendanceByDriver = new Map<string, string>();
+    for (const a of todayAttendance) attendanceByDriver.set(a.driverId, a.status);
+    const alertsByDriver = new Map<string, number>();
+    for (const v of violationsPerDriver) alertsByDriver.set(v.driverId, v._count.id);
+
+    // Build driver rows
+    const driverRows = drivers.map((d: any) => {
+      const od = ordersByDriver.get(d.id) || { orders: 0, cash: 0, tips: 0 };
+      const cd = cashByDriver.get(d.id) || { collected: 0, pending: 0, sales: 0 };
+      const att = attendanceByDriver.get(d.id) || null;
+      const score = d.aiScores[0] || null;
+      return {
+        id: d.id, name: d.name, phone: d.phone, utr: d.utr, batchNumber: d.batchNumber, zone: d.zone,
+        company: d.company.name, companyId: d.companyId,
+        darbGrade: score?.compositeScore || null, gradeTrend: score?.trend || null,
+        todayOrders: od.orders, cashCollected: cd.collected, cashPending: cd.pending, cashSales: cd.sales,
+        attendance: att, alertCount: alertsByDriver.get(d.id) || 0,
+      };
+    });
+    driverRows.sort((a: any, b: any) => (b.darbGrade || 0) - (a.darbGrade || 0));
+    driverRows.forEach((d: any, i: number) => (d as any).rank = i + 1);
+
+    // Summary stats
+    const totalOrders = driverRows.reduce((s: number, d: any) => s + d.todayOrders, 0);
+    const totalCashCollected = driverRows.reduce((s: number, d: any) => s + d.cashCollected, 0);
+    const totalCashPending = driverRows.reduce((s: number, d: any) => s + d.cashPending, 0);
+    const presentCount = driverRows.filter((d: any) => d.attendance === "PRESENT").length;
+    const lateCount = driverRows.filter((d: any) => d.attendance === "LATE").length;
+    const absentCount = driverRows.filter((d: any) => d.attendance === "ABSENT").length;
+    const noDataCount = drivers.length - presentCount - lateCount - absentCount;
+
+    // Hourly distribution
+    const hourlyOrders: Record<number, number> = {};
+    const hourlyCash: Record<number, number> = {};
+    const hourlySessions: Record<number, number> = {};
+    for (let h = 0; h < 24; h++) { hourlyOrders[h] = 0; hourlyCash[h] = 0; hourlySessions[h] = 0; }
+    for (const s of hourlyData) {
+      const t = s.actualStart || s.plannedStart;
+      if (t) {
+        const h = new Date(t).getHours();
+        hourlyOrders[h] += s.deliveries;
+        hourlyCash[h] += Number(s.cashCollected || 0);
+        hourlySessions[h] += 1;
+      }
+    }
+    const hourly = Object.entries(hourlyOrders).map(([h, orders]) => ({
+      hour: Number(h),
+      orders,
+      cash: Math.round(hourlyCash[Number(h)] * 1000) / 1000,
+      sessions: hourlySessions[Number(h)],
+    }));
+
+    // Week-over-week comparison
+    const thisWeekDeliveries = Number(thisWeekOrders._sum.deliveries || 0);
+    const lastWeekDeliveries = Number(lastWeekOrders._sum.deliveries || 0);
+    const weekChange = lastWeekDeliveries > 0
+      ? Math.round(((thisWeekDeliveries - lastWeekDeliveries) / lastWeekDeliveries) * 100)
+      : 0;
+
+    // Week attendance trend (group by day)
+    const attendanceTrend: Record<string, { present: number; late: number; absent: number }> = {};
+    for (const a of weekAttendance) {
+      const day = new Date(a.date).toISOString().split("T")[0];
+      if (!attendanceTrend[day]) attendanceTrend[day] = { present: 0, late: 0, absent: 0 };
+      if (a.status === "PRESENT") attendanceTrend[day].present++;
+      else if (a.status === "LATE") attendanceTrend[day].late++;
+      else if (a.status === "ABSENT") attendanceTrend[day].absent++;
+    }
+
+    // Top performers (top 5 by orders today)
+    const topPerformers = [...driverRows]
+      .sort((a, b) => b.todayOrders - a.todayOrders)
+      .slice(0, 5)
+      .filter((d) => d.todayOrders > 0);
+
+    // UTR: average UTR of drivers who had orders today
+    const driversWithOrders = driverRows.filter((d) => d.todayOrders > 0 && d.utr != null);
+    const avgUtr = driversWithOrders.length > 0
+      ? Math.round((driversWithOrders.reduce((sum, d) => sum + Number(d.utr), 0) / driversWithOrders.length) * 100) / 100
+      : null;
+
+    // Drivers who haven't booked any shift for the next 7 days
+    const bookedDriverIds = new Set(nextWeekShifts.map((s: any) => s.driverId));
+    const unbookedDrivers = drivers
+      .filter((d: any) => !bookedDriverIds.has(d.id))
+      .map((d: any) => ({ id: d.id, name: d.name, zone: d.zone, company: d.company.name }));
+
+    // Overdue cash: group by driver, sum pending dues
+    const overdueCashByDriver = new Map<string, { name: string; zone: string | null; totalPending: number; oldestDate: Date }>();
+    for (const r of overdueCashRecords as any[]) {
+      const existing = overdueCashByDriver.get(r.driverId);
+      const pending = Number(r.pendingDues);
+      if (existing) {
+        existing.totalPending += pending;
+        if (new Date(r.date) < existing.oldestDate) existing.oldestDate = new Date(r.date);
+      } else {
+        overdueCashByDriver.set(r.driverId, {
+          name: r.driver.name,
+          zone: r.driver.zone,
+          totalPending: pending,
+          oldestDate: new Date(r.date),
+        });
+      }
+    }
+    const overdueCashDrivers = Array.from(overdueCashByDriver.entries())
+      .map(([driverId, data]) => ({ driverId, ...data, daysSince: Math.floor((todayStart.getTime() - data.oldestDate.getTime()) / (1000 * 60 * 60 * 24)) }))
+      .filter((d) => d.totalPending > 0)
+      .sort((a, b) => b.totalPending - a.totalPending);
+    const totalOverdueCash = overdueCashDrivers.reduce((s, d) => s + d.totalPending, 0);
+
+    res.json({
+      drivers: driverRows,
+      summary: {
+        totalDrivers: drivers.length,
+        totalOrders,
+        totalCashCollected: Math.round(totalCashCollected * 1000) / 1000,
+        totalCashPending: Math.round(totalCashPending * 1000) / 1000,
+        presentCount, lateCount, absentCount, noDataCount,
+        activeViolations: unresolvedViolations,
+        activeSessions: todaySessions._count.id,
+        totalSessionHours: Math.round((Number(todaySessions._sum.actualHours) || 0) * 10) / 10,
+        avgOrdersPerDriver: drivers.length > 0 ? Math.round((totalOrders / drivers.length) * 10) / 10 : 0,
+        shiftsNotBookedNextWeek: unbookedDrivers.length,
+        driversOnLeave: driversOnLeaveToday,
+        utr: avgUtr,
+        weekChange,
+        thisWeekDeliveries,
+        lastWeekDeliveries,
+      },
+      violations: todayViolations,
+      alerts: recentAlerts,
+      zoneBreakdown: sessionsByZone.map((z: any) => ({
+        zone: z.zone || "Unassigned",
+        sessions: z._count.id,
+        deliveries: z._sum.deliveries || 0,
+      })),
+      sessionStatus: sessionsByStatus.map((s: any) => ({ status: s.status, count: s._count.id })),
+      violationsByType: violationsByType.map((v: any) => ({ type: v.type, count: v._count.id })),
+      hourly,
+      byRestaurant: (() => {
+        // Aggregate totals
+        const totals = new Map<string, number>();
+        for (const o of restaurantOrders) {
+          const name = o.restaurantName || "Unknown";
+          totals.set(name, (totals.get(name) || 0) + (o.orderCount || 0));
+        }
+        return Array.from(totals.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 20)
+          .map(([name, orders]) => ({ name, orders }));
+      })(),
+      byRestaurantPeriod: (() => {
+        // 3 periods: morning 6-11, afternoon 12-16, evening 17-23
+        const periods: Record<string, Map<string, number>> = {
+          morning: new Map(),
+          afternoon: new Map(),
+          evening: new Map(),
+        };
+        for (const o of restaurantOrders) {
+          const name = o.restaurantName || "Unknown";
+          const hour = new Date(o.date).getHours();
+          const period = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+          periods[period].set(name, (periods[period].get(name) || 0) + (o.orderCount || 0));
+        }
+        const toTop = (map: Map<string, number>) =>
+          Array.from(map.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([name, orders]) => ({ name, orders }));
+        return {
+          morning: toTop(periods.morning),
+          afternoon: toTop(periods.afternoon),
+          evening: toTop(periods.evening),
+        };
+      })(),
+      topPerformers,
+      attendanceTrend: Object.entries(attendanceTrend)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([date, counts]) => ({ date, ...counts })),
+      unbookedNextWeek: unbookedDrivers,
+      overdueCash: {
+        totalAmount: Math.round(totalOverdueCash * 1000) / 1000,
+        driverCount: overdueCashDrivers.length,
+        drivers: overdueCashDrivers.map((d) => ({ ...d, oldestDate: d.oldestDate.toISOString() })),
+      },
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

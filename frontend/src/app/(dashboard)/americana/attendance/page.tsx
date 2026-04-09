@@ -165,11 +165,7 @@ export default function AmericanaAttendancePage() {
       key: "faceVerified",
       label: "Face",
       render: (_: any, r: any) =>
-        r.faceMismatch ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
-            <XCircle size={13} /> Mismatch
-          </span>
-        ) : r.faceVerified != null ? (
+        r.faceVerified != null ? (
           r.faceVerified ? (
             <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
               <CheckCircle2 size={13} /> Pass
@@ -435,7 +431,7 @@ export default function AmericanaAttendancePage() {
                 ["Late (min)", selected.lateMinutes ?? "-"],
                 ["GPS @ Store", selected.gpsAtStore === true ? "Yes - at assigned store" : selected.gpsAtStore === false ? "No - off-site" : "-"],
                 ["Face Verified (Darb)", selected.faceVerified === true ? "Passed" : selected.faceVerified === false ? "Failed" : "-"],
-                ["Face Mismatch", selected.faceMismatch === true ? "Mismatch - different person detected" : selected.faceMismatch === false ? "Match - identity confirmed" : "-"],
+                ["Face Check", selected.faceMismatch === true ? "Failed - different person detected" : selected.faceMismatch === false ? "Passed - identity confirmed" : "-"],
                 ["GPS Location", selected.gpsLocation || "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">

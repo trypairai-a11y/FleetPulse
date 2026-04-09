@@ -99,6 +99,57 @@ router.get("/rules", async (req: Request, res: Response) => {
   }
 });
 
+// GET /stream - Server-Sent Events stream for real-time notifications
+// Client subscribes and receives new notifications as they arrive (replaces polling)
+router.get("/stream", (req: Request, res: Response) => {
+  const userId = (req.user as any).id;
+  const tenantId = req.user!.tenantId;
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  let lastChecked = new Date();
+
+  // Send initial unread count
+  prisma.notification.count({
+    where: { tenantId, userId, read: false },
+  }).then((count) => {
+    res.write(`data: ${JSON.stringify({ type: "unread_count", count })}\n\n`);
+  }).catch(() => {});
+
+  // Poll for new notifications every 10 seconds (much less expensive than client polling)
+  const interval = setInterval(async () => {
+    try {
+      const newNotifications = await prisma.notification.findMany({
+        where: { tenantId, userId, createdAt: { gt: lastChecked } },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+      });
+
+      if (newNotifications.length > 0) {
+        lastChecked = new Date();
+        res.write(`data: ${JSON.stringify({ type: "notifications", items: newNotifications })}\n\n`);
+
+        // Also send updated unread count
+        const count = await prisma.notification.count({ where: { tenantId, userId, read: false } });
+        res.write(`data: ${JSON.stringify({ type: "unread_count", count })}\n\n`);
+      } else {
+        // Heartbeat to keep connection alive
+        res.write(`: heartbeat\n\n`);
+      }
+    } catch {
+      // Silently handle DB errors — client will reconnect
+    }
+  }, 10000);
+
+  // Clean up on disconnect
+  req.on("close", () => {
+    clearInterval(interval);
+  });
+});
+
 // PUT /rules - Upsert a notification rule
 router.put("/rules", async (req: Request, res: Response) => {
   try {

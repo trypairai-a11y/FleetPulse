@@ -2,8 +2,11 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
+import rateLimit from "express-rate-limit";
+import swaggerUi from "swagger-ui-express";
 import { env } from "./config/env";
 import { errorHandler } from "./middleware/errorHandler";
+import { swaggerSpec } from "./config/swagger";
 
 import authRoutes from "./routes/auth";
 import driverRoutes from "./routes/drivers";
@@ -30,6 +33,9 @@ import kpiRoutes from "./routes/kpis";
 import platformSettingsRoutes from "./routes/platformSettings";
 import platformOverviewRoutes from "./routes/platformOverview";
 import notificationRoutes from "./routes/notifications";
+import driverRestrictionRoutes from "./routes/driverRestrictions";
+import insightsRoutes from "./routes/insights";
+import supervisorRoutes from "./routes/supervisors";
 
 const app = express();
 
@@ -48,6 +54,28 @@ app.use(cors({
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+// Rate limiting
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  message: { error: "Too many auth attempts. Please try again in 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path === "/demo" || req.path === "/refresh" || req.path === "/me",
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 300,
+  message: { error: "Too many requests. Please slow down." },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path === "/api/health",
+});
+
+app.use("/api/auth", authLimiter);
+app.use("/api", apiLimiter);
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -75,10 +103,20 @@ app.use("/api/kpi", kpiRoutes);
 app.use("/api/platform-settings", platformSettingsRoutes);
 app.use("/api/platform-overview", platformOverviewRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/driver-restrictions", driverRestrictionRoutes);
+app.use("/api/insights", insightsRoutes);
+app.use("/api/supervisors", supervisorRoutes);
+
+// API Documentation (Swagger UI — available at /api-docs)
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customSiteTitle: "Darb API Docs",
+  swaggerOptions: { persistAuthorization: true },
+}));
+app.get("/api-docs.json", (_req, res) => res.json(swaggerSpec));
 
 // Root & health check
 app.get("/", (_req, res) => {
-  res.json({ name: "Darb API", status: "ok", timestamp: new Date().toISOString() });
+  res.json({ name: "Darb API", status: "ok", timestamp: new Date().toISOString(), docs: "/api-docs" });
 });
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });

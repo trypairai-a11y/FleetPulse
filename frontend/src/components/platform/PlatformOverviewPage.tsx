@@ -5,7 +5,7 @@ import { useApiGet } from "@/hooks/useApi";
 import { cn } from "@/lib/cn";
 import StatCard from "@/components/shared/StatCard";
 import {
-  ShoppingBag, DollarSign, AlertTriangle, Users, Clock, TrendingUp,
+  AlertTriangle, Users, Clock, TrendingUp,
   TrendingDown, Minus, ChevronRight, ShieldAlert, ArrowUpRight,
 } from "lucide-react";
 
@@ -73,18 +73,12 @@ export default function PlatformOverviewPage({ platform, platformKey, platformLa
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <StatCard
-          title="Total Orders Today"
-          value={summary.totalOrders || 0}
-          icon={ShoppingBag}
-          onClick={() => router.push(`/${platformKey}/orders`)}
-        />
-        <StatCard
-          title="Cash Collected"
-          value={`${(summary.totalCashCollected || 0).toFixed(3)} KD`}
-          icon={DollarSign}
-          onClick={() => router.push(`/${platformKey}/cash`)}
+          title="UTR"
+          value={summary.utr != null ? summary.utr.toFixed(2) : "-"}
+          icon={TrendingUp}
+          trend="Units per Trip Rate"
         />
         <StatCard
           title="Active Drivers"
@@ -172,7 +166,7 @@ export default function PlatformOverviewPage({ platform, platformKey, platformLa
               <tr className="border-b border-gray-50">
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3 w-12">#</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">UTR</th>
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3 cursor-help" title="Utilization Time Rate">UTR</th>
                 {platform === "TALABAT" && <th className="text-left text-xs font-medium text-secondary px-5 py-3">Batch</th>}
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Darb Grade</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Trend</th>

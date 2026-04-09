@@ -8,10 +8,10 @@ import { cn } from "@/lib/cn";
 import {
   Clock, CheckCircle2, XCircle, AlertTriangle,
   ShieldCheck, Camera, MapPin, CalendarDays, ChevronRight, ChevronUp, ChevronDown,
-  Phone, UserCheck, UserX, Users,
+  Phone, UserCheck, UserX, Users, Flag,
 } from "lucide-react";
 
-type SortKey = "driverName" | "phone" | "batchNumber" | "company" | "zone" | "booking" | "bookedHours" | "actualHours" | "actualStart" | "actualEnd";
+type SortKey = "driverName" | "phone" | "batchNumber" | "company" | "zone" | "booking" | "weeklyBookings" | "bookedHours" | "actualHours" | "actualStart" | "actualEnd";
 
 /** Strip batch number and company suffix from driver name, e.g. "AKHIL MATHEW 4 - WAHI" → "AKHIL MATHEW" */
 function cleanDriverName(raw: string) {
@@ -24,13 +24,6 @@ const TALABAT_ZONES = [
 ];
 
 function VerifiedBadge({ value, label }: { value: boolean | "mismatch"; label?: string }) {
-  if (value === "mismatch") {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-600">
-        <AlertTriangle size={11} /> {label ? `${label} Mismatch` : "Mismatch"}
-      </span>
-    );
-  }
   return value ? (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
       <CheckCircle2 size={11} /> {label || "Verified"}
@@ -65,6 +58,7 @@ export default function TalabatShiftsPage() {
 
   const bookedCount = bookingData?.bookedCount || 0;
   const notBookedCount = bookingData?.notBookedCount || 0;
+  const flaggedCount = bookingData?.flaggedCount || 0;
   const totalDrivers = bookingData?.totalDrivers || 0;
   const bookingRate = totalDrivers > 0 ? Math.round((bookedCount / totalDrivers) * 100) : 0;
 
@@ -88,6 +82,7 @@ export default function TalabatShiftsPage() {
         case "company": aVal = a.companyName || ""; bVal = b.companyName || ""; break;
         case "zone": aVal = a.zone || ""; bVal = b.zone || ""; break;
         case "booking": aVal = a.hasBooked ? 1 : 0; bVal = b.hasBooked ? 1 : 0; break;
+        case "weeklyBookings": aVal = a.weeklyBookings || 0; bVal = b.weeklyBookings || 0; break;
         case "bookedHours": aVal = a.bookedHours || 0; bVal = b.bookedHours || 0; break;
         case "actualHours": aVal = a.actualHours || 0; bVal = b.actualHours || 0; break;
         case "actualStart": aVal = a.actualStart || ""; bVal = b.actualStart || ""; break;
@@ -129,7 +124,7 @@ export default function TalabatShiftsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-5 gap-4">
         <StatCard title="Total Drivers" value={totalDrivers} icon={Users} />
         <StatCard
           title="Booked"
@@ -142,6 +137,12 @@ export default function TalabatShiftsPage() {
           value={notBookedCount}
           icon={UserX}
           highlight={notBookedCount > 0}
+        />
+        <StatCard
+          title="Flagged This Week"
+          value={flaggedCount}
+          icon={Flag}
+          highlight={flaggedCount > 0}
         />
         <StatCard
           title="Face Fail Pre-Shift"
@@ -175,6 +176,7 @@ export default function TalabatShiftsPage() {
               key: "bookingFilter", type: "select", label: "All Drivers", options: [
                 { value: "BOOKED", label: "Booked" },
                 { value: "NOT_BOOKED", label: "Not Booked" },
+                { value: "FLAGGED", label: "Flagged" },
               ],
             },
           ]}
@@ -195,6 +197,8 @@ export default function TalabatShiftsPage() {
                 <SortHeader label="Company" colKey="company" />
                 <SortHeader label="Zone" colKey="zone" />
                 <SortHeader label="Booking" colKey="booking" />
+                <SortHeader label="Week" colKey="weeklyBookings" />
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Flag Reason</th>
                 <SortHeader label="Booked" colKey="bookedHours" />
                 <SortHeader label="Actual" colKey="actualHours" />
                 <SortHeader label="In" colKey="actualStart" />
@@ -205,7 +209,7 @@ export default function TalabatShiftsPage() {
             <tbody>
               {driverList.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="px-5 py-12 text-center text-sm text-secondary">
+                  <td colSpan={13} className="px-5 py-12 text-center text-sm text-secondary">
                     No drivers found
                   </td>
                 </tr>
@@ -245,22 +249,47 @@ export default function TalabatShiftsPage() {
                       <td className="px-5 py-3 text-sm text-secondary">{d.zone || "-"}</td>
                       <td className="px-5 py-3">
                         {d.hasBooked ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700">
-                            <CheckCircle2 size={14} className="shrink-0" /> Booked
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 whitespace-nowrap">
+                            Booked
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-red-50 text-red-700">
-                            <XCircle size={14} className="shrink-0" /> Not Booked
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-red-50 text-red-700 whitespace-nowrap">
+                            Not Booked
                           </span>
                         )}
                       </td>
-                      <td className="px-5 py-3 text-sm font-mono text-secondary">
+                      {/* Weekly bookings badge */}
+                      <td className="px-5 py-3">
+                        {d.weeklyBookings !== undefined && d.weeklyBookings !== null ? (
+                          <span className={cn(
+                            "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold font-mono",
+                            d.weeklyFlag
+                              ? "bg-red-50 text-red-700"
+                              : "bg-green-50 text-green-700"
+                          )}>
+                            {d.weeklyBookings}/{d.weeklyExpected ?? 7}
+                            {d.weeklyFlag && <AlertTriangle size={10} className="shrink-0" />}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
+                      </td>
+                      {/* Flag reason */}
+                      <td className="px-5 py-3 whitespace-nowrap">
+                        {d.weeklyFlagReason ? (
+                          <span className="text-xs text-red-600 font-medium">{d.weeklyFlagReason}</span>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3 text-sm font-mono text-secondary whitespace-nowrap">
                         {d.scheduledStart && d.scheduledEnd
-                          ? <div className="flex flex-col leading-tight">
+                          ? <div className="flex flex-col leading-tight gap-1">
                               <span>{new Date(d.scheduledStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                              <span className="text-gray-300">↓</span>
                               <span>{new Date(d.scheduledEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                             </div>
-                          : d.bookedHours ? `${d.bookedHours.toFixed(1)}h` : "-"}
+                          : d.bookedHours ? `${d.bookedHours.toFixed(1)}h` : "–"}
                       </td>
                       <td className="px-5 py-3">
                         <span className={cn(
@@ -271,15 +300,15 @@ export default function TalabatShiftsPage() {
                           {!hoursMatch && <AlertTriangle size={11} className="inline ml-1" />}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-sm font-mono text-secondary">
+                      <td className="px-5 py-3 text-sm font-mono text-secondary whitespace-nowrap">
                         {d.actualStart
                           ? new Date(d.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                          : "-"}
+                          : "–"}
                       </td>
-                      <td className="px-5 py-3 text-sm font-mono text-secondary">
+                      <td className="px-5 py-3 text-sm font-mono text-secondary whitespace-nowrap">
                         {d.actualEnd
                           ? new Date(d.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                          : "-"}
+                          : "–"}
                       </td>
                       <td className="px-5 py-3">
                         <ChevronRight size={15} className="text-gray-300" />
@@ -333,6 +362,33 @@ export default function TalabatShiftsPage() {
                   </>
                 )}
               </div>
+            </div>
+
+            {/* Weekly Booking Status */}
+            <div className={cn(
+              "p-4 rounded-xl border",
+              selected.weeklyFlag ? "bg-amber-50 border-amber-100" : "bg-gray-50 border-gray-100"
+            )}>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold text-secondary uppercase tracking-wide">This Week</p>
+                <span className={cn(
+                  "text-lg font-bold font-mono",
+                  selected.weeklyFlag ? "text-red-600" : "text-green-700"
+                )}>
+                  {selected.weeklyBookings ?? "—"}/{selected.weeklyExpected ?? 7}
+                </span>
+              </div>
+              {selected.weeklyFlag && selected.weeklyFlagReason ? (
+                <div className="flex items-start gap-1.5 mt-1">
+                  <AlertTriangle size={13} className="text-red-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-600 font-medium">{selected.weeklyFlagReason}</p>
+                </div>
+              ) : (
+                <p className="text-xs text-green-600">All days booked — no issues</p>
+              )}
+              {selected.weeklyApprovedOffs > 0 && (
+                <p className="text-xs text-secondary mt-1">{selected.weeklyApprovedOffs} approved day-off this week</p>
+              )}
             </div>
 
             {/* Contact Info */}

@@ -4,10 +4,47 @@ import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
 import { upload } from "../utils/upload";
+import { validateBody, createShiftSchema } from "../utils/validate";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
 
+/**
+ * @swagger
+ * /api/shifts:
+ *   get:
+ *     tags: [Shifts]
+ *     summary: List shifts with filters and paginated response
+ *     parameters:
+ *       - in: query
+ *         name: platform
+ *         schema: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *       - in: query
+ *         name: driverId
+ *         schema: { type: string, format: uuid }
+ *       - in: query
+ *         name: status
+ *         schema: { type: string, enum: [BOOKED, IN_PROGRESS, COMPLETED, MISSED, CANCELLED] }
+ *       - in: query
+ *         name: dateFrom
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: dateTo
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated shift list with driver info and session data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PaginatedResponse'
+ */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
@@ -74,7 +111,7 @@ router.get("/", async (req: Request, res: Response) => {
         actualHours,
         faceVerified: sess?.faceVerified ?? null,
         equipmentVerified: sess?.equipmentVerified ?? null,
-        gpsCompliance: sess?.gpsCompliance ?? null,
+        gpsViolation: sess?.gpsViolation ?? null,
         scheduledDuration: s.plannedHoursMinutes ? `${Math.floor(s.plannedHoursMinutes / 60)}h${s.plannedHoursMinutes % 60 ? ` ${s.plannedHoursMinutes % 60}m` : ''}` : null,
       };
     });
@@ -106,6 +143,13 @@ router.get("/booking-status", async (req: Request, res: Response) => {
     const dayEnd = new Date(targetDate);
     dayEnd.setHours(23, 59, 59, 999);
 
+    // Load platform settings for weeklyExpected base
+    const platformSettings = platform
+      ? await prisma.platformSettings.findFirst({ where: { tenantId, platform: platform as any } })
+      : null;
+    const bookingRules = (platformSettings?.bookingRules as any) || {};
+    const baseWeeklyExpected: number = bookingRules.maxShiftsPerWeek ?? 7;
+
     // Get all active drivers for this platform
     const drivers = await prisma.driver.findMany({
       where: driverWhere,
@@ -133,6 +177,99 @@ router.get("/booking-status", async (req: Request, res: Response) => {
       shiftByDriver.set(s.driverId, s);
     }
 
+    // ── Weekly booking stats ──────────────────────────────────────────────────
+    // Compute Mon–Sun week containing targetDate
+    const dow = targetDate.getDay(); // 0=Sun … 6=Sat
+    const daysFromMonday = dow === 0 ? 6 : dow - 1;
+    const weekStart = new Date(targetDate);
+    weekStart.setDate(targetDate.getDate() - daysFromMonday);
+    weekStart.setHours(0, 0, 0, 0);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 7);
+
+    // Kuwait weekends: Thu=4, Fri=5, Sat=6  (JS getDay())
+    const WEEKEND_DAYS = new Set([4, 5, 6]);
+    const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const [weeklyShifts, weeklyLeaves, weeklyOffRecords] = await Promise.all([
+      prisma.shift.findMany({
+        where: {
+          tenantId,
+          driverId: { in: driverIds },
+          date: { gte: weekStart, lt: weekEnd },
+          ...(platform ? { platform: platform as any } : {}),
+        },
+        select: { driverId: true, date: true },
+      }),
+      // Only APPROVED leaves count (pending/rejected don't affect expected bookings)
+      prisma.leaveRequest.findMany({
+        where: {
+          tenantId,
+          driverId: { in: driverIds },
+          status: "APPROVED",
+          startDate: { lt: weekEnd },
+          endDate: { gte: weekStart },
+        },
+        select: { driverId: true, startDate: true, endDate: true },
+      }),
+      // OFF attendance records (monthly quota days used via restriction system)
+      prisma.attendanceRecord.findMany({
+        where: {
+          tenantId,
+          driverId: { in: driverIds },
+          status: "OFF",
+          date: { gte: weekStart, lt: weekEnd },
+        },
+        select: { driverId: true, date: true },
+      }),
+    ]);
+
+    // Weekly bookings per driver (count + per-date set for weekend detection)
+    const weeklyBookingsMap = new Map<string, number>();
+    const weeklyBookedDatesMap = new Map<string, Set<string>>();
+    for (const s of weeklyShifts) {
+      weeklyBookingsMap.set(s.driverId, (weeklyBookingsMap.get(s.driverId) || 0) + 1);
+      const dateKey = new Date(s.date).toISOString().split("T")[0];
+      if (!weeklyBookedDatesMap.has(s.driverId)) weeklyBookedDatesMap.set(s.driverId, new Set());
+      weeklyBookedDatesMap.get(s.driverId)!.add(dateKey);
+    }
+
+    // Approved weekday offs (reduce expected) and weekend off violations (always flag)
+    // Use a Set per driver to avoid double-counting days covered by both leave and OFF record
+    const weeklyWeekdayOffDatesMap = new Map<string, Set<string>>();
+    const weeklyWeekendViolationsMap = new Map<string, string[]>();
+    const driverApprovedLeaveDates = new Map<string, Set<string>>();
+
+    const addOffDate = (driverId: string, dateKey: string, dayOfWeek: number) => {
+      if (!driverApprovedLeaveDates.has(driverId)) driverApprovedLeaveDates.set(driverId, new Set());
+      driverApprovedLeaveDates.get(driverId)!.add(dateKey);
+      if (WEEKEND_DAYS.has(dayOfWeek)) {
+        const violations = weeklyWeekendViolationsMap.get(driverId) || [];
+        violations.push(DAY_NAMES[dayOfWeek]);
+        weeklyWeekendViolationsMap.set(driverId, violations);
+      } else {
+        if (!weeklyWeekdayOffDatesMap.has(driverId)) weeklyWeekdayOffDatesMap.set(driverId, new Set());
+        weeklyWeekdayOffDatesMap.get(driverId)!.add(dateKey);
+      }
+    };
+
+    for (const l of weeklyLeaves) {
+      let cur = new Date(Math.max(l.startDate.getTime(), weekStart.getTime()));
+      cur.setHours(0, 0, 0, 0);
+      const end = new Date(Math.min(l.endDate.getTime(), weekEnd.getTime() - 86400000));
+      end.setHours(23, 59, 59, 999);
+      while (cur <= end) {
+        addOffDate(l.driverId, cur.toISOString().split("T")[0], cur.getDay());
+        cur.setDate(cur.getDate() + 1);
+      }
+    }
+
+    for (const r of weeklyOffRecords) {
+      const d = new Date(r.date);
+      addOffDate(r.driverId, d.toISOString().split("T")[0], d.getDay());
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Merge drivers with their shift data
     const now = new Date();
     const result = drivers.map(d => {
@@ -155,6 +292,39 @@ router.get("/booking-status", async (req: Request, res: Response) => {
         actualHours = Math.round(shift.plannedHoursMinutes / 60 * 10) / 10;
       }
 
+      // Weekly flag logic
+      const weeklyBookings = weeklyBookingsMap.get(d.id) || 0;
+      const weeklyApprovedOffs = weeklyWeekdayOffDatesMap.get(d.id)?.size || 0;
+      const weekendViolations = weeklyWeekendViolationsMap.get(d.id) || [];
+      const weeklyExpected = baseWeeklyExpected - weeklyApprovedOffs;
+      const flagReasons: string[] = [];
+      if (weeklyBookings < weeklyExpected) {
+        const missing = weeklyExpected - weeklyBookings;
+        flagReasons.push(`Missing ${missing} day${missing > 1 ? "s" : ""}`);
+      }
+      if (weekendViolations.length > 0) {
+        flagReasons.push(`Day off on weekend (${weekendViolations.join(", ")})`);
+      }
+      // Detect past weekend days with no booking and no approved leave
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const bookedDates = weeklyBookedDatesMap.get(d.id) || new Set<string>();
+      const leaveDates = driverApprovedLeaveDates.get(d.id) || new Set<string>();
+      const missingWeekendDays: string[] = [];
+      for (let i = 0; i < 7; i++) {
+        const day = new Date(weekStart);
+        day.setDate(weekStart.getDate() + i);
+        if (day >= today) continue; // only flag past days
+        if (!WEEKEND_DAYS.has(day.getDay())) continue;
+        const dateKey = day.toISOString().split("T")[0];
+        if (!bookedDates.has(dateKey) && !leaveDates.has(dateKey)) {
+          missingWeekendDays.push(DAY_NAMES[day.getDay()]);
+        }
+      }
+      if (missingWeekendDays.length > 0) {
+        flagReasons.push(`Off at weekend (${missingWeekendDays.join(", ")})`);
+      }
+
       return {
         driverId: d.id,
         driverName: d.name,
@@ -174,6 +344,11 @@ router.get("/booking-status", async (req: Request, res: Response) => {
         bookedHours: shift?.plannedHoursMinutes ? Math.round(shift.plannedHoursMinutes / 60 * 10) / 10 : null,
         actualHours,
         faceVerified: sess?.faceVerified ?? null,
+        weeklyBookings,
+        weeklyExpected,
+        weeklyApprovedOffs,
+        weeklyFlag: flagReasons.length > 0,
+        weeklyFlagReason: flagReasons.join(" · "),
       };
     });
 
@@ -181,15 +356,18 @@ router.get("/booking-status", async (req: Request, res: Response) => {
     let filtered = result;
     if (bookingFilter === "BOOKED") filtered = result.filter(r => r.hasBooked);
     else if (bookingFilter === "NOT_BOOKED") filtered = result.filter(r => !r.hasBooked);
+    else if (bookingFilter === "FLAGGED") filtered = result.filter(r => r.weeklyFlag);
 
     const bookedCount = result.filter(r => r.hasBooked).length;
     const notBookedCount = result.filter(r => !r.hasBooked).length;
+    const flaggedCount = result.filter(r => r.weeklyFlag).length;
 
     res.json({
       date: dayStart.toISOString().split("T")[0],
       totalDrivers: result.length,
       bookedCount,
       notBookedCount,
+      flaggedCount,
       drivers: filtered,
     });
   } catch (err: any) {
@@ -247,10 +425,80 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/", async (req: Request, res: Response) => {
+/**
+ * @swagger
+ * /api/shifts:
+ *   post:
+ *     tags: [Shifts]
+ *     summary: Create a new shift booking
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [driverId, platform, date, scheduledStart, scheduledEnd]
+ *             properties:
+ *               driverId: { type: string, format: uuid }
+ *               platform: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *               date: { type: string, format: date }
+ *               scheduledStart: { type: string, format: date-time }
+ *               scheduledEnd: { type: string, format: date-time }
+ *               zone: { type: string }
+ *               vehicleType: { type: string }
+ *     responses:
+ *       201:
+ *         description: Shift created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Shift'
+ *       409:
+ *         description: Shift overlap conflict
+ *       422:
+ *         description: Validation error
+ */
+router.post("/", validateBody(createShiftSchema.passthrough()), async (req: Request, res: Response) => {
   try {
+    const tenantId = req.user!.tenantId;
+    const { driverId, date, scheduledStart, scheduledEnd } = req.body;
+
+    // Check for overlapping shifts on the same date for the same driver
+    if (driverId && date) {
+      const shiftDate = new Date(date);
+      const dayStart = new Date(shiftDate);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+
+      const existing = await prisma.shift.findFirst({
+        where: {
+          tenantId,
+          driverId,
+          date: { gte: dayStart, lt: dayEnd },
+          status: { notIn: ["CANCELLED", "MISSED"] },
+        },
+      });
+
+      if (existing) {
+        // If specific times given, check actual time overlap; otherwise block same-day
+        let hasOverlap = true;
+        if (scheduledStart && scheduledEnd && existing.scheduledStart && existing.scheduledEnd) {
+          const newStart = new Date(scheduledStart).getTime();
+          const newEnd = new Date(scheduledEnd).getTime();
+          const exStart = existing.scheduledStart.getTime();
+          const exEnd = existing.scheduledEnd.getTime();
+          hasOverlap = newStart < exEnd && newEnd > exStart;
+        }
+        if (hasOverlap) {
+          res.status(409).json({ error: "Driver already has a shift booked on this date. Cancel the existing shift first." });
+          return;
+        }
+      }
+    }
+
     const shift = await prisma.shift.create({
-      data: { ...req.body, tenantId: req.user!.tenantId },
+      data: { ...req.body, tenantId },
     });
     res.status(201).json(shift);
   } catch (err: any) {
@@ -283,6 +531,33 @@ router.delete("/:id", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/shifts/{id}/clock-in:
+ *   post:
+ *     tags: [Shifts]
+ *     summary: Clock in to a shift (optionally with selfie)
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               selfie: { type: string, format: binary }
+ *               faceVerified: { type: boolean }
+ *               equipmentVerified: { type: boolean }
+ *               gpsViolation: { type: boolean }
+ *     responses:
+ *       200:
+ *         description: Shift updated with clock-in time and session data
+ *       404:
+ *         description: Shift not found
+ */
 // Clock in with selfie
 router.post("/:id/clock-in", upload.single("selfie"), async (req: Request, res: Response) => {
   try {
@@ -343,12 +618,12 @@ router.post("/:id/clock-in", upload.single("selfie"), async (req: Request, res: 
       },
     });
 
-    // Create LATE_CLOCK_IN compliance event if late (for Talabat, or generic alert for others)
+    // Create LATE_CLOCK_IN violation event if late (for Talabat, or generic alert for others)
     if (isLate) {
       if (existingShift.platform === "TALABAT") {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const existingEvent = await prisma.talabatComplianceEvent.findFirst({
+        const existingEvent = await prisma.talabatViolationEvent.findFirst({
           where: {
             tenantId,
             driverId: existingShift.driverId,
@@ -357,7 +632,7 @@ router.post("/:id/clock-in", upload.single("selfie"), async (req: Request, res: 
           },
         });
         if (!existingEvent) {
-          await prisma.talabatComplianceEvent.create({
+          await prisma.talabatViolationEvent.create({
             data: {
               tenantId,
               driverId: existingShift.driverId,

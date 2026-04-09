@@ -10,7 +10,7 @@ import {
   Package, UploadCloud, Sparkles, Banknote,
   ChevronRight, Clock,
   ArrowUp, ArrowDown, Minus, Receipt, ShoppingBag, Zap,
-  MessageCircle, X, Check, AlertCircle, MapPin,
+  MessageCircle, X, Check, AlertCircle, MapPin, Store,
   Download, ChevronsLeft, ChevronsRight, ChevronLeft,
 } from "lucide-react";
 
@@ -178,7 +178,8 @@ export default function TalabatOrdersPage() {
   const ordersParams = new URLSearchParams({ platform: "TALABAT", limit: "50", page: String(currentPage) });
   if (filters.dateFrom) ordersParams.set("dateFrom", filters.dateFrom);
   if (filters.dateTo) ordersParams.set("dateTo", filters.dateTo);
-  if (filters.driverId) ordersParams.set("search", filters.driverId);
+  if (filters.search) ordersParams.set("search", filters.search);
+  else if (filters.driverId) ordersParams.set("search", filters.driverId);
   if (filters.zone) ordersParams.set("zone", filters.zone);
   if (filters.companyId) ordersParams.set("companyId", filters.companyId);
   if (filters.timeFrom) ordersParams.set("timeFrom", filters.timeFrom);
@@ -199,6 +200,15 @@ export default function TalabatOrdersPage() {
     pageTab === "performance"
       ? `/api/talabat/orders/summary?dateFrom=${filters.dateFrom || ""}&dateTo=${filters.dateTo || ""}`
       : null
+  );
+
+  const [restaurantZone, setRestaurantZone] = useState("");
+  const restaurantParams = new URLSearchParams({ platform: "TALABAT" });
+  if (filters.dateFrom) restaurantParams.set("dateFrom", filters.dateFrom);
+  if (filters.dateTo) restaurantParams.set("dateTo", filters.dateTo);
+  if (restaurantZone) restaurantParams.set("zone", restaurantZone);
+  const { data: topRestaurants } = useApiGet<any[]>(
+    pageTab === "performance" ? `/api/orders/top-restaurants?${restaurantParams}` : null
   );
   const { data: hourlyData } = useApiGet<{ hour: number; orders: number }[]>(
     `/api/talabat/orders/hourly?${filters.dateFrom ? `dateFrom=${filters.dateFrom}` : ""}${filters.dateTo ? `&dateTo=${filters.dateTo}` : ""}`
@@ -282,7 +292,8 @@ export default function TalabatOrdersPage() {
     if (filters.dateFrom) params.set("dateFrom", filters.dateFrom);
     if (filters.dateTo) params.set("dateTo", filters.dateTo);
     if (filters.zone) params.set("zone", filters.zone);
-    if (filters.driverId) params.set("search", filters.driverId);
+    if (filters.search) params.set("search", filters.search);
+    else if (filters.driverId) params.set("search", filters.driverId);
     if (filters.companyId) params.set("companyId", filters.companyId);
     window.open(`${api.defaults.baseURL || ""}/api/orders/export-csv?${params}`, "_blank");
   }
@@ -316,13 +327,6 @@ export default function TalabatOrdersPage() {
           >
             <Download size={15} className="text-secondary" />
             Export CSV
-          </button>
-          <button
-            onClick={() => { setWaOpen(true); setWaText(""); setWaParsed([]); setWaError(null); setWaSuccess(null); }}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors"
-          >
-            <MessageCircle size={15} className="text-green-600" />
-            WhatsApp Import
           </button>
           <button
             onClick={() => fileRef.current?.click()}
@@ -369,7 +373,7 @@ export default function TalabatOrdersPage() {
               icon={Package}
             />
             <StatCard
-              title="Orders / Hour"
+              title="UTR"
               value={summary?.ordersPerHour || 0}
               icon={Clock}
               trend={summary?.ordersPerHour === 0 ? "No session data" : undefined}
@@ -383,17 +387,17 @@ export default function TalabatOrdersPage() {
 
           {/* Zone Breakdown */}
           {zones.length > 0 && (
-            <div className="flex gap-3 flex-wrap">
+            <div className="flex gap-3 overflow-x-auto">
               {zones.map((z: any) => (
                 <div
                   key={z.zone}
-                  className="flex items-center gap-3 bg-white rounded-xl px-4 py-2.5 shadow-sm border border-gray-50"
+                  className="flex items-center gap-3 bg-white rounded-xl px-4 py-2.5 shadow-sm border border-gray-50 flex-shrink-0"
                 >
                   <MapPin size={13} className="text-orange-400 flex-shrink-0" />
                   <div>
                     <p className="text-xs font-medium">{z.zone}</p>
                     <p className="text-[10px] text-secondary font-mono">
-                      {z.deliveries} deliveries · {z.cash.toFixed(3)} KD
+                      {z.deliveries} orders · {z.cash.toFixed(3)} KD
                     </p>
                   </div>
                 </div>
@@ -435,7 +439,12 @@ export default function TalabatOrdersPage() {
           <FilterBar
             filters={[
               {
-                key: "driverId", type: "select", label: "All Drivers",
+                key: "search", type: "search", label: "Search",
+                placeholder: "Search by driver or order ID…",
+              },
+              {
+                key: "driverId", type: "driver-search", label: "Driver",
+                placeholder: "Search driver…",
                 options: driverOptions,
               },
               { key: "dateFrom", type: "date", label: "From" },
@@ -628,6 +637,55 @@ export default function TalabatOrdersPage() {
             ))}
           </div>
 
+          {/* Top Restaurants */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Store size={14} className="text-orange-400" />
+                <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide">Top Restaurants</h3>
+              </div>
+              <select
+                value={restaurantZone}
+                onChange={(e) => setRestaurantZone(e.target.value)}
+                className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-200 bg-white"
+              >
+                <option value="">All Zones</option>
+                {TALABAT_ZONES.map((z) => (
+                  <option key={z} value={z}>{z}</option>
+                ))}
+              </select>
+            </div>
+            {!topRestaurants || topRestaurants.length === 0 ? (
+              <p className="text-sm text-secondary py-6 text-center">No restaurant data for this period</p>
+            ) : (
+              <div className="space-y-2.5">
+                {topRestaurants.map((r: any, i: number) => {
+                  const maxOrders = topRestaurants[0]?.orders || 1;
+                  const pct = Math.round((r.orders / maxOrders) * 100);
+                  return (
+                    <div key={r.restaurantName} className="flex items-center gap-3">
+                      <span className="w-5 text-[10px] font-mono text-secondary text-right flex-shrink-0">{i + 1}</span>
+                      <div className="w-40 flex-shrink-0">
+                        <p className="text-sm font-medium truncate" title={r.restaurantName}>{r.restaurantName}</p>
+                      </div>
+                      <div className="flex-1 bg-gray-50 rounded-full h-6 relative overflow-hidden">
+                        <div
+                          className="h-6 rounded-full bg-gradient-to-r from-orange-300 to-orange-500 flex items-center justify-end pr-2 transition-all duration-500"
+                          style={{ width: `${Math.max(pct, 8)}%` }}
+                        >
+                          <span className="text-[10px] font-semibold text-white font-mono">{r.orders}</span>
+                        </div>
+                      </div>
+                      <div className="w-24 text-right flex-shrink-0">
+                        <p className="text-xs font-mono text-orange-600">{r.cashKd.toFixed(3)} KD</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide mb-4">All Drivers (by Orders)</h3>
             {(perfSummary?.topEarners || []).length === 0 ? (
@@ -652,7 +710,7 @@ export default function TalabatOrdersPage() {
                       </div>
                       <div className="w-20 text-right flex-shrink-0">
                         <p className="text-xs font-mono text-orange-600">{(earner.cashKd || 0).toFixed(3)} KD</p>
-                        <p className="text-[10px] font-mono text-green-600">+{(earner.tipsKd || 0).toFixed(3)}</p>
+                        <p className="text-[10px] font-mono text-green-600">{earner.utr != null ? `UTR ${earner.utr}` : "—"}</p>
                       </div>
                     </div>
                   );

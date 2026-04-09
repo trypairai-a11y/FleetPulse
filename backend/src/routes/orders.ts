@@ -6,6 +6,7 @@ import { getPagination, paginatedResponse } from "../utils/pagination";
 import { upload } from "../utils/upload";
 import { parseWhatsAppMessages } from "../services/whatsappParser";
 import { sendXlsx } from "../utils/xlsxExport";
+import { validateBody, createOrderSchema } from "../utils/validate";
 import fs from "fs";
 
 const router = Router();
@@ -13,6 +14,42 @@ router.use(authMiddleware, tenantScope);
 
 import { parseLocalDate, parseLocalDateEnd } from "../utils/date";
 
+/**
+ * @swagger
+ * /api/orders:
+ *   get:
+ *     tags: [Orders]
+ *     summary: List orders with filters and pagination
+ *     parameters:
+ *       - in: query
+ *         name: platform
+ *         schema: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *       - in: query
+ *         name: driverId
+ *         schema: { type: string, format: uuid }
+ *       - in: query
+ *         name: dateFrom
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: dateTo
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: source
+ *         schema: { type: string, enum: [MANUAL, OCR, WHATSAPP, IMPORT] }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated order list
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PaginatedResponse'
+ */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
@@ -24,7 +61,12 @@ router.get("/", async (req: Request, res: Response) => {
     if (source) where.source = source;
     if (companyId) where.driver = { ...where.driver, companyId: companyId as string };
     if (zone) where.driver = { ...where.driver, zone: zone as string };
-    if (search) where.driver = { ...where.driver, name: { contains: search as string, mode: "insensitive" } };
+    if (search) {
+      where.OR = [
+        { driver: { name: { contains: search as string, mode: "insensitive" } } },
+        { orderNumber: { contains: search as string, mode: "insensitive" } },
+      ];
+    }
     if (dateFrom || dateTo) {
       where.date = {};
       if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
@@ -81,6 +123,29 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/orders/summary:
+ *   get:
+ *     tags: [Orders]
+ *     summary: Aggregate order metrics (totals, cash, trends) for a date range
+ *     parameters:
+ *       - in: query
+ *         name: platform
+ *         schema: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *       - in: query
+ *         name: dateFrom
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: dateTo
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: companyId
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       200:
+ *         description: Order summary with totals, averages, and per-driver breakdown
+ */
 router.get("/summary", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -362,6 +427,42 @@ router.get("/export", async (req: Request, res: Response) => {
   }
 });
 
+// GET /top-restaurants - Orders grouped by restaurantName, filterable by zone
+router.get("/top-restaurants", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { platform, dateFrom, dateTo, zone } = req.query;
+    const where: any = { tenantId, restaurantName: { not: null } };
+    if (platform) where.platform = platform;
+    if (zone) where.driver = { zone: zone as string };
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
+      if (dateTo) where.date.lte = parseLocalDateEnd(dateTo as string);
+    }
+
+    const rows = await prisma.orderLog.groupBy({
+      by: ["restaurantName"],
+      where,
+      _sum: { orderCount: true, cashCollected: true },
+      _count: { id: true },
+      orderBy: { _sum: { orderCount: "desc" } },
+    });
+
+    const result = rows
+      .filter((r) => r.restaurantName)
+      .map((r) => ({
+        restaurantName: r.restaurantName!,
+        orders: r._sum.orderCount || 0,
+        cashKd: Number(r._sum.cashCollected || 0),
+      }));
+
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /drivers - Distinct driver names for a platform (for dropdown)
 router.get("/drivers", async (req: Request, res: Response) => {
   try {
@@ -395,10 +496,60 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/", async (req: Request, res: Response) => {
+/**
+ * @swagger
+ * /api/orders:
+ *   post:
+ *     tags: [Orders]
+ *     summary: Log a new order
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [driverId, platform, date, orderCount]
+ *             properties:
+ *               driverId: { type: string, format: uuid }
+ *               platform: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *               date: { type: string, format: date }
+ *               orderCount: { type: integer, minimum: 0 }
+ *               cashCollected: { type: number, minimum: 0 }
+ *               totalAmount: { type: number, minimum: 0 }
+ *               tips: { type: number }
+ *               source: { type: string, enum: [MANUAL, OCR, WHATSAPP, IMPORT] }
+ *     responses:
+ *       201:
+ *         description: Order created
+ *       400:
+ *         description: Cash overcollection detected or validation error
+ *       422:
+ *         description: Validation error
+ */
+router.post("/", validateBody(createOrderSchema.passthrough()), async (req: Request, res: Response) => {
   try {
+    const tenantId = req.user!.tenantId;
+    const { cashCollected, totalAmount, tips, driverId } = req.body;
+
+    // Cash overcollection check: collected should not exceed sales by more than 5%
+    const sales = totalAmount ?? (cashCollected && tips ? Number(cashCollected) + Number(tips) : null);
+    if (sales != null && cashCollected != null && Number(cashCollected) > Number(sales) * 1.05) {
+      // Create a CRITICAL alert and still save, but warn
+      await prisma.alert.create({
+        data: {
+          tenantId,
+          type: "cash_overcollection",
+          severity: "CRITICAL",
+          title: "Cash Overcollection Detected",
+          message: `Driver collected KD ${Number(cashCollected).toFixed(3)} but total sales were KD ${Number(sales).toFixed(3)}`,
+          driverId: driverId || undefined,
+          data: { cashCollected: Number(cashCollected), totalSales: Number(sales) },
+        },
+      });
+    }
+
     const order = await prisma.orderLog.create({
-      data: { ...req.body, tenantId: req.user!.tenantId },
+      data: { ...req.body, tenantId },
     });
     res.status(201).json(order);
   } catch (err: any) {
@@ -468,21 +619,33 @@ router.post("/upload-screenshot", upload.single("screenshot"), async (req: Reque
 
     // Create an OrderLog record from the parsed OCR data
     if (driverId) {
-      const orderCount =
-        "deliveryCount" in ocrResult ? (ocrResult.deliveryCount ?? 0) :
-        "deliveries" in ocrResult ? (ocrResult.deliveries ?? 0) :
-        "totalOrders" in ocrResult ? (ocrResult.totalOrders ?? 0) : 0;
+      // Per-platform OCR field schema — explicit mappings to avoid silent 0s
+      type OcrSchema = {
+        orderCountKeys: string[];
+        cashKeys: string[];
+        tipsKeys: string[];
+        distanceKeys: string[];
+      };
+      const OCR_SCHEMA: Record<string, OcrSchema> = {
+        KEETA:     { orderCountKeys: ["deliveries", "totalOrders", "deliveryCount"], cashKeys: ["cashCollectedKD", "cashKD", "totalAmountKD"], tipsKeys: ["tipsKD"], distanceKeys: ["distanceKm"] },
+        TALABAT:   { orderCountKeys: ["deliveryCount", "deliveries", "totalOrders"], cashKeys: ["cashCollectedKD", "cashKD"], tipsKeys: ["tipsKD"], distanceKeys: ["distanceKm"] },
+        AMERICANA: { orderCountKeys: ["totalOrders", "deliveryCount", "deliveries"], cashKeys: ["totalAmountKD", "cashCollectedKD"], tipsKeys: [], distanceKeys: [] },
+        DELIVEROO: { orderCountKeys: ["deliveries", "deliveryCount", "totalOrders"], cashKeys: ["cashCollectedKD", "totalAmountKD"], tipsKeys: ["tipsKD"], distanceKeys: ["distanceKm"] },
+      };
 
-      const distanceKm =
-        "distanceKm" in ocrResult ? (ocrResult.distanceKm ?? undefined) : undefined;
+      const ocrPlatform = ((platform || ocrResult.platform) as string || "KEETA").toUpperCase();
+      const schema = OCR_SCHEMA[ocrPlatform] || OCR_SCHEMA.KEETA;
+      const ocrData = ocrResult as Record<string, any>;
 
-      const cashCollected =
-        "cashCollectedKD" in ocrResult ? (ocrResult.cashCollectedKD ?? undefined) :
-        "cashKD" in ocrResult ? (ocrResult.cashKD ?? undefined) :
-        "totalAmountKD" in ocrResult ? (ocrResult.totalAmountKD ?? undefined) : undefined;
+      const pickFirst = (keys: string[]): any => {
+        for (const k of keys) if (k in ocrData && ocrData[k] != null) return ocrData[k];
+        return undefined;
+      };
 
-      const tips =
-        "tipsKD" in ocrResult ? (ocrResult.tipsKD ?? undefined) : undefined;
+      const orderCount = Number(pickFirst(schema.orderCountKeys) ?? 0);
+      const distanceKm = pickFirst(schema.distanceKeys);
+      const cashCollected = pickFirst(schema.cashKeys);
+      const tips = pickFirst(schema.tipsKeys);
 
       const orderDate = ocrResult.platform !== "AMERICANA" && "date" in ocrResult && ocrResult.date
         ? new Date(ocrResult.date)
