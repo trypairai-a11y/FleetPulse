@@ -5,9 +5,13 @@ import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
 import { sendXlsx } from "../utils/xlsxExport";
 import { validateBody, createDriverSchema } from "../utils/validate";
+import { rbac } from "../middleware/rbac";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
+
+const MUTATORS = ["ADMIN", "OPS_MANAGER", "SUPERVISOR"];
+const DESTRUCTIVE = ["ADMIN", "OPS_MANAGER"];
 
 /**
  * @swagger
@@ -409,7 +413,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/", validateBody(createDriverSchema.passthrough()), async (req: Request, res: Response) => {
+router.post("/", rbac(...MUTATORS), validateBody(createDriverSchema.passthrough()), async (req: Request, res: Response) => {
   try {
     const { inventory, ...driverData } = req.body;
 
@@ -442,7 +446,7 @@ router.post("/", validateBody(createDriverSchema.passthrough()), async (req: Req
   }
 });
 
-router.put("/:id", async (req: Request, res: Response) => {
+router.put("/:id", rbac(...MUTATORS), async (req: Request, res: Response) => {
   try {
     const driver = await prisma.driver.updateMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },
@@ -456,7 +460,7 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/:id", rbac(...DESTRUCTIVE), async (req: Request, res: Response) => {
   try {
     await prisma.driver.deleteMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },

@@ -5,9 +5,12 @@ import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
 import { cacheGet, cacheSet } from "../utils/cache";
 import { validateBody, createKpiRecordSchema } from "../utils/validate";
+import { rbac } from "../middleware/rbac";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
+
+const DEF_ADMINS = ["ADMIN", "OPS_MANAGER"];
 
 // ─── KPI Definitions ────────────────────────────────────────────────────────
 
@@ -32,7 +35,7 @@ router.get("/definitions", async (req: Request, res: Response) => {
 });
 
 // POST /definitions - Create a KPI definition
-router.post("/definitions", async (req: Request, res: Response) => {
+router.post("/definitions", rbac(...DEF_ADMINS), async (req: Request, res: Response) => {
   try {
     const definition = await prisma.kpiDefinition.create({
       data: { ...req.body, tenantId: req.user!.tenantId },
@@ -44,7 +47,7 @@ router.post("/definitions", async (req: Request, res: Response) => {
 });
 
 // PUT /definitions/:id - Update a KPI definition
-router.put("/definitions/:id", async (req: Request, res: Response) => {
+router.put("/definitions/:id", rbac(...DEF_ADMINS), async (req: Request, res: Response) => {
   try {
     const result = await prisma.kpiDefinition.updateMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },
@@ -59,7 +62,7 @@ router.put("/definitions/:id", async (req: Request, res: Response) => {
 });
 
 // DELETE /definitions/:id - Soft delete (deactivate)
-router.delete("/definitions/:id", async (req: Request, res: Response) => {
+router.delete("/definitions/:id", rbac(...DEF_ADMINS), async (req: Request, res: Response) => {
   try {
     const result = await prisma.kpiDefinition.updateMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },
@@ -73,7 +76,7 @@ router.delete("/definitions/:id", async (req: Request, res: Response) => {
 });
 
 // POST /definitions/seed - Seed default KPI definitions for a tenant
-router.post("/definitions/seed", async (req: Request, res: Response) => {
+router.post("/definitions/seed", rbac(...DEF_ADMINS), async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
 

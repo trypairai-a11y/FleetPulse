@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/cn";
-import { ArrowUp, ArrowDown, ArrowUpDown, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Download, ChevronLeft, ChevronRight, CheckSquare, Square, MinusSquare } from "lucide-react";
 
 interface Column {
   key: string;
@@ -23,6 +23,13 @@ interface PaginationProps {
   onLimitChange?: (limit: number) => void;
 }
 
+export interface BulkAction {
+  label: string;
+  icon?: React.ReactNode;
+  variant?: "default" | "danger";
+  onClick: (selectedIds: string[]) => void;
+}
+
 interface DataTableProps {
   columns: Column[];
   data: any[];
@@ -31,6 +38,12 @@ interface DataTableProps {
   pagination?: PaginationProps;
   exportFilename?: string;
   loading?: boolean;
+  /** Enable checkbox column + bulk action bar */
+  selectable?: boolean;
+  /** Actions shown when rows are selected */
+  bulkActions?: BulkAction[];
+  /** Key used to identify rows for selection. Defaults to "id" */
+  rowKey?: string;
 }
 
 type SortDir = "asc" | "desc";
@@ -43,9 +56,13 @@ export default function DataTable({
   pagination,
   exportFilename,
   loading = false,
+  selectable = false,
+  bulkActions,
+  rowKey = "id",
 }: DataTableProps) {
   const [sortCol, setSortCol] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   function handleSort(col: Column) {
     if (col.sortable === false) return;
@@ -110,8 +127,59 @@ export default function DataTable({
     URL.revokeObjectURL(url);
   }
 
+  const allPageIds = sortedData.map((r) => r[rowKey]).filter(Boolean) as string[];
+  const allSelected = allPageIds.length > 0 && allPageIds.every((id) => selectedIds.has(id));
+  const someSelected = allPageIds.some((id) => selectedIds.has(id));
+
+  function toggleAll() {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(allPageIds));
+    }
+  }
+
+  function toggleRow(id: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      {/* Bulk action bar */}
+      {selectable && selectedIds.size > 0 && bulkActions && bulkActions.length > 0 && (
+        <div className="flex items-center gap-3 px-5 py-2.5 bg-primary/5 border-b border-primary/10">
+          <span className="text-sm font-medium text-primary">{selectedIds.size} selected</span>
+          <div className="flex items-center gap-2 ml-auto">
+            {bulkActions.map((action, i) => (
+              <button
+                key={i}
+                onClick={() => { action.onClick(Array.from(selectedIds)); setSelectedIds(new Set()); }}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors",
+                  action.variant === "danger"
+                    ? "bg-red-50 text-red-600 hover:bg-red-100"
+                    : "bg-primary/10 text-primary hover:bg-primary/20"
+                )}
+              >
+                {action.icon}
+                {action.label}
+              </button>
+            ))}
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="text-xs text-secondary hover:text-foreground ml-2"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Export button */}
       {exportFilename && (
         <div className="flex justify-end px-5 pt-3">
@@ -130,6 +198,13 @@ export default function DataTable({
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-50">
+              {selectable && (
+                <th className="w-10 px-3 py-3">
+                  <button onClick={toggleAll} className="text-secondary hover:text-primary transition-colors" aria-label="Select all">
+                    {allSelected ? <CheckSquare size={16} /> : someSelected ? <MinusSquare size={16} /> : <Square size={16} />}
+                  </button>
+                </th>
+              )}
               {columns.map((col) => {
                 const isSortable = col.sortable !== false;
                 const key = col.sortKey || col.key;
@@ -178,30 +253,42 @@ export default function DataTable({
               </tr>
             ) : sortedData.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-5 py-12 text-center text-sm text-secondary">
+                <td colSpan={columns.length + (selectable ? 1 : 0)} className="px-5 py-12 text-center text-sm text-secondary">
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
-              sortedData.map((row, i) => (
+              sortedData.map((row, i) => {
+                const id = row[rowKey] as string;
+                const isSelected = selectable && selectedIds.has(id);
+                return (
                 <tr
-                  key={row.id || i}
+                  key={id || i}
                   onClick={() => onRowClick?.(row)}
                   className={cn(
                     "border-b border-gray-50 last:border-0 transition-colors",
-                    onRowClick && "cursor-pointer hover:bg-gray-50/50"
+                    onRowClick && "cursor-pointer hover:bg-gray-50/50",
+                    isSelected && "bg-primary/5"
                   )}
                   tabIndex={onRowClick ? 0 : undefined}
                   onKeyDown={onRowClick ? (e) => { if (e.key === "Enter" || e.key === " ") onRowClick(row); } : undefined}
                   role={onRowClick ? "button" : undefined}
                 >
+                  {selectable && (
+                    <td className="w-10 px-3 py-3">
+                      <button onClick={(e) => toggleRow(id, e)} className="text-secondary hover:text-primary transition-colors" aria-label={isSelected ? "Deselect row" : "Select row"}>
+                        {isSelected ? <CheckSquare size={16} className="text-primary" /> : <Square size={16} />}
+                      </button>
+                    </td>
+                  )}
                   {columns.map((col) => (
                     <td key={col.key} className={cn("px-5 py-3 text-sm whitespace-nowrap", col.className)}>
                       {col.render ? col.render(row[col.key], row, i) : row[col.key] ?? "-"}
                     </td>
                   ))}
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>

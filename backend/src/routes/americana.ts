@@ -6,6 +6,7 @@ import { getPagination, paginatedResponse } from "../utils/pagination";
 import { upload } from "../utils/upload";
 import { parseAmericanaXlsx } from "../services/americanaXlsxParser";
 import fs from "fs";
+import { getAdapter } from "../adapters";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -147,47 +148,11 @@ router.put("/orders/:id", async (req: Request, res: Response) => {
 // GET /drivers/summary - Americana driver stats
 router.get("/drivers/summary", async (req: Request, res: Response) => {
   try {
-    const tenantId = req.user!.tenantId;
-
-    // Total distinct drivers with any Americana orders
-    const allDrivers = await prisma.americanaDailyOrders.findMany({
-      where: { tenantId },
-      select: { driverId: true },
-      distinct: ["driverId"],
-    });
-
-    // Active drivers: those with orders in the current month
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    startOfMonth.setDate(startOfMonth.getDate() - 1); // timezone buffer
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    endOfMonth.setDate(endOfMonth.getDate() + 1);
-
-    const [activeDrivers, monthAgg] = await Promise.all([
-      prisma.americanaDailyOrders.findMany({
-        where: { tenantId, month: { gte: startOfMonth, lt: endOfMonth } },
-        select: { driverId: true },
-        distinct: ["driverId"],
-      }),
-      prisma.americanaDailyOrders.aggregate({
-        where: { tenantId, month: { gte: startOfMonth, lt: endOfMonth } },
-        _sum: { totalOrders: true },
-        _count: { id: true },
-      }),
-    ]);
-
-    const activeCount = activeDrivers.length;
-    const totalOrdersThisMonth = monthAgg._sum.totalOrders || 0;
-    // Approximate avg orders/day: totalOrders / activeDrivers / days elapsed in month
-    const dayOfMonth = Math.max(1, now.getDate());
-    const avgOrdersPerDay = activeCount > 0
-      ? Math.round((totalOrdersThisMonth / activeCount / dayOfMonth) * 10) / 10
-      : 0;
-
+    const summary = await getAdapter("AMERICANA").getDriverSummary(req.user!.tenantId);
     res.json({
-      totalDrivers: allDrivers.length,
-      activeDrivers: activeCount,
-      avgOrdersPerDay,
+      totalDrivers: summary.totalDrivers ?? 0,
+      activeDrivers: summary.activeDrivers ?? 0,
+      avgOrdersPerDay: summary.avgDeliveriesPerDay ?? 0,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

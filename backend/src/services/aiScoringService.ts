@@ -303,52 +303,29 @@ export class AiScoringService {
     }
 
     // ── Persist scores ─────────────────────────────────────────────────────
+    // Batched: delete any existing scores for today then createMany. Requires
+    // @@unique([tenantId, driverId, date]) on AiScore (see schema.prisma).
     const scoreDate = new Date(todayStart);
 
-    for (const score of results) {
-      await prisma.aiScore.upsert({
-        where: {
-          // No unique constraint in schema, so use findFirst + update pattern
-          // We use a synthetic approach: delete today's existing score then create
-          // Actually schema has no @@unique on (driverId, date), so we create
-          id: "non-existent-id-forces-create",
-        },
-        update: {},
-        create: {
-          tenantId,
-          driverId: score.driverId,
-          date: scoreDate,
-          compositeScore: score.compositeScore,
-          attendanceScore: score.attendanceScore,
-          deliveryScore: score.deliveryScore,
-          financialScore: score.financialScore,
-          equipmentScore: score.equipmentScore,
-          platformScore: score.platformScore,
-          trend: score.trend,
-          breakdown: score.breakdown as object,
-        },
-      }).catch(async () => {
-        // Fallback: delete today's score for this driver and recreate
-        await prisma.aiScore.deleteMany({
-          where: { tenantId, driverId: score.driverId, date: scoreDate },
-        });
-        await prisma.aiScore.create({
-          data: {
-            tenantId,
-            driverId: score.driverId,
-            date: scoreDate,
-            compositeScore: score.compositeScore,
-            attendanceScore: score.attendanceScore,
-            deliveryScore: score.deliveryScore,
-            financialScore: score.financialScore,
-            equipmentScore: score.equipmentScore,
-            platformScore: score.platformScore,
-            trend: score.trend,
-            breakdown: score.breakdown as object,
-          },
-        });
-      });
-    }
+    await prisma.aiScore.deleteMany({
+      where: { tenantId, driverId: { in: driverIds }, date: scoreDate },
+    });
+
+    await prisma.aiScore.createMany({
+      data: results.map((score) => ({
+        tenantId,
+        driverId: score.driverId,
+        date: scoreDate,
+        compositeScore: score.compositeScore,
+        attendanceScore: score.attendanceScore,
+        deliveryScore: score.deliveryScore,
+        financialScore: score.financialScore,
+        equipmentScore: score.equipmentScore,
+        platformScore: score.platformScore,
+        trend: score.trend,
+        breakdown: score.breakdown as object,
+      })),
+    });
 
     console.log(
       `[AiScoringService] Scored ${results.length} drivers for tenant ${tenantId}`

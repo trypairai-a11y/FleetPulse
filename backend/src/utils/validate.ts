@@ -80,6 +80,26 @@ export const createKpiRecordSchema = z.object({
   source: z.enum(["MANUAL", "COMPUTED", "SCREENSHOT_OCR"]).optional(),
 });
 
+export const createCashRecordSchema = z.object({
+  driverId: z.string().min(1, "Driver is required"),
+  date: z.string().refine((v) => !isNaN(Date.parse(v)), "Invalid date"),
+  salesAmount: z.number().min(0),
+  cashCollected: z.number().min(0).optional(),
+  pendingDues: z.number().min(0).optional(),
+  status: z.enum(["PENDING", "PARTIALLY_PAID", "SETTLED"]).optional(),
+  notes: z.string().max(1000).optional(),
+});
+
+export const createTalabatSessionSchema = z.object({
+  driverId: z.string().min(1, "Driver is required"),
+  date: z.string().refine((v) => !isNaN(Date.parse(v)), "Invalid date"),
+  scheduledStart: z.string().optional(),
+  scheduledEnd: z.string().optional(),
+  zone: z.string().optional(),
+  status: z.enum(["PLANNED", "ACTIVE", "COMPLETED", "NO_SHOW", "CANCELLED"]).optional(),
+  plannedHoursMinutes: z.number().int().min(0).max(1440).optional(),
+});
+
 export const createOrderSchema = z.object({
   driverId: z.string().min(1, "Driver is required"),
   platform: z.enum(["TALABAT", "KEETA", "DELIVEROO", "AMERICANA"]),

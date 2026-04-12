@@ -7,9 +7,15 @@ import { upload } from "../utils/upload";
 import { parsePendingDuesXlsx } from "../services/xlsxParser";
 import XLSX from "xlsx";
 import fs from "fs";
+import { rbac } from "../middleware/rbac";
+import { validateBody, createCashRecordSchema } from "../utils/validate";
+import { assertDriverNotRestricted, DriverRestrictedError } from "../utils/driverRestriction";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
+
+const MUTATORS = ["ADMIN", "OPS_MANAGER", "ACCOUNTANT"];
+const DESTRUCTIVE = ["ADMIN", "ACCOUNTANT"];
 
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -248,18 +254,23 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", rbac(...MUTATORS), validateBody(createCashRecordSchema.passthrough()), async (req: Request, res: Response) => {
   try {
+    await assertDriverNotRestricted(req.user!.tenantId, req.body.driverId);
     const record = await prisma.cashRecord.create({
       data: { ...req.body, tenantId: req.user!.tenantId },
     });
     res.status(201).json(record);
   } catch (err: any) {
+    if (err instanceof DriverRestrictedError) {
+      res.status(403).json({ error: err.message, driverId: err.driverId });
+      return;
+    }
     res.status(400).json({ error: err.message });
   }
 });
 
-router.put("/:id", async (req: Request, res: Response) => {
+router.put("/:id", rbac(...MUTATORS), async (req: Request, res: Response) => {
   try {
     const record = await prisma.cashRecord.updateMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },
@@ -273,7 +284,7 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/:id", rbac(...DESTRUCTIVE), async (req: Request, res: Response) => {
   try {
     await prisma.cashRecord.deleteMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },

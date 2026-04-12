@@ -6,6 +6,7 @@ import { getPagination, paginatedResponse } from "../utils/pagination";
 import { upload } from "../utils/upload";
 import { parseKeetaXlsx } from "../services/keetaXlsxParser";
 import fs from "fs";
+import { getAdapter } from "../adapters";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -144,45 +145,12 @@ router.put("/metrics/:id", async (req: Request, res: Response) => {
 // GET /drivers/summary - Keeta driver stats
 router.get("/drivers/summary", async (req: Request, res: Response) => {
   try {
-    const tenantId = req.user!.tenantId;
-
-    // Active drivers: distinct drivers with metrics in last 7 days
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    const [activeDrivers, totalDrivers, recentMetrics, validDayCount] = await Promise.all([
-      prisma.keetaDailyMetrics.findMany({
-        where: { tenantId, date: { gte: sevenDaysAgo } },
-        select: { driverId: true },
-        distinct: ["driverId"],
-      }),
-      prisma.driver.count({
-        where: { tenantId, platform: "KEETA" },
-      }),
-      prisma.keetaDailyMetrics.aggregate({
-        where: { tenantId, date: { gte: sevenDaysAgo } },
-        _sum: { deliveredTasks: true },
-        _count: { id: true },
-      }),
-      prisma.keetaDailyMetrics.count({
-        where: { tenantId, date: { gte: sevenDaysAgo }, validDay: true },
-      }),
-    ]);
-
-    const activeDriverCount = activeDrivers.length;
-    const totalRecords = recentMetrics._count.id || 0;
-    const avgDeliveriesPerDay = activeDriverCount > 0
-      ? Math.round(((recentMetrics._sum.deliveredTasks || 0) / activeDriverCount / 7) * 10) / 10
-      : 0;
-    const avgValidDayRate = totalRecords > 0
-      ? Math.round((validDayCount / totalRecords) * 1000) / 10
-      : 0;
-
+    const summary = await getAdapter("KEETA").getDriverSummary(req.user!.tenantId);
     res.json({
-      activeDriverCount,
-      totalDrivers,
-      avgDeliveriesPerDay,
-      avgValidDayRate,
+      activeDriverCount: summary.activeDrivers ?? 0,
+      totalDrivers: summary.totalDrivers ?? 0,
+      avgDeliveriesPerDay: summary.avgDeliveriesPerDay ?? 0,
+      avgValidDayRate: (summary.extra?.avgValidDayRate as number) ?? 0,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

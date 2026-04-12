@@ -1,30 +1,97 @@
 import { prisma } from "../config";
+import { sendWhatsApp, sendSms, sendEmail } from "./notificationChannels";
+import { enqueueNotification } from "../queues/notificationQueue";
+import { logger } from "../config/logger";
+import { NotificationChannel } from "../generated/prisma";
+
+type OutboundChannel = "WHATSAPP" | "EMAIL" | "SMS";
 
 /**
- * Dispatch a notification via WhatsApp.
- * Stub implementation — wire to your WhatsApp Business API here.
+ * Persist a NotificationDelivery row then enqueue it. Falls back to
+ * synchronous dispatch when Redis is unavailable so dev environments
+ * still get feedback. Idempotency key is (tenantId, channel, recipient,
+ * eventType, date) so retries + duplicate rule fanout collapse.
  */
-async function sendWhatsApp(phone: string, message: string): Promise<void> {
-  // TODO: integrate with WhatsApp Business API (e.g. Twilio, 360dialog, Meta WABA)
-  console.warn(`[WhatsApp] Notification to ${phone}: ${message}`);
-}
+async function deliverExternal(params: {
+  tenantId: string;
+  channel: OutboundChannel;
+  recipient: string;
+  subject?: string;
+  body: string;
+  sourceType: string;
+  sourceId?: string;
+}) {
+  const day = new Date();
+  day.setHours(0, 0, 0, 0);
+  const idempotencyKey = `${params.tenantId}:${params.channel}:${params.recipient}:${params.sourceType}:${day.toISOString().split("T")[0]}`;
 
-/**
- * Dispatch a notification via email.
- * Stub implementation — wire to your email provider here.
- */
-async function sendEmail(email: string, subject: string, body: string): Promise<void> {
-  // TODO: integrate with email provider (e.g. SendGrid, SES, Nodemailer)
-  console.warn(`[Email] Notification to ${email} — Subject: ${subject}: ${body}`);
-}
+  // Upsert the delivery row so retries/duplicates collapse
+  const existing = await prisma.notificationDelivery.findUnique({
+    where: { idempotencyKey },
+  });
+  if (existing && (existing.status === "SENT" || existing.status === "SENDING" || existing.status === "QUEUED")) {
+    return existing;
+  }
 
-/**
- * Dispatch a notification via SMS.
- * Stub implementation — wire to your SMS provider here.
- */
-async function sendSms(phone: string, message: string): Promise<void> {
-  // TODO: integrate with SMS provider (e.g. Twilio, Nexmo)
-  console.warn(`[SMS] Notification to ${phone}: ${message}`);
+  const row = existing
+    ? await prisma.notificationDelivery.update({
+        where: { id: existing.id },
+        data: { status: "QUEUED", body: params.body, subject: params.subject, error: null },
+      })
+    : await prisma.notificationDelivery.create({
+        data: {
+          tenantId: params.tenantId,
+          channel: params.channel as NotificationChannel,
+          recipient: params.recipient,
+          subject: params.subject,
+          body: params.body,
+          sourceType: params.sourceType,
+          sourceId: params.sourceId,
+          idempotencyKey,
+          status: "QUEUED",
+        },
+      });
+
+  const result = await enqueueNotification(
+    {
+      deliveryId: row.id,
+      channel: params.channel,
+      recipient: params.recipient,
+      subject: params.subject,
+      body: params.body,
+      tenantId: params.tenantId,
+    },
+    idempotencyKey
+  );
+
+  if (result === "fallback") {
+    // No Redis — synchronous dispatch so nothing silently queues forever
+    const dispatch =
+      params.channel === "WHATSAPP"
+        ? sendWhatsApp(params.recipient, params.body)
+        : params.channel === "SMS"
+          ? sendSms(params.recipient, params.body)
+          : sendEmail(params.recipient, params.subject || "Darb notification", params.body);
+
+    dispatch
+      .then(async (r) => {
+        await prisma.notificationDelivery.update({
+          where: { id: row.id },
+          data: {
+            status: r.ok ? "SENT" : "FAILED",
+            provider: r.provider,
+            error: r.error || null,
+            sentAt: r.ok ? new Date() : null,
+            attempts: { increment: 1 },
+            lastAttemptAt: new Date(),
+          },
+        });
+        if (!r.ok) logger.warn({ channel: params.channel, provider: r.provider, err: r.error }, "notification fallback send failed");
+      })
+      .catch((e) => logger.error({ err: e }, "notification fallback threw"));
+  }
+
+  return row;
 }
 
 /**
@@ -82,22 +149,40 @@ export async function createViolationNotifications(params: {
     inAppCount = notifications.count;
   }
 
-  // External channels — dispatch asynchronously, don't block response
+  // External channels — persisted to NotificationDelivery and enqueued for
+  // the BullMQ worker. Failures are visible in the NotificationDelivery
+  // table instead of lost to in-process fire-and-forget.
   for (const user of users) {
     if (channels.whatsapp && user.phone) {
-      sendWhatsApp(user.phone, `[${title}] ${message}`).catch((e) =>
-        console.error(`[WhatsApp] Failed for user ${user.id}:`, e)
-      );
+      deliverExternal({
+        tenantId,
+        channel: "WHATSAPP",
+        recipient: user.phone,
+        body: `[${title}] ${message}`,
+        sourceType: eventType,
+        sourceId,
+      }).catch((e) => logger.error({ err: e, userId: user.id }, "enqueue whatsapp failed"));
     }
     if (channels.email && user.email) {
-      sendEmail(user.email, title, message).catch((e) =>
-        console.error(`[Email] Failed for user ${user.id}:`, e)
-      );
+      deliverExternal({
+        tenantId,
+        channel: "EMAIL",
+        recipient: user.email,
+        subject: title,
+        body: message,
+        sourceType: eventType,
+        sourceId,
+      }).catch((e) => logger.error({ err: e, userId: user.id }, "enqueue email failed"));
     }
     if (channels.sms && user.phone) {
-      sendSms(user.phone, `${title}: ${message}`).catch((e) =>
-        console.error(`[SMS] Failed for user ${user.id}:`, e)
-      );
+      deliverExternal({
+        tenantId,
+        channel: "SMS",
+        recipient: user.phone,
+        body: `${title}: ${message}`,
+        sourceType: eventType,
+        sourceId,
+      }).catch((e) => logger.error({ err: e, userId: user.id }, "enqueue sms failed"));
     }
   }
 

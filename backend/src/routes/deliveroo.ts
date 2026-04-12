@@ -4,6 +4,7 @@ import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
 import { sendXlsx } from "../utils/xlsxExport";
+import { getAdapter } from "../adapters";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -12,19 +13,16 @@ router.use(authMiddleware, tenantScope);
 
 router.get("/drivers/summary", async (req: Request, res: Response) => {
   try {
-    const tenantId = req.user!.tenantId;
-    const { companyId } = req.query;
-    const where: any = { tenantId, platform: "DELIVEROO" };
-    if (companyId) where.companyId = companyId;
-
-    const [total, active, inactive, suspended] = await Promise.all([
-      prisma.driver.count({ where }),
-      prisma.driver.count({ where: { ...where, status: "ACTIVE" } }),
-      prisma.driver.count({ where: { ...where, status: "INACTIVE" } }),
-      prisma.driver.count({ where: { ...where, status: "SUSPENDED" } }),
-    ]);
-
-    res.json({ total, active, inactive, suspended });
+    const summary = await getAdapter("DELIVEROO").getDriverSummary(req.user!.tenantId, {
+      companyId: req.query.companyId as string | undefined,
+    });
+    // Preserve existing response shape for the Deliveroo frontend.
+    res.json({
+      total: summary.totalDrivers ?? 0,
+      active: summary.activeDrivers ?? 0,
+      inactive: summary.inactiveDrivers ?? 0,
+      suspended: summary.suspendedDrivers ?? 0,
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

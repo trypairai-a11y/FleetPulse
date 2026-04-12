@@ -1,0 +1,144 @@
+import { Prisma } from "../generated/prisma";
+import { getContext } from "./requestContext";
+
+/**
+ * Models that carry a tenantId column and therefore must always be
+ * filtered by tenantId on read/update/delete. This list is used for
+ * both the audit log and the tenant-scope guard.
+ */
+const TENANT_SCOPED_MODELS = new Set<string>([
+  "Driver",
+  "Company",
+  "Vehicle",
+  "Shift",
+  "AttendanceRecord",
+  "OrderLog",
+  "CashRecord",
+  "CashTransaction",
+  "PendingDuesLedger",
+  "DriverRestriction",
+  "DriverInventory",
+  "LeaveRequest",
+  "Ticket",
+  "Alert",
+  "AiDigest",
+  "AuditLog",
+  "MaintenanceRecord",
+  "VehicleInspection",
+  "Device",
+  "DeviceCommand",
+  "KpiDefinition",
+  "KpiRecord",
+  "TalabatSession",
+  "TalabatDelivery",
+  "TalabatViolationEvent",
+  "KeetaDailyMetrics",
+  "AmericanaOrder",
+  "NotificationRule",
+  "Notification",
+  "PlatformSettings",
+  "Recruitment",
+  "AiScore",
+]);
+
+const MUTATION_OPS = new Set([
+  "create",
+  "createMany",
+  "update",
+  "updateMany",
+  "upsert",
+  "delete",
+  "deleteMany",
+]);
+
+const AUDIT_MODEL = "AuditLog";
+
+function hasTenantFilter(args: any): boolean {
+  const where = args?.where;
+  if (!where) return false;
+  if (where.tenantId) return true;
+  // Nested AND/OR can also scope it — treat as acceptable if any branch names tenantId
+  if (Array.isArray(where.AND) && where.AND.some((w: any) => w?.tenantId)) return true;
+  if (Array.isArray(where.OR) && where.OR.every((w: any) => w?.tenantId)) return true;
+  return false;
+}
+
+/**
+ * Tenant-scope guard + audit log Prisma client extension.
+ *
+ * - Logs a warning when a tenant-scoped model is queried without a tenantId
+ *   filter. In production this is a warning only (no throw) to avoid mass
+ *   outages from a single missed filter; integration tests should treat it
+ *   as a failure. Flip TENANT_GUARD_STRICT=true to throw.
+ * - Writes an AuditLog row for every mutation on a tenant-scoped model,
+ *   pulling userId/tenantId from the AsyncLocalStorage request context.
+ *   AuditLog writes themselves are excluded to avoid recursion.
+ */
+export const prismaExtensions = Prisma.defineExtension((client) => {
+  return client.$extends({
+    name: "darb-tenant-and-audit",
+    query: {
+      $allModels: {
+        async $allOperations({ model, operation, args, query }) {
+          const isTenantScoped = TENANT_SCOPED_MODELS.has(model);
+          const isMutation = MUTATION_OPS.has(operation);
+
+          // ── Tenant guard ────────────────────────────────────────────────
+          if (
+            isTenantScoped &&
+            model !== AUDIT_MODEL &&
+            (operation === "findMany" ||
+              operation === "findFirst" ||
+              operation === "updateMany" ||
+              operation === "deleteMany" ||
+              operation === "count" ||
+              operation === "aggregate" ||
+              operation === "groupBy")
+          ) {
+            if (!hasTenantFilter(args)) {
+              const msg = `[tenant-guard] ${model}.${operation} called without tenantId filter`;
+              if (process.env.TENANT_GUARD_STRICT === "true") {
+                throw new Error(msg);
+              } else {
+                console.warn(msg);
+              }
+            }
+          }
+
+          const result = await query(args);
+
+          // ── Audit log ───────────────────────────────────────────────────
+          if (isTenantScoped && isMutation && model !== AUDIT_MODEL) {
+            const ctx = getContext();
+            const tenantId = ctx?.tenantId || (args as any)?.data?.tenantId;
+            if (tenantId) {
+              // Fire and forget — never block the main mutation
+              (client as any).auditLog
+                .create({
+                  data: {
+                    tenantId,
+                    userId: ctx?.userId || null,
+                    action: operation.toUpperCase(),
+                    entityType: model,
+                    entityId:
+                      (result as any)?.id ||
+                      (args as any)?.where?.id ||
+                      null,
+                    changes: {
+                      args: (args as any) ?? null,
+                    } as any,
+                    ipAddress: ctx?.ipAddress || null,
+                  },
+                })
+                .catch((e: unknown) => {
+                  console.error("[audit-log] failed to write:", e);
+                });
+            }
+          }
+
+          return result;
+        },
+      },
+    },
+  });
+});

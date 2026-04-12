@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Darb Agent",
+    "slug": "darb-agent",
+    "version": "1.0.0",
+    "scheme": "darb-agent",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.ktech.darb.agent",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Darb needs the camera for selfie clock-in verification",
+        "NSLocationWhenInUseUsageDescription": "Darb tracks your location during active shifts",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Darb tracks your location during active shifts for delivery assignment",
+        "UIBackgroundModes": ["location", "fetch", "remote-notification"]
+      }
+    },
+    "android": {
+      "package": "com.ktech.darb.agent",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "CAMERA",
+        "FOREGROUND_SERVICE",
+        "POST_NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED"
+      ]
+    },
+    "plugins": [
+      "expo-camera",
+      "expo-location",
+      "expo-notifications",
+      "expo-secure-store",
+      "expo-router"
+    ]
+  }
+}

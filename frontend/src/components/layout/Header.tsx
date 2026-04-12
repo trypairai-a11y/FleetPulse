@@ -4,6 +4,7 @@ import { LogOut, PanelLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSidebar } from "@/contexts/SidebarContext";
 import NotificationDropdown from "./NotificationDropdown";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -45,6 +46,7 @@ export default function Header() {
         </div>
       </div>
       <div className="flex items-center gap-4">
+        <ThemeToggle />
         <NotificationDropdown />
         <div className="text-right mr-2">
           <p className="text-sm font-medium text-foreground">{user?.name}</p>

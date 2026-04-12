@@ -1,5 +1,7 @@
 import { prisma } from "../config";
+import { AlertSeverity, ViolationEventType } from "../generated/prisma";
 import { createViolationNotifications, getViolationSeverity } from "./notificationService";
+import { publishEvent } from "./eventBus";
 
 /**
  * Helper: upsert an alert idempotently using (tenantId, driverId, type, date).
@@ -31,8 +33,16 @@ async function upsertAlert(params: {
   if (existing) return { alert: existing, created: false };
 
   const alert = await prisma.alert.create({
-    data: { tenantId, type, severity, title, message, driverId, data },
+    data: { tenantId, type, severity: severity as AlertSeverity, title, message, driverId, data },
   });
+
+  publishEvent({
+    type: "alert",
+    tenantId,
+    payload: { alertId: alert.id, alertType: type, severity, title, message, driverId },
+    timestamp: new Date().toISOString(),
+  }).catch(() => {});
+
   return { alert, created: true };
 }
 
@@ -53,12 +63,12 @@ async function upsertViolationEvent(params: {
   windowStart.setHours(0, 0, 0, 0);
 
   const existing = await prisma.talabatViolationEvent.findFirst({
-    where: { tenantId, driverId, type, createdAt: { gte: windowStart } },
+    where: { tenantId, driverId, type: type as ViolationEventType, createdAt: { gte: windowStart } },
   });
   if (existing) return { event: existing, created: false };
 
   const event = await prisma.talabatViolationEvent.create({
-    data: { tenantId, driverId, type, description, metadata, ...(sessionId ? { sessionId } : {}) },
+    data: { tenantId, driverId, type: type as ViolationEventType, description, metadata, ...(sessionId ? { sessionId } : {}) },
   });
 
   // Mirror to Alert table for unified feed (Task 13: bridge violations to alerts)
@@ -67,12 +77,19 @@ async function upsertViolationEvent(params: {
       tenantId,
       driverId,
       type: `VIOLATION_${type}`,
-      severity: getViolationSeverity(type),
+      severity: getViolationSeverity(type) as AlertSeverity,
       title: type.replace(/_/g, " "),
       message: description,
       data: { violationEventId: event.id, ...(metadata || {}) },
     },
   });
+
+  publishEvent({
+    type: "violation",
+    tenantId,
+    payload: { eventId: event.id, violationType: type, driverId, description },
+    timestamp: new Date().toISOString(),
+  }).catch(() => {});
 
   return { event, created: true };
 }

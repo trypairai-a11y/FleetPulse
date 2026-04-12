@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,9 +10,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#f5f5f7",
-        foreground: "#1d1d1f",
-        secondary: "#86868b",
+        background: "var(--color-bg)",
+        foreground: "var(--color-fg)",
+        secondary: "var(--color-secondary)",
         primary: {
           DEFAULT: "#007AFF",
           hover: "#0066d6",
@@ -20,7 +21,8 @@ const config: Config = {
         talabat: "#FF5A00",
         deliveroo: "#00CCBC",
         americana: "#0066FF",
-        card: "#ffffff",
+        card: "var(--color-card)",
+        border: "var(--color-border)",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],

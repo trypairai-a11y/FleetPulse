@@ -3,10 +3,16 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
 import rateLimit from "express-rate-limit";
+import pinoHttp from "pino-http";
 import swaggerUi from "swagger-ui-express";
 import { env } from "./config/env";
+import { logger } from "./config/logger";
+import { initSentry } from "./config/sentry";
 import { errorHandler } from "./middleware/errorHandler";
+import { requestId } from "./middleware/requestId";
 import { swaggerSpec } from "./config/swagger";
+
+initSentry();
 
 import authRoutes from "./routes/auth";
 import driverRoutes from "./routes/drivers";
@@ -36,6 +42,9 @@ import notificationRoutes from "./routes/notifications";
 import driverRestrictionRoutes from "./routes/driverRestrictions";
 import insightsRoutes from "./routes/insights";
 import supervisorRoutes from "./routes/supervisors";
+import dashboardRoutes from "./routes/dashboard";
+import eventRoutes from "./routes/events";
+import { startAnomalyScheduler } from "./services/anomalyScheduler";
 
 const app = express();
 
@@ -51,18 +60,34 @@ app.use(cors({
   origin: allowedOrigins,
   credentials: true,
 }));
+app.use(requestId);
+app.use(
+  pinoHttp({
+    logger,
+    customProps: (req) => ({ requestId: (req as any).id }),
+    serializers: {
+      req: (req) => ({ method: req.method, url: req.url, id: req.id }),
+      res: (res) => ({ statusCode: res.statusCode }),
+    },
+    // Quiet health checks — they're polled every few seconds
+    autoLogging: { ignore: (req) => req.url === "/api/health" || req.url === "/" },
+  })
+);
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Rate limiting
+// NOTE: uses in-memory store — broken across Vercel cold starts. Install
+// `rate-limit-redis` and pass `store: new RedisStore({ sendCommand: ... })`
+// to make this durable. /auth/demo and /auth/refresh are included (were skipped).
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 20,
   message: { error: "Too many auth attempts. Please try again in 15 minutes." },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => req.path === "/demo" || req.path === "/refresh" || req.path === "/me",
+  skip: (req) => req.path === "/me",
 });
 
 const apiLimiter = rateLimit({
@@ -106,6 +131,8 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/driver-restrictions", driverRestrictionRoutes);
 app.use("/api/insights", insightsRoutes);
 app.use("/api/supervisors", supervisorRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/events", eventRoutes);
 
 // API Documentation (Swagger UI — available at /api-docs)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -126,7 +153,8 @@ app.use(errorHandler);
 
 if (process.env.VERCEL !== "1") {
   app.listen(env.PORT, () => {
-    console.log(`Darb backend running on port ${env.PORT}`);
+    logger.info({ port: env.PORT }, "Darb backend running");
+    startAnomalyScheduler();
   });
 }
 

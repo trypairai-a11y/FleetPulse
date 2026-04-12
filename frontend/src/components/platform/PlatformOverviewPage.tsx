@@ -1,20 +1,56 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useApiGet } from "@/hooks/useApi";
 import { cn } from "@/lib/cn";
 import StatCard from "@/components/shared/StatCard";
 import {
-  AlertTriangle, Users, Clock, TrendingUp,
-  TrendingDown, Minus, ChevronRight, ShieldAlert, ArrowUpRight,
+  AlertTriangle, Users, TrendingUp,
+  TrendingDown, Minus, ChevronRight, ShieldAlert, ArrowUpRight, Search,
 } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 
-interface Props {
+// ─── Config types ───────────────────────────────────────────────────────────
+
+export interface KpiCardConfig {
+  title: string;
+  value: (summary: any) => string | number;
+  icon: LucideIcon;
+  trend?: (summary: any) => string;
+  highlight?: (summary: any) => boolean;
+  onClick?: (router: ReturnType<typeof useRouter>) => void;
+}
+
+export interface ColumnConfig {
+  key: string;
+  label: string;
+  sortable?: boolean;
+  render: (driver: any) => ReactNode;
+  headerRender?: (router: ReturnType<typeof useRouter>, platformKey: string) => ReactNode;
+}
+
+export interface Props {
   platform: string;
   platformKey: string;
   platformLabel: string;
   platformColor: string;
+  /** Override the API endpoint. Defaults to `/api/platform-overview/${platform}` */
+  apiEndpoint?: string;
+  /** Extra KPI cards above the table. Defaults to UTR, Active Drivers, Active Violations. */
+  kpiCards?: KpiCardConfig[];
+  /** Widgets rendered between KPI cards and the driver table */
+  middleSlot?: (data: { drivers: any[]; summary: any; loading: boolean }) => ReactNode;
+  /** Custom column definitions for the driver table. Defaults shown if omitted. */
+  columns?: ColumnConfig[];
+  /** Enable search bar above the driver table */
+  searchable?: boolean;
+  /** Enable Show All / Show Less toggle (first 15) */
+  paginated?: boolean;
+  /** Number of KPI card grid columns. Default 3. */
+  kpiGridCols?: number;
 }
+
+// ─── Grade helpers ──────────────────────────────────────────────────────────
 
 const GRADE_COLORS: Record<string, string> = {
   excellent: "text-green-600 bg-green-50",
@@ -24,7 +60,7 @@ const GRADE_COLORS: Record<string, string> = {
   failed: "text-red-600 bg-red-50",
 };
 
-function getGradeLabel(score: number | null): { label: string; colorClass: string } {
+export function getGradeLabel(score: number | null): { label: string; colorClass: string } {
   if (score === null) return { label: "-", colorClass: "text-gray-400 bg-gray-50" };
   if (score >= 90) return { label: "Excellent", colorClass: GRADE_COLORS.excellent };
   if (score >= 70) return { label: "Good", colorClass: GRADE_COLORS.good };
@@ -33,20 +69,123 @@ function getGradeLabel(score: number | null): { label: string; colorClass: strin
   return { label: "Failed", colorClass: GRADE_COLORS.failed };
 }
 
-function TrendIcon({ trend }: { trend: string | null }) {
+export function TrendIcon({ trend }: { trend: string | null }) {
   if (trend === "UP") return <TrendingUp size={14} className="text-green-500" />;
   if (trend === "DOWN") return <TrendingDown size={14} className="text-red-500" />;
   return <Minus size={14} className="text-gray-400" />;
 }
 
-export default function PlatformOverviewPage({ platform, platformKey, platformLabel, platformColor }: Props) {
+export function AttendanceBadge({ status }: { status: string | null }) {
+  return (
+    <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium",
+      status === "PRESENT" ? "bg-green-50 text-green-600" :
+      status === "LATE" ? "bg-yellow-50 text-yellow-600" :
+      status === "ABSENT" ? "bg-red-50 text-red-600" :
+      "bg-gray-100 text-gray-400"
+    )}>
+      {status || "No data"}
+    </span>
+  );
+}
+
+function driverName(name: string) {
+  return (name || "").replace(/\s+\d+[A-Za-z]?\s*[-–—]\s*\w+$/i, "").trim() || name;
+}
+
+// ─── Default column config ──────────────────────────────────────────────────
+
+function defaultColumns(platform: string): ColumnConfig[] {
+  const cols: ColumnConfig[] = [
+    { key: "rank", label: "#", sortable: false, render: (d) => <span className="text-sm text-secondary font-medium">{d.rank}</span> },
+    { key: "driver", label: "Driver", sortable: false, render: (d) => (
+      <div>
+        <p className="text-sm font-medium">{driverName(d.name)}</p>
+        <p className="text-xs text-secondary">{d.company}</p>
+      </div>
+    )},
+    { key: "utr", label: "UTR", render: (d) => <span className="text-sm font-mono">{d.utr || "-"}</span> },
+  ];
+  if (platform === "TALABAT") {
+    cols.push({
+      key: "batch", label: "Batch", render: (d) => (
+        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium",
+          d.batchNumber === "1" ? "bg-green-50 text-green-600" :
+          d.batchNumber === "2" ? "bg-blue-50 text-blue-600" :
+          d.batchNumber && Number(d.batchNumber) <= 4 ? "bg-yellow-50 text-yellow-600" :
+          "bg-red-50 text-red-600"
+        )}>
+          {d.batchNumber || "-"}
+        </span>
+      )
+    });
+  }
+  cols.push(
+    { key: "grade", label: "Darb Grade", render: (d) => {
+      const grade = getGradeLabel(d.darbGrade);
+      return (
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold">{d.darbGrade ?? "-"}</span>
+          <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-medium", grade.colorClass)}>{grade.label}</span>
+        </div>
+      );
+    }},
+    { key: "trend", label: "Trend", sortable: false, render: (d) => <TrendIcon trend={d.gradeTrend} /> },
+    { key: "orders", label: "Orders Today",
+      headerRender: (router, pk) => (
+        <button onClick={() => router.push(`/${pk}/orders`)} className="flex items-center gap-1 hover:text-primary transition-colors">
+          Orders Today <ArrowUpRight size={12} />
+        </button>
+      ),
+      render: (d) => <span className="text-sm font-semibold">{d.todayOrders}</span>,
+    },
+    { key: "cashCollected", label: "Cash Collected",
+      headerRender: (router, pk) => (
+        <button onClick={() => router.push(`/${pk}/cash`)} className="flex items-center gap-1 hover:text-primary transition-colors">
+          Cash Collected <ArrowUpRight size={12} />
+        </button>
+      ),
+      render: (d) => <span className="text-sm">{typeof d.cashCollected === "number" ? `${d.cashCollected.toFixed(3)} KD` : "-"}</span>,
+    },
+    { key: "cashPending", label: "Cash Pending", render: (d) => (
+      <span className={cn("text-sm font-medium", (d.cashPending || 0) > 0 ? "text-red-500" : "text-green-600")}>
+        {typeof d.cashPending === "number" ? `${d.cashPending.toFixed(3)} KD` : "-"}
+      </span>
+    )},
+    { key: "attendance", label: "Attendance", render: (d) => <AttendanceBadge status={d.attendance} /> },
+  );
+  return cols;
+}
+
+function defaultKpiCards(platformKey: string): KpiCardConfig[] {
+  return [
+    { title: "UTR", icon: TrendingUp, value: (s) => s.utr != null ? s.utr.toFixed(2) : "-", trend: () => "Units per Trip Rate" },
+    { title: "Active Drivers", icon: Users, value: (s) => s.totalDrivers || 0, trend: (s) => `${s.presentCount || 0} present, ${s.lateCount || 0} late, ${s.absentCount || 0} absent` },
+    { title: "Active Violations", icon: AlertTriangle, value: (s) => s.activeViolations || 0, highlight: (s) => (s.activeViolations || 0) > 0,
+      onClick: platformKey === "talabat" ? (router) => router.push(`/${platformKey}/violations`) : undefined },
+  ];
+}
+
+// ─── Main component ─────────────────────────────────────────────────────────
+
+export default function PlatformOverviewPage(props: Props) {
+  const {
+    platform, platformKey, platformLabel,
+    apiEndpoint, kpiCards, middleSlot, columns,
+    searchable = false, paginated = false, kpiGridCols = 3,
+  } = props;
+
   const router = useRouter();
   const [companyFilter, setCompanyFilter] = useState("");
+  const [driverSearch, setDriverSearch] = useState("");
+  const [sortCol, setSortCol] = useState("grade");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [showAll, setShowAll] = useState(false);
 
   const params = new URLSearchParams();
   if (companyFilter) params.set("companyId", companyFilter);
 
-  const { data } = useApiGet<any>(`/api/platform-overview/${platform}?${params}`);
+  const endpoint = apiEndpoint || `/api/platform-overview/${platform}`;
+  const { data, loading } = useApiGet<any>(`${endpoint}?${params}`);
   const { data: companiesData } = useApiGet<any>(`/api/companies?platform=${platform}`);
 
   const companies = companiesData?.data || [];
@@ -55,8 +194,46 @@ export default function PlatformOverviewPage({ platform, platformKey, platformLa
   const violations = data?.violations || [];
   const alerts = data?.alerts || [];
 
+  const cards = kpiCards || defaultKpiCards(platformKey);
+  const cols = columns || defaultColumns(platform);
+
+  function toggleSort(col: string) {
+    if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortCol(col); setSortDir("desc"); }
+  }
+
+  const filteredDrivers = useMemo(() => {
+    let list = [...drivers];
+    if (searchable && driverSearch) {
+      const q = driverSearch.toLowerCase();
+      list = list.filter((d: any) => d.name?.toLowerCase().includes(q) || d.zone?.toLowerCase().includes(q));
+    }
+    list.sort((a: any, b: any) => {
+      const av = a[sortCol] ?? (typeof a[sortCol] === "number" ? -1 : "");
+      const bv = b[sortCol] ?? (typeof b[sortCol] === "number" ? -1 : "");
+      if (av < bv) return sortDir === "asc" ? -1 : 1;
+      if (av > bv) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }, [drivers, driverSearch, sortCol, sortDir, searchable]);
+
+  const displayed = paginated && !showAll ? filteredDrivers.slice(0, 15) : filteredDrivers;
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-48 bg-gray-100 rounded-xl animate-pulse" />
+        <div className={cn("grid gap-4", `grid-cols-2 md:grid-cols-${kpiGridCols}`)}>
+          {[...Array(kpiGridCols)].map((_, i) => <div key={i} className="h-28 bg-gray-100 rounded-2xl animate-pulse" />)}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">{platformLabel} Overview</h1>
@@ -72,33 +249,27 @@ export default function PlatformOverviewPage({ platform, platformKey, platformLa
         </select>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <StatCard
-          title="UTR"
-          value={summary.utr != null ? summary.utr.toFixed(2) : "-"}
-          icon={TrendingUp}
-          trend="Units per Trip Rate"
-        />
-        <StatCard
-          title="Active Drivers"
-          value={summary.totalDrivers || 0}
-          icon={Users}
-          trend={`${summary.presentCount || 0} present, ${summary.lateCount || 0} late, ${summary.absentCount || 0} absent`}
-        />
-        <StatCard
-          title="Active Violations"
-          value={summary.activeViolations || 0}
-          icon={AlertTriangle}
-          highlight={(summary.activeViolations || 0) > 0}
-          onClick={platformKey === "talabat" ? () => router.push(`/${platformKey}/violations`) : undefined}
-        />
+      {/* KPI Cards */}
+      <div className={cn("grid gap-4", `grid-cols-2 md:grid-cols-${kpiGridCols}`)}>
+        {cards.map((card, i) => (
+          <StatCard
+            key={i}
+            title={card.title}
+            value={card.value(summary)}
+            icon={card.icon}
+            trend={card.trend?.(summary)}
+            highlight={card.highlight?.(summary)}
+            onClick={card.onClick ? () => card.onClick!(router) : undefined}
+          />
+        ))}
       </div>
+
+      {/* Middle slot — platform-specific widgets */}
+      {middleSlot?.({ drivers, summary, loading })}
 
       {/* Alerts & Violations Row */}
       {(violations.length > 0 || alerts.length > 0) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Violations */}
           {violations.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
@@ -124,8 +295,6 @@ export default function PlatformOverviewPage({ platform, platformKey, platformLa
               </div>
             </div>
           )}
-
-          {/* Alerts */}
           {alerts.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
@@ -156,103 +325,73 @@ export default function PlatformOverviewPage({ platform, platformKey, platformLa
 
       {/* Driver Rankings Table */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Driver Rankings</h2>
-          <span className="text-xs text-secondary">{drivers.length} drivers</span>
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
+          <h2 className="text-sm font-semibold flex items-center gap-2">
+            Driver Rankings
+            <span className="text-xs font-normal text-secondary bg-gray-100 px-2 py-0.5 rounded-full">{filteredDrivers.length}</span>
+          </h2>
+          {searchable && (
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search drivers..."
+                value={driverSearch}
+                onChange={(e) => setDriverSearch(e.target.value)}
+                className="pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-48"
+              />
+            </div>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-50">
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3 w-12">#</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3 cursor-help" title="Utilization Time Rate">UTR</th>
-                {platform === "TALABAT" && <th className="text-left text-xs font-medium text-secondary px-5 py-3">Batch</th>}
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Darb Grade</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Trend</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">
-                  <button onClick={() => router.push(`/${platformKey}/orders`)} className="flex items-center gap-1 hover:text-primary transition-colors">
-                    Orders Today <ArrowUpRight size={12} />
-                  </button>
-                </th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">
-                  <button onClick={() => router.push(`/${platformKey}/cash`)} className="flex items-center gap-1 hover:text-primary transition-colors">
-                    Cash Collected <ArrowUpRight size={12} />
-                  </button>
-                </th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Cash Pending</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Attendance</th>
+              <tr className="border-b border-gray-100 bg-gray-50/50">
+                {cols.map(({ key, label, sortable = true, headerRender }) => (
+                  <th key={key}
+                    className={cn("text-left text-xs font-medium text-secondary px-5 py-3 whitespace-nowrap", sortable && "cursor-pointer hover:text-foreground")}
+                    onClick={() => sortable && toggleSort(key)}
+                  >
+                    {headerRender ? headerRender(router, platformKey) : (
+                      <span className="flex items-center gap-1">
+                        {label}
+                        {sortable && sortCol === key && <span className="text-primary">{sortDir === "asc" ? "↑" : "↓"}</span>}
+                      </span>
+                    )}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {drivers.map((driver: any) => {
-                const grade = getGradeLabel(driver.darbGrade);
-                return (
-                  <tr key={driver.id}
-                    className="border-b border-gray-50 last:border-0 hover:bg-gray-25 cursor-pointer transition-colors"
-                    onClick={() => router.push(`/${platformKey}/drivers/${driver.id}`)}
-                  >
-                    <td className="px-5 py-3 text-sm text-secondary font-medium">{driver.rank}</td>
-                    <td className="px-5 py-3">
-                      <div>
-                        <p className="text-sm font-medium">{(driver.name || "").replace(/\s+\d+[A-Za-z]?\s*[-–—]\s*\w+$/i, "").trim() || driver.name}</p>
-                        <p className="text-xs text-secondary">{driver.company}</p>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 text-sm font-mono">{driver.utr || "-"}</td>
-                    {platform === "TALABAT" && (
-                      <td className="px-5 py-3">
-                        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium",
-                          driver.batchNumber === "1" ? "bg-green-50 text-green-600" :
-                          driver.batchNumber === "2" ? "bg-blue-50 text-blue-600" :
-                          driver.batchNumber && Number(driver.batchNumber) <= 4 ? "bg-yellow-50 text-yellow-600" :
-                          "bg-red-50 text-red-600"
-                        )}>
-                          {driver.batchNumber || "-"}
-                        </span>
-                      </td>
-                    )}
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold">{driver.darbGrade ?? "-"}</span>
-                        <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-medium", grade.colorClass)}>
-                          {grade.label}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3"><TrendIcon trend={driver.gradeTrend} /></td>
-                    <td className="px-5 py-3 text-sm font-semibold">{driver.todayOrders}</td>
-                    <td className="px-5 py-3 text-sm">{driver.cashCollected.toFixed(3)} KD</td>
-                    <td className="px-5 py-3">
-                      <span className={cn("text-sm font-medium",
-                        driver.cashPending > 0 ? "text-red-500" : "text-green-600"
-                      )}>
-                        {driver.cashPending.toFixed(3)} KD
-                      </span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium",
-                        driver.attendance === "PRESENT" ? "bg-green-50 text-green-600" :
-                        driver.attendance === "LATE" ? "bg-yellow-50 text-yellow-600" :
-                        driver.attendance === "ABSENT" ? "bg-red-50 text-red-600" :
-                        "bg-gray-100 text-gray-400"
-                      )}>
-                        {driver.attendance || "No data"}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-              {drivers.length === 0 && (
+              {displayed.map((driver: any) => (
+                <tr key={driver.id}
+                  className="border-b border-gray-50 last:border-0 hover:bg-gray-25 cursor-pointer transition-colors"
+                  onClick={() => router.push(`/${platformKey}/drivers/${driver.id}`)}
+                >
+                  {cols.map(({ key, render }) => (
+                    <td key={key} className="px-5 py-3">{render(driver)}</td>
+                  ))}
+                </tr>
+              ))}
+              {filteredDrivers.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-5 py-8 text-center text-sm text-secondary">
-                    No driver data for today
+                  <td colSpan={cols.length} className="px-5 py-8 text-center text-sm text-secondary">
+                    {searchable && driverSearch ? "No drivers match your search" : "No driver data for today"}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
+        {paginated && filteredDrivers.length > 15 && (
+          <div className="px-5 py-3 border-t border-gray-100 text-center">
+            <button onClick={() => setShowAll(!showAll)}
+              className="text-sm text-primary hover:underline flex items-center gap-1 mx-auto">
+              {showAll ? "Show Less" : `Show All ${filteredDrivers.length} Drivers`}
+              <ChevronRight size={12} className={cn("transition-transform", showAll && "rotate-90")} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

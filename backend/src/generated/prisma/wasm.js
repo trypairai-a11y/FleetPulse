@@ -742,6 +742,26 @@ exports.Prisma.NotificationScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.NotificationDeliveryScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  channel: 'channel',
+  recipient: 'recipient',
+  subject: 'subject',
+  body: 'body',
+  provider: 'provider',
+  status: 'status',
+  idempotencyKey: 'idempotencyKey',
+  error: 'error',
+  attempts: 'attempts',
+  lastAttemptAt: 'lastAttemptAt',
+  sentAt: 'sentAt',
+  sourceType: 'sourceType',
+  sourceId: 'sourceId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.NotificationRuleScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -780,6 +800,357 @@ exports.Prisma.JsonNullValueFilter = {
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
+};
+
+exports.Prisma.TenantOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name'
+};
+
+exports.Prisma.CompanyOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name'
+};
+
+exports.Prisma.UserOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  email: 'email',
+  phone: 'phone',
+  passwordHash: 'passwordHash',
+  name: 'name',
+  jobGrade: 'jobGrade'
+};
+
+exports.Prisma.DriverOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  companyId: 'companyId',
+  name: 'name',
+  phone: 'phone',
+  platformDriverId: 'platformDriverId',
+  utr: 'utr',
+  zone: 'zone',
+  batchNumber: 'batchNumber',
+  photoUrl: 'photoUrl',
+  supervisorId: 'supervisorId',
+  offDaysResetMonth: 'offDaysResetMonth',
+  healthCertStatus: 'healthCertStatus',
+  workPermitStatus: 'workPermitStatus',
+  foodHandlingCertStatus: 'foodHandlingCertStatus',
+  vehicleRegStatus: 'vehicleRegStatus',
+  vehicleInsuranceStatus: 'vehicleInsuranceStatus',
+  drivingLicenseStatus: 'drivingLicenseStatus',
+  civilIdStatus: 'civilIdStatus'
+};
+
+exports.Prisma.DriverRestrictionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  reason: 'reason'
+};
+
+exports.Prisma.DriverInventoryOrderByRelevanceFieldEnum = {
+  id: 'id',
+  driverId: 'driverId'
+};
+
+exports.Prisma.RecruitmentPipelineOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  candidateName: 'candidateName',
+  phone: 'phone',
+  agency: 'agency',
+  notes: 'notes',
+  assignedCompanyId: 'assignedCompanyId'
+};
+
+exports.Prisma.VehicleOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  companyId: 'companyId',
+  plateNumber: 'plateNumber',
+  make: 'make',
+  model: 'model',
+  color: 'color',
+  chassisNumber: 'chassisNumber',
+  fuelType: 'fuelType',
+  ownerCompany: 'ownerCompany',
+  driverIqama: 'driverIqama',
+  assignedDriverId: 'assignedDriverId'
+};
+
+exports.Prisma.ShiftOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  zone: 'zone',
+  selfieUrl: 'selfieUrl',
+  clockInMethod: 'clockInMethod',
+  clockOutMethod: 'clockOutMethod',
+  shiftScreenshotUrl: 'shiftScreenshotUrl'
+};
+
+exports.Prisma.AttendanceRecordOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  shiftId: 'shiftId',
+  source: 'source'
+};
+
+exports.Prisma.OrderLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  shiftId: 'shiftId',
+  orderNumber: 'orderNumber',
+  paymentSource: 'paymentSource',
+  restaurantName: 'restaurantName',
+  screenshotUrl: 'screenshotUrl'
+};
+
+exports.Prisma.CashRecordOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  depositReceiptUrl: 'depositReceiptUrl',
+  notes: 'notes'
+};
+
+exports.Prisma.CashTransactionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  orderNumber: 'orderNumber',
+  description: 'description'
+};
+
+exports.Prisma.PendingDuesLedgerOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId'
+};
+
+exports.Prisma.VehicleInspectionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  vehicleId: 'vehicleId',
+  driverId: 'driverId',
+  notes: 'notes'
+};
+
+exports.Prisma.MaintenanceRecordOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  vehicleId: 'vehicleId',
+  driverId: 'driverId',
+  type: 'type',
+  vendor: 'vendor',
+  receiptUrl: 'receiptUrl',
+  spareVehicleId: 'spareVehicleId'
+};
+
+exports.Prisma.DeviceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  imei: 'imei',
+  model: 'model',
+  osVersion: 'osVersion',
+  agentVersion: 'agentVersion'
+};
+
+exports.Prisma.CapturedOrderOrderByRelevanceFieldEnum = {
+  id: 'id',
+  deviceId: 'deviceId',
+  driverId: 'driverId',
+  notificationText: 'notificationText'
+};
+
+exports.Prisma.LocationLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  deviceId: 'deviceId',
+  driverId: 'driverId'
+};
+
+exports.Prisma.AppUsageLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  deviceId: 'deviceId',
+  driverId: 'driverId',
+  appPackage: 'appPackage',
+  eventType: 'eventType'
+};
+
+exports.Prisma.DeviceCommandOrderByRelevanceFieldEnum = {
+  id: 'id',
+  deviceId: 'deviceId',
+  issuedById: 'issuedById'
+};
+
+exports.Prisma.AiScoreOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId'
+};
+
+exports.Prisma.AlertOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  type: 'type',
+  title: 'title',
+  message: 'message',
+  driverId: 'driverId',
+  vehicleId: 'vehicleId',
+  acknowledgedById: 'acknowledgedById'
+};
+
+exports.Prisma.AiDigestOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId'
+};
+
+exports.Prisma.AuditLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  action: 'action',
+  entityType: 'entityType',
+  entityId: 'entityId',
+  ipAddress: 'ipAddress'
+};
+
+exports.Prisma.TicketOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  ticketNumber: 'ticketNumber',
+  title: 'title',
+  description: 'description',
+  submitterDriverId: 'submitterDriverId',
+  submitterUserId: 'submitterUserId',
+  assignedToId: 'assignedToId',
+  resolution: 'resolution',
+  companyId: 'companyId',
+  driverId: 'driverId',
+  vehicleId: 'vehicleId'
+};
+
+exports.Prisma.LeaveRequestOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  reason: 'reason',
+  reviewedById: 'reviewedById',
+  reviewNotes: 'reviewNotes'
+};
+
+exports.Prisma.TalabatSessionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  shiftId: 'shiftId',
+  zone: 'zone',
+  sessionCode: 'sessionCode'
+};
+
+exports.Prisma.TalabatViolationEventOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  sessionId: 'sessionId',
+  description: 'description',
+  resolvedBy: 'resolvedBy'
+};
+
+exports.Prisma.TalabatDeliveryOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  sessionId: 'sessionId',
+  platformOrderId: 'platformOrderId',
+  shortCode: 'shortCode',
+  orderType: 'orderType',
+  status: 'status'
+};
+
+exports.Prisma.KeetaDailyMetricsOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  courierPlatformId: 'courierPlatformId',
+  supervisorName: 'supervisorName',
+  vehicleType: 'vehicleType',
+  source: 'source'
+};
+
+exports.Prisma.PlatformSettingsOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId'
+};
+
+exports.Prisma.PlatformInventoryOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId'
+};
+
+exports.Prisma.AmericanaDailyOrdersOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  chain: 'chain',
+  empId: 'empId',
+  storeName: 'storeName',
+  costCenter: 'costCenter',
+  company: 'company',
+  position: 'position',
+  source: 'source'
+};
+
+exports.Prisma.KpiDefinitionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  description: 'description'
+};
+
+exports.Prisma.KpiRecordOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  kpiDefinitionId: 'kpiDefinitionId',
+  source: 'source'
+};
+
+exports.Prisma.NotificationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  title: 'title',
+  message: 'message',
+  type: 'type',
+  severity: 'severity',
+  sourceId: 'sourceId'
+};
+
+exports.Prisma.NotificationDeliveryOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  recipient: 'recipient',
+  subject: 'subject',
+  body: 'body',
+  provider: 'provider',
+  idempotencyKey: 'idempotencyKey',
+  error: 'error',
+  sourceType: 'sourceType',
+  sourceId: 'sourceId'
+};
+
+exports.Prisma.NotificationRuleOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  eventType: 'eventType'
 };
 exports.SubscriptionPlan = exports.$Enums.SubscriptionPlan = {
   FREE: 'FREE',
@@ -1056,6 +1427,20 @@ exports.KpiUnit = exports.$Enums.KpiUnit = {
   SCORE: 'SCORE'
 };
 
+exports.NotificationChannel = exports.$Enums.NotificationChannel = {
+  WHATSAPP: 'WHATSAPP',
+  EMAIL: 'EMAIL',
+  SMS: 'SMS'
+};
+
+exports.NotificationDeliveryStatus = exports.$Enums.NotificationDeliveryStatus = {
+  QUEUED: 'QUEUED',
+  SENDING: 'SENDING',
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+  DEAD: 'DEAD'
+};
+
 exports.Prisma.ModelName = {
   Tenant: 'Tenant',
   Company: 'Company',
@@ -1094,6 +1479,7 @@ exports.Prisma.ModelName = {
   KpiDefinition: 'KpiDefinition',
   KpiRecord: 'KpiRecord',
   Notification: 'Notification',
+  NotificationDelivery: 'NotificationDelivery',
   NotificationRule: 'NotificationRule'
 };
 

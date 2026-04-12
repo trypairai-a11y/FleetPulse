@@ -5,9 +5,15 @@ import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
 import { parseLocalDate, parseLocalDateEnd } from "../utils/date";
 import { createViolationNotifications, getViolationSeverity } from "../services/notificationService";
+import { rbac } from "../middleware/rbac";
+import { validateBody, createTalabatSessionSchema } from "../utils/validate";
+import { assertDriverNotRestricted, DriverRestrictedError } from "../utils/driverRestriction";
+import { getAdapter } from "../adapters";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
+
+const MUTATORS = ["ADMIN", "OPS_MANAGER", "SUPERVISOR"];
 
 // ─── Sessions ───────────────────────────────────────────────────────────────
 
@@ -155,19 +161,24 @@ router.get("/sessions/:id", async (req: Request, res: Response) => {
 });
 
 // POST /sessions - Create session
-router.post("/sessions", async (req: Request, res: Response) => {
+router.post("/sessions", rbac(...MUTATORS), validateBody(createTalabatSessionSchema.passthrough()), async (req: Request, res: Response) => {
   try {
+    await assertDriverNotRestricted(req.user!.tenantId, req.body.driverId);
     const session = await prisma.talabatSession.create({
       data: { ...req.body, tenantId: req.user!.tenantId },
     });
     res.status(201).json(session);
   } catch (err: any) {
+    if (err instanceof DriverRestrictedError) {
+      res.status(403).json({ error: err.message, driverId: err.driverId });
+      return;
+    }
     res.status(400).json({ error: err.message });
   }
 });
 
 // PUT /sessions/:id - Update session
-router.put("/sessions/:id", async (req: Request, res: Response) => {
+router.put("/sessions/:id", rbac(...MUTATORS), async (req: Request, res: Response) => {
   try {
     const session = await prisma.talabatSession.updateMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },
@@ -423,44 +434,11 @@ router.put("/compliance/:id/resolve", async (req: Request, res: Response) => {
 // GET /drivers/summary - Active Talabat driver count, avg sessions/week, avg deliveries/day
 router.get("/drivers/summary", async (req: Request, res: Response) => {
   try {
-    const tenantId = req.user!.tenantId;
-
-    // Active drivers: distinct drivers with sessions in last 7 days
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-
-    const [activeDrivers, weekSessions, todaySessions] = await Promise.all([
-      prisma.talabatSession.findMany({
-        where: { tenantId, date: { gte: sevenDaysAgo } },
-        select: { driverId: true },
-        distinct: ["driverId"],
-      }),
-      prisma.talabatSession.count({
-        where: { tenantId, date: { gte: sevenDaysAgo } },
-      }),
-      prisma.talabatSession.aggregate({
-        where: { tenantId, date: { gte: startOfToday, lte: today } },
-        _sum: { deliveries: true },
-      }),
-    ]);
-
-    const activeDriverCount = activeDrivers.length;
-    const avgSessionsPerWeekPerDriver = activeDriverCount > 0
-      ? Math.round((weekSessions / activeDriverCount) * 10) / 10
-      : 0;
-    const avgDeliveriesPerDay = activeDriverCount > 0
-      ? Math.round(((todaySessions._sum.deliveries || 0) / activeDriverCount) * 10) / 10
-      : 0;
-
+    const summary = await getAdapter("TALABAT").getDriverSummary(req.user!.tenantId);
     res.json({
-      activeDriverCount,
-      avgSessionsPerWeekPerDriver,
-      avgDeliveriesPerDay,
+      activeDriverCount: summary.activeDrivers ?? 0,
+      avgSessionsPerWeekPerDriver: (summary.extra?.avgSessionsPerWeekPerDriver as number) ?? 0,
+      avgDeliveriesPerDay: summary.avgDeliveriesPerDay ?? 0,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

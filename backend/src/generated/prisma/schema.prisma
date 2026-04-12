@@ -1,12 +1,14 @@
 generator client {
-  provider      = "prisma-client-js"
-  output        = "../src/generated/prisma"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
+  previewFeatures = ["postgresqlExtensions", "fullTextSearch"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pg_trgm]
 }
 
 // ─── Enums ──────────────────────────────────────────────
@@ -339,6 +341,7 @@ model Tenant {
   platformInventory      PlatformInventory[]
   notifications          Notification[]
   notificationRules      NotificationRule[]
+  notificationDeliveries NotificationDelivery[]
   driverRestrictions     DriverRestriction[]
 }
 
@@ -462,6 +465,9 @@ model Driver {
   @@index([tenantId])
   @@index([companyId])
   @@index([platform])
+  @@index([tenantId, platform, status])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([phone(ops: raw("gin_trgm_ops"))], type: Gin)
 }
 
 // 5. DriverRestriction
@@ -592,6 +598,8 @@ model Shift {
   @@index([tenantId])
   @@index([driverId])
   @@index([date])
+  @@index([tenantId, date])
+  @@index([tenantId, driverId, date])
 }
 
 // 9. AttendanceRecord
@@ -647,6 +655,8 @@ model OrderLog {
   @@index([tenantId])
   @@index([driverId])
   @@index([date])
+  @@index([tenantId, date])
+  @@index([tenantId, platform, date])
 }
 
 // 11. CashRecord
@@ -671,6 +681,8 @@ model CashRecord {
   @@index([tenantId])
   @@index([driverId])
   @@index([date])
+  @@index([tenantId, status, date])
+  @@index([tenantId, driverId, date])
 }
 
 // 11b. CashTransaction
@@ -887,9 +899,11 @@ model AiScore {
   tenant Tenant @relation(fields: [tenantId], references: [id])
   driver Driver @relation(fields: [driverId], references: [id])
 
+  @@unique([tenantId, driverId, date], name: "tenantId_driverId_date_score")
   @@index([tenantId])
   @@index([driverId])
   @@index([date])
+  @@index([tenantId, date])
 }
 
 // 21. Alert
@@ -916,6 +930,8 @@ model Alert {
 
   @@index([tenantId])
   @@index([status])
+  @@index([tenantId, status, createdAt])
+  @@index([tenantId, driverId, type, createdAt])
 }
 
 // 22. AiDigest
@@ -1054,6 +1070,9 @@ model TalabatSession {
   @@index([driverId])
   @@index([date])
   @@index([zone, date])
+  @@index([tenantId, date])
+  @@index([tenantId, driverId, date])
+  @@index([tenantId, status, date])
 }
 
 // 27. TalabatViolationEvent
@@ -1078,6 +1097,7 @@ model TalabatViolationEvent {
   @@index([driverId])
   @@index([type])
   @@index([createdAt])
+  @@index([tenantId, driverId, type, createdAt])
 }
 
 // 28. TalabatDelivery - individual delivery items within a session
@@ -1290,6 +1310,49 @@ model Notification {
   @@index([userId])
   @@index([read])
   @@index([createdAt])
+}
+
+// 32b. NotificationDelivery - outbound delivery audit for external channels
+//      (WhatsApp, Email, SMS). Persisted by the notification queue worker so
+//      failures are visible and retriable.
+model NotificationDelivery {
+  id             String                     @id @default(uuid())
+  tenantId       String
+  channel        NotificationChannel
+  recipient      String
+  subject        String?
+  body           String
+  provider       String? // twilio, sendgrid, resend, stub
+  status         NotificationDeliveryStatus @default(QUEUED)
+  idempotencyKey String?                    @unique
+  error          String?
+  attempts       Int                        @default(0)
+  lastAttemptAt  DateTime?
+  sentAt         DateTime?
+  sourceType     String? // violation type, alert type, digest, etc.
+  sourceId       String?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([tenantId, channel, createdAt])
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  EMAIL
+  SMS
+}
+
+enum NotificationDeliveryStatus {
+  QUEUED
+  SENDING
+  SENT
+  FAILED
+  DEAD
 }
 
 // 33. NotificationRule - maps violation types to user roles

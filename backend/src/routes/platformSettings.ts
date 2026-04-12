@@ -2,9 +2,12 @@ import { Router, Request, Response } from "express";
 import { prisma } from "../config";
 import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
+import { rbac } from "../middleware/rbac";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
+
+const ADMINS = ["ADMIN", "OPS_MANAGER"];
 
 // GET /api/platform-settings/:platform
 router.get("/:platform", async (req: Request, res: Response) => {
@@ -54,7 +57,7 @@ router.get("/:platform", async (req: Request, res: Response) => {
 });
 
 // PUT /api/platform-settings/:platform
-router.put("/:platform", async (req: Request, res: Response) => {
+router.put("/:platform", rbac(...ADMINS), async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
     const platform = req.params.platform.toUpperCase();
@@ -90,7 +93,7 @@ router.get("/:platform/inventory", async (req: Request, res: Response) => {
 });
 
 // PUT /api/platform-settings/:platform/inventory
-router.put("/:platform/inventory", async (req: Request, res: Response) => {
+router.put("/:platform/inventory", rbac(...ADMINS), async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
     const platform = req.params.platform.toUpperCase();

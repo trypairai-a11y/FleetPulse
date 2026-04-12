@@ -5,9 +5,13 @@ import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
 import { upload } from "../utils/upload";
 import { validateBody, createShiftSchema } from "../utils/validate";
+import { rbac } from "../middleware/rbac";
+import { assertDriverNotRestricted, DriverRestrictedError } from "../utils/driverRestriction";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
+
+const MUTATORS = ["ADMIN", "OPS_MANAGER", "SUPERVISOR"];
 
 /**
  * @swagger
@@ -458,10 +462,12 @@ router.get("/:id", async (req: Request, res: Response) => {
  *       422:
  *         description: Validation error
  */
-router.post("/", validateBody(createShiftSchema.passthrough()), async (req: Request, res: Response) => {
+router.post("/", rbac(...MUTATORS), validateBody(createShiftSchema.passthrough()), async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
     const { driverId, date, scheduledStart, scheduledEnd } = req.body;
+
+    await assertDriverNotRestricted(tenantId, driverId);
 
     // Check for overlapping shifts on the same date for the same driver
     if (driverId && date) {
@@ -502,11 +508,15 @@ router.post("/", validateBody(createShiftSchema.passthrough()), async (req: Requ
     });
     res.status(201).json(shift);
   } catch (err: any) {
+    if (err instanceof DriverRestrictedError) {
+      res.status(403).json({ error: err.message, driverId: err.driverId });
+      return;
+    }
     res.status(400).json({ error: err.message });
   }
 });
 
-router.put("/:id", async (req: Request, res: Response) => {
+router.put("/:id", rbac(...MUTATORS), async (req: Request, res: Response) => {
   try {
     const shift = await prisma.shift.updateMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },
@@ -520,7 +530,7 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/:id", rbac("ADMIN", "OPS_MANAGER"), async (req: Request, res: Response) => {
   try {
     await prisma.shift.deleteMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },
@@ -686,14 +696,112 @@ router.post("/:id/clock-out", upload.single("selfie"), async (req: Request, res:
   }
 });
 
-// Import schedule XLSX (Americana)
-router.post("/import-schedule", upload.single("file"), async (req: Request, res: Response) => {
-  try {
-    if (!req.file) { res.status(400).json({ error: "No file uploaded" }); return; }
-    res.json({ message: "Schedule XLSX import received", file: req.file.filename });
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
-  }
-});
+// Import shift schedule XLSX (Keeta / Talabat / Americana weekly release)
+router.post(
+  "/import-schedule",
+  rbac(...MUTATORS),
+  upload.single("file"),
+  async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: "No file uploaded" });
+        return;
+      }
+      const tenantId = req.user!.tenantId;
+      const platformParam = (req.body.platform || req.query.platform) as string | undefined;
+      if (!platformParam) {
+        res.status(400).json({ error: "platform is required (KEETA|TALABAT|DELIVEROO|AMERICANA)" });
+        return;
+      }
+      const platform = platformParam.toUpperCase() as any;
+
+      const fs = await import("fs");
+      const buffer = fs.readFileSync(req.file.path);
+      const { parseShiftScheduleXlsx } = await import("../services/xlsxParser");
+      const rows = parseShiftScheduleXlsx(buffer);
+
+      // Resolve drivers for this tenant/platform so we can match by id/utr/name.
+      const drivers = await prisma.driver.findMany({
+        where: { tenantId, platform },
+        select: { id: true, name: true, utr: true, platformDriverId: true },
+      });
+      const byKey = new Map<string, string>();
+      for (const d of drivers) {
+        if (d.platformDriverId) byKey.set(d.platformDriverId.toLowerCase(), d.id);
+        if (d.utr) byKey.set(d.utr.toLowerCase(), d.id);
+        byKey.set(d.name.toLowerCase(), d.id);
+      }
+
+      let created = 0;
+      let updated = 0;
+      let skipped = 0;
+      const unresolved: string[] = [];
+
+      for (const row of rows) {
+        const driverId = byKey.get(row.driverIdentifier.toLowerCase());
+        if (!driverId) {
+          skipped++;
+          if (unresolved.length < 20) unresolved.push(row.driverIdentifier);
+          continue;
+        }
+
+        const planned = Math.round(
+          (row.scheduledEnd.getTime() - row.scheduledStart.getTime()) / 60000,
+        );
+
+        // Upsert: one shift per driver per date.
+        const existing = await prisma.shift.findFirst({
+          where: {
+            tenantId,
+            driverId,
+            date: row.date,
+          },
+          select: { id: true },
+        });
+
+        if (existing) {
+          await prisma.shift.update({
+            where: { id: existing.id },
+            data: {
+              platform,
+              zone: row.zone,
+              scheduledStart: row.scheduledStart,
+              scheduledEnd: row.scheduledEnd,
+              plannedHoursMinutes: planned,
+            },
+          });
+          updated++;
+        } else {
+          await prisma.shift.create({
+            data: {
+              tenantId,
+              driverId,
+              date: row.date,
+              platform,
+              zone: row.zone,
+              scheduledStart: row.scheduledStart,
+              scheduledEnd: row.scheduledEnd,
+              status: "BOOKED",
+              plannedHoursMinutes: planned,
+            },
+          });
+          created++;
+        }
+      }
+
+      res.json({
+        message: "Schedule imported",
+        file: req.file.filename,
+        totalRows: rows.length,
+        created,
+        updated,
+        skipped,
+        unresolvedSample: unresolved,
+      });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  },
+);
 
 export default router;
