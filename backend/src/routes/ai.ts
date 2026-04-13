@@ -106,6 +106,18 @@ router.get("/scores", async (req: Request, res: Response) => {
   }
 });
 
+// Anomaly detection — runs on demand, returns structured anomalies without persisting
+router.get("/anomalies", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { AiAnomalyService } = await import("../services/aiAnomalyService");
+    const anomalies = await AiAnomalyService.runDetection(tenantId);
+    res.json({ count: anomalies.length, anomalies });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Alerts (anomaly-generated)
 router.get("/alerts", async (req: Request, res: Response) => {
   try {

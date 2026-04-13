@@ -106,4 +106,22 @@ public interface DarbApi {
             @Path("id") String shiftId,
             @Part MultipartBody.Part selfie
     );
+
+    /**
+     * Unified selfie upload for clock-in / clock-out from the agent. The
+     * backend locates (or creates) today's shift for CLOCK_IN, or completes
+     * the provided shiftId for CLOCK_OUT, and returns the resolved shiftId.
+     *
+     * Multipart fields: deviceId, action, shiftId?, latitude?, longitude?, selfie
+     */
+    @Multipart
+    @POST("api/agent/selfie")
+    Call<com.pair.darb.agent.data.remote.dto.SelfieResponse> uploadSelfie(
+            @Part MultipartBody.Part selfie,
+            @Part("deviceId") RequestBody deviceId,
+            @Part("action") RequestBody action,
+            @Part("shiftId") RequestBody shiftId,
+            @Part("latitude") RequestBody latitude,
+            @Part("longitude") RequestBody longitude
+    );
 }

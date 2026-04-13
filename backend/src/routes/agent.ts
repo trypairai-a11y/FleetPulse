@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../config";
+import { upload } from "../utils/upload";
 
 const router = Router();
 
@@ -131,6 +132,148 @@ router.post("/app-usage", async (req: Request, res: Response) => {
       });
     }
     res.json({ synced: logs?.length || 0 });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/agent/selfie — unified selfie-gated shift transition for the
+ * Android agent. Identifies the driver by deviceId and either:
+ *   - ACTION_CLOCK_IN  → locates today's BOOKED shift (or creates one at now),
+ *                        sets selfieUrl/actualStart, returns shiftId
+ *   - ACTION_CLOCK_OUT → finalizes the current shift, returns shiftId
+ *
+ * Multipart form fields:
+ *   selfie (file, required), deviceId, action, shiftId?, latitude?, longitude?
+ */
+router.post("/selfie", upload.single("selfie"), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) { res.status(400).json({ error: "No selfie file uploaded" }); return; }
+
+    const { deviceId, action, shiftId: providedShiftId } = req.body as {
+      deviceId?: string;
+      action?: string;
+      shiftId?: string;
+    };
+    const latitude = req.body.latitude ? parseFloat(req.body.latitude) : null;
+    const longitude = req.body.longitude ? parseFloat(req.body.longitude) : null;
+
+    if (!deviceId || !action) {
+      res.status(400).json({ error: "deviceId and action are required" });
+      return;
+    }
+
+    const device = await prisma.device.findUnique({
+      where: { id: deviceId },
+      include: { driver: true },
+    });
+    if (!device?.driver) {
+      res.status(404).json({ error: "Device or driver not found" });
+      return;
+    }
+    const driver = device.driver;
+    const tenantId = driver.tenantId;
+    const selfieUrl = `/uploads/${req.file.filename}`;
+    const now = new Date();
+
+    if (action === "ACTION_CLOCK_IN") {
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const tomorrow = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+      // Locate a scheduled shift for today, else create one on the fly.
+      let shift = await prisma.shift.findFirst({
+        where: {
+          tenantId,
+          driverId: driver.id,
+          date: { gte: todayStart, lt: tomorrow },
+          status: { in: ["BOOKED", "IN_PROGRESS"] },
+        },
+        orderBy: { scheduledStart: "asc" },
+      });
+
+      if (!shift) {
+        shift = await prisma.shift.create({
+          data: {
+            tenantId,
+            driverId: driver.id,
+            platform: driver.platform,
+            date: todayStart,
+            scheduledStart: now,
+            scheduledEnd: new Date(now.getTime() + 8 * 60 * 60 * 1000),
+            status: "BOOKED",
+            zone: driver.zone,
+          },
+        });
+      }
+
+      await prisma.shift.update({
+        where: { id: shift.id },
+        data: {
+          actualStart: now,
+          status: "IN_PROGRESS",
+          selfieUrl,
+          selfieLocation: latitude != null && longitude != null ? { latitude, longitude } : undefined,
+          clockInMethod: "selfie",
+        },
+      });
+
+      // Attendance row + late detection
+      const lateMs = now.getTime() - new Date(shift.scheduledStart).getTime();
+      const lateMinutes = Math.max(0, Math.floor(lateMs / 60000));
+      const isLate = lateMinutes >= 1;
+
+      await prisma.attendanceRecord.upsert({
+        where: {
+          tenantId_driverId_date: { tenantId, driverId: driver.id, date: todayStart },
+        },
+        create: {
+          tenantId,
+          driverId: driver.id,
+          shiftId: shift.id,
+          date: todayStart,
+          status: isLate ? "LATE" : "PRESENT",
+          lateMinutes: isLate ? lateMinutes : 0,
+          source: "AGENT",
+        },
+        update: {
+          status: isLate ? "LATE" : "PRESENT",
+          lateMinutes: isLate ? lateMinutes : 0,
+          shiftId: shift.id,
+        },
+      });
+
+      res.json({ shiftId: shift.id, selfieUrl, isLate, lateMinutes });
+      return;
+    }
+
+    if (action === "ACTION_CLOCK_OUT") {
+      const targetId = providedShiftId;
+      if (!targetId) { res.status(400).json({ error: "shiftId required for clock-out" }); return; }
+
+      const shift = await prisma.shift.findFirst({
+        where: { id: targetId, tenantId, driverId: driver.id },
+      });
+      if (!shift) { res.status(404).json({ error: "Shift not found" }); return; }
+
+      const actualStart = shift.actualStart ?? shift.scheduledStart;
+      const actualMinutes = Math.max(0, Math.floor((now.getTime() - new Date(actualStart).getTime()) / 60000));
+
+      await prisma.shift.update({
+        where: { id: shift.id },
+        data: {
+          actualEnd: now,
+          status: "COMPLETED",
+          clockOutMethod: "selfie",
+          actualHoursMinutes: actualMinutes,
+        },
+      });
+
+      res.json({ shiftId: shift.id, selfieUrl, actualMinutes });
+      return;
+    }
+
+    res.status(400).json({ error: `Unknown action: ${action}` });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }

@@ -26,7 +26,11 @@ export class AiAnomalyService {
    *  4. Online hours < 70% of planned hours
    *  5. Multiple failed face verifications (attendance source = "face_fail")
    */
-  static async detectAnomalies(tenantId: string): Promise<number> {
+  /**
+   * Run anomaly detection without persisting. Returns the full structured
+   * list so callers can choose how to present or store the results.
+   */
+  static async runDetection(tenantId: string): Promise<AnomalyAlert[]> {
     const anomalies: AnomalyAlert[] = [];
 
     const now = new Date();
@@ -50,7 +54,7 @@ export class AiAnomalyService {
 
     const driverIds = activeDrivers.map((d) => d.id);
 
-    if (driverIds.length === 0) return 0;
+    if (driverIds.length === 0) return anomalies;
 
     // ── 1. Low order count vs 7-day average ──────────────────────────────
     const sevenDayOrders = await prisma.orderLog.groupBy({
@@ -253,7 +257,19 @@ export class AiAnomalyService {
       });
     }
 
-    // ── Persist all anomaly alerts ────────────────────────────────────────
+    console.log(
+      `[AiAnomalyService] Detected ${anomalies.length} anomalies for tenant ${tenantId}`
+    );
+    return anomalies;
+  }
+
+  /**
+   * Run detection and persist results as Alert rows. Returns the count.
+   * Used by the scheduled job.
+   */
+  static async detectAnomalies(tenantId: string): Promise<number> {
+    const anomalies = await this.runDetection(tenantId);
+
     if (anomalies.length > 0) {
       await prisma.alert.createMany({
         data: anomalies.map((a) => ({
@@ -270,9 +286,6 @@ export class AiAnomalyService {
       });
     }
 
-    console.log(
-      `[AiAnomalyService] Detected ${anomalies.length} anomalies for tenant ${tenantId}`
-    );
     return anomalies.length;
   }
 }

@@ -1,23 +1,32 @@
 package com.pair.darb.agent.repository;
 
+import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
+import com.pair.darb.agent.data.local.db.AppDatabase;
 import com.pair.darb.agent.data.local.db.AppUsageEntry;
 import com.pair.darb.agent.data.local.db.CapturedNotification;
 import com.pair.darb.agent.data.local.db.DarbDao;
 import com.pair.darb.agent.data.local.db.LocationEntry;
 import com.pair.darb.agent.data.local.prefs.PrefsManager;
 import com.pair.darb.agent.data.remote.api.DarbApi;
+import com.pair.darb.agent.data.remote.api.RetrofitClient;
 import com.pair.darb.agent.data.remote.dto.BasicResponse;
 import com.pair.darb.agent.data.remote.dto.CommandResponse;
 import com.pair.darb.agent.data.remote.dto.RegisterResponse;
+import com.pair.darb.agent.data.remote.dto.SelfieResponse;
 import com.pair.darb.agent.data.remote.dto.SyncResponse;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -43,6 +52,121 @@ public class AgentRepository {
         this.dao = dao;
         this.api = api;
         this.prefs = prefs;
+    }
+
+    private static volatile AgentRepository INSTANCE;
+    private static final ExecutorService IO_EXECUTOR = Executors.newSingleThreadExecutor();
+    private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
+
+    /** Lazy singleton — used by UI activities that don't have DI. */
+    public static AgentRepository getInstance(Context context) {
+        if (INSTANCE == null) {
+            synchronized (AgentRepository.class) {
+                if (INSTANCE == null) {
+                    Context app = context.getApplicationContext();
+                    DarbDao dao = AppDatabase.getInstance(app).darbDao();
+                    DarbApi api = RetrofitClient.getInstance().getDarbApi();
+                    PrefsManager prefs = PrefsManager.getInstance(app);
+                    INSTANCE = new AgentRepository(dao, api, prefs);
+                }
+            }
+        }
+        return INSTANCE;
+    }
+
+    // ── Selfie-gated shift transitions ────────────────────────────────────────
+
+    public interface SelfieUploadCallback {
+        void onSuccess(String shiftId);
+        void onError(String message);
+    }
+
+    public interface StatsCallback {
+        void onStats(String statsText);
+        void onError(String message);
+    }
+
+    /**
+     * Upload a selfie to clock in or out. For CLOCK_IN, a null shiftId is
+     * valid — the backend will locate or create today's shift. Runs on a
+     * background thread; the callback fires on the main thread.
+     */
+    public void uploadSelfie(byte[] jpegBytes,
+                             String action,
+                             String shiftId,
+                             double latitude,
+                             double longitude,
+                             SelfieUploadCallback callback) {
+        IO_EXECUTOR.execute(() -> {
+            File tempFile = null;
+            try {
+                // Write bytes to a temp JPEG so Retrofit can stream it.
+                tempFile = File.createTempFile("selfie_", ".jpg");
+                try (FileOutputStream out = new FileOutputStream(tempFile)) {
+                    out.write(jpegBytes);
+                }
+
+                RequestBody imageBody = RequestBody.create(tempFile, MediaType.parse("image/jpeg"));
+                MultipartBody.Part selfiePart = MultipartBody.Part.createFormData(
+                        "selfie", tempFile.getName(), imageBody);
+
+                String deviceId = prefs.getDeviceId();
+                if (deviceId == null) {
+                    postError(callback, "Device not enrolled");
+                    return;
+                }
+
+                RequestBody deviceIdBody = textPart(deviceId);
+                RequestBody actionBody   = textPart(action != null ? action : "");
+                RequestBody shiftIdBody  = textPart(shiftId != null ? shiftId : "");
+                RequestBody latBody      = textPart(String.valueOf(latitude));
+                RequestBody lngBody      = textPart(String.valueOf(longitude));
+
+                Response<SelfieResponse> response = api.uploadSelfie(
+                        selfiePart, deviceIdBody, actionBody, shiftIdBody, latBody, lngBody
+                ).execute();
+
+                if (response.isSuccessful() && response.body() != null) {
+                    SelfieResponse body = response.body();
+                    final String resolvedShiftId = body.shiftId;
+                    MAIN_HANDLER.post(() -> callback.onSuccess(resolvedShiftId));
+                } else {
+                    postError(callback, "HTTP " + response.code());
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "uploadSelfie failed", e);
+                postError(callback, e.getMessage() != null ? e.getMessage() : "Upload error");
+            } finally {
+                if (tempFile != null) {
+                    //noinspection ResultOfMethodCallIgnored
+                    tempFile.delete();
+                }
+            }
+        });
+    }
+
+    /**
+     * Minimal today-stats loader for the MainActivity header. For now this
+     * just returns a summary built from local prefs — a proper implementation
+     * would query the backend.
+     */
+    public void getTodayStats(StatsCallback callback) {
+        IO_EXECUTOR.execute(() -> {
+            try {
+                String text = "Orders today: —\nOn shift: " + (prefs.isOnShift() ? "Yes" : "No");
+                MAIN_HANDLER.post(() -> callback.onStats(text));
+            } catch (Exception e) {
+                MAIN_HANDLER.post(() -> callback.onError(e.getMessage()));
+            }
+        });
+    }
+
+    private static RequestBody textPart(String value) {
+        return RequestBody.create(value, MediaType.parse("text/plain"));
+    }
+
+    private static void postError(SelfieUploadCallback cb, String msg) {
+        MAIN_HANDLER.post(() -> cb.onError(msg));
     }
 
     // ── Registration ──────────────────────────────────────────────────────────

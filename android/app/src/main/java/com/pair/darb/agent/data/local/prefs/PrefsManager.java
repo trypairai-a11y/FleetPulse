@@ -117,6 +117,14 @@ public class PrefsManager {
         prefs.edit().putBoolean(KEY_IS_ON_SHIFT, onShift).apply();
     }
 
+    /** Convenience: atomically set both the on-shift flag and the shift id. */
+    public void setOnShift(boolean onShift, String shiftId) {
+        prefs.edit()
+                .putBoolean(KEY_IS_ON_SHIFT, onShift)
+                .putString(KEY_CURRENT_SHIFT_ID, shiftId)
+                .apply();
+    }
+
     // ── currentShiftId ────────────────────────────────────────────────────────
 
     public String getCurrentShiftId() {
