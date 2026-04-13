@@ -739,6 +739,9 @@ exports.Prisma.NotificationScalarFieldEnum = {
   metadata: 'metadata',
   read: 'read',
   readAt: 'readAt',
+  category: 'category',
+  titleAr: 'titleAr',
+  bodyAr: 'bodyAr',
   createdAt: 'createdAt'
 };
 
@@ -770,6 +773,76 @@ exports.Prisma.NotificationRuleScalarFieldEnum = {
   enabled: 'enabled',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CourierOnlineSessionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  isOnline: 'isOnline',
+  lastGpsAt: 'lastGpsAt',
+  lastGpsLat: 'lastGpsLat',
+  lastGpsLng: 'lastGpsLng',
+  area: 'area',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ViolationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  platform: 'platform',
+  violationType: 'violationType',
+  violationStatus: 'violationStatus',
+  appealStatus: 'appealStatus',
+  violationTime: 'violationTime',
+  details: 'details',
+  metadata: 'metadata',
+  taskId: 'taskId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PenaltyScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  penaltyType: 'penaltyType',
+  penaltyStatus: 'penaltyStatus',
+  penaltyValue: 'penaltyValue',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AppealScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  violationId: 'violationId',
+  appealStatus: 'appealStatus',
+  channel: 'channel',
+  reason: 'reason',
+  rejectionNote: 'rejectionNote',
+  appealedAt: 'appealedAt',
+  reviewedAt: 'reviewedAt',
+  reviewedBy: 'reviewedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OrderEventScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  orderId: 'orderId',
+  action: 'action',
+  description: 'description',
+  operator: 'operator',
+  operatorId: 'operatorId',
+  timestamp: 'timestamp',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -1131,7 +1204,10 @@ exports.Prisma.NotificationOrderByRelevanceFieldEnum = {
   message: 'message',
   type: 'type',
   severity: 'severity',
-  sourceId: 'sourceId'
+  sourceId: 'sourceId',
+  category: 'category',
+  titleAr: 'titleAr',
+  bodyAr: 'bodyAr'
 };
 
 exports.Prisma.NotificationDeliveryOrderByRelevanceFieldEnum = {
@@ -1151,6 +1227,50 @@ exports.Prisma.NotificationRuleOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   eventType: 'eventType'
+};
+
+exports.Prisma.CourierOnlineSessionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  area: 'area'
+};
+
+exports.Prisma.ViolationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  details: 'details',
+  taskId: 'taskId'
+};
+
+exports.Prisma.PenaltyOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  penaltyType: 'penaltyType',
+  penaltyStatus: 'penaltyStatus',
+  penaltyValue: 'penaltyValue'
+};
+
+exports.Prisma.AppealOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  violationId: 'violationId',
+  channel: 'channel',
+  reason: 'reason',
+  rejectionNote: 'rejectionNote',
+  reviewedBy: 'reviewedBy'
+};
+
+exports.Prisma.OrderEventOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  orderId: 'orderId',
+  action: 'action',
+  description: 'description',
+  operator: 'operator',
+  operatorId: 'operatorId'
 };
 exports.SubscriptionPlan = exports.$Enums.SubscriptionPlan = {
   FREE: 'FREE',
@@ -1441,6 +1561,30 @@ exports.NotificationDeliveryStatus = exports.$Enums.NotificationDeliveryStatus =
   DEAD: 'DEAD'
 };
 
+exports.ViolationType = exports.$Enums.ViolationType = {
+  LATE_PICKUP: 'LATE_PICKUP',
+  ORDER_REJECTION_TIMEOUT: 'ORDER_REJECTION_TIMEOUT',
+  DROP_OFF_IN_ADVANCE: 'DROP_OFF_IN_ADVANCE',
+  ORDER_SLIGHTLY_LATE: 'ORDER_SLIGHTLY_LATE',
+  ORDER_VERY_LATE: 'ORDER_VERY_LATE',
+  INVALID_DELIVERY_PHOTO: 'INVALID_DELIVERY_PHOTO',
+  GPS_NOT_UPLOADING: 'GPS_NOT_UPLOADING'
+};
+
+exports.ViolationStatus = exports.$Enums.ViolationStatus = {
+  ESTABLISHED: 'ESTABLISHED',
+  UNDER_REVIEW: 'UNDER_REVIEW',
+  OVERTURNED: 'OVERTURNED',
+  EXPIRED: 'EXPIRED'
+};
+
+exports.AppealStatus = exports.$Enums.AppealStatus = {
+  NOT_RAISED: 'NOT_RAISED',
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
+
 exports.Prisma.ModelName = {
   Tenant: 'Tenant',
   Company: 'Company',
@@ -1480,7 +1624,12 @@ exports.Prisma.ModelName = {
   KpiRecord: 'KpiRecord',
   Notification: 'Notification',
   NotificationDelivery: 'NotificationDelivery',
-  NotificationRule: 'NotificationRule'
+  NotificationRule: 'NotificationRule',
+  CourierOnlineSession: 'CourierOnlineSession',
+  Violation: 'Violation',
+  Penalty: 'Penalty',
+  Appeal: 'Appeal',
+  OrderEvent: 'OrderEvent'
 };
 
 /**

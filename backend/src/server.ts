@@ -44,7 +44,12 @@ import insightsRoutes from "./routes/insights";
 import supervisorRoutes from "./routes/supervisors";
 import dashboardRoutes from "./routes/dashboard";
 import eventRoutes from "./routes/events";
+import violationRoutes from "./routes/violations";
+import penaltyRoutes from "./routes/penalties";
+import keetaMonitorRoutes from "./routes/keetaMonitor";
+import orderFlowRoutes from "./routes/orderFlow";
 import { startAnomalyScheduler } from "./services/anomalyScheduler";
+import { startGpsMonitorScheduler } from "./services/gpsMonitorService";
 
 const app = express();
 
@@ -133,6 +138,10 @@ app.use("/api/insights", insightsRoutes);
 app.use("/api/supervisors", supervisorRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/violations", violationRoutes);
+app.use("/api/penalties", penaltyRoutes);
+app.use("/api/keeta/monitor", keetaMonitorRoutes);
+app.use("/api/order-flow", orderFlowRoutes);
 
 // API Documentation (Swagger UI — available at /api-docs)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -155,6 +164,7 @@ if (process.env.VERCEL !== "1") {
   app.listen(env.PORT, () => {
     logger.info({ port: env.PORT }, "Darb backend running");
     startAnomalyScheduler();
+    startGpsMonitorScheduler();
   });
 }
 

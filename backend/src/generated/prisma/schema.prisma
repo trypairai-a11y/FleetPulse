@@ -277,6 +277,30 @@ enum ViolationEventType {
   CASH_THRESHOLD_EXCEEDED
 }
 
+enum ViolationType {
+  LATE_PICKUP
+  ORDER_REJECTION_TIMEOUT
+  DROP_OFF_IN_ADVANCE
+  ORDER_SLIGHTLY_LATE
+  ORDER_VERY_LATE
+  INVALID_DELIVERY_PHOTO
+  GPS_NOT_UPLOADING
+}
+
+enum ViolationStatus {
+  ESTABLISHED
+  UNDER_REVIEW
+  OVERTURNED
+  EXPIRED
+}
+
+enum AppealStatus {
+  NOT_RAISED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum CashTransactionType {
   COLLECTION
   CASH_OUT
@@ -343,6 +367,11 @@ model Tenant {
   notificationRules      NotificationRule[]
   notificationDeliveries NotificationDelivery[]
   driverRestrictions     DriverRestriction[]
+  courierOnlineSessions  CourierOnlineSession[]
+  violations             Violation[]
+  penalties              Penalty[]
+  appeals                Appeal[]
+  orderEvents            OrderEvent[]
 }
 
 // 2. Company
@@ -461,6 +490,9 @@ model Driver {
   americanaDailyOrders   AmericanaDailyOrders[]
   talabatDeliveries      TalabatDelivery[]
   kpiRecords             KpiRecord[]
+  courierOnlineSessions  CourierOnlineSession[]
+  violations             Violation[]
+  penalties              Penalty[]
 
   @@index([tenantId])
   @@index([companyId])
@@ -1301,6 +1333,9 @@ model Notification {
   metadata  Json?
   read      Boolean   @default(false)
   readAt    DateTime?
+  category  String? // "IMPORTANT", "OPS_TODO", "BENEFITS", "OTHER"
+  titleAr   String?
+  bodyAr    String?
   createdAt DateTime  @default(now())
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
@@ -1369,4 +1404,112 @@ model NotificationRule {
 
   @@unique([tenantId, eventType, role])
   @@index([tenantId])
+}
+
+// 34. CourierOnlineSession - tracks real-time courier online status for monitor
+model CourierOnlineSession {
+  id         String    @id @default(uuid())
+  tenantId   String
+  driverId   String
+  startTime  DateTime
+  endTime    DateTime?
+  isOnline   Boolean   @default(true)
+  lastGpsAt  DateTime?
+  lastGpsLat Decimal?  @db.Decimal(10, 7)
+  lastGpsLng Decimal?  @db.Decimal(10, 7)
+  area       String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@index([tenantId, isOnline])
+  @@index([driverId, startTime])
+}
+
+// 35. Violation - cross-platform violation with penalty/appeal workflow
+model Violation {
+  id              String          @id @default(uuid())
+  tenantId        String
+  driverId        String
+  platform        Platform
+  violationType   ViolationType
+  violationStatus ViolationStatus @default(ESTABLISHED)
+  appealStatus    AppealStatus    @default(NOT_RAISED)
+  violationTime   DateTime
+  details         String?
+  metadata        Json?
+  taskId          String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  driver    Driver    @relation(fields: [driverId], references: [id])
+  penalties Penalty[]
+  appeals   Appeal[]
+
+  @@index([tenantId, violationTime])
+  @@index([driverId, violationType])
+  @@index([tenantId, platform, violationStatus])
+}
+
+// 36. Penalty - linked to violations via implicit m2m
+model Penalty {
+  id            String   @id @default(uuid())
+  tenantId      String
+  driverId      String
+  penaltyType   String // ONLINE_TRAINING, VIOLATION_RECORD, ACCOUNT_SUSPENSION, WARNING
+  penaltyStatus String   @default("EFFECTIVE") // EFFECTIVE, COMPLETED, OVERTURNED
+  penaltyValue  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant     Tenant      @relation(fields: [tenantId], references: [id])
+  driver     Driver      @relation(fields: [driverId], references: [id])
+  violations Violation[]
+
+  @@index([tenantId, driverId])
+  @@index([tenantId, penaltyStatus])
+}
+
+// 37. Appeal - violation appeal with review workflow
+model Appeal {
+  id            String       @id @default(uuid())
+  tenantId      String
+  violationId   String
+  appealStatus  AppealStatus @default(PENDING)
+  channel       String? // APP, PHONE, EMAIL
+  reason        String?
+  rejectionNote String?
+  appealedAt    DateTime     @default(now())
+  reviewedAt    DateTime?
+  reviewedBy    String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  violation Violation @relation(fields: [violationId], references: [id])
+
+  @@index([violationId])
+  @@index([tenantId, appealStatus])
+}
+
+// 38. OrderEvent - order lifecycle events for flow timeline
+model OrderEvent {
+  id          String   @id @default(uuid())
+  tenantId    String
+  orderId     String
+  action      String
+  description String
+  operator    String?
+  operatorId  String?
+  timestamp   DateTime
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, orderId])
+  @@index([orderId, timestamp])
 }

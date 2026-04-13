@@ -192,6 +192,7 @@ export async function createViolationNotifications(params: {
 /** Severity mapping for violation event types */
 export function getViolationSeverity(type: string): string {
   const severityMap: Record<string, string> = {
+    // Talabat compliance events
     CASH_THRESHOLD_EXCEEDED: "CRITICAL",
     SELFIE_FAIL: "HIGH",
     GPS_OFF: "HIGH",
@@ -202,6 +203,14 @@ export function getViolationSeverity(type: string): string {
     EARLY_CLOCK_OUT: "MEDIUM",
     ORDER_CLICK_THROUGH: "MEDIUM",
     EQUIPMENT_MISSING: "MEDIUM",
+    // Cross-platform violation types
+    DROP_OFF_IN_ADVANCE: "CRITICAL",
+    ORDER_VERY_LATE: "CRITICAL",
+    LATE_PICKUP: "HIGH",
+    GPS_NOT_UPLOADING: "HIGH",
+    INVALID_DELIVERY_PHOTO: "HIGH",
+    ORDER_SLIGHTLY_LATE: "MEDIUM",
+    ORDER_REJECTION_TIMEOUT: "MEDIUM",
   };
   return severityMap[type] || "MEDIUM";
 }

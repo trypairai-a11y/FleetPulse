@@ -15,6 +15,7 @@ router.get("/", async (req: Request, res: Response) => {
 
     const where: any = { tenantId, userId };
     if (unreadOnly === "true") where.read = false;
+    if (req.query.category) where.category = req.query.category as string;
 
     const [notifications, total] = await Promise.all([
       prisma.notification.findMany({
@@ -27,6 +28,23 @@ router.get("/", async (req: Request, res: Response) => {
     ]);
 
     res.json({ notifications, total });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /counts - Unread counts per category
+router.get("/counts", async (req: Request, res: Response) => {
+  try {
+    const baseWhere = { tenantId: req.user!.tenantId, userId: (req.user as any).id, read: false };
+    const [total, important, opsTodo, benefits, other] = await Promise.all([
+      prisma.notification.count({ where: baseWhere }),
+      prisma.notification.count({ where: { ...baseWhere, category: "IMPORTANT" } }),
+      prisma.notification.count({ where: { ...baseWhere, category: "OPS_TODO" } }),
+      prisma.notification.count({ where: { ...baseWhere, category: "BENEFITS" } }),
+      prisma.notification.count({ where: { ...baseWhere, category: "OTHER" } }),
+    ]);
+    res.json({ total, important, opsTodo, benefits, other });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

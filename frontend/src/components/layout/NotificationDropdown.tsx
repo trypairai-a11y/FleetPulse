@@ -12,7 +12,20 @@ interface Notification {
   read: boolean;
   createdAt: string;
   metadata?: any;
+  category?: string | null;
+  titleAr?: string | null;
+  bodyAr?: string | null;
 }
+
+type NotifCategory = "ALL" | "IMPORTANT" | "OPS_TODO" | "BENEFITS" | "OTHER";
+
+const CATEGORY_TABS: { key: NotifCategory; label: string }[] = [
+  { key: "ALL", label: "All" },
+  { key: "IMPORTANT", label: "Important" },
+  { key: "OPS_TODO", label: "Ops to-do" },
+  { key: "BENEFITS", label: "Benefits" },
+  { key: "OTHER", label: "Others" },
+];
 
 const SEVERITY_CONFIG: Record<string, { icon: typeof AlertTriangle; color: string; bg: string }> = {
   CRITICAL: { icon: Flame, color: "text-red-600", bg: "bg-red-50" },
@@ -34,6 +47,13 @@ const TYPE_LABELS: Record<string, string> = {
   ORDER_CLICK_THROUGH: "Order Click Through",
   cash_overdue: "Cash Overdue",
   shift_not_booked: "Shift Reminder",
+  LATE_PICKUP: "Late Pickup",
+  ORDER_REJECTION_TIMEOUT: "Rejection Timeout",
+  DROP_OFF_IN_ADVANCE: "Drop-off Advance",
+  ORDER_SLIGHTLY_LATE: "Slightly Late",
+  ORDER_VERY_LATE: "Very Late",
+  INVALID_DELIVERY_PHOTO: "Invalid Photo",
+  GPS_NOT_UPLOADING: "GPS Not Uploading",
 };
 
 function timeAgo(dateStr: string): string {
@@ -52,13 +72,19 @@ export default function NotificationDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [categoryTab, setCategoryTab] = useState<NotifCategory>("ALL");
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const ref = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get("/api/notifications?limit=30");
-      setNotifications(data.notifications);
+      const [notifRes, countsRes] = await Promise.all([
+        api.get("/api/notifications?limit=30"),
+        api.get("/api/notifications/counts").catch(() => ({ data: {} })),
+      ]);
+      setNotifications(notifRes.data.notifications);
+      setCategoryCounts(countsRes.data || {});
     } catch {}
     setLoading(false);
   }, []);
@@ -195,6 +221,31 @@ export default function NotificationDropdown() {
             </div>
           </div>
 
+          {/* Category Tabs */}
+          <div className="flex gap-0.5 px-3 py-2 border-b border-gray-100 overflow-x-auto">
+            {CATEGORY_TABS.map((t) => {
+              const count = t.key === "ALL" ? categoryCounts.total : categoryCounts[t.key.toLowerCase()] || 0;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setCategoryTab(t.key)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
+                    categoryTab === t.key ? "bg-primary/10 text-primary" : "text-secondary hover:text-foreground"
+                  }`}
+                >
+                  {t.label}
+                  {count > 0 && (
+                    <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                      categoryTab === t.key ? "bg-primary/20" : "bg-gray-200/70"
+                    }`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
           {/* Notification list */}
           <div className="max-h-[420px] overflow-y-auto">
             {loading && notifications.length === 0 ? (
@@ -207,7 +258,9 @@ export default function NotificationDropdown() {
                 <p className="text-sm">No notifications yet</p>
               </div>
             ) : (
-              notifications.map((n) => {
+              notifications
+              .filter((n) => categoryTab === "ALL" || n.category === categoryTab)
+              .map((n) => {
                 const config = SEVERITY_CONFIG[n.severity] || SEVERITY_CONFIG.MEDIUM;
                 const Icon = config.icon;
                 return (
@@ -233,6 +286,11 @@ export default function NotificationDropdown() {
                       <p className="text-xs text-foreground leading-relaxed line-clamp-2">
                         {n.message}
                       </p>
+                      {(n.bodyAr || n.metadata?.bodyAr) && (
+                        <p className="text-[10px] text-secondary leading-relaxed mt-0.5 line-clamp-1" dir="rtl">
+                          {n.bodyAr || n.metadata?.bodyAr}
+                        </p>
+                      )}
                     </div>
                     {!n.read && (
                       <div className="mt-1.5 w-2 h-2 rounded-full bg-primary flex-shrink-0" />

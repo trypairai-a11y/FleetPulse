@@ -6,13 +6,17 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useRole } from "@/hooks/useRole";
+import { useI18n } from "@/i18n/I18nProvider";
+import LanguageSwitcher from "./LanguageSwitcher";
 import {
   LayoutDashboard, Map, Ticket, Users, Settings,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeft,
   ClipboardList, DollarSign, Briefcase,
   ShieldAlert, BarChart3, Target, Gauge, Building2, Lightbulb,
+  Activity, AlertTriangle, Ban,
 } from "lucide-react";
 
+// Platform names stay as brand strings; sub-page labels translate via i18n keys.
 const PLATFORMS = [
   {
     name: "Talabat",
@@ -20,13 +24,13 @@ const PLATFORMS = [
     color: "text-talabat",
     bg: "bg-talabat/10",
     subPages: [
-      { name: "Overview", path: "/talabat/overview", icon: Gauge },
-      { name: "Drivers", path: "/talabat/drivers", icon: Users },
-      { name: "Shifts", path: "/talabat/shifts", icon: ClipboardList },
-      { name: "Orders", path: "/talabat/orders", icon: Briefcase },
-      { name: "Cash", path: "/talabat/cash", icon: DollarSign },
-      { name: "Violations", path: "/talabat/violations", icon: ShieldAlert },
-      { name: "Settings", path: "/talabat/settings", icon: Settings },
+      { i18n: "nav.overview", path: "/talabat/overview", icon: Gauge },
+      { i18n: "nav.drivers", path: "/talabat/drivers", icon: Users },
+      { i18n: "nav.shifts", path: "/talabat/shifts", icon: ClipboardList },
+      { i18n: "nav.orders", path: "/talabat/orders", icon: Briefcase },
+      { i18n: "nav.cash", path: "/talabat/cash", icon: DollarSign },
+      { i18n: "nav.violations", path: "/talabat/violations", icon: ShieldAlert },
+      { i18n: "nav.settings", path: "/talabat/settings", icon: Settings },
     ],
   },
   {
@@ -35,12 +39,15 @@ const PLATFORMS = [
     color: "text-keeta",
     bg: "bg-keeta/10",
     subPages: [
-      { name: "Overview", path: "/keeta/overview", icon: Gauge },
-      { name: "Drivers", path: "/keeta/drivers", icon: Users },
-      { name: "Shifts", path: "/keeta/shifts", icon: ClipboardList },
-      { name: "Orders", path: "/keeta/orders", icon: Briefcase },
-      { name: "Performance", path: "/keeta/performance", icon: BarChart3 },
-      { name: "Settings", path: "/keeta/settings", icon: Settings },
+      { i18n: "nav.overview", path: "/keeta/overview", icon: Gauge },
+      { i18n: "nav.drivers", path: "/keeta/drivers", icon: Users },
+      { i18n: "nav.shifts", path: "/keeta/shifts", icon: ClipboardList },
+      { i18n: "nav.orders", path: "/keeta/orders", icon: Briefcase },
+      { i18n: "nav.performance", path: "/keeta/performance", icon: BarChart3 },
+      { i18n: "nav.monitor", path: "/keeta/monitor", icon: Activity },
+      { i18n: "nav.violations", path: "/keeta/violations", icon: AlertTriangle },
+      { i18n: "nav.penalties", path: "/keeta/penalties", icon: Ban },
+      { i18n: "nav.settings", path: "/keeta/settings", icon: Settings },
     ],
   },
   {
@@ -49,11 +56,11 @@ const PLATFORMS = [
     color: "text-deliveroo",
     bg: "bg-deliveroo/10",
     subPages: [
-      { name: "Overview", path: "/deliveroo/overview", icon: Gauge },
-      { name: "Drivers", path: "/deliveroo/drivers", icon: Users },
-      { name: "Shifts", path: "/deliveroo/shifts", icon: ClipboardList },
-      { name: "Orders & Cash", path: "/deliveroo/orders-cash", icon: Briefcase },
-      { name: "Settings", path: "/deliveroo/settings", icon: Settings },
+      { i18n: "nav.overview", path: "/deliveroo/overview", icon: Gauge },
+      { i18n: "nav.drivers", path: "/deliveroo/drivers", icon: Users },
+      { i18n: "nav.shifts", path: "/deliveroo/shifts", icon: ClipboardList },
+      { i18n: "nav.ordersCash", path: "/deliveroo/orders-cash", icon: Briefcase },
+      { i18n: "nav.settings", path: "/deliveroo/settings", icon: Settings },
     ],
   },
   {
@@ -62,32 +69,33 @@ const PLATFORMS = [
     color: "text-americana",
     bg: "bg-americana/10",
     subPages: [
-      { name: "Overview", path: "/americana/overview", icon: Gauge },
-      { name: "Drivers", path: "/americana/drivers", icon: Users },
-      { name: "Shifts", path: "/americana/shifts", icon: ClipboardList },
-      { name: "Orders", path: "/americana/orders", icon: Briefcase },
-      { name: "Performance", path: "/americana/performance", icon: BarChart3 },
-      { name: "Settings", path: "/americana/settings", icon: Settings },
+      { i18n: "nav.overview", path: "/americana/overview", icon: Gauge },
+      { i18n: "nav.drivers", path: "/americana/drivers", icon: Users },
+      { i18n: "nav.shifts", path: "/americana/shifts", icon: ClipboardList },
+      { i18n: "nav.orders", path: "/americana/orders", icon: Briefcase },
+      { i18n: "nav.performance", path: "/americana/performance", icon: BarChart3 },
+      { i18n: "nav.settings", path: "/americana/settings", icon: Settings },
     ],
   },
-];
+] as const;
 
 const GLOBAL_NAV = [
-  { name: "Overview", path: "/", icon: LayoutDashboard },
-  { name: "Companies", path: "/companies", icon: Building2 },
-  { name: "KPIs", path: "/kpis", icon: Target },
-  { name: "Analytics", path: "/analytics", icon: BarChart3 },
-  { name: "Insights", path: "/insights", icon: Lightbulb },
-  { name: "Live Map", path: "/map", icon: Map },
-  { name: "Tickets", path: "/tickets", icon: Ticket },
-  { name: "Recruitment", path: "/recruitment", icon: Users },
-  { name: "Supervisors", path: "/supervisors", icon: Users },
-];
+  { i18n: "nav.overview", path: "/", icon: LayoutDashboard },
+  { i18n: "nav.companies", path: "/companies", icon: Building2 },
+  { i18n: "nav.kpis", path: "/kpis", icon: Target },
+  { i18n: "nav.analytics", path: "/analytics", icon: BarChart3 },
+  { i18n: "nav.insights", path: "/insights", icon: Lightbulb },
+  { i18n: "nav.liveMap", path: "/map", icon: Map },
+  { i18n: "nav.tickets", path: "/tickets", icon: Ticket },
+  { i18n: "nav.recruitment", path: "/recruitment", icon: Users },
+  { i18n: "nav.supervisors", path: "/supervisors", icon: Users },
+] as const;
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { collapsed, open, setOpen } = useSidebar();
   const { canManageSettings } = useRole();
+  const { t, dir } = useI18n();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const togglePlatform = (key: string) => {
@@ -102,8 +110,11 @@ export default function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-white z-40 flex flex-col transition-all duration-200",
-        !open ? "-translate-x-full w-60" : collapsed ? "w-16" : "w-60"
+        "fixed top-0 h-screen bg-white z-40 flex flex-col transition-all duration-200",
+        dir === "rtl" ? "right-0 border-l border-gray-100" : "left-0 border-r border-gray-100",
+        !open
+          ? dir === "rtl" ? "translate-x-full w-60" : "-translate-x-full w-60"
+          : collapsed ? "w-16" : "w-60"
       )}
     >
       {/* Logo + Collapse */}
@@ -125,7 +136,7 @@ export default function Sidebar() {
         {/* Global */}
         {!collapsed && (
           <div className="px-3 mb-2 text-[11px] font-medium text-secondary uppercase tracking-wider">
-            Global
+            {t("common.global")}
           </div>
         )}
         {GLOBAL_NAV.map((item) => (
@@ -140,7 +151,7 @@ export default function Sidebar() {
             )}
           >
             <item.icon size={18} />
-            {!collapsed && <span>{item.name}</span>}
+            {!collapsed && <span>{t(item.i18n)}</span>}
           </Link>
         ))}
 
@@ -148,7 +159,7 @@ export default function Sidebar() {
         <div className={cn("mt-6", !collapsed && "px-3 mb-2")}>
           {!collapsed && (
             <div className="text-[11px] font-medium text-secondary uppercase tracking-wider mb-2">
-              Platforms
+              {t("common.platforms")}
             </div>
           )}
         </div>
@@ -177,9 +188,9 @@ export default function Sidebar() {
               )}
             </button>
             {!collapsed && expanded[platform.key] && (
-              <div className="ml-5 mt-0.5 space-y-0.5">
+              <div className="ms-5 mt-0.5 space-y-0.5">
                 {platform.subPages
-                  .filter((sub) => sub.name !== "Settings" || canManageSettings)
+                  .filter((sub) => sub.i18n !== "nav.settings" || canManageSettings)
                   .map((sub) => (
                     <Link
                       key={sub.path}
@@ -192,7 +203,7 @@ export default function Sidebar() {
                       )}
                     >
                       <sub.icon size={14} aria-hidden="true" />
-                      <span>{sub.name}</span>
+                      <span>{t(sub.i18n)}</span>
                     </Link>
                   ))}
               </div>
@@ -205,7 +216,7 @@ export default function Sidebar() {
           <div className="mt-6">
             {!collapsed && (
               <div className="px-3 mb-2 text-[11px] font-medium text-secondary uppercase tracking-wider">
-                System
+                {t("common.system")}
               </div>
             )}
             <Link
@@ -218,12 +229,15 @@ export default function Sidebar() {
               )}
             >
               <Settings size={18} aria-hidden="true" />
-              {!collapsed && <span>Settings</span>}
+              {!collapsed && <span>{t("nav.settings")}</span>}
             </Link>
           </div>
         )}
       </nav>
 
+      <div className="border-t border-gray-50 p-2">
+        <LanguageSwitcher collapsed={collapsed} />
+      </div>
     </aside>
   );
 }
