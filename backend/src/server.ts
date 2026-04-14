@@ -48,8 +48,17 @@ import violationRoutes from "./routes/violations";
 import penaltyRoutes from "./routes/penalties";
 import keetaMonitorRoutes from "./routes/keetaMonitor";
 import orderFlowRoutes from "./routes/orderFlow";
+import aiInsightsRoutes from "./routes/aiInsights";
+import keetaOperationCentreRoutes from "./routes/keetaOperationCentre";
+import keetaCourierDetailsRoutes from "./routes/keetaCourierDetails";
+import keetaShiftMonitorRoutes from "./routes/keetaShiftMonitor";
+import keetaReportsRoutes from "./routes/keetaReports";
+import incentivesRoutes from "./routes/incentives";
+import financialRoutes from "./routes/financial";
 import { startAnomalyScheduler } from "./services/anomalyScheduler";
 import { startGpsMonitorScheduler } from "./services/gpsMonitorService";
+import { startInsightsScheduler } from "./services/insightsScheduler";
+import { startShiftComplianceScheduler } from "./queues/shiftComplianceWorker";
 
 const app = express();
 
@@ -142,6 +151,13 @@ app.use("/api/violations", violationRoutes);
 app.use("/api/penalties", penaltyRoutes);
 app.use("/api/keeta/monitor", keetaMonitorRoutes);
 app.use("/api/order-flow", orderFlowRoutes);
+app.use("/api/ai-insights", aiInsightsRoutes);
+app.use("/api/keeta/operation-centre", keetaOperationCentreRoutes);
+app.use("/api/keeta/courier-details", keetaCourierDetailsRoutes);
+app.use("/api/keeta/shift-monitor", keetaShiftMonitorRoutes);
+app.use("/api/keeta/reports", keetaReportsRoutes);
+app.use("/api/incentives", incentivesRoutes);
+app.use("/api/financial", financialRoutes);
 
 // API Documentation (Swagger UI — available at /api-docs)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -165,6 +181,8 @@ if (process.env.VERCEL !== "1") {
     logger.info({ port: env.PORT }, "Darb backend running");
     startAnomalyScheduler();
     startGpsMonitorScheduler();
+    startInsightsScheduler();
+    startShiftComplianceScheduler();
   });
 }
 

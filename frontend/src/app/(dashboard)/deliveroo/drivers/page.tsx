@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useApiGet } from "@/hooks/useApi";
 import DataTable from "@/components/shared/DataTable";
@@ -59,6 +60,7 @@ function FaceVerifBadge({ verified }: { verified: boolean }) {
 }
 
 export default function DeliverooDriversPage() {
+  const router = useRouter();
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -237,7 +239,7 @@ export default function DeliverooDriversPage() {
       <DataTable
         columns={columns}
         data={drivers}
-        onRowClick={setSelected}
+        onRowClick={(row) => router.push(`/deliveroo/drivers/${row.id}`)}
         emptyMessage="No Deliveroo drivers found"
       />
 

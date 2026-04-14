@@ -36,6 +36,14 @@ export interface Messages {
     ordersCash: string;
     monitor: string;
     penalties: string;
+    operationCentre: string;
+    courierDetails: string;
+    shiftMonitor: string;
+    incentives: string;
+    billings: string;
+    taxInvoices: string;
+    payments: string;
+    reports: string;
   };
   status: {
     active: string;
@@ -269,6 +277,14 @@ export const en: Messages = {
     ordersCash: "Orders & Cash",
     monitor: "Monitor",
     penalties: "Penalties",
+    operationCentre: "Operation Centre",
+    courierDetails: "Courier Details",
+    shiftMonitor: "Shift Monitor",
+    incentives: "Incentives",
+    billings: "Billings",
+    taxInvoices: "Tax Invoices",
+    payments: "Payments",
+    reports: "Reports",
   },
   status: {
     active: "Active",
@@ -502,6 +518,14 @@ export const ar: Messages = {
     ordersCash: "الطلبات والنقد",
     monitor: "المراقبة",
     penalties: "العقوبات",
+    operationCentre: "مركز العمليات",
+    courierDetails: "تفاصيل السائقين",
+    shiftMonitor: "مراقبة المناوبات",
+    incentives: "الحوافز",
+    billings: "الفواتير",
+    taxInvoices: "الفواتير الضريبية",
+    payments: "المدفوعات",
+    reports: "التقارير",
   },
   status: {
     active: "نشط",

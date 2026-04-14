@@ -3,6 +3,7 @@ import { useApiGet } from "@/hooks/useApi";
 import StatCard from "@/components/shared/StatCard";
 import PlatformBadge from "@/components/shared/PlatformBadge";
 import { Users, Activity, DollarSign, AlertTriangle, CheckCircle, Sparkles, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import InsightBanner from "@/components/shared/InsightBanner";
 import { cn } from "@/lib/cn";
 import { useState } from "react";
 import api from "@/lib/api";
@@ -102,6 +103,9 @@ export default function OverviewPage() {
           )}
         </div>
       )}
+
+      {/* AI Insights */}
+      <InsightBanner context="dashboard" maxInsights={3} />
 
       {/* Stat Cards */}
       <div className="grid grid-cols-4 gap-4">

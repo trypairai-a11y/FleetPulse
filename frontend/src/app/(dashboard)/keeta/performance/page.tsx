@@ -5,6 +5,7 @@ import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
+import InsightBanner from "@/components/shared/InsightBanner";
 import {
   Users,
   CalendarCheck,
@@ -99,6 +100,9 @@ export default function KeetaPerformancePage() {
         <h1 className="text-xl font-semibold">Keeta - Daily Performance</h1>
         <span className="text-sm text-secondary">Sidra</span>
       </div>
+
+      {/* AI Insights */}
+      <InsightBanner context="keeta/performance" platform="KEETA" maxInsights={2} />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-4">

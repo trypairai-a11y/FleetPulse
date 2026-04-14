@@ -10,6 +10,9 @@ import { cn } from "@/lib/cn";
 import { cleanDriverName } from "@/lib/formatters";
 import { Users, Package, CheckCircle2, Target, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import CoreMetricsCards from "@/components/keeta/CoreMetricsCards";
+import TrendChart from "@/components/keeta/TrendChart";
+import { useApiGet } from "@/hooks/useApi";
 
 function pct(val: number | null) {
   if (val === null) return "-";
@@ -64,6 +67,21 @@ const columns: ColumnConfig[] = [
 
 function KeetaMiddleSlot({ drivers, summary }: { drivers: any[]; summary: any; loading: boolean }) {
   const router = useRouter();
+  const { data: metricsSummary } = useApiGet<{ cards: any; trend: { series: any[] } }>("/api/keeta/metrics/summary");
+  const hasKeetaCards = !!metricsSummary?.cards;
+  return (
+    <div className="space-y-4">
+      {hasKeetaCards && <CoreMetricsCards cards={metricsSummary!.cards} />}
+      {metricsSummary?.trend?.series?.length ? (
+        <TrendChart points={metricsSummary.trend.series} metricA="acceptedTasks" metricB="deliveredTasks"
+          labelA="Accepted" labelB="Delivered" />
+      ) : null}
+      <KeetaLegacyMiddleSlot drivers={drivers} summary={summary} router={router} />
+    </div>
+  );
+}
+
+function KeetaLegacyMiddleSlot({ drivers, summary, router }: { drivers: any[]; summary: any; router: ReturnType<typeof useRouter> }) {
   const leaveCount = summary.driversOnLeave ?? 0;
   const totalAtt = (summary.presentCount || 0) + (summary.lateCount || 0) + (summary.absentCount || 0) + leaveCount;
   const presentPct = totalAtt > 0 ? ((summary.presentCount || 0) / totalAtt) * 100 : 0;

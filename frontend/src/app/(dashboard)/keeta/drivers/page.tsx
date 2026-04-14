@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useApiGet } from "@/hooks/useApi";
 import DataTable from "@/components/shared/DataTable";
@@ -16,6 +17,7 @@ const AddDriverModal = dynamic(() => import("@/components/shared/AddDriverModal"
 const ZONES = ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"];
 
 export default function KeetaDriversPage() {
+  const router = useRouter();
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -93,7 +95,7 @@ export default function KeetaDriversPage() {
         onChange={(k, v) => setFilters({ ...filters, [k]: v })}
       />
 
-      <DataTable columns={columns} data={drivers} onRowClick={setSelected} />
+      <DataTable columns={columns} data={drivers} onRowClick={(row) => router.push(`/keeta/drivers/${row.id}`)} />
 
       <SlidePanel open={!!selected} onClose={() => setSelected(null)} title={selected?.name || ""} subtitle="Keeta / Sidra">
         {selected && (

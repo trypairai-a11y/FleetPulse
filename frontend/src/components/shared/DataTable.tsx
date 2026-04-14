@@ -337,6 +337,30 @@ export default function DataTable({
             >
               <ChevronRight size={14} aria-hidden="true" />
             </button>
+            {/* F14 — page-jump */}
+            {pagination.totalPages > 10 && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const input = (e.currentTarget.elements.namedItem("jump") as HTMLInputElement);
+                  const n = Math.max(1, Math.min(pagination.totalPages, parseInt(input.value || "1", 10)));
+                  pagination.onPageChange(n);
+                }}
+                className="flex items-center gap-1 ms-2"
+              >
+                <span className="text-xs text-secondary">Go to</span>
+                <input
+                  name="jump"
+                  type="number"
+                  min={1}
+                  max={pagination.totalPages}
+                  defaultValue={pagination.page}
+                  className="w-14 text-xs border border-gray-200 rounded-lg px-2 py-1"
+                  aria-label="Jump to page"
+                />
+                <button type="submit" className="text-xs font-medium text-primary hover:underline">Jump</button>
+              </form>
+            )}
           </div>
         </div>
       )}

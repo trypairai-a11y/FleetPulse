@@ -360,10 +360,14 @@ router.get("/booking-status", async (req: Request, res: Response) => {
     let filtered = result;
     if (bookingFilter === "BOOKED") filtered = result.filter(r => r.hasBooked);
     else if (bookingFilter === "NOT_BOOKED") filtered = result.filter(r => !r.hasBooked);
+    else if (bookingFilter === "COMPLETED") filtered = result.filter(r => r.status === "COMPLETED");
+    else if (bookingFilter === "NO_SHOW") filtered = result.filter(r => r.status === "MISSED");
     else if (bookingFilter === "FLAGGED") filtered = result.filter(r => r.weeklyFlag);
 
     const bookedCount = result.filter(r => r.hasBooked).length;
     const notBookedCount = result.filter(r => !r.hasBooked).length;
+    const completedCount = result.filter(r => r.status === "COMPLETED").length;
+    const noShowCount = result.filter(r => r.status === "MISSED").length;
     const flaggedCount = result.filter(r => r.weeklyFlag).length;
 
     res.json({
@@ -371,6 +375,8 @@ router.get("/booking-status", async (req: Request, res: Response) => {
       totalDrivers: result.length,
       bookedCount,
       notBookedCount,
+      completedCount,
+      noShowCount,
       flaggedCount,
       drivers: filtered,
     });

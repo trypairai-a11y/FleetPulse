@@ -1785,9 +1785,247 @@ async function main() {
   }
   console.log(`Created ${notifData.length * (1 + users.length)} bilingual notifications`);
 
+  await seedKeetaParity(tenant.id);
+
   console.log("\nSeed complete!");
   console.log("Login: osama@fleet.kw / demo123");
   console.log(`Total: ${allDrivers.length} drivers, 30 days of data`);
+}
+
+// ─── KEETA PARITY (F11/F12/Amendment B) seed ────────────────────────────
+async function seedKeetaParity(tenantId: string) {
+  const KUWAIT_AREAS = [
+    { name: "Hawally", nameAr: "حولي" },
+    { name: "Avenues", nameAr: "الأفنيوز" },
+    { name: "Salmiya", nameAr: "السالمية" },
+    { name: "Jabriya", nameAr: "الجابرية" },
+    { name: "Kuwait City", nameAr: "مدينة الكويت" },
+    { name: "Al Khiran", nameAr: "الخيران" },
+    { name: "Sabah Al-Salem", nameAr: "صباح السالم" },
+    { name: "Mishref", nameAr: "مشرف" },
+  ];
+  for (const a of KUWAIT_AREAS) {
+    await prisma.deliveryArea.upsert({
+      where: { tenantId_name: { tenantId, name: a.name } },
+      create: { tenantId, ...a, active: true },
+      update: {},
+    });
+  }
+
+  const partner = await prisma.partner.upsert({
+    where: { tenantId_name: { tenantId, name: "Sidra Co." } },
+    create: { tenantId, name: "Sidra Co.", groupId: "SIDRA-HQ", groupName: "Sidra HQ Sidra" },
+    update: {},
+  });
+  const existingBank = await prisma.partnerBankAccount.findFirst({ where: { partnerId: partner.id } });
+  if (!existingBank) {
+    await prisma.partnerBankAccount.create({
+      data: {
+        partnerId: partner.id,
+        bankName: "Kuwait Finance House",
+        accountName: "Sidra Co.",
+        tailNumber: "8172",
+        verified: true,
+      },
+    });
+  }
+
+  const PERIODS = ["202510", "202511", "202512", "202601", "202602", "202603", "202604"];
+  const DEMO_AMOUNTS = [10202.049, 8742.210, 6530.115, 4321.870, 2998.401, 1450.200, 930.536];
+  const { DEFAULT_EXPERIENCE_TIERS, DEFAULT_VALID_DA_TIERS } = await import("../src/services/incentiveEngine");
+
+  for (let i = 0; i < PERIODS.length; i++) {
+    const period = PERIODS[i];
+    const round = await prisma.incentiveTargetRound.upsert({
+      where: { tenantId_partnerId_period_vehicleType: { tenantId, partnerId: partner.id, period, vehicleType: "MOTORCYCLE" } },
+      create: {
+        tenantId, partnerId: partner.id, period, vehicleType: "MOTORCYCLE",
+        issuedAt: new Date(`20${period.slice(2, 4)}-${period.slice(4)}-01T08:00:00Z`),
+        initialTarget: 14000 - i * 500,
+        status: i === 0 ? "ACTIVE" : "CLOSED",
+        operator: "Keeta OPS",
+      },
+      update: {},
+    });
+    const tiersExist = await prisma.incentiveTier.count({ where: { roundId: round.id } });
+    if (tiersExist === 0) {
+      await prisma.incentiveTier.createMany({
+        data: [
+          ...DEFAULT_EXPERIENCE_TIERS.map((t: any) => ({ roundId: round.id, kind: "EXPERIENCE", ...t })),
+          ...DEFAULT_VALID_DA_TIERS.map((t: any) => ({ roundId: round.id, kind: "VALID_DA", ...t })),
+        ],
+      });
+    }
+    const goalsExist = await prisma.incentiveGoal.count({ where: { roundId: round.id } });
+    if (goalsExist === 0) {
+      await prisma.incentiveGoal.createMany({
+        data: [
+          { roundId: round.id, name: "ORDER_COMPLETION_PCT", weight: 0.40, targetValue: 100, minThreshold: 95 },
+          { roundId: round.id, name: "ON_TIME_RATE", weight: 0.60, targetValue: 98.5, minThreshold: 90 },
+        ],
+      });
+    }
+
+    const billingId = `BILL-${period}-${partner.id.slice(0, 6)}`;
+    const existingBilling = await prisma.billing.findUnique({ where: { billingId } });
+    if (!existingBilling) {
+      const amount = DEMO_AMOUNTS[i];
+      const billing = await prisma.billing.create({
+        data: {
+          tenantId, partnerId: partner.id,
+          groupId: partner.groupId, groupName: partner.groupName,
+          billingId, billType: "MONTHLY_SETTLEMENT", period,
+          billingDate: new Date(`20${period.slice(2, 4)}-${period.slice(4)}-28T00:00:00Z`),
+          invoiceAmount: amount, payableAmount: amount,
+          status: i === 0 ? "PENDING_INVOICE" : "PAID",
+        },
+      });
+      if (i > 0) {
+        await prisma.taxInvoice.create({
+          data: {
+            tenantId, billingId: billing.id,
+            invoiceNo: `INV-${period}`,
+            issueDate: billing.billingDate,
+            sellerName: "Sidra Co.",
+            totalAmount: amount,
+            status: "ACCEPTED",
+            submittedAt: billing.billingDate,
+            acceptedAt: billing.billingDate,
+          },
+        });
+        await prisma.paymentWithdrawal.create({
+          data: {
+            tenantId, billingId: billing.id,
+            groupId: partner.groupId, groupName: partner.groupName,
+            withdrawTime: new Date(billing.billingDate.getTime() + 24 * 60 * 60 * 1000),
+            tailNumber: "8172",
+            amountKwd: amount,
+            status: "WITHDRAWN",
+            operationStatus: "Withdrawn",
+            note: "SYSTEM AUTO WITHDRAW",
+          },
+        });
+      }
+    }
+  }
+
+  await prisma.shiftComplianceConfig.upsert({
+    where: { tenantId },
+    create: { tenantId, underShiftHours: 10, evaluateCron: "0 6 * * *" },
+    update: {},
+  });
+
+  // ─── CourierAttendanceSlot (F9) — 14 days × 8 slots per Keeta driver ────
+  const keetaDrivers = await prisma.driver.findMany({
+    where: { tenantId, platform: "KEETA" },
+    select: { id: true, vehicleType: true },
+    take: 40,
+  });
+  const SLOTS = [0, 3, 6, 9, 12, 15, 18, 21];
+  const slotsPayload: any[] = [];
+  for (let d = 13; d >= 0; d--) {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() - d);
+    for (const driver of keetaDrivers) {
+      // simulate typical 12h shift from 09:00-21:00 with some randomness
+      for (const slotStart of SLOTS) {
+        const onShift = slotStart >= 9 && slotStart < 21 && Math.random() > 0.15;
+        const partial = !onShift && Math.random() < 0.1;
+        slotsPayload.push({
+          tenantId, driverId: driver.id, date, slotStart, slotEnd: slotStart + 3,
+          status: onShift ? "ON_SHIFT" : partial ? "PARTIAL" : "NO_SHIFT",
+          onShiftMin: onShift ? 180 : partial ? 60 + Math.floor(Math.random() * 90) : 0,
+        });
+      }
+    }
+  }
+  // Chunk inserts
+  const existingSlots = await prisma.courierAttendanceSlot.count({ where: { tenantId } });
+  if (existingSlots === 0 && slotsPayload.length > 0) {
+    for (let i = 0; i < slotsPayload.length; i += 500) {
+      await prisma.courierAttendanceSlot.createMany({ data: slotsPayload.slice(i, i + 500), skipDuplicates: true });
+    }
+  }
+  console.log(`Seeded ${slotsPayload.length} attendance slots`);
+
+  // ─── Populate GPS on active CourierOnlineSessions (F7 operation-centre) ──
+  // Kuwait City bounds: ~29.25-29.45 lat, 47.85-48.15 lng
+  const onlineSessions = await prisma.courierOnlineSession.findMany({
+    where: { tenantId, isOnline: true },
+    take: 60,
+  });
+  for (const s of onlineSessions) {
+    await prisma.courierOnlineSession.update({
+      where: { id: s.id },
+      data: {
+        lastGpsLat: 29.25 + Math.random() * 0.2,
+        lastGpsLng: 47.85 + Math.random() * 0.3,
+        lastGpsAt: new Date(Date.now() - Math.floor(Math.random() * 10 * 60_000)),
+        area: KUWAIT_AREAS[Math.floor(Math.random() * KUWAIT_AREAS.length)].name,
+      },
+    });
+  }
+  // If too few online sessions, create some
+  if (onlineSessions.length < 15) {
+    const needMore = keetaDrivers.slice(onlineSessions.length, 15);
+    for (const d of needMore) {
+      await prisma.courierOnlineSession.create({
+        data: {
+          tenantId, driverId: d.id,
+          startTime: new Date(Date.now() - 3 * 60 * 60_000),
+          isOnline: true,
+          lastGpsLat: 29.25 + Math.random() * 0.2,
+          lastGpsLng: 47.85 + Math.random() * 0.3,
+          lastGpsAt: new Date(),
+          area: KUWAIT_AREAS[Math.floor(Math.random() * KUWAIT_AREAS.length)].name,
+        },
+      });
+    }
+  }
+  console.log(`Populated GPS coords on online sessions`);
+
+  // ─── OrderEvent with merchant/customer lat/lng metadata (F7 by-order map) ─
+  const recentOrders = await prisma.orderEvent.findMany({ where: { tenantId }, take: 40 });
+  for (const o of recentOrders) {
+    const meta: any = o.metadata ?? {};
+    if (!meta.merchantLat) {
+      meta.merchantLat = 29.3 + Math.random() * 0.15;
+      meta.merchantLng = 47.9 + Math.random() * 0.2;
+      meta.customerLat = meta.merchantLat + (Math.random() - 0.5) * 0.05;
+      meta.customerLng = meta.merchantLng + (Math.random() - 0.5) * 0.05;
+      await prisma.orderEvent.update({ where: { id: o.id }, data: { metadata: meta } });
+    }
+  }
+  console.log(`Enriched ${recentOrders.length} order events with coordinates`);
+
+  // ─── Assign deliveryArea to Keeta shifts (Amendment B) ──────────────────
+  const keetaShiftsToUpdate = await prisma.shift.findMany({
+    where: { tenantId, platform: "KEETA", deliveryArea: null },
+    select: { id: true },
+    take: 1000,
+  });
+  for (const s of keetaShiftsToUpdate) {
+    await prisma.shift.update({
+      where: { id: s.id },
+      data: { deliveryArea: KUWAIT_AREAS[Math.floor(Math.random() * KUWAIT_AREAS.length)].name },
+    });
+  }
+  console.log(`Assigned deliveryArea to ${keetaShiftsToUpdate.length} Keeta shifts`);
+
+  // ─── Recompute incentive payouts (F11) ───────────────────────────────────
+  const { recomputeRound } = await import("../src/services/incentiveEngine");
+  const allRounds = await prisma.incentiveTargetRound.findMany({ where: { tenantId } });
+  for (const r of allRounds) {
+    try {
+      const payouts = await recomputeRound(r.id);
+      console.log(`  Round ${r.period}: ${payouts.length} payouts computed`);
+    } catch (e: any) {
+      console.log(`  Round ${r.period}: recompute skipped (${e.message})`);
+    }
+  }
+
+  console.log(`Seeded Keeta parity: ${KUWAIT_AREAS.length} areas, ${PERIODS.length} rounds, ${PERIODS.length - 1} withdrawals`);
 }
 
 main()

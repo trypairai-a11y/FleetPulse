@@ -5,6 +5,8 @@ import { useSSE } from "@/hooks/useSSE";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
+import InsightBanner from "@/components/shared/InsightBanner";
+import IdleDriverRecommendation from "@/components/shared/IdleDriverRecommendation";
 import { cn } from "@/lib/cn";
 import { StatCardSkeleton, TableSkeleton } from "@/components/shared/Skeleton";
 import {
@@ -167,6 +169,9 @@ export default function KeetaMonitorPage() {
           <span className="bg-purple-200/50 px-2 py-0.5 rounded-full text-xs font-semibold">{alerts.orderRejections.count}</span>
         </div>
       </div>
+
+      {/* AI Insights */}
+      <InsightBanner context="keeta/monitor" platform="KEETA" maxInsights={2} />
 
       {/* View Tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
@@ -365,12 +370,20 @@ export default function KeetaMonitorPage() {
             </div>
 
             {detailTab === "current" && (
-              <div className="text-sm text-secondary">
+              <div className="text-sm text-secondary space-y-3">
                 {selected.status === "working" ? (
                   <div className="bg-green-50 rounded-xl p-4 text-green-700">
                     <p className="font-medium">Active delivery in progress</p>
                     <p className="text-xs mt-1">Completed {selected.completedOrders} orders today</p>
                   </div>
+                ) : selected.status === "idle" ? (
+                  <IdleDriverRecommendation
+                    driverId={selected.id}
+                    driverName={selected.name}
+                    lat={selected.lastGps?.lat ?? null}
+                    lng={selected.lastGps?.lng ?? null}
+                    platform="KEETA"
+                  />
                 ) : (
                   <p className="text-center py-8">No active orders</p>
                 )}

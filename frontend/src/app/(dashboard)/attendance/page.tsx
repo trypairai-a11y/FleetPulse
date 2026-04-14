@@ -5,6 +5,7 @@ import StatCard from "@/components/shared/StatCard";
 import PlatformBadge from "@/components/shared/PlatformBadge";
 import { cn } from "@/lib/cn";
 import { CalendarCheck, Clock, UserX, FileText } from "lucide-react";
+import InsightBanner from "@/components/shared/InsightBanner";
 
 type Tab = "daily" | "monthly" | "leaves";
 
@@ -33,6 +34,9 @@ export default function AttendancePage() {
   return (
     <div className="space-y-6 max-w-7xl">
       <h1 className="text-xl font-semibold">Attendance</h1>
+
+      {/* AI Insights */}
+      <InsightBanner context="attendance" maxInsights={2} />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-4">

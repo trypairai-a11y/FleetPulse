@@ -52,6 +52,7 @@ router.get("/metrics", async (req: Request, res: Response) => {
 });
 
 // GET /metrics/summary - Aggregate stats for a date range
+// F8: adds DoD / WoW deltas + 30-day trend series for the Keeta overview cards.
 router.get("/metrics/summary", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -81,9 +82,92 @@ router.get("/metrics/summary", async (req: Request, res: Response) => {
       prisma.keetaDailyMetrics.aggregate({
         where: dateFilter,
         _avg: { onTimeRate: true, avgDeliveryMinutes: true },
-        _sum: { deliveredTasks: true, acceptedTasks: true },
+        _sum: { deliveredTasks: true, acceptedTasks: true, cancelledTasks: true },
       }),
     ]);
+
+    // Build per-day series for the last 30 days for delta + trend chart.
+    const seriesEnd = endDate;
+    const seriesStart = new Date(seriesEnd);
+    seriesStart.setDate(seriesStart.getDate() - 29);
+    seriesStart.setHours(0, 0, 0, 0);
+
+    const dayRows = await prisma.keetaDailyMetrics.findMany({
+      where: { tenantId, date: { gte: seriesStart, lte: seriesEnd } },
+      select: {
+        date: true, acceptedTasks: true, deliveredTasks: true, cancelledTasks: true,
+        onTimeRate: true, driverId: true, validDay: true,
+      },
+    });
+
+    type DayAgg = {
+      date: string;
+      acceptedTasks: number;
+      deliveredTasks: number;
+      cancelledTasks: number;
+      onlineCouriers: number;
+      deliveredProp: number;
+      onTimeRate: number;
+      _ontimeCount: number;
+      _deliveredDrivers: Set<string>;
+      _drivers: Set<string>;
+    };
+    const byDay = new Map<string, DayAgg>();
+    for (const r of dayRows) {
+      const key = r.date.toISOString().slice(0, 10);
+      let agg = byDay.get(key);
+      if (!agg) {
+        agg = {
+          date: key, acceptedTasks: 0, deliveredTasks: 0, cancelledTasks: 0,
+          onlineCouriers: 0, deliveredProp: 0, onTimeRate: 0,
+          _ontimeCount: 0, _deliveredDrivers: new Set(), _drivers: new Set(),
+        };
+        byDay.set(key, agg);
+      }
+      agg.acceptedTasks += r.acceptedTasks || 0;
+      agg.deliveredTasks += r.deliveredTasks || 0;
+      agg.cancelledTasks += r.cancelledTasks || 0;
+      agg._drivers.add(r.driverId);
+      if ((r.deliveredTasks || 0) > 0) agg._deliveredDrivers.add(r.driverId);
+      if (r.onTimeRate != null) {
+        agg.onTimeRate += Number(r.onTimeRate);
+        agg._ontimeCount += 1;
+      }
+    }
+
+    const series = Array.from(byDay.values()).map((a) => ({
+      date: a.date,
+      acceptedTasks: a.acceptedTasks,
+      deliveredTasks: a.deliveredTasks,
+      cancelledTasks: a.cancelledTasks,
+      onlineCouriers: a._drivers.size,
+      deliveredProp: a._drivers.size > 0 ? Number((a._deliveredDrivers.size / a._drivers.size).toFixed(4)) : 0,
+      onTimeRate: a._ontimeCount > 0 ? Number((a.onTimeRate / a._ontimeCount).toFixed(4)) : 0,
+    })).sort((a, b) => a.date.localeCompare(b.date));
+
+    // Delta helper: (today - ref) / ref  → percentage rounded 2dp.
+    const deltaPct = (today: number, ref: number): number | null => {
+      if (ref === 0 || ref == null) return null;
+      return Number((((today - ref) / ref) * 100).toFixed(2));
+    };
+
+    const todayKey = seriesEnd.toISOString().slice(0, 10);
+    const yesterdayDate = new Date(seriesEnd);
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yKey = yesterdayDate.toISOString().slice(0, 10);
+    const wowDate = new Date(seriesEnd);
+    wowDate.setDate(wowDate.getDate() - 7);
+    const wKey = wowDate.toISOString().slice(0, 10);
+    const ZERO = { date: "", acceptedTasks: 0, deliveredTasks: 0, cancelledTasks: 0, onlineCouriers: 0, deliveredProp: 0, onTimeRate: 0 };
+    const today = series.find((s) => s.date === todayKey) ?? series[series.length - 1] ?? ZERO;
+    const yesterday = series.find((s) => s.date === yKey) ?? ZERO;
+    const wow = series.find((s) => s.date === wKey) ?? ZERO;
+
+    const card = (field: keyof typeof today) => ({
+      value: (today as any)[field] as number,
+      dodPct: deltaPct((today as any)[field] as number, (yesterday as any)[field] as number),
+      wowPct: deltaPct((today as any)[field] as number, (wow as any)[field] as number),
+    });
 
     res.json({
       totalDrivers: distinctDrivers.length,
@@ -93,6 +177,16 @@ router.get("/metrics/summary", async (req: Request, res: Response) => {
       avgDeliveryMinutes: aggregates._avg.avgDeliveryMinutes || 0,
       totalDeliveredTasks: aggregates._sum.deliveredTasks || 0,
       totalAcceptedTasks: aggregates._sum.acceptedTasks || 0,
+      // F8 additions
+      cards: {
+        acceptedTasks: card("acceptedTasks"),
+        deliveredTasks: card("deliveredTasks"),
+        deliveredProp: card("deliveredProp"),
+        cancelledTasks: card("cancelledTasks"),
+        onlineCouriers: card("onlineCouriers"),
+        onTimeRateDaily: card("onTimeRate"),
+      },
+      trend: { series },
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

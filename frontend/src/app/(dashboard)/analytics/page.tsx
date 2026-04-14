@@ -4,6 +4,7 @@ import StatCard from "@/components/shared/StatCard";
 import PlatformBadge from "@/components/shared/PlatformBadge";
 import { cn } from "@/lib/cn";
 import { downloadBlob } from "@/utils/downloadBlob";
+import InsightBanner from "@/components/shared/InsightBanner";
 import {
   Users, Package, DollarSign, ShieldCheck,
   TrendingUp, TrendingDown, Minus,
@@ -101,6 +102,9 @@ export default function AnalyticsPage() {
         <h1 className="text-2xl font-semibold text-foreground">Fleet Analytics</h1>
         <p className="text-sm text-secondary mt-1">Cross-Platform Overview</p>
       </div>
+
+      {/* AI Insights */}
+      <InsightBanner context="analytics" maxInsights={3} />
 
       {/* Platform Comparison Cards */}
       <div className="grid grid-cols-4 gap-4">

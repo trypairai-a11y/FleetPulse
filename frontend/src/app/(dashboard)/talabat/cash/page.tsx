@@ -4,6 +4,7 @@ import { useApiGet } from "@/hooks/useApi";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
 import api from "@/lib/api";
+import InsightBanner from "@/components/shared/InsightBanner";
 import {
   Wallet, AlertTriangle, TrendingUp, Download, Upload,
   ChevronDown, ChevronRight, ChevronLeft, X, Check, Loader2,
@@ -514,6 +515,9 @@ export default function TalabatCashPage() {
           </button>
         </div>
       </div>
+
+      {/* AI Insights */}
+      <InsightBanner context="talabat/cash" platform="TALABAT" maxInsights={2} />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-4">

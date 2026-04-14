@@ -276,6 +276,7 @@ exports.Prisma.ShiftScalarFieldEnum = {
   clockInMethod: 'clockInMethod',
   clockOutMethod: 'clockOutMethod',
   shiftScreenshotUrl: 'shiftScreenshotUrl',
+  deliveryArea: 'deliveryArea',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -845,6 +846,186 @@ exports.Prisma.OrderEventScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.AiInsightScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  category: 'category',
+  subcategory: 'subcategory',
+  context: 'context',
+  severity: 'severity',
+  title: 'title',
+  description: 'description',
+  actionLabel: 'actionLabel',
+  actionHref: 'actionHref',
+  data: 'data',
+  driverId: 'driverId',
+  platform: 'platform',
+  score: 'score',
+  expiresAt: 'expiresAt',
+  batchId: 'batchId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DemandHeatmapScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  platform: 'platform',
+  zone: 'zone',
+  dayOfWeek: 'dayOfWeek',
+  hourSlot: 'hourSlot',
+  avgOrders: 'avgOrders',
+  topRestaurants: 'topRestaurants',
+  confidence: 'confidence',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DeliveryAreaScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  nameAr: 'nameAr',
+  active: 'active',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CourierAttendanceSlotScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  date: 'date',
+  slotStart: 'slotStart',
+  slotEnd: 'slotEnd',
+  status: 'status',
+  onShiftMin: 'onShiftMin',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ShiftComplianceConfigScalarFieldEnum = {
+  tenantId: 'tenantId',
+  underShiftHours: 'underShiftHours',
+  evaluateCron: 'evaluateCron',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PartnerScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  groupId: 'groupId',
+  groupName: 'groupName',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PartnerBankAccountScalarFieldEnum = {
+  id: 'id',
+  partnerId: 'partnerId',
+  bankName: 'bankName',
+  accountName: 'accountName',
+  tailNumber: 'tailNumber',
+  verified: 'verified',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.IncentiveTargetRoundScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  partnerId: 'partnerId',
+  period: 'period',
+  vehicleType: 'vehicleType',
+  issuedAt: 'issuedAt',
+  initialTarget: 'initialTarget',
+  adjustedTarget: 'adjustedTarget',
+  status: 'status',
+  operator: 'operator',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.IncentiveGoalScalarFieldEnum = {
+  id: 'id',
+  roundId: 'roundId',
+  name: 'name',
+  weight: 'weight',
+  targetValue: 'targetValue',
+  minThreshold: 'minThreshold'
+};
+
+exports.Prisma.IncentiveTierScalarFieldEnum = {
+  id: 'id',
+  roundId: 'roundId',
+  kind: 'kind',
+  level: 'level',
+  minRate: 'minRate',
+  maxRate: 'maxRate',
+  payment: 'payment'
+};
+
+exports.Prisma.CourierIncentivePayoutScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  roundId: 'roundId',
+  driverId: 'driverId',
+  experienceRate: 'experienceRate',
+  experienceTier: 'experienceTier',
+  experiencePayKwd: 'experiencePayKwd',
+  validDaCount: 'validDaCount',
+  validDaTier: 'validDaTier',
+  validDaPayKwd: 'validDaPayKwd',
+  totalPayKwd: 'totalPayKwd',
+  computedAt: 'computedAt'
+};
+
+exports.Prisma.BillingScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  partnerId: 'partnerId',
+  groupId: 'groupId',
+  groupName: 'groupName',
+  billingId: 'billingId',
+  billType: 'billType',
+  period: 'period',
+  billingDate: 'billingDate',
+  invoiceAmount: 'invoiceAmount',
+  payableAmount: 'payableAmount',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TaxInvoiceScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  billingId: 'billingId',
+  invoiceNo: 'invoiceNo',
+  issueDate: 'issueDate',
+  sellerName: 'sellerName',
+  totalAmount: 'totalAmount',
+  fileUrl: 'fileUrl',
+  status: 'status',
+  rejectReason: 'rejectReason',
+  submittedAt: 'submittedAt',
+  acceptedAt: 'acceptedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PaymentWithdrawalScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  billingId: 'billingId',
+  groupId: 'groupId',
+  groupName: 'groupName',
+  withdrawTime: 'withdrawTime',
+  tailNumber: 'tailNumber',
+  amountKwd: 'amountKwd',
+  status: 'status',
+  operationStatus: 'operationStatus',
+  note: 'note',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -963,7 +1144,8 @@ exports.Prisma.ShiftOrderByRelevanceFieldEnum = {
   selfieUrl: 'selfieUrl',
   clockInMethod: 'clockInMethod',
   clockOutMethod: 'clockOutMethod',
-  shiftScreenshotUrl: 'shiftScreenshotUrl'
+  shiftScreenshotUrl: 'shiftScreenshotUrl',
+  deliveryArea: 'deliveryArea'
 };
 
 exports.Prisma.AttendanceRecordOrderByRelevanceFieldEnum = {
@@ -1271,6 +1453,128 @@ exports.Prisma.OrderEventOrderByRelevanceFieldEnum = {
   description: 'description',
   operator: 'operator',
   operatorId: 'operatorId'
+};
+
+exports.Prisma.AiInsightOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  category: 'category',
+  subcategory: 'subcategory',
+  context: 'context',
+  severity: 'severity',
+  title: 'title',
+  description: 'description',
+  actionLabel: 'actionLabel',
+  actionHref: 'actionHref',
+  driverId: 'driverId',
+  platform: 'platform',
+  batchId: 'batchId'
+};
+
+exports.Prisma.DemandHeatmapOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  platform: 'platform',
+  zone: 'zone'
+};
+
+exports.Prisma.DeliveryAreaOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  nameAr: 'nameAr'
+};
+
+exports.Prisma.CourierAttendanceSlotOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  status: 'status'
+};
+
+exports.Prisma.ShiftComplianceConfigOrderByRelevanceFieldEnum = {
+  tenantId: 'tenantId',
+  evaluateCron: 'evaluateCron'
+};
+
+exports.Prisma.PartnerOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  groupId: 'groupId',
+  groupName: 'groupName'
+};
+
+exports.Prisma.PartnerBankAccountOrderByRelevanceFieldEnum = {
+  id: 'id',
+  partnerId: 'partnerId',
+  bankName: 'bankName',
+  accountName: 'accountName',
+  tailNumber: 'tailNumber'
+};
+
+exports.Prisma.IncentiveTargetRoundOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  partnerId: 'partnerId',
+  period: 'period',
+  vehicleType: 'vehicleType',
+  status: 'status',
+  operator: 'operator'
+};
+
+exports.Prisma.IncentiveGoalOrderByRelevanceFieldEnum = {
+  id: 'id',
+  roundId: 'roundId',
+  name: 'name'
+};
+
+exports.Prisma.IncentiveTierOrderByRelevanceFieldEnum = {
+  id: 'id',
+  roundId: 'roundId',
+  kind: 'kind',
+  level: 'level'
+};
+
+exports.Prisma.CourierIncentivePayoutOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  roundId: 'roundId',
+  driverId: 'driverId',
+  experienceTier: 'experienceTier',
+  validDaTier: 'validDaTier'
+};
+
+exports.Prisma.BillingOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  partnerId: 'partnerId',
+  groupId: 'groupId',
+  groupName: 'groupName',
+  billingId: 'billingId',
+  billType: 'billType',
+  period: 'period'
+};
+
+exports.Prisma.TaxInvoiceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  billingId: 'billingId',
+  invoiceNo: 'invoiceNo',
+  sellerName: 'sellerName',
+  fileUrl: 'fileUrl',
+  rejectReason: 'rejectReason'
+};
+
+exports.Prisma.PaymentWithdrawalOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  billingId: 'billingId',
+  groupId: 'groupId',
+  groupName: 'groupName',
+  tailNumber: 'tailNumber',
+  operationStatus: 'operationStatus',
+  note: 'note'
 };
 exports.SubscriptionPlan = exports.$Enums.SubscriptionPlan = {
   FREE: 'FREE',
@@ -1585,6 +1889,27 @@ exports.AppealStatus = exports.$Enums.AppealStatus = {
   REJECTED: 'REJECTED'
 };
 
+exports.BillingStatus = exports.$Enums.BillingStatus = {
+  PENDING_INVOICE: 'PENDING_INVOICE',
+  AWAITING_APPROVAL: 'AWAITING_APPROVAL',
+  APPROVED: 'APPROVED',
+  PAID: 'PAID',
+  REJECTED: 'REJECTED'
+};
+
+exports.TaxInvoiceStatus = exports.$Enums.TaxInvoiceStatus = {
+  DRAFT: 'DRAFT',
+  SUBMITTED: 'SUBMITTED',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED'
+};
+
+exports.WithdrawalStatus = exports.$Enums.WithdrawalStatus = {
+  PENDING: 'PENDING',
+  WITHDRAWN: 'WITHDRAWN',
+  FAILED: 'FAILED'
+};
+
 exports.Prisma.ModelName = {
   Tenant: 'Tenant',
   Company: 'Company',
@@ -1629,7 +1954,21 @@ exports.Prisma.ModelName = {
   Violation: 'Violation',
   Penalty: 'Penalty',
   Appeal: 'Appeal',
-  OrderEvent: 'OrderEvent'
+  OrderEvent: 'OrderEvent',
+  AiInsight: 'AiInsight',
+  DemandHeatmap: 'DemandHeatmap',
+  DeliveryArea: 'DeliveryArea',
+  CourierAttendanceSlot: 'CourierAttendanceSlot',
+  ShiftComplianceConfig: 'ShiftComplianceConfig',
+  Partner: 'Partner',
+  PartnerBankAccount: 'PartnerBankAccount',
+  IncentiveTargetRound: 'IncentiveTargetRound',
+  IncentiveGoal: 'IncentiveGoal',
+  IncentiveTier: 'IncentiveTier',
+  CourierIncentivePayout: 'CourierIncentivePayout',
+  Billing: 'Billing',
+  TaxInvoice: 'TaxInvoice',
+  PaymentWithdrawal: 'PaymentWithdrawal'
 };
 
 /**

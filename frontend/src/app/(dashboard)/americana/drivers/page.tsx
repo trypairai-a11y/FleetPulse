@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useApiGet } from "@/hooks/useApi";
 import DataTable from "@/components/shared/DataTable";
@@ -28,6 +29,7 @@ const STORES = [
 const POSITIONS = ["Car", "Bike"];
 
 export default function AmericanaDriversPage() {
+  const router = useRouter();
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -165,7 +167,7 @@ export default function AmericanaDriversPage() {
         onChange={(k, v) => setFilters({ ...filters, [k]: v })}
       />
 
-      <DataTable columns={columns} data={drivers} onRowClick={setSelected} emptyMessage="No Americana drivers found" />
+      <DataTable columns={columns} data={drivers} onRowClick={(row) => router.push(`/americana/drivers/${row.id}`)} emptyMessage="No Americana drivers found" />
 
       {/* Driver Detail Panel */}
       <SlidePanel

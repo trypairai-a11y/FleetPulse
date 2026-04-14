@@ -13,7 +13,7 @@ import {
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeft,
   ClipboardList, DollarSign, Briefcase,
   ShieldAlert, BarChart3, Target, Gauge, Building2, Lightbulb,
-  Activity, AlertTriangle, Ban,
+  Activity, AlertTriangle, Ban, Map as MapIcon, Calendar, Trophy, Wallet, PieChart,
 } from "lucide-react";
 
 // Platform names stay as brand strings; sub-page labels translate via i18n keys.
@@ -40,13 +40,21 @@ const PLATFORMS = [
     bg: "bg-keeta/10",
     subPages: [
       { i18n: "nav.overview", path: "/keeta/overview", icon: Gauge },
+      { i18n: "nav.operationCentre", path: "/keeta/operation-centre", icon: MapIcon },
       { i18n: "nav.drivers", path: "/keeta/drivers", icon: Users },
+      { i18n: "nav.courierDetails", path: "/keeta/courier-details", icon: Calendar },
       { i18n: "nav.shifts", path: "/keeta/shifts", icon: ClipboardList },
+      { i18n: "nav.shiftMonitor", path: "/keeta/shift-monitor", icon: Activity },
       { i18n: "nav.orders", path: "/keeta/orders", icon: Briefcase },
       { i18n: "nav.performance", path: "/keeta/performance", icon: BarChart3 },
       { i18n: "nav.monitor", path: "/keeta/monitor", icon: Activity },
       { i18n: "nav.violations", path: "/keeta/violations", icon: AlertTriangle },
       { i18n: "nav.penalties", path: "/keeta/penalties", icon: Ban },
+      { i18n: "nav.incentives", path: "/keeta/incentives", icon: Trophy },
+      { i18n: "nav.billings", path: "/keeta/financial/billings", icon: DollarSign },
+      { i18n: "nav.taxInvoices", path: "/keeta/financial/tax-invoices", icon: Ticket },
+      { i18n: "nav.payments", path: "/keeta/financial/payments", icon: Wallet },
+      { i18n: "nav.reports", path: "/keeta/reports", icon: PieChart },
       { i18n: "nav.settings", path: "/keeta/settings", icon: Settings },
     ],
   },

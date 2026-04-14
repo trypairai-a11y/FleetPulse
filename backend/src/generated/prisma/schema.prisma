@@ -1,7 +1,7 @@
 generator client {
   provider        = "prisma-client-js"
   output          = "../src/generated/prisma"
-  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
+  binaryTargets   = ["native", "rhel-openssl-3.0.x", "linux-arm64-openssl-3.0.x"]
   previewFeatures = ["postgresqlExtensions", "fullTextSearch"]
 }
 
@@ -336,42 +336,53 @@ model Tenant {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  companies              Company[]
-  users                  User[]
-  drivers                Driver[]
-  shifts                 Shift[]
-  attendanceRecords      AttendanceRecord[]
-  orderLogs              OrderLog[]
-  cashRecords            CashRecord[]
-  cashTransactions       CashTransaction[]
-  pendingDuesLedgers     PendingDuesLedger[]
-  vehicleInspections     VehicleInspection[]
-  maintenanceRecords     MaintenanceRecord[]
-  aiScores               AiScore[]
-  alerts                 Alert[]
-  aiDigests              AiDigest[]
-  auditLogs              AuditLog[]
-  tickets                Ticket[]
-  leaveRequests          LeaveRequest[]
-  recruitmentPipeline    RecruitmentPipeline[]
-  vehicles               Vehicle[]
-  talabatSessions        TalabatSession[]
-  talabatViolationEvents TalabatViolationEvent[]
-  keetaDailyMetrics      KeetaDailyMetrics[]
-  americanaDailyOrders   AmericanaDailyOrders[]
-  kpiDefinitions         KpiDefinition[]
-  kpiRecords             KpiRecord[]
-  platformSettings       PlatformSettings[]
-  platformInventory      PlatformInventory[]
-  notifications          Notification[]
-  notificationRules      NotificationRule[]
-  notificationDeliveries NotificationDelivery[]
-  driverRestrictions     DriverRestriction[]
-  courierOnlineSessions  CourierOnlineSession[]
-  violations             Violation[]
-  penalties              Penalty[]
-  appeals                Appeal[]
-  orderEvents            OrderEvent[]
+  companies               Company[]
+  users                   User[]
+  drivers                 Driver[]
+  shifts                  Shift[]
+  attendanceRecords       AttendanceRecord[]
+  orderLogs               OrderLog[]
+  cashRecords             CashRecord[]
+  cashTransactions        CashTransaction[]
+  pendingDuesLedgers      PendingDuesLedger[]
+  vehicleInspections      VehicleInspection[]
+  maintenanceRecords      MaintenanceRecord[]
+  aiScores                AiScore[]
+  alerts                  Alert[]
+  aiDigests               AiDigest[]
+  auditLogs               AuditLog[]
+  tickets                 Ticket[]
+  leaveRequests           LeaveRequest[]
+  recruitmentPipeline     RecruitmentPipeline[]
+  vehicles                Vehicle[]
+  talabatSessions         TalabatSession[]
+  talabatViolationEvents  TalabatViolationEvent[]
+  keetaDailyMetrics       KeetaDailyMetrics[]
+  americanaDailyOrders    AmericanaDailyOrders[]
+  kpiDefinitions          KpiDefinition[]
+  kpiRecords              KpiRecord[]
+  platformSettings        PlatformSettings[]
+  platformInventory       PlatformInventory[]
+  notifications           Notification[]
+  notificationRules       NotificationRule[]
+  notificationDeliveries  NotificationDelivery[]
+  driverRestrictions      DriverRestriction[]
+  courierOnlineSessions   CourierOnlineSession[]
+  violations              Violation[]
+  penalties               Penalty[]
+  appeals                 Appeal[]
+  orderEvents             OrderEvent[]
+  aiInsights              AiInsight[]
+  demandHeatmaps          DemandHeatmap[]
+  courierAttendanceSlots  CourierAttendanceSlot[]
+  shiftComplianceConfig   ShiftComplianceConfig?
+  deliveryAreas           DeliveryArea[]
+  partners                Partner[]
+  incentiveTargetRounds   IncentiveTargetRound[]
+  courierIncentivePayouts CourierIncentivePayout[]
+  billings                Billing[]
+  taxInvoices             TaxInvoice[]
+  paymentWithdrawals      PaymentWithdrawal[]
 }
 
 // 2. Company
@@ -464,35 +475,38 @@ model Driver {
   company    Company @relation(fields: [companyId], references: [id])
   supervisor User?   @relation("DriverSupervisor", fields: [supervisorId], references: [id])
 
-  inventory              DriverInventory[]
-  shifts                 Shift[]
-  attendanceRecords      AttendanceRecord[]
-  orderLogs              OrderLog[]
-  cashRecords            CashRecord[]
-  cashTransactions       CashTransaction[]
-  pendingDuesLedgers     PendingDuesLedger[]
-  vehicleInspections     VehicleInspection[]
-  maintenanceRecords     MaintenanceRecord[]
-  aiScores               AiScore[]
-  alerts                 Alert[]
-  capturedOrders         CapturedOrder[]
-  locationLogs           LocationLog[]
-  appUsageLogs           AppUsageLog[]
-  device                 Device?
-  assignedVehicle        Vehicle?                @relation("AssignedDriver")
-  leaveRequests          LeaveRequest[]
-  restrictions           DriverRestriction[]
-  tickets                Ticket[]                @relation("TicketDriver")
-  submittedTickets       Ticket[]                @relation("TicketSubmitterDriver")
-  talabatSessions        TalabatSession[]
-  talabatViolationEvents TalabatViolationEvent[]
-  keetaDailyMetrics      KeetaDailyMetrics[]
-  americanaDailyOrders   AmericanaDailyOrders[]
-  talabatDeliveries      TalabatDelivery[]
-  kpiRecords             KpiRecord[]
-  courierOnlineSessions  CourierOnlineSession[]
-  violations             Violation[]
-  penalties              Penalty[]
+  inventory               DriverInventory[]
+  shifts                  Shift[]
+  attendanceRecords       AttendanceRecord[]
+  orderLogs               OrderLog[]
+  cashRecords             CashRecord[]
+  cashTransactions        CashTransaction[]
+  pendingDuesLedgers      PendingDuesLedger[]
+  vehicleInspections      VehicleInspection[]
+  maintenanceRecords      MaintenanceRecord[]
+  aiScores                AiScore[]
+  alerts                  Alert[]
+  capturedOrders          CapturedOrder[]
+  locationLogs            LocationLog[]
+  appUsageLogs            AppUsageLog[]
+  device                  Device?
+  assignedVehicle         Vehicle?                 @relation("AssignedDriver")
+  leaveRequests           LeaveRequest[]
+  restrictions            DriverRestriction[]
+  tickets                 Ticket[]                 @relation("TicketDriver")
+  submittedTickets        Ticket[]                 @relation("TicketSubmitterDriver")
+  talabatSessions         TalabatSession[]
+  talabatViolationEvents  TalabatViolationEvent[]
+  keetaDailyMetrics       KeetaDailyMetrics[]
+  americanaDailyOrders    AmericanaDailyOrders[]
+  talabatDeliveries       TalabatDelivery[]
+  kpiRecords              KpiRecord[]
+  courierOnlineSessions   CourierOnlineSession[]
+  violations              Violation[]
+  penalties               Penalty[]
+  aiInsights              AiInsight[]
+  courierAttendanceSlots  CourierAttendanceSlot[]
+  courierIncentivePayouts CourierIncentivePayout[]
 
   @@index([tenantId])
   @@index([companyId])
@@ -618,6 +632,7 @@ model Shift {
   clockInMethod       String?
   clockOutMethod      String?
   shiftScreenshotUrl  String?
+  deliveryArea        String? // Amendment B: Hawally, Avenues, Salmiya, etc.
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
 
@@ -632,6 +647,7 @@ model Shift {
   @@index([date])
   @@index([tenantId, date])
   @@index([tenantId, driverId, date])
+  @@index([tenantId, deliveryArea, date])
 }
 
 // 9. AttendanceRecord
@@ -1324,7 +1340,7 @@ model KpiRecord {
 model Notification {
   id        String    @id @default(uuid())
   tenantId  String
-  userId    String
+  userId    String?
   title     String
   message   String
   type      String // violation type or alert type (e.g. "GPS_OFF", "cash_overdue")
@@ -1339,7 +1355,7 @@ model Notification {
   createdAt DateTime  @default(now())
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
-  user   User   @relation(fields: [userId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id])
 
   @@index([tenantId])
   @@index([userId])
@@ -1512,4 +1528,294 @@ model OrderEvent {
 
   @@index([tenantId, orderId])
   @@index([orderId, timestamp])
+}
+
+// 39. AiInsight - pre-computed AI-driven operational recommendations
+model AiInsight {
+  id          String   @id @default(uuid())
+  tenantId    String
+  category    String // REVENUE, WORKFORCE, FINANCIAL, COMPLIANCE, COACHING, EFFICIENCY
+  subcategory String // e.g. "idle_positioning", "shift_gap", "cash_priority"
+  context     String // page where this appears: "keeta/monitor", "dashboard", etc.
+  severity    String   @default("INFO") // INFO, WARNING, CRITICAL, OPPORTUNITY
+  title       String
+  description String
+  actionLabel String?
+  actionHref  String?
+  data        Json?
+  driverId    String?
+  platform    String?
+  score       Float    @default(0) // priority ranking
+  expiresAt   DateTime
+  batchId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id])
+  driver Driver? @relation(fields: [driverId], references: [id])
+
+  @@index([tenantId, context, expiresAt])
+  @@index([tenantId, category])
+  @@index([tenantId, driverId])
+}
+
+// 40. DemandHeatmap - pre-computed restaurant demand by zone/time for real-time positioning
+model DemandHeatmap {
+  id             String   @id @default(uuid())
+  tenantId       String
+  platform       String
+  zone           String
+  dayOfWeek      Int // 0=Sun, 6=Sat
+  hourSlot       Int // 0-23
+  avgOrders      Float
+  topRestaurants Json // [{name, avgOrders, lat, lng}]
+  confidence     Float // 0-1
+  updatedAt      DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, platform, zone, dayOfWeek, hourSlot])
+  @@index([tenantId, platform])
+}
+
+// ─── KEETA PARITY (F7–F14) ──────────────────────────────────────────────────
+
+// Amendment B — configurable delivery areas per tenant
+model DeliveryArea {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  nameAr    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, name])
+  @@index([tenantId, active])
+}
+
+// F9 — 3-hour attendance slot per courier per day
+model CourierAttendanceSlot {
+  id         String   @id @default(uuid())
+  tenantId   String
+  driverId   String
+  date       DateTime @db.Date
+  slotStart  Int // 0, 3, 6, 9, 12, 15, 18, 21
+  slotEnd    Int
+  status     String // ON_SHIFT | NO_SHIFT | PARTIAL
+  onShiftMin Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@unique([tenantId, driverId, date, slotStart])
+  @@index([tenantId, date])
+}
+
+// F10 — per-tenant shift compliance configuration
+model ShiftComplianceConfig {
+  tenantId        String   @id
+  underShiftHours Float    @default(10)
+  evaluateCron    String   @default("0 6 * * *")
+  updatedAt       DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+}
+
+// F11 — Partner & bank account
+model Partner {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  groupId   String
+  groupName String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant          Tenant                 @relation(fields: [tenantId], references: [id])
+  bankAccounts    PartnerBankAccount[]
+  billings        Billing[]
+  incentiveRounds IncentiveTargetRound[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model PartnerBankAccount {
+  id          String   @id @default(uuid())
+  partnerId   String
+  bankName    String
+  accountName String
+  tailNumber  String // last 4 of IBAN
+  verified    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  partner Partner @relation(fields: [partnerId], references: [id])
+
+  @@index([partnerId])
+}
+
+// F11 — Incentive engine
+model IncentiveTargetRound {
+  id             String   @id @default(uuid())
+  tenantId       String
+  partnerId      String
+  period         String // "202604"
+  vehicleType    String // CAR | MOTORCYCLE
+  issuedAt       DateTime
+  initialTarget  Int
+  adjustedTarget Int?
+  status         String   @default("ACTIVE") // ACTIVE | CLOSED
+  operator       String   @default("Keeta OPS")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant  Tenant                   @relation(fields: [tenantId], references: [id])
+  partner Partner                  @relation(fields: [partnerId], references: [id])
+  goals   IncentiveGoal[]
+  tiers   IncentiveTier[]
+  payouts CourierIncentivePayout[]
+
+  @@unique([tenantId, partnerId, period, vehicleType])
+  @@index([tenantId, period])
+}
+
+model IncentiveGoal {
+  id           String @id @default(uuid())
+  roundId      String
+  name         String // ORDER_COMPLETION_PCT | ON_TIME_RATE
+  weight       Float
+  targetValue  Float
+  minThreshold Float
+
+  round IncentiveTargetRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@index([roundId])
+}
+
+model IncentiveTier {
+  id      String @id @default(uuid())
+  roundId String
+  kind    String // EXPERIENCE | VALID_DA
+  level   String // A | B | C | D
+  minRate Float
+  maxRate Float
+  payment Int
+
+  round IncentiveTargetRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  @@index([roundId, kind])
+}
+
+model CourierIncentivePayout {
+  id               String   @id @default(uuid())
+  tenantId         String
+  roundId          String
+  driverId         String
+  experienceRate   Float    @default(0)
+  experienceTier   String?
+  experiencePayKwd Int      @default(0)
+  validDaCount     Int      @default(0)
+  validDaTier      String?
+  validDaPayKwd    Int      @default(0)
+  totalPayKwd      Int      @default(0)
+  computedAt       DateTime @default(now())
+
+  tenant Tenant               @relation(fields: [tenantId], references: [id])
+  round  IncentiveTargetRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  driver Driver               @relation(fields: [driverId], references: [id])
+
+  @@unique([roundId, driverId])
+  @@index([tenantId, driverId])
+}
+
+// F12 — Financial management
+enum BillingStatus {
+  PENDING_INVOICE
+  AWAITING_APPROVAL
+  APPROVED
+  PAID
+  REJECTED
+}
+
+enum TaxInvoiceStatus {
+  DRAFT
+  SUBMITTED
+  ACCEPTED
+  REJECTED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  WITHDRAWN
+  FAILED
+}
+
+model Billing {
+  id            String        @id @default(uuid())
+  tenantId      String
+  partnerId     String
+  groupId       String
+  groupName     String
+  billingId     String        @unique
+  billType      String // MONTHLY_SETTLEMENT | ADJUSTMENT
+  period        String // "202604"
+  billingDate   DateTime
+  invoiceAmount Decimal       @db.Decimal(18, 3)
+  payableAmount Decimal       @db.Decimal(18, 3)
+  status        BillingStatus @default(PENDING_INVOICE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  tenant      Tenant              @relation(fields: [tenantId], references: [id])
+  partner     Partner             @relation(fields: [partnerId], references: [id])
+  taxInvoice  TaxInvoice?
+  withdrawals PaymentWithdrawal[]
+
+  @@index([tenantId, period])
+  @@index([tenantId, status])
+}
+
+model TaxInvoice {
+  id           String           @id @default(uuid())
+  tenantId     String
+  billingId    String           @unique
+  invoiceNo    String
+  issueDate    DateTime
+  sellerName   String
+  totalAmount  Decimal          @db.Decimal(18, 3)
+  fileUrl      String?
+  status       TaxInvoiceStatus @default(DRAFT)
+  rejectReason String?
+  submittedAt  DateTime?
+  acceptedAt   DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  billing Billing @relation(fields: [billingId], references: [id])
+
+  @@index([tenantId, status])
+}
+
+model PaymentWithdrawal {
+  id              String           @id @default(uuid())
+  tenantId        String
+  billingId       String
+  groupId         String
+  groupName       String
+  withdrawTime    DateTime
+  tailNumber      String
+  amountKwd       Decimal          @db.Decimal(18, 3)
+  status          WithdrawalStatus @default(PENDING)
+  operationStatus String           @default("Withdrawn")
+  note            String           @default("SYSTEM AUTO WITHDRAW")
+  createdAt       DateTime         @default(now())
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  billing Billing @relation(fields: [billingId], references: [id])
+
+  @@index([tenantId, withdrawTime])
 }

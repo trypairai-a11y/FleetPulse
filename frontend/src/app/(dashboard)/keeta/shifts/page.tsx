@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useApiGet } from "@/hooks/useApi";
 import FilterBar from "@/components/shared/FilterBar";
 import StatCard from "@/components/shared/StatCard";
@@ -8,11 +8,21 @@ import { cn } from "@/lib/cn";
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   CheckCircle2,
   XCircle,
   Clock,
   BarChart2,
   CalendarCheck,
+  CalendarDays,
+  Table2,
+  Users,
+  UserCheck,
+  UserX,
+  AlertTriangle,
+  Phone,
+  Flag,
 } from "lucide-react";
 
 const ZONES = ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"];
@@ -37,17 +47,11 @@ function getZoneColor(zone: string | undefined | null) {
   return ZONE_COLORS[zone] || DEFAULT_ZONE_COLOR;
 }
 
-/**
- * Checks if a shift is currently live based on the current time falling between
- * scheduledStart and scheduledEnd (or the slot start/end as a fallback).
- */
 function isShiftLive(shift: any, slotStart: string, slotEnd: string): boolean {
   const now = new Date();
   const today = now.toISOString().split("T")[0];
   const shiftDate = shift.date ? shift.date.split("T")[0] : "";
   if (shiftDate !== today) return false;
-
-  // Use scheduledStart/scheduledEnd if available, else derive from slot
   let start: Date;
   let end: Date;
   if (shift.scheduledStart) {
@@ -81,6 +85,8 @@ const SHIFT_STATUS_LABELS: Record<string, string> = {
   COMPLETED: "COMPLETED",
   MISSED: "NOT BOOKED",
   NO_SHOW: "NO SHOW",
+  NOT_BOOKED: "NOT BOOKED",
+  IN_PROGRESS: "IN PROGRESS",
 };
 
 function getMonday(d: Date): Date {
@@ -114,29 +120,58 @@ function ShiftValidity({ valid }: { valid: boolean | null }) {
   );
 }
 
+// ─── Table view types ────────────────────────────────────────────────────────
+type SortKey = "driverName" | "phone" | "zone" | "booking" | "weeklyBookings" | "bookedHours" | "actualHours" | "actualStart" | "actualEnd";
+type SortDir = "asc" | "desc";
+
 export default function KeetaShiftsPage() {
+  const [view, setView] = useState<"calendar" | "table">("calendar");
   const [weekStart, setWeekStart] = useState<Date>(getMonday(new Date()));
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
 
+  // Table view state
+  const [tableDate, setTableDate] = useState(new Date().toISOString().split("T")[0]);
+  const [tableFilters, setTableFilters] = useState<Record<string, string>>({});
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
   const weekEnd = addDays(weekStart, 6);
 
-  const params = new URLSearchParams({
+  // ─── Calendar data ─────────────────────────────────────────────────────────
+  const calParams = new URLSearchParams({
     platform: "KEETA",
     dateFrom: formatDate(weekStart),
     dateTo: formatDate(weekEnd),
     limit: "500",
   });
-  if (filters.zone) params.set("zone", filters.zone);
-  if (filters.driver) params.set("search", filters.driver);
+  if (filters.zone) calParams.set("zone", filters.zone);
+  if (filters.driver) calParams.set("search", filters.driver);
 
-  const { data, loading } = useApiGet<any>(`/api/shifts?${params}`);
-  const shifts: any[] = data?.data || [];
+  const { data: calData, loading: calLoading } = useApiGet<any>(
+    view === "calendar" ? `/api/shifts?${calParams}` : null
+  );
+  const shifts: any[] = calData?.data || [];
 
-  // Build week dates
+  // ─── Table data ────────────────────────────────────────────────────────────
+  const tblParams = new URLSearchParams({ platform: "KEETA", date: tableDate });
+  if (tableFilters.zone) tblParams.set("zone", tableFilters.zone);
+  if (tableFilters.search) tblParams.set("search", tableFilters.search);
+  if (tableFilters.bookingFilter) tblParams.set("bookingFilter", tableFilters.bookingFilter);
+
+  const { data: bookingData } = useApiGet<any>(
+    view === "table" ? `/api/shifts/booking-status?${tblParams}` : null
+  );
+  const driverList = bookingData?.drivers || [];
+  const totalDrivers = bookingData?.totalDrivers || 0;
+  const bookedCount = bookingData?.bookedCount || 0;
+  const notBookedCount = bookingData?.notBookedCount || 0;
+  const completedCount = bookingData?.completedCount || 0;
+  const noShowCount = bookingData?.noShowCount || 0;
+
+  // ─── Calendar helpers ──────────────────────────────────────────────────────
   const weekDates = WEEK_DAYS.map((_, i) => addDays(weekStart, i));
 
-  // Index shifts by date+slot
   const shiftMap: Record<string, any[]> = {};
   for (const shift of shifts) {
     const dateStr = shift.date ? shift.date.split("T")[0] : "";
@@ -148,8 +183,6 @@ export default function KeetaShiftsPage() {
     shiftMap[key].push(shift);
   }
 
-  // Compute multi-area info per driver per day:
-  // key = "driverId_date" -> Set of unique zones
   const driverDayZones: Record<string, Set<string>> = {};
   for (const shift of shifts) {
     const driverId = shift.driverId || shift.driver?.id;
@@ -168,251 +201,583 @@ export default function KeetaShiftsPage() {
     return driverDayZones[`${driverId}_${dateStr}`]?.size || 0;
   }
 
-  // Violation stats
   const total = shifts.length;
-  const booked = shifts.filter((s) => s.status === "BOOKED" || s.status === "COMPLETED").length;
+  const calBooked = shifts.filter((s) => s.status === "BOOKED" || s.status === "COMPLETED").length;
   const completed = shifts.filter((s) => s.status === "COMPLETED").length;
   const valid = shifts.filter((s) => s.isValid === true).length;
-
   const pct = (n: number) => (total === 0 ? 0 : Math.round((n / total) * 100));
+  const totalPlanned = shifts.reduce((acc: number, s: any) => acc + (s.plannedHours || 4), 0);
+  const totalActual = shifts.reduce((acc: number, s: any) => acc + (s.actualHours || 0), 0);
 
-  const totalPlanned = shifts.reduce((acc, s) => acc + (s.plannedHours || 4), 0);
-  const totalActual = shifts.reduce((acc, s) => acc + (s.actualHours || 0), 0);
+  // ─── Table helpers ─────────────────────────────────────────────────────────
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const sortedDrivers = useMemo(() => {
+    if (!sortKey) return driverList;
+    return [...driverList].sort((a: any, b: any) => {
+      let aVal: any, bVal: any;
+      switch (sortKey) {
+        case "driverName": aVal = a.driverName || ""; bVal = b.driverName || ""; break;
+        case "phone": aVal = a.phone || ""; bVal = b.phone || ""; break;
+        case "zone": aVal = a.zone || ""; bVal = b.zone || ""; break;
+        case "booking": aVal = a.hasBooked ? 1 : 0; bVal = b.hasBooked ? 1 : 0; break;
+        case "weeklyBookings": aVal = a.weeklyBookings || 0; bVal = b.weeklyBookings || 0; break;
+        case "bookedHours": aVal = a.bookedHours || 0; bVal = b.bookedHours || 0; break;
+        case "actualHours": aVal = a.actualHours || 0; bVal = b.actualHours || 0; break;
+        case "actualStart": aVal = a.actualStart || ""; bVal = b.actualStart || ""; break;
+        case "actualEnd": aVal = a.actualEnd || ""; bVal = b.actualEnd || ""; break;
+        default: return 0;
+      }
+      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [driverList, sortKey, sortDir]);
+
+  const SortHeader = ({ label, colKey }: { label: string; colKey: SortKey }) => (
+    <th
+      className="text-left text-xs font-medium text-secondary px-5 py-3 cursor-pointer select-none hover:text-primary transition-colors"
+      onClick={() => toggleSort(colKey)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {sortKey === colKey ? (
+          sortDir === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+        ) : (
+          <ChevronDown size={12} className="opacity-0 group-hover:opacity-30" />
+        )}
+      </span>
+    </th>
+  );
+
+  const statusBadge = (status: string) => {
+    const label = SHIFT_STATUS_LABELS[status] || status;
+    const styles: Record<string, string> = {
+      BOOKED: "bg-blue-50 text-blue-700",
+      IN_PROGRESS: "bg-cyan-50 text-cyan-700",
+      COMPLETED: "bg-green-50 text-green-700",
+      MISSED: "bg-red-50 text-red-700",
+      NOT_BOOKED: "bg-red-50 text-red-700",
+    };
+    return (
+      <span className={cn("inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap", styles[status] || "bg-gray-50 text-gray-600")}>
+        {label}
+      </span>
+    );
+  };
 
   return (
     <div className="space-y-6 max-w-7xl">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <span className="w-3 h-3 rounded-full bg-keeta" />
-        <h1 className="text-xl font-semibold">Keeta - Shifts</h1>
-        <span className="text-sm text-secondary">Sidra</span>
-      </div>
-
-      {/* Violation Cards */}
-      <div className="grid grid-cols-4 gap-4">
-        <StatCard title="Total Shifts" value={total} icon={CalendarCheck} />
-        <StatCard
-          title="% Booked"
-          value={`${pct(booked)}%`}
-          icon={BarChart2}
-          trend={`${booked} of ${total}`}
-        />
-        <StatCard
-          title="% Valid"
-          value={`${pct(valid)}%`}
-          icon={CheckCircle2}
-          trend={`${valid} valid shifts`}
-          highlight={pct(valid) < 70}
-        />
-        <StatCard
-          title="% Completed"
-          value={`${pct(completed)}%`}
-          icon={Clock}
-          trend={`${totalActual.toFixed(1)}h actual / ${totalPlanned}h planned`}
-        />
-      </div>
-
-      {/* Filters + Week nav */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <FilterBar
-          filters={[
-            { key: "zone", type: "select", label: "All Zones", options: ZONES.map((z) => ({ value: z, label: z })) },
-            { key: "driver", type: "search", label: "Driver", placeholder: "Search driver…" },
-          ]}
-          values={filters}
-          onChange={(k, v) => setFilters((prev) => ({ ...prev, [k]: v }))}
-        />
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="w-3 h-3 rounded-full bg-keeta" />
+          <h1 className="text-xl font-semibold">Keeta - Shifts</h1>
+          <span className="text-sm text-secondary">Sidra</span>
+        </div>
+        {/* View Toggle */}
+        <div className="flex items-center rounded-xl border border-gray-200 p-0.5">
           <button
-            onClick={() => setWeekStart(addDays(weekStart, -7))}
-            className="p-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+            onClick={() => setView("calendar")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
+              view === "calendar" ? "bg-keeta text-white" : "text-secondary hover:text-foreground"
+            )}
           >
-            <ChevronLeft size={16} />
-          </button>
-          <span className="text-sm font-medium min-w-[160px] text-center">
-            {formatShortDate(weekStart)} – {formatShortDate(weekEnd)}
-          </span>
-          <button
-            onClick={() => setWeekStart(addDays(weekStart, 7))}
-            className="p-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
-          >
-            <ChevronRight size={16} />
+            <CalendarDays size={14} />
+            Calendar
           </button>
           <button
-            onClick={() => setWeekStart(getMonday(new Date()))}
-            className="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+            onClick={() => setView("table")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
+              view === "table" ? "bg-keeta text-white" : "text-secondary hover:text-foreground"
+            )}
           >
-            This week
+            <Table2 size={14} />
+            Table
           </button>
         </div>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-gray-50">
-          <div className="px-3 py-3 text-xs font-medium text-secondary">Slot</div>
-          {weekDates.map((d, i) => (
-            <div
-              key={i}
-              className={cn(
-                "px-2 py-3 text-center text-xs font-medium",
-                formatDate(d) === formatDate(new Date()) ? "text-primary" : "text-secondary"
-              )}
-            >
-              <div className="font-semibold">{WEEK_DAYS[i]}</div>
-              <div className="text-[11px] mt-0.5">{formatShortDate(d)}</div>
-            </div>
-          ))}
-        </div>
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* TABLE VIEW                                                             */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {view === "table" && (
+        <>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-5 gap-4">
+            <StatCard title="Total Drivers" value={totalDrivers} icon={Users} />
+            <StatCard
+              title="Booked"
+              value={bookedCount}
+              icon={UserCheck}
+              trend={totalDrivers > 0 ? `${Math.round((bookedCount / totalDrivers) * 100)}% rate` : undefined}
+            />
+            <StatCard title="Not Booked" value={notBookedCount} icon={UserX} highlight={notBookedCount > 0} />
+            <StatCard title="Completed" value={completedCount} icon={CheckCircle2} />
+            <StatCard title="No Show" value={noShowCount} icon={Flag} highlight={noShowCount > 0} />
+          </div>
 
-        {loading ? (
-          <div className="px-5 py-12 text-center text-sm text-secondary">Loading shifts…</div>
-        ) : (
-          KEETA_SLOTS.map((slot) => (
-            <div key={slot.id} className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-gray-50 last:border-0 min-h-[90px]">
-              <div className="px-3 py-3 flex flex-col justify-center border-r border-gray-50">
-                <p className="text-[11px] font-semibold text-foreground">{slot.start}</p>
-                <p className="text-[10px] text-secondary">{slot.end}</p>
-              </div>
-              {weekDates.map((d, di) => {
-                const key = `${formatDate(d)}_${slot.id}`;
-                const cells = shiftMap[key] || [];
-                return (
-                  <div
-                    key={di}
-                    className={cn(
-                      "px-1.5 py-2 border-r border-gray-50 last:border-0 space-y-1",
-                      formatDate(d) === formatDate(new Date()) && "bg-primary/[0.02]"
-                    )}
-                  >
-                    {cells.length === 0 ? (
-                      <div className="h-full flex items-center justify-center">
-                        <span className="text-gray-200 text-xs">·</span>
-                      </div>
-                    ) : (
-                      cells.map((shift: any) => {
-                        const zone = shift.driver?.zone || shift.zone || null;
-                        const zc = getZoneColor(zone);
-                        const live = isShiftLive(shift, slot.start, slot.end);
-                        const areaCount = getDriverDayAreaCount(shift);
-                        return (
-                          <button
-                            key={shift.id}
-                            onClick={() => setSelected(shift)}
-                            className={cn(
-                              "w-full text-left rounded-lg px-2 py-1.5 text-[11px] transition-all hover:opacity-80 space-y-0.5",
-                              SHIFT_STATUS_STYLES[shift.status] || "bg-gray-50 border border-gray-100 text-gray-600",
-                              live && "ring-2 ring-green-400 ring-offset-1"
+          {/* Filters */}
+          <div className="flex gap-3 flex-wrap items-center">
+            <input
+              type="date"
+              value={tableDate}
+              onChange={(e) => setTableDate(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-keeta/30"
+            />
+            <FilterBar
+              filters={[
+                { key: "search", type: "search", label: "Search", placeholder: "Search driver..." },
+                {
+                  key: "zone", type: "select", label: "All Zones",
+                  options: ZONES.map(z => ({ value: z, label: z })),
+                },
+                {
+                  key: "bookingFilter", type: "select", label: "All Statuses", options: [
+                    { value: "BOOKED", label: "Booked" },
+                    { value: "COMPLETED", label: "Completed" },
+                    { value: "NOT_BOOKED", label: "Not Booked" },
+                    { value: "NO_SHOW", label: "No Show" },
+                    { value: "FLAGGED", label: "Flagged" },
+                  ],
+                },
+              ]}
+              values={tableFilters}
+              onChange={(k, v) => setTableFilters({ ...tableFilters, [k]: v })}
+            />
+          </div>
+
+          {/* Drivers Table */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-50">
+                    <SortHeader label="Driver" colKey="driverName" />
+                    <SortHeader label="Phone" colKey="phone" />
+                    <SortHeader label="Zone" colKey="zone" />
+                    <SortHeader label="Status" colKey="booking" />
+                    <SortHeader label="Week" colKey="weeklyBookings" />
+                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Flag Reason</th>
+                    <SortHeader label="Scheduled" colKey="bookedHours" />
+                    <SortHeader label="Actual" colKey="actualHours" />
+                    <SortHeader label="In" colKey="actualStart" />
+                    <SortHeader label="Out" colKey="actualEnd" />
+                    <th className="px-5 py-3" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {driverList.length === 0 ? (
+                    <tr>
+                      <td colSpan={11} className="px-5 py-12 text-center text-sm text-secondary">
+                        No drivers found
+                      </td>
+                    </tr>
+                  ) : (
+                    sortedDrivers.map((d: any) => {
+                      const hoursMatch = !d.bookedHours || !d.actualHours || Math.abs(d.bookedHours - d.actualHours) < 0.5;
+                      const zc = getZoneColor(d.zone);
+                      return (
+                        <tr
+                          key={d.driverId}
+                          onClick={() => setSelected(d)}
+                          className={cn(
+                            "border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50 transition-colors",
+                            !d.hasBooked && "bg-red-50/30"
+                          )}
+                        >
+                          <td className="px-5 py-3">
+                            <span className="text-sm font-medium">{d.driverName}</span>
+                          </td>
+                          <td className="px-5 py-3">
+                            <a
+                              href={`tel:${d.phone}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-mono"
+                            >
+                              <Phone size={11} />
+                              {d.phone}
+                            </a>
+                          </td>
+                          <td className="px-5 py-3">
+                            {d.zone ? (
+                              <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium", zc.bg, zc.text)}>
+                                <span className={cn("w-1.5 h-1.5 rounded-full", zc.dot)} />
+                                {d.zone}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-300">-</span>
                             )}
-                          >
-                            <div className="flex items-center gap-1 justify-between">
-                              <span className="font-semibold truncate max-w-[70px]">{shift.driver?.name?.split(" ")[0] || "-"}</span>
-                              <div className="flex items-center gap-1 shrink-0">
-                                {live && (
-                                  <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-                                  </span>
-                                )}
-                                <ShiftValidity valid={shift.isValid ?? null} />
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              {zone ? (
-                                <span className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium", zc.bg, zc.text)}>
-                                  <span className={cn("w-1.5 h-1.5 rounded-full", zc.dot)} />
-                                  <span className="truncate max-w-[60px]">{zone}</span>
-                                </span>
-                              ) : (
-                                <span className="text-[10px] opacity-70">-</span>
-                              )}
-                              {areaCount >= 2 && (
-                                <span className="text-[9px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded font-semibold shrink-0">
-                                  {areaCount} areas
-                                </span>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                );
-              })}
+                          </td>
+                          <td className="px-5 py-3">{statusBadge(d.status)}</td>
+                          <td className="px-5 py-3">
+                            {d.weeklyBookings !== undefined && d.weeklyBookings !== null ? (
+                              <span className={cn(
+                                "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold font-mono",
+                                d.weeklyFlag ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"
+                              )}>
+                                {d.weeklyBookings}/{d.weeklyExpected ?? 7}
+                                {d.weeklyFlag && <AlertTriangle size={10} className="shrink-0" />}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-300">—</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3 whitespace-nowrap">
+                            {d.weeklyFlagReason ? (
+                              <span className="text-xs text-red-600 font-medium">{d.weeklyFlagReason}</span>
+                            ) : (
+                              <span className="text-xs text-gray-300">—</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3 text-sm font-mono text-secondary whitespace-nowrap">
+                            {d.scheduledStart && d.scheduledEnd
+                              ? <div className="flex flex-col leading-tight gap-1">
+                                  <span>{new Date(d.scheduledStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                                  <span className="text-gray-300">↓</span>
+                                  <span>{new Date(d.scheduledEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                                </div>
+                              : d.bookedHours ? `${d.bookedHours.toFixed(1)}h` : "–"}
+                          </td>
+                          <td className="px-5 py-3">
+                            <span className={cn(
+                              "text-sm font-mono",
+                              !hoursMatch ? "text-amber-600 font-medium" : "text-secondary"
+                            )}>
+                              {d.actualHours ? `${d.actualHours.toFixed(1)}h` : "-"}
+                              {!hoursMatch && <AlertTriangle size={11} className="inline ml-1" />}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-sm font-mono text-secondary whitespace-nowrap">
+                            {d.actualStart
+                              ? new Date(d.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                              : "–"}
+                          </td>
+                          <td className="px-5 py-3 text-sm font-mono text-secondary whitespace-nowrap">
+                            {d.actualEnd
+                              ? new Date(d.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                              : "–"}
+                          </td>
+                          <td className="px-5 py-3">
+                            <ChevronRight size={15} className="text-gray-300" />
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
             </div>
-          ))
-        )}
-      </div>
+          </div>
+        </>
+      )}
 
-      {/* Slot legend */}
-      <div className="flex items-center gap-6 text-xs text-secondary">
-        {KEETA_SLOTS.map((s) => (
-          <span key={s.id} className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-keeta/60" />
-            {s.label}
-          </span>
-        ))}
-      </div>
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* CALENDAR VIEW                                                          */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {view === "calendar" && (
+        <>
+          {/* Stat Cards */}
+          <div className="grid grid-cols-4 gap-4">
+            <StatCard title="Total Shifts" value={total} icon={CalendarCheck} />
+            <StatCard
+              title="% Booked"
+              value={`${pct(calBooked)}%`}
+              icon={BarChart2}
+              trend={`${calBooked} of ${total}`}
+            />
+            <StatCard
+              title="% Valid"
+              value={`${pct(valid)}%`}
+              icon={CheckCircle2}
+              trend={`${valid} valid shifts`}
+              highlight={pct(valid) < 70}
+            />
+            <StatCard
+              title="% Completed"
+              value={`${pct(completed)}%`}
+              icon={Clock}
+              trend={`${totalActual.toFixed(1)}h actual / ${totalPlanned}h planned`}
+            />
+          </div>
 
-      {/* Shift status legend */}
-      <div className="flex items-center gap-4">
-        {Object.entries(SHIFT_STATUS_STYLES).map(([status, cls]) => (
-          <span key={status} className={cn("px-2 py-0.5 rounded-md text-xs font-medium", cls)}>{SHIFT_STATUS_LABELS[status] || status}</span>
-        ))}
-      </div>
+          {/* Filters + Week nav */}
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <FilterBar
+              filters={[
+                { key: "zone", type: "select", label: "All Zones", options: ZONES.map((z) => ({ value: z, label: z })) },
+                { key: "driver", type: "search", label: "Driver", placeholder: "Search driver…" },
+              ]}
+              values={filters}
+              onChange={(k, v) => setFilters((prev) => ({ ...prev, [k]: v }))}
+            />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setWeekStart(addDays(weekStart, -7))}
+                className="p-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span className="text-sm font-medium min-w-[160px] text-center">
+                {formatShortDate(weekStart)} – {formatShortDate(weekEnd)}
+              </span>
+              <button
+                onClick={() => setWeekStart(addDays(weekStart, 7))}
+                className="p-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+              >
+                <ChevronRight size={16} />
+              </button>
+              <button
+                onClick={() => setWeekStart(getMonday(new Date()))}
+                className="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                This week
+              </button>
+            </div>
+          </div>
 
-      {/* Zone color legend */}
-      <div className="flex items-center gap-3 flex-wrap text-xs text-secondary">
-        <span className="font-medium text-foreground">Zones:</span>
-        {ZONES.map((z) => {
-          const zc = getZoneColor(z);
-          return (
-            <span key={z} className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-md", zc.bg, zc.text)}>
-              <span className={cn("w-1.5 h-1.5 rounded-full", zc.dot)} />
-              {z}
-            </span>
-          );
-        })}
-      </div>
+          {/* Calendar Grid */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-gray-50">
+              <div className="px-3 py-3 text-xs font-medium text-secondary">Slot</div>
+              {weekDates.map((d, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "px-2 py-3 text-center text-xs font-medium",
+                    formatDate(d) === formatDate(new Date()) ? "text-primary" : "text-secondary"
+                  )}
+                >
+                  <div className="font-semibold">{WEEK_DAYS[i]}</div>
+                  <div className="text-[11px] mt-0.5">{formatShortDate(d)}</div>
+                </div>
+              ))}
+            </div>
 
-      {/* Detail Panel */}
+            {calLoading ? (
+              <div className="px-5 py-12 text-center text-sm text-secondary">Loading shifts…</div>
+            ) : (
+              KEETA_SLOTS.map((slot) => (
+                <div key={slot.id} className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-gray-50 last:border-0 min-h-[90px]">
+                  <div className="px-3 py-3 flex flex-col justify-center border-r border-gray-50">
+                    <p className="text-[11px] font-semibold text-foreground">{slot.start}</p>
+                    <p className="text-[10px] text-secondary">{slot.end}</p>
+                  </div>
+                  {weekDates.map((d, di) => {
+                    const key = `${formatDate(d)}_${slot.id}`;
+                    const cells = shiftMap[key] || [];
+                    return (
+                      <div
+                        key={di}
+                        className={cn(
+                          "px-1.5 py-2 border-r border-gray-50 last:border-0 space-y-1",
+                          formatDate(d) === formatDate(new Date()) && "bg-primary/[0.02]"
+                        )}
+                      >
+                        {cells.length === 0 ? (
+                          <div className="h-full flex items-center justify-center">
+                            <span className="text-gray-200 text-xs">·</span>
+                          </div>
+                        ) : (
+                          cells.map((shift: any) => {
+                            const zone = shift.driver?.zone || shift.zone || null;
+                            const zc = getZoneColor(zone);
+                            const live = isShiftLive(shift, slot.start, slot.end);
+                            const areaCount = getDriverDayAreaCount(shift);
+                            return (
+                              <button
+                                key={shift.id}
+                                onClick={() => setSelected(shift)}
+                                className={cn(
+                                  "w-full text-left rounded-lg px-2 py-1.5 text-[11px] transition-all hover:opacity-80 space-y-0.5",
+                                  SHIFT_STATUS_STYLES[shift.status] || "bg-gray-50 border border-gray-100 text-gray-600",
+                                  live && "ring-2 ring-green-400 ring-offset-1"
+                                )}
+                              >
+                                <div className="flex items-center gap-1 justify-between">
+                                  <span className="font-semibold truncate max-w-[70px]">{shift.driver?.name?.split(" ")[0] || "-"}</span>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    {live && (
+                                      <span className="relative flex h-2 w-2">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                                      </span>
+                                    )}
+                                    <ShiftValidity valid={shift.isValid ?? null} />
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  {zone ? (
+                                    <span className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium", zc.bg, zc.text)}>
+                                      <span className={cn("w-1.5 h-1.5 rounded-full", zc.dot)} />
+                                      <span className="truncate max-w-[60px]">{zone}</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] opacity-70">-</span>
+                                  )}
+                                  {areaCount >= 2 && (
+                                    <span className="text-[9px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded font-semibold shrink-0">
+                                      {areaCount} areas
+                                    </span>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Slot legend */}
+          <div className="flex items-center gap-6 text-xs text-secondary">
+            {KEETA_SLOTS.map((s) => (
+              <span key={s.id} className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-keeta/60" />
+                {s.label}
+              </span>
+            ))}
+          </div>
+
+          {/* Shift status legend */}
+          <div className="flex items-center gap-4">
+            {Object.entries(SHIFT_STATUS_STYLES).map(([status, cls]) => (
+              <span key={status} className={cn("px-2 py-0.5 rounded-md text-xs font-medium", cls)}>{SHIFT_STATUS_LABELS[status] || status}</span>
+            ))}
+          </div>
+
+          {/* Zone color legend */}
+          <div className="flex items-center gap-3 flex-wrap text-xs text-secondary">
+            <span className="font-medium text-foreground">Zones:</span>
+            {ZONES.map((z) => {
+              const zc = getZoneColor(z);
+              return (
+                <span key={z} className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-md", zc.bg, zc.text)}>
+                  <span className={cn("w-1.5 h-1.5 rounded-full", zc.dot)} />
+                  {z}
+                </span>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* Detail Panel — shared across both views */}
       <SlidePanel
         open={!!selected}
         onClose={() => setSelected(null)}
-        title={selected?.driver?.name || "Shift Detail"}
-        subtitle="Keeta / Sidra"
+        title={selected?.driver?.name || selected?.driverName || "Shift Detail"}
+        subtitle={`Keeta / Sidra${selected?.zone ? ` · ${selected.zone}` : ""}`}
       >
         {selected && (
-          <div className="space-y-4">
+          <div className="space-y-5">
+            {/* Booking Status (table view data) */}
+            {selected.hasBooked !== undefined && (
+              <div className={cn(
+                "p-4 rounded-xl border",
+                selected.hasBooked ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"
+              )}>
+                <div className="flex items-center gap-2">
+                  {selected.hasBooked ? (
+                    <>
+                      <CheckCircle2 size={18} className="text-green-600" />
+                      <div>
+                        <p className="text-sm font-semibold text-green-800">Shift Booked</p>
+                        <p className="text-xs text-green-600 font-mono mt-0.5">
+                          {selected.scheduledStart
+                            ? new Date(selected.scheduledStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                            : ""}
+                          {selected.scheduledEnd
+                            ? ` – ${new Date(selected.scheduledEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                            : ""}
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle size={18} className="text-red-600" />
+                      <div>
+                        <p className="text-sm font-semibold text-red-800">No Shift Booked</p>
+                        <p className="text-xs text-red-600 mt-0.5">Driver hasn&apos;t booked a shift for this date</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Weekly Booking Status */}
+            {selected.weeklyBookings !== undefined && (
+              <div className={cn(
+                "p-4 rounded-xl border",
+                selected.weeklyFlag ? "bg-amber-50 border-amber-100" : "bg-gray-50 border-gray-100"
+              )}>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-secondary uppercase tracking-wide">This Week</p>
+                  <span className={cn(
+                    "text-lg font-bold font-mono",
+                    selected.weeklyFlag ? "text-red-600" : "text-green-700"
+                  )}>
+                    {selected.weeklyBookings ?? "—"}/{selected.weeklyExpected ?? 7}
+                  </span>
+                </div>
+                {selected.weeklyFlag && selected.weeklyFlagReason ? (
+                  <div className="flex items-start gap-1.5 mt-1">
+                    <AlertTriangle size={13} className="text-red-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-red-600 font-medium">{selected.weeklyFlagReason}</p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-green-600">All days booked — no issues</p>
+                )}
+              </div>
+            )}
+
+            {/* Contact Info */}
+            {(selected.phone || selected.driver?.phone) && (
+              <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-2">Contact</p>
+                <a
+                  href={`tel:${selected.phone || selected.driver?.phone}`}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+                >
+                  <Phone size={14} />
+                  Call {selected.phone || selected.driver?.phone}
+                </a>
+              </div>
+            )}
+
+            {/* Shift Details Grid */}
             <div className="grid grid-cols-2 gap-3">
               {[
                 ["Date", selected.date ? new Date(selected.date).toLocaleDateString() : "-"],
-                ["Zone", selected.driver?.zone || selected.zone || "-", selected.driver?.zone || selected.zone],
-                ["Slot", KEETA_SLOTS.find((s) => selected.startTime?.includes(s.start))?.label || "-"],
+                ["Zone", selected.driver?.zone || selected.zone || "-"],
                 ["Status", SHIFT_STATUS_LABELS[selected.status] || selected.status],
-                ["Validity", selected.isValid === true ? "Valid" : selected.isValid === false ? "Invalid" : "-"],
-                ["Planned Hours", `${selected.plannedHours || 4}h`],
-                ["Actual Hours", selected.actualHours ? `${selected.actualHours}h` : "-"],
+                ["Vehicle", selected.vehicleType || selected.driver?.vehicleType || "-"],
+                ["Planned Hours", selected.plannedHours ? `${selected.plannedHours}h` : selected.bookedHours ? `${selected.bookedHours}h` : "-"],
+                ["Actual Hours", selected.actualHours ? `${typeof selected.actualHours === "number" ? selected.actualHours.toFixed(1) : selected.actualHours}h` : "-"],
                 ["Actual Start", selected.actualStart ? new Date(selected.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
                 ["Actual End", selected.actualEnd ? new Date(selected.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
-              ].map(([label, val, zoneKey]) => {
-                const isZoneField = label === "Zone" && zoneKey;
-                const zoneStyle = isZoneField ? getZoneColor(zoneKey as string) : null;
-                return (
-                  <div key={label as string} className="bg-gray-50 rounded-xl p-3">
-                    <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                    {isZoneField && zoneStyle ? (
-                      <span className={cn("inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-md text-sm font-medium", zoneStyle.bg, zoneStyle.text)}>
-                        <span className={cn("w-2 h-2 rounded-full", zoneStyle.dot)} />
-                        {val}
-                      </span>
-                    ) : (
-                      <p className="text-sm font-medium mt-0.5">{val}</p>
-                    )}
-                  </div>
-                );
-              })}
+              ].map(([label, val]) => (
+                <div key={label as string} className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
+                  <p className="text-sm font-medium mt-0.5">{val}</p>
+                </div>
+              ))}
             </div>
+
             {selected.notes && (
               <div className="bg-yellow-50 rounded-xl p-3">
                 <p className="text-[10px] text-secondary uppercase font-medium mb-1">Notes</p>
