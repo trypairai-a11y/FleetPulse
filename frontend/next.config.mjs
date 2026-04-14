@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "standalone",
   images: {
     remotePatterns: [
       {
@@ -13,15 +12,7 @@ const nextConfig = {
       },
     ],
   },
-  async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${apiUrl}/api/:path*`,
-      },
-    ];
-  },
+  // API proxy handled by src/middleware.ts at runtime (supports Docker service names)
 };
 
 export default nextConfig;

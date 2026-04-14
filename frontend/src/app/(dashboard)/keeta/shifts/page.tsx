@@ -76,6 +76,13 @@ const SHIFT_STATUS_STYLES: Record<string, string> = {
   NO_SHOW: "bg-amber-50 text-amber-700 border border-amber-200",
 };
 
+const SHIFT_STATUS_LABELS: Record<string, string> = {
+  BOOKED: "BOOKED",
+  COMPLETED: "COMPLETED",
+  MISSED: "NOT BOOKED",
+  NO_SHOW: "NO SHOW",
+};
+
 function getMonday(d: Date): Date {
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
@@ -350,7 +357,7 @@ export default function KeetaShiftsPage() {
       {/* Shift status legend */}
       <div className="flex items-center gap-4">
         {Object.entries(SHIFT_STATUS_STYLES).map(([status, cls]) => (
-          <span key={status} className={cn("px-2 py-0.5 rounded-md text-xs font-medium", cls)}>{status}</span>
+          <span key={status} className={cn("px-2 py-0.5 rounded-md text-xs font-medium", cls)}>{SHIFT_STATUS_LABELS[status] || status}</span>
         ))}
       </div>
 
@@ -382,7 +389,7 @@ export default function KeetaShiftsPage() {
                 ["Date", selected.date ? new Date(selected.date).toLocaleDateString() : "-"],
                 ["Zone", selected.driver?.zone || selected.zone || "-", selected.driver?.zone || selected.zone],
                 ["Slot", KEETA_SLOTS.find((s) => selected.startTime?.includes(s.start))?.label || "-"],
-                ["Status", selected.status],
+                ["Status", SHIFT_STATUS_LABELS[selected.status] || selected.status],
                 ["Validity", selected.isValid === true ? "Valid" : selected.isValid === false ? "Invalid" : "-"],
                 ["Planned Hours", `${selected.plannedHours || 4}h`],
                 ["Actual Hours", selected.actualHours ? `${selected.actualHours}h` : "-"],
