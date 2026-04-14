@@ -228,7 +228,13 @@ export default function DeliverooDriversPage() {
             label: "All Statuses",
             options: [
               { value: "ACTIVE", label: "Active" },
+              { value: "LEAVE", label: "Leave" },
               { value: "SUSPENDED", label: "Suspended" },
+              { value: "RESTRICTED", label: "Restricted" },
+              { value: "RESTRICTED_PERMANENTLY", label: "Restricted (Permanent)" },
+              { value: "INACTIVE", label: "Inactive" },
+              { value: "TERMINATED", label: "Terminated" },
+              { value: "TERMINATION", label: "Termination" },
             ],
           },
         ]}

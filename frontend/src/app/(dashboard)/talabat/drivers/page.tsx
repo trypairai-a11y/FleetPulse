@@ -216,10 +216,14 @@ export default function TalabatDriversPage() {
           {
             key: "status", type: "multi-select", label: "All Statuses", options: [
               { value: "ACTIVE,INACTIVE", label: "Online / Offline" },
-              { value: "RESTRICTED", label: "Restricted" },
-              { value: "RESTRICTED_PERMANENTLY", label: "Permanently Restricted" },
+              { value: "ACTIVE", label: "Active" },
               { value: "LEAVE", label: "Leave" },
               { value: "SUSPENDED", label: "Suspended" },
+              { value: "RESTRICTED", label: "Restricted" },
+              { value: "RESTRICTED_PERMANENTLY", label: "Permanently Restricted" },
+              { value: "INACTIVE", label: "Inactive" },
+              { value: "TERMINATED", label: "Terminated" },
+              { value: "TERMINATION", label: "Termination" },
             ]
           },
         ]}

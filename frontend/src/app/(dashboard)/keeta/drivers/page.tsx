@@ -89,7 +89,15 @@ export default function KeetaDriversPage() {
           { key: "search", type: "search", label: "Search", placeholder: "Search name or ID..." },
           { key: "zone", type: "select", label: "All Zones", options: ZONES.map(z => ({ value: z, label: z })) },
           { key: "status", type: "select", label: "All Statuses", options: [
-            { value: "ACTIVE", label: "Active" },          ]},
+            { value: "ACTIVE", label: "Active" },
+            { value: "LEAVE", label: "Leave" },
+            { value: "SUSPENDED", label: "Suspended" },
+            { value: "RESTRICTED", label: "Restricted" },
+            { value: "RESTRICTED_PERMANENTLY", label: "Restricted (Permanent)" },
+            { value: "INACTIVE", label: "Inactive" },
+            { value: "TERMINATED", label: "Terminated" },
+            { value: "TERMINATION", label: "Termination" },
+          ]},
         ]}
         values={filters}
         onChange={(k, v) => setFilters({ ...filters, [k]: v })}
