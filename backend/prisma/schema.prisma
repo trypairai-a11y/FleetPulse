@@ -376,6 +376,7 @@ model Tenant {
   demandHeatmaps          DemandHeatmap[]
   courierAttendanceSlots  CourierAttendanceSlot[]
   shiftComplianceConfig   ShiftComplianceConfig?
+  keetaAvailableSlots     KeetaAvailableShiftSlot[]
   deliveryAreas           DeliveryArea[]
   partners                Partner[]
   incentiveTargetRounds   IncentiveTargetRound[]
@@ -621,8 +622,11 @@ model Shift {
   zone                String?
   scheduledStart      DateTime
   scheduledEnd        DateTime
-  actualStart         DateTime?
-  actualEnd           DateTime?
+  actualStart         DateTime?   // Darb app clock-in (selfie-gated)
+  actualEnd           DateTime?   // Darb app clock-out
+  platformClockIn     DateTime?   // Synced from delivery platform (Keeta online session, Talabat XLSX, etc.)
+  platformClockOut    DateTime?
+  varianceMinutes     Int?        // |actualStart - platformClockIn| — diagnostic
   status              ShiftStatus @default(BOOKED)
   isValid             Boolean?
   plannedHoursMinutes Int?
@@ -652,16 +656,22 @@ model Shift {
 
 // 9. AttendanceRecord
 model AttendanceRecord {
-  id          String           @id @default(uuid())
-  tenantId    String
-  driverId    String
-  shiftId     String?
-  date        DateTime
-  status      AttendanceStatus
-  lateMinutes Int              @default(0)
-  source      String           @default("manual")
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id               String           @id @default(uuid())
+  tenantId         String
+  driverId         String
+  shiftId          String?
+  date             DateTime
+  status           AttendanceStatus
+  lateMinutes      Int              @default(0)
+  source           String           @default("manual")
+  // Dual clock tracking — Darb app vs delivery platform
+  darbClockIn      DateTime?
+  darbClockOut     DateTime?
+  platformClockIn  DateTime?
+  platformClockOut DateTime?
+  varianceMinutes  Int?             // |darbClockIn - platformClockIn|
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   tenant Tenant  @relation(fields: [tenantId], references: [id])
   driver Driver  @relation(fields: [driverId], references: [id])
@@ -1612,6 +1622,33 @@ model CourierAttendanceSlot {
 
   @@unique([tenantId, driverId, date, slotStart])
   @@index([tenantId, date])
+}
+
+// Keeta driver-app "available shifts" — open slots drivers can claim in the Keeta app.
+// Mirrored here so admins can see / plan capacity alongside booked shifts.
+model KeetaAvailableShiftSlot {
+  id            String   @id @default(cuid())
+  tenantId      String
+  date          DateTime
+  area          String
+  slotStart     String   // "HH:mm"
+  slotEnd       String   // "HH:mm"
+  capacity      Int      @default(0)
+  claimed       Int      @default(0)
+  vehicleType   String?  // BIKE, CAR — optional scope
+  branchId      String?
+  branchName    String?
+  source        String   @default("MANUAL") // MANUAL, KEETA_SYNC
+  externalId    String?  // id from Keeta app when synced
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, date, area, slotStart, vehicleType])
+  @@index([tenantId, date])
+  @@index([tenantId, area])
 }
 
 // F10 — per-tenant shift compliance configuration

@@ -267,6 +267,9 @@ exports.Prisma.ShiftScalarFieldEnum = {
   scheduledEnd: 'scheduledEnd',
   actualStart: 'actualStart',
   actualEnd: 'actualEnd',
+  platformClockIn: 'platformClockIn',
+  platformClockOut: 'platformClockOut',
+  varianceMinutes: 'varianceMinutes',
   status: 'status',
   isValid: 'isValid',
   plannedHoursMinutes: 'plannedHoursMinutes',
@@ -290,6 +293,11 @@ exports.Prisma.AttendanceRecordScalarFieldEnum = {
   status: 'status',
   lateMinutes: 'lateMinutes',
   source: 'source',
+  darbClockIn: 'darbClockIn',
+  darbClockOut: 'darbClockOut',
+  platformClockIn: 'platformClockIn',
+  platformClockOut: 'platformClockOut',
+  varianceMinutes: 'varianceMinutes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

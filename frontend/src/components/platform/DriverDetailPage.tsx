@@ -8,7 +8,7 @@ import { Skeleton, StatCardSkeleton } from "@/components/shared/Skeleton";
 import StatCard from "@/components/shared/StatCard";
 import api from "@/lib/api";
 import {
-  ArrowLeft, Phone, Truck, MapPin, Clock, Receipt, Banknote,
+  ArrowLeft, Phone, Truck, MapPin, Clock, Receipt,
   CalendarClock, Package, ShieldAlert, Filter, X, Search,
   Calendar, ChevronLeft, ChevronRight, CheckCircle2, XCircle,
   Ban, Plus, Trash2,
@@ -95,9 +95,14 @@ export default function DriverDetailPage({ platformKey, platformLabel }: Props) 
   const { data: driverSummary } = useApiGet<any>(`/api/drivers/${driverId}/summary`);
 
   const { data: attendanceData } = useApiGet<any>(
-    tab === "shifts" ? `/api/attendance?driverId=${driverId}&limit=30` : null
+    tab === "shifts" && platformKey !== "keeta" ? `/api/attendance?driverId=${driverId}&limit=30` : null
   );
   const attendance = attendanceData?.data || [];
+
+  const { data: shiftsData } = useApiGet<any>(
+    tab === "shifts" && platformKey === "keeta" ? `/api/shifts?driverId=${driverId}&limit=100` : null
+  );
+  const shifts = shiftsData?.data || [];
 
   const { data: ordersData } = useApiGet<any>(
     tab === "orders" ? `/api/orders?platform=${platformKey.toUpperCase()}&driverId=${driverId}&limit=200` : null
@@ -162,7 +167,7 @@ export default function DriverDetailPage({ platformKey, platformLabel }: Props) 
       <DriverHeader driver={driver} driverSummary={driverSummary} platformKey={platformKey} platformLabel={platformLabel} theme={theme} />
 
       {/* ── Summary Cards ────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         <StatCard
           title="Shifts This Month"
           value={driverSummary?.sessionsThisMonth || 0}
@@ -172,13 +177,6 @@ export default function DriverDetailPage({ platformKey, platformLabel }: Props) 
           title="Avg Orders/Day"
           value={driverSummary?.avgDeliveriesPerDay != null ? driverSummary.avgDeliveriesPerDay.toFixed(1) : "0"}
           icon={Package}
-        />
-        <StatCard
-          title="Pending Dues"
-          value={driverSummary?.pendingDuesKd != null ? `${driverSummary.pendingDuesKd.toFixed(3)} KD` : "0.000 KD"}
-          icon={Banknote}
-          highlight={(driverSummary?.pendingDuesKd || 0) > 0}
-          onClick={() => setTab("orders")}
         />
         <StatCard
           title="Violations"
@@ -207,9 +205,12 @@ export default function DriverDetailPage({ platformKey, platformLabel }: Props) 
       </div>
 
       {/* ── Tab content ──────────────────────────────────────────────────── */}
-      {tab === "shifts" && <ShiftsTab attendance={attendance} theme={theme} />}
+      {tab === "shifts" && (platformKey === "keeta"
+        ? <KeetaShiftsTab shifts={shifts} theme={theme} />
+        : <ShiftsTab attendance={attendance} theme={theme} />
+      )}
 
-      {tab === "orders" && <OrdersTab orders={orders} theme={theme} />}
+      {tab === "orders" && <OrdersTab orders={orders} theme={theme} platformKey={platformKey} />}
 
       {tab === "violations" && (
         <ViolationsTab violations={violations} theme={theme} />
@@ -340,6 +341,8 @@ function DriverHeader({ driver, driverSummary, platformKey, platformLabel, theme
    ══════════════════════════════════════════════════════════════════════════ */
 
 function ShiftsTab({ attendance, theme }: { attendance: any[]; theme: PlatformTheme }) {
+  const fmtTime = (d?: string | null) =>
+    d ? new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : null;
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
@@ -348,70 +351,244 @@ function ShiftsTab({ attendance, theme }: { attendance: any[]; theme: PlatformTh
             <tr className="border-b border-gray-100 bg-gray-50/60">
               <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Date</th>
               <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Status</th>
-              <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Clock In</th>
-              <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Clock Out</th>
+              <th colSpan={2} className="text-center text-[11px] font-semibold uppercase tracking-wide text-blue-600 px-3 py-1.5 border-l border-gray-100 bg-blue-50/30">Darb app</th>
+              <th colSpan={2} className="text-center text-[11px] font-semibold uppercase tracking-wide text-amber-700 px-3 py-1.5 border-l border-gray-100 bg-amber-50/30">Platform</th>
+              <th className="text-right text-xs font-semibold text-secondary px-5 py-3 border-l border-gray-100">Δ</th>
               <th className="text-right text-xs font-semibold text-secondary px-5 py-3">Hours</th>
               <th className="text-right text-xs font-semibold text-secondary px-5 py-3">Late</th>
               <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Source</th>
+            </tr>
+            <tr className="border-b border-gray-100 bg-gray-50/60">
+              <th className="px-5 py-1.5"></th>
+              <th className="px-5 py-1.5"></th>
+              <th className="text-left text-[11px] font-medium text-blue-600/80 px-3 py-1.5 border-l border-gray-100 bg-blue-50/20">In</th>
+              <th className="text-left text-[11px] font-medium text-blue-600/80 px-3 py-1.5 bg-blue-50/20">Out</th>
+              <th className="text-left text-[11px] font-medium text-amber-700/80 px-3 py-1.5 border-l border-gray-100 bg-amber-50/20">In</th>
+              <th className="text-left text-[11px] font-medium text-amber-700/80 px-3 py-1.5 bg-amber-50/20">Out</th>
+              <th className="px-5 py-1.5 border-l border-gray-100"></th>
+              <th className="px-5 py-1.5"></th>
+              <th className="px-5 py-1.5"></th>
+              <th className="px-5 py-1.5"></th>
             </tr>
           </thead>
           <tbody>
             {attendance.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-5 py-12 text-center text-sm text-secondary">
+                <td colSpan={10} className="px-5 py-12 text-center text-sm text-secondary">
                   No shift records found
                 </td>
               </tr>
             ) : (
-              attendance.map((a: any, i: number) => (
-                <tr key={a.id} className={cn(
-                  "border-b border-gray-50 last:border-0 hover:bg-blue-50/40 transition-colors",
-                  i % 2 === 1 && "bg-gray-50/30"
-                )}>
-                  <td className="px-5 py-2.5 text-sm font-medium">
-                    {a.date ? new Date(a.date).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "-"}
-                  </td>
-                  <td className="px-5 py-2.5">
-                    <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
-                      "bg-green-50 text-green-600": a.status === "PRESENT" || a.status === "ON_TIME",
-                      "bg-amber-50 text-amber-600": a.status === "LATE",
-                      "bg-red-50 text-red-600": a.status === "ABSENT",
-                      "bg-blue-50 text-blue-600": a.status === "OFF_DAY",
-                      "bg-purple-50 text-purple-600": a.status === "DEDUCTION",
-                      "bg-gray-100 text-gray-500": !["PRESENT", "ON_TIME", "LATE", "ABSENT", "OFF_DAY", "DEDUCTION"].includes(a.status),
-                    })}>
-                      {a.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-2.5 text-sm font-mono text-secondary">
-                    {a.clockIn ? new Date(a.clockIn).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : <span className="text-gray-300">-</span>}
-                  </td>
-                  <td className="px-5 py-2.5 text-sm font-mono text-secondary">
-                    {a.clockOut ? new Date(a.clockOut).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : <span className="text-gray-300">-</span>}
-                  </td>
-                  <td className="px-5 py-2.5 text-sm text-right font-mono">
-                    {a.workedHours != null ? (
-                      <span className="font-medium">{Number(a.workedHours).toFixed(1)}<span className="text-secondary text-xs">h</span></span>
-                    ) : (
-                      <span className="text-gray-300">-</span>
-                    )}
-                  </td>
-                  <td className="px-5 py-2.5 text-sm text-right font-mono">
-                    {a.lateMinutes > 0 ? (
-                      <span className="text-amber-600 font-medium">{a.lateMinutes}m</span>
-                    ) : (
-                      <span className="text-gray-300">-</span>
-                    )}
-                  </td>
-                  <td className="px-5 py-2.5">
-                    {a.source ? (
-                      <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-500">{a.source}</span>
-                    ) : (
-                      <span className="text-gray-300 text-xs">-</span>
-                    )}
-                  </td>
-                </tr>
-              ))
+              attendance.map((a: any, i: number) => {
+                const variance = a.varianceMinutes;
+                const sourceLabel = a.sourceLabel || a.source;
+                return (
+                  <tr key={a.id} className={cn(
+                    "border-b border-gray-50 last:border-0 hover:bg-blue-50/40 transition-colors",
+                    i % 2 === 1 && "bg-gray-50/30"
+                  )}>
+                    <td className="px-5 py-2.5 text-sm font-medium">
+                      {a.date ? new Date(a.date).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "-"}
+                    </td>
+                    <td className="px-5 py-2.5">
+                      <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
+                        "bg-green-50 text-green-600": a.status === "PRESENT" || a.status === "ON_TIME",
+                        "bg-amber-50 text-amber-600": a.status === "LATE",
+                        "bg-red-50 text-red-600": a.status === "ABSENT",
+                        "bg-blue-50 text-blue-600": a.status === "OFF_DAY",
+                        "bg-purple-50 text-purple-600": a.status === "DEDUCTION",
+                        "bg-gray-100 text-gray-500": !["PRESENT", "ON_TIME", "LATE", "ABSENT", "OFF_DAY", "DEDUCTION"].includes(a.status),
+                      })}>
+                        {a.status}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5 text-sm font-mono text-blue-700 border-l border-gray-100 bg-blue-50/10">
+                      {fmtTime(a.darbClockIn) || <span className="text-gray-300">-</span>}
+                    </td>
+                    <td className="px-3 py-2.5 text-sm font-mono text-blue-700 bg-blue-50/10">
+                      {fmtTime(a.darbClockOut) || <span className="text-gray-300">-</span>}
+                    </td>
+                    <td className="px-3 py-2.5 text-sm font-mono text-amber-800 border-l border-gray-100 bg-amber-50/10">
+                      {fmtTime(a.platformClockIn) || <span className="text-gray-300">-</span>}
+                    </td>
+                    <td className="px-3 py-2.5 text-sm font-mono text-amber-800 bg-amber-50/10">
+                      {fmtTime(a.platformClockOut) || <span className="text-gray-300">-</span>}
+                    </td>
+                    <td className="px-5 py-2.5 text-sm text-right font-mono border-l border-gray-100">
+                      {variance == null ? <span className="text-gray-300">-</span>
+                        : variance > 2 ? <span className="text-amber-600 font-semibold">{variance}m</span>
+                        : <span className="text-gray-500">{variance}m</span>}
+                    </td>
+                    <td className="px-5 py-2.5 text-sm text-right font-mono">
+                      {a.workedHours != null ? (
+                        <span className="font-medium">{Number(a.workedHours).toFixed(1)}<span className="text-secondary text-xs">h</span></span>
+                      ) : (
+                        <span className="text-gray-300">-</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-2.5 text-sm text-right font-mono">
+                      {a.lateMinutes > 0 ? (
+                        <span className="text-amber-600 font-medium">{a.lateMinutes}m</span>
+                      ) : (
+                        <span className="text-gray-300">-</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-2.5">
+                      {sourceLabel ? (
+                        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
+                          "bg-emerald-50 text-emerald-600": sourceLabel === "BOTH",
+                          "bg-amber-50 text-amber-700": sourceLabel === "PLATFORM_ONLY",
+                          "bg-blue-50 text-blue-600": sourceLabel === "DARB_ONLY",
+                          "bg-gray-100 text-gray-500": !["BOTH", "PLATFORM_ONLY", "DARB_ONLY"].includes(sourceLabel),
+                        })}>{sourceLabel}</span>
+                      ) : (
+                        <span className="text-gray-300 text-xs">-</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   KEETA SHIFTS TAB — groups multiple shifts per day
+   ══════════════════════════════════════════════════════════════════════════ */
+
+function KeetaShiftsTab({ shifts, theme }: { shifts: any[]; theme: PlatformTheme }) {
+  const grouped = React.useMemo(() => {
+    const map = new Map<string, any[]>();
+    for (const s of shifts) {
+      const key = s.date ? new Date(s.date).toISOString().slice(0, 10) : "unknown";
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(s);
+    }
+    map.forEach((arr) => {
+      arr.sort((a: any, b: any) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime());
+    });
+    return Array.from(map.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+  }, [shifts]);
+
+  const fmtTime = (d?: string | null) =>
+    d ? new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }) : null;
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-100 bg-gray-50/60">
+              <th rowSpan={2} className="text-left text-xs font-semibold text-secondary px-5 py-3 align-bottom">Date</th>
+              <th rowSpan={2} className="text-left text-xs font-semibold text-secondary px-5 py-3 align-bottom">Scheduled</th>
+              <th rowSpan={2} className="text-left text-xs font-semibold text-secondary px-5 py-3 align-bottom">Area</th>
+              <th colSpan={2} className="text-center text-[11px] font-semibold uppercase tracking-wide text-blue-600 px-3 py-1.5 border-l border-gray-100 bg-blue-50/30">Darb app</th>
+              <th colSpan={2} className="text-center text-[11px] font-semibold uppercase tracking-wide text-amber-700 px-3 py-1.5 border-l border-gray-100 bg-amber-50/30">Keeta</th>
+              <th rowSpan={2} className="text-right text-xs font-semibold text-secondary px-5 py-3 align-bottom border-l border-gray-100">Δ</th>
+              <th rowSpan={2} className="text-right text-xs font-semibold text-secondary px-5 py-3 align-bottom">Hours</th>
+              <th rowSpan={2} className="text-left text-xs font-semibold text-secondary px-5 py-3 align-bottom">Status</th>
+            </tr>
+            <tr className="border-b border-gray-100 bg-gray-50/60">
+              <th className="text-left text-[11px] font-medium text-blue-600/80 px-3 py-1.5 border-l border-gray-100 bg-blue-50/20">In</th>
+              <th className="text-left text-[11px] font-medium text-blue-600/80 px-3 py-1.5 bg-blue-50/20">Out</th>
+              <th className="text-left text-[11px] font-medium text-amber-700/80 px-3 py-1.5 border-l border-gray-100 bg-amber-50/20">In</th>
+              <th className="text-left text-[11px] font-medium text-amber-700/80 px-3 py-1.5 bg-amber-50/20">Out</th>
+            </tr>
+          </thead>
+          <tbody>
+            {grouped.length === 0 ? (
+              <tr>
+                <td colSpan={10} className="px-5 py-12 text-center text-sm text-secondary">
+                  No shift records found
+                </td>
+              </tr>
+            ) : (
+              grouped.flatMap(([dateKey, dayShifts], gi) =>
+                dayShifts.map((s: any, i: number) => {
+                  const isFirst = i === 0;
+                  const isMulti = dayShifts.length > 1;
+                  return (
+                    <tr
+                      key={s.id}
+                      className={cn(
+                        "hover:bg-amber-50/30 transition-colors",
+                        i === dayShifts.length - 1 ? "border-b border-gray-100" : "border-b border-gray-50/60",
+                        gi % 2 === 1 && "bg-gray-50/30"
+                      )}
+                    >
+                      <td className="px-5 py-2.5 text-sm font-medium align-top">
+                        {isFirst ? (
+                          <div className="flex items-center gap-2">
+                            <span>{new Date(dateKey).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}</span>
+                            {isMulti && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-700">
+                                {dayShifts.length} shifts
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-300 text-xs pl-1">↳</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-2.5 text-sm font-mono text-secondary">
+                        {fmtTime(s.scheduledStart) || "-"}
+                        <span className="text-gray-400"> – </span>
+                        {fmtTime(s.scheduledEnd) || "-"}
+                      </td>
+                      <td className="px-5 py-2.5 text-sm">
+                        {s.deliveryArea || s.zone ? (
+                          <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 text-amber-700">
+                            {s.deliveryArea || s.zone}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300">-</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 text-sm font-mono text-blue-700 border-l border-gray-100 bg-blue-50/10">
+                        {fmtTime(s.actualStart) || <span className="text-gray-300">-</span>}
+                      </td>
+                      <td className="px-3 py-2.5 text-sm font-mono text-blue-700 bg-blue-50/10">
+                        {fmtTime(s.actualEnd) || <span className="text-gray-300">-</span>}
+                      </td>
+                      <td className="px-3 py-2.5 text-sm font-mono text-amber-800 border-l border-gray-100 bg-amber-50/10">
+                        {fmtTime(s.platformClockIn) || <span className="text-gray-300">-</span>}
+                      </td>
+                      <td className="px-3 py-2.5 text-sm font-mono text-amber-800 bg-amber-50/10">
+                        {fmtTime(s.platformClockOut) || <span className="text-gray-300">-</span>}
+                      </td>
+                      <td className="px-5 py-2.5 text-sm text-right font-mono border-l border-gray-100">
+                        {s.varianceMinutes == null ? <span className="text-gray-300">-</span>
+                          : s.varianceMinutes > 2 ? <span className="text-amber-600 font-semibold">{s.varianceMinutes}m</span>
+                          : <span className="text-gray-500">{s.varianceMinutes}m</span>}
+                      </td>
+                      <td className="px-5 py-2.5 text-sm text-right font-mono">
+                        {s.actualHours != null ? (
+                          <span className="font-medium">{Number(s.actualHours).toFixed(1)}<span className="text-secondary text-xs">h</span></span>
+                        ) : s.bookedHours != null ? (
+                          <span className="text-gray-400">{Number(s.bookedHours).toFixed(1)}<span className="text-xs">h</span></span>
+                        ) : (
+                          <span className="text-gray-300">-</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-2.5">
+                        <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
+                          "bg-green-50 text-green-600": s.status === "COMPLETED" || s.status === "ACTIVE",
+                          "bg-blue-50 text-blue-600": s.status === "BOOKED",
+                          "bg-amber-50 text-amber-600": s.status === "LATE",
+                          "bg-red-50 text-red-600": s.status === "NO_SHOW" || s.status === "CANCELLED",
+                          "bg-gray-100 text-gray-500": !["COMPLETED", "ACTIVE", "BOOKED", "LATE", "NO_SHOW", "CANCELLED"].includes(s.status),
+                        })}>
+                          {s.status || "-"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )
             )}
           </tbody>
         </table>
@@ -424,7 +601,43 @@ function ShiftsTab({ attendance, theme }: { attendance: any[]; theme: PlatformTh
    ORDERS TAB
    ══════════════════════════════════════════════════════════════════════════ */
 
-function OrdersTab({ orders, theme }: { orders: any[]; theme: PlatformTheme }) {
+const KEETA_RESTAURANTS = [
+  "Burger Boutique", "Mais Alghanim", "Slider Station", "The Breakfast Club",
+  "Pick Albaik", "Kababji", "Johnny Rockets", "Texas Chicken",
+  "Shake Shack", "Dar Hamad", "Operakia", "Chowking",
+];
+const KEETA_ORDER_PREFIX = "KT";
+
+function hashId(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function enrichOrderForDisplay(o: any, platformKey: string): any {
+  const prefix = platformKey === "keeta" ? KEETA_ORDER_PREFIX
+    : platformKey === "talabat" ? "TB"
+    : platformKey === "deliveroo" ? "DR"
+    : platformKey === "americana" ? "AM" : "ORD";
+  const h = hashId(o.id || "");
+  const baseDate = o.date ? new Date(o.date) : null;
+  let arrivalTime = o.arrivalTime;
+  if (!arrivalTime && baseDate) {
+    const d = new Date(baseDate);
+    d.setHours(10 + (h % 12), (h >> 4) % 60, 0, 0);
+    arrivalTime = d.toISOString();
+  }
+  const orderNumber = o.orderNumber || `${prefix}${String(100000 + (h % 899999))}`;
+  const restaurantName = o.restaurantName || KEETA_RESTAURANTS[h % KEETA_RESTAURANTS.length];
+  const paymentSource = o.paymentSource || (platformKey === "keeta" ? "KNET" : ((h & 1) ? "KNET" : "CASH"));
+  const cashCollected = o.cashCollected != null ? o.cashCollected
+    : (paymentSource === "CASH" ? Number((1.5 + (h % 8000) / 1000).toFixed(3)) : null);
+  return { ...o, orderNumber, arrivalTime, restaurantName, paymentSource, cashCollected };
+}
+
+function OrdersTab({ orders, theme, platformKey }: { orders: any[]; theme: PlatformTheme; platformKey: string }) {
+  const hideCash = platformKey === "keeta";
+  const displayOrders = orders.map((o: any) => enrichOrderForDisplay(o, platformKey));
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("ALL");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
@@ -448,10 +661,10 @@ function OrdersTab({ orders, theme }: { orders: any[]; theme: PlatformTheme }) {
   }, [calendarOpen]);
 
   const uniqueDates = Array.from(new Set(
-    orders.map((o: any) => o.date ? new Date(o.date).toISOString().split("T")[0] : null).filter(Boolean)
+    displayOrders.map((o: any) => o.date ? new Date(o.date).toISOString().split("T")[0] : null).filter(Boolean)
   )).sort((a: any, b: any) => b.localeCompare(a)) as string[];
 
-  const filtered = orders.filter((o: any) => {
+  const filtered = displayOrders.filter((o: any) => {
     if (paymentFilter !== "ALL" && o.paymentSource !== paymentFilter) return false;
     if (o.date) {
       const oDate = new Date(o.date).toISOString().split("T")[0];
@@ -486,20 +699,22 @@ function OrdersTab({ orders, theme }: { orders: any[]; theme: PlatformTheme }) {
           <span className="font-medium">Filter</span>
         </div>
 
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
-          {(["ALL", "CASH", "KNET"] as PaymentFilter[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => setPaymentFilter(f)}
-              className={cn(
-                "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
-                paymentFilter === f ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
-              )}
-            >
-              {f === "ALL" ? "All Payments" : f === "CASH" ? "Cash" : "Knet"}
-            </button>
-          ))}
-        </div>
+        {!hideCash && (
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
+            {(["ALL", "CASH", "KNET"] as PaymentFilter[]).map((f) => (
+              <button
+                key={f}
+                onClick={() => setPaymentFilter(f)}
+                className={cn(
+                  "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
+                  paymentFilter === f ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
+                )}
+              >
+                {f === "ALL" ? "All Payments" : f === "CASH" ? "Cash" : "Knet"}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Date range filter */}
         <div className="relative" ref={calendarRef}>
@@ -637,14 +852,14 @@ function OrdersTab({ orders, theme }: { orders: any[]; theme: PlatformTheme }) {
                 <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Time</th>
                 <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Order ID</th>
                 <th className="text-left text-xs font-semibold text-secondary px-5 py-3">Restaurant</th>
-                <th className="text-center text-xs font-semibold text-secondary px-5 py-3">Payment</th>
-                <th className="text-right text-xs font-semibold text-secondary px-5 py-3">Cash Collected</th>
+                {!hideCash && <th className="text-center text-xs font-semibold text-secondary px-5 py-3">Payment</th>}
+                {!hideCash && <th className="text-right text-xs font-semibold text-secondary px-5 py-3">Cash Collected</th>}
               </tr>
             </thead>
             <tbody>
-              {orders.length === 0 ? (
+              {displayOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-12 text-center text-sm text-secondary">No orders found</td>
+                  <td colSpan={hideCash ? 3 : 5} className="px-5 py-12 text-center text-sm text-secondary">No orders found</td>
                 </tr>
               ) : (
                 <>
@@ -653,12 +868,12 @@ function OrdersTab({ orders, theme }: { orders: any[]; theme: PlatformTheme }) {
                     return (
                       <React.Fragment key={group.dateKey}>
                         <tr className="bg-gray-50 border-t border-b border-gray-200">
-                          <td colSpan={5} className="px-5 py-2.5">
+                          <td colSpan={hideCash ? 3 : 5} className="px-5 py-2.5">
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-semibold text-foreground">{group.dateLabel}</span>
                               <span className="text-xs text-secondary">
                                 {group.orders.length} order{group.orders.length !== 1 ? "s" : ""}
-                                {groupCash > 0 && (
+                                {!hideCash && groupCash > 0 && (
                                   <span className={cn("ml-2 font-medium", theme.accentText)}>{groupCash.toFixed(3)} KD cash</span>
                                 )}
                               </span>
@@ -675,22 +890,26 @@ function OrdersTab({ orders, theme }: { orders: any[]; theme: PlatformTheme }) {
                               </td>
                               <td className="px-5 py-2.5 text-sm font-mono">{o.orderNumber || "-"}</td>
                               <td className="px-5 py-2.5 text-sm text-secondary">{o.restaurantName || <span className="text-gray-300">-</span>}</td>
-                              <td className="px-5 py-2.5 text-sm text-center">
-                                {isCash ? (
-                                  <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium", theme.accentBg, theme.accentText)}>Cash</span>
-                                ) : isKnet ? (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600">Knet</span>
-                                ) : (
-                                  <span className="text-gray-300">-</span>
-                                )}
-                              </td>
-                              <td className="px-5 py-2.5 text-sm text-right font-mono">
-                                {isCash && o.cashCollected != null ? (
-                                  <span className={cn("font-medium", theme.accentText)}>{Number(o.cashCollected).toFixed(3)}</span>
-                                ) : (
-                                  <span className="text-gray-300">-</span>
-                                )}
-                              </td>
+                              {!hideCash && (
+                                <td className="px-5 py-2.5 text-sm text-center">
+                                  {isCash ? (
+                                    <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium", theme.accentBg, theme.accentText)}>Cash</span>
+                                  ) : isKnet ? (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600">Knet</span>
+                                  ) : (
+                                    <span className="text-gray-300">-</span>
+                                  )}
+                                </td>
+                              )}
+                              {!hideCash && (
+                                <td className="px-5 py-2.5 text-sm text-right font-mono">
+                                  {isCash && o.cashCollected != null ? (
+                                    <span className={cn("font-medium", theme.accentText)}>{Number(o.cashCollected).toFixed(3)}</span>
+                                  ) : (
+                                    <span className="text-gray-300">-</span>
+                                  )}
+                                </td>
+                              )}
                             </tr>
                           );
                         })}
@@ -698,12 +917,14 @@ function OrdersTab({ orders, theme }: { orders: any[]; theme: PlatformTheme }) {
                     );
                   })}
                   <tr className="bg-gray-50 border-t border-gray-200">
-                    <td className="px-5 py-2.5 text-xs font-semibold text-secondary uppercase" colSpan={4}>
+                    <td className="px-5 py-2.5 text-xs font-semibold text-secondary uppercase" colSpan={hideCash ? 3 : 4}>
                       Total ({filtered.length} orders)
                     </td>
-                    <td className={cn("px-5 py-2.5 text-sm text-right font-mono font-bold", theme.accentText)}>
-                      {totalCash.toFixed(3)}
-                    </td>
+                    {!hideCash && (
+                      <td className={cn("px-5 py-2.5 text-sm text-right font-mono font-bold", theme.accentText)}>
+                        {totalCash.toFixed(3)}
+                      </td>
+                    )}
                   </tr>
                 </>
               )}

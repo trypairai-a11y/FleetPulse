@@ -621,8 +621,11 @@ model Shift {
   zone                String?
   scheduledStart      DateTime
   scheduledEnd        DateTime
-  actualStart         DateTime?
-  actualEnd           DateTime?
+  actualStart         DateTime? // Darb app clock-in (selfie-gated)
+  actualEnd           DateTime? // Darb app clock-out
+  platformClockIn     DateTime? // Synced from delivery platform (Keeta online session, Talabat XLSX, etc.)
+  platformClockOut    DateTime?
+  varianceMinutes     Int? // |actualStart - platformClockIn| — diagnostic
   status              ShiftStatus @default(BOOKED)
   isValid             Boolean?
   plannedHoursMinutes Int?
@@ -652,16 +655,22 @@ model Shift {
 
 // 9. AttendanceRecord
 model AttendanceRecord {
-  id          String           @id @default(uuid())
-  tenantId    String
-  driverId    String
-  shiftId     String?
-  date        DateTime
-  status      AttendanceStatus
-  lateMinutes Int              @default(0)
-  source      String           @default("manual")
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id               String           @id @default(uuid())
+  tenantId         String
+  driverId         String
+  shiftId          String?
+  date             DateTime
+  status           AttendanceStatus
+  lateMinutes      Int              @default(0)
+  source           String           @default("manual")
+  // Dual clock tracking — Darb app vs delivery platform
+  darbClockIn      DateTime?
+  darbClockOut     DateTime?
+  platformClockIn  DateTime?
+  platformClockOut DateTime?
+  varianceMinutes  Int? // |darbClockIn - platformClockIn|
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
   driver Driver @relation(fields: [driverId], references: [id])

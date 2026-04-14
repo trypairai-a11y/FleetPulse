@@ -4,6 +4,7 @@ import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
 import { sendXlsx } from "../utils/xlsxExport";
+import { reconcilePlatformClock } from "../services/attendanceReconciliation";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -77,10 +78,28 @@ router.get("/", async (req: Request, res: Response) => {
       }),
       prisma.attendanceRecord.count({ where }),
     ]);
-    const data = records.map(r => ({
-      ...r,
-      clockInLocation: r.driver?.zone || null,
-    }));
+    const data = records.map(r => {
+      // Backward-compat: legacy UI reads clockIn/clockOut. Prefer platform, fall back to Darb.
+      const clockIn = r.platformClockIn ?? r.darbClockIn ?? r.shift?.actualStart ?? null;
+      const clockOut = r.platformClockOut ?? r.darbClockOut ?? r.shift?.actualEnd ?? null;
+      const workedHours =
+        clockIn && clockOut
+          ? (new Date(clockOut).getTime() - new Date(clockIn).getTime()) / 3600000
+          : null;
+      const sourceLabel =
+        r.darbClockIn && r.platformClockIn ? "BOTH"
+          : r.platformClockIn ? "PLATFORM_ONLY"
+          : r.darbClockIn ? "DARB_ONLY"
+          : r.source;
+      return {
+        ...r,
+        clockIn,
+        clockOut,
+        workedHours,
+        sourceLabel,
+        clockInLocation: r.driver?.zone || null,
+      };
+    });
     res.json(paginatedResponse(data, total, page, limit));
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -356,6 +375,29 @@ router.post("/", async (req: Request, res: Response) => {
       data: { ...req.body, tenantId: req.user!.tenantId },
     });
     res.status(201).json(record);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/attendance/platform-clock — upsert platform clock-in/out for a driver+date.
+ * Called by Keeta session sync, Talabat/Deliveroo/Americana importers, etc.
+ * Recomputes variance and LATE status (platform time is the system of record).
+ */
+router.post("/platform-clock", async (req: Request, res: Response) => {
+  try {
+    const { driverId, date } = req.body as { driverId?: string; date?: string };
+    if (!driverId || !date) { res.status(400).json({ error: "driverId and date required" }); return; }
+    const record = await reconcilePlatformClock({
+      tenantId: req.user!.tenantId,
+      driverId,
+      date,
+      platformClockIn: req.body.platformClockIn,
+      platformClockOut: req.body.platformClockOut,
+      scheduledStart: req.body.scheduledStart,
+    });
+    res.json(record);
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }

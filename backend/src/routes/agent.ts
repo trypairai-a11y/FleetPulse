@@ -223,6 +223,14 @@ router.post("/selfie", upload.single("selfie"), async (req: Request, res: Respon
       const lateMinutes = Math.max(0, Math.floor(lateMs / 60000));
       const isLate = lateMinutes >= 1;
 
+      const existing = await prisma.attendanceRecord.findUnique({
+        where: { tenantId_driverId_date: { tenantId, driverId: driver.id, date: todayStart } },
+      });
+      const variance =
+        existing?.platformClockIn
+          ? Math.abs(Math.floor((now.getTime() - new Date(existing.platformClockIn).getTime()) / 60000))
+          : null;
+
       await prisma.attendanceRecord.upsert({
         where: {
           tenantId_driverId_date: { tenantId, driverId: driver.id, date: todayStart },
@@ -234,12 +242,17 @@ router.post("/selfie", upload.single("selfie"), async (req: Request, res: Respon
           date: todayStart,
           status: isLate ? "LATE" : "PRESENT",
           lateMinutes: isLate ? lateMinutes : 0,
-          source: "AGENT",
+          source: "DARB_APP",
+          darbClockIn: now,
         },
         update: {
-          status: isLate ? "LATE" : "PRESENT",
-          lateMinutes: isLate ? lateMinutes : 0,
           shiftId: shift.id,
+          darbClockIn: now,
+          varianceMinutes: variance,
+          // Late status is driven by platform when available; fall back to Darb time otherwise
+          ...(existing?.platformClockIn
+            ? {}
+            : { status: isLate ? "LATE" : "PRESENT", lateMinutes: isLate ? lateMinutes : 0 }),
         },
       });
 
@@ -267,6 +280,13 @@ router.post("/selfie", upload.single("selfie"), async (req: Request, res: Respon
           clockOutMethod: "selfie",
           actualHoursMinutes: actualMinutes,
         },
+      });
+
+      // Mirror Darb clock-out to AttendanceRecord
+      const dayStart = new Date(shift.date.getFullYear(), shift.date.getMonth(), shift.date.getDate());
+      await prisma.attendanceRecord.updateMany({
+        where: { tenantId, driverId: driver.id, date: dayStart },
+        data: { darbClockOut: now },
       });
 
       res.json({ shiftId: shift.id, selfieUrl, actualMinutes });

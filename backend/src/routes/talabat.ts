@@ -9,6 +9,7 @@ import { rbac } from "../middleware/rbac";
 import { validateBody, createTalabatSessionSchema } from "../utils/validate";
 import { assertDriverNotRestricted, DriverRestrictedError } from "../utils/driverRestriction";
 import { getAdapter } from "../adapters";
+import { reconcilePlatformClock } from "../services/attendanceReconciliation";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -277,6 +278,16 @@ router.post("/sessions", rbac(...MUTATORS), validateBody(createTalabatSessionSch
     const session = await prisma.talabatSession.create({
       data: { ...req.body, tenantId: req.user!.tenantId },
     });
+    if (session.driverId && (session.actualStart || session.actualEnd)) {
+      await reconcilePlatformClock({
+        tenantId: session.tenantId,
+        driverId: session.driverId,
+        date: session.actualStart || session.plannedStart,
+        platformClockIn: session.actualStart,
+        platformClockOut: session.actualEnd,
+        scheduledStart: session.plannedStart,
+      }).catch(() => {});
+    }
     res.status(201).json(session);
   } catch (err: any) {
     if (err instanceof DriverRestrictedError) {
@@ -312,6 +323,16 @@ router.put("/sessions/:id", rbac(...MUTATORS), async (req: Request, res: Respons
     });
     if (session.count === 0) { res.status(404).json({ error: "Session not found" }); return; }
     const updated = await prisma.talabatSession.findUnique({ where: { id: req.params.id } });
+    if (updated?.driverId && (updated.actualStart || updated.actualEnd)) {
+      await reconcilePlatformClock({
+        tenantId: updated.tenantId,
+        driverId: updated.driverId,
+        date: updated.actualStart || updated.plannedStart,
+        platformClockIn: updated.actualStart,
+        platformClockOut: updated.actualEnd,
+        scheduledStart: updated.plannedStart,
+      }).catch(() => {});
+    }
     res.json(updated);
   } catch (err: any) {
     res.status(400).json({ error: err.message });
