@@ -1,12 +1,17 @@
 "use client";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useApiGet } from "@/hooks/useApi";
 import DataTable from "@/components/shared/DataTable";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import { cn } from "@/lib/cn";
-import AddDriverModal from "@/components/shared/AddDriverModal";
 import { Plus, CheckCircle2, XCircle } from "lucide-react";
+
+const AddDriverModal = dynamic(() => import("@/components/shared/AddDriverModal"), {
+  ssr: false,
+  loading: () => null,
+});
 
 const ZONES = ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"];
 

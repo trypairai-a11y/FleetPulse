@@ -1,11 +1,19 @@
 "use client";
 import { useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { useApiGet } from "@/hooks/useApi";
 import DataTable from "@/components/shared/DataTable";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
+import { type TimelineStep } from "@/components/shared/OrderTimeline";
 import { cn } from "@/lib/cn";
+import { cleanDriverName } from "@/lib/formatters";
+
+const OrderTimeline = dynamic(() => import("@/components/shared/OrderTimeline"), {
+  ssr: false,
+  loading: () => <div className="animate-pulse h-32 bg-gray-100 rounded-xl" />,
+});
 import {
   Upload,
   Image as ImageIcon,
@@ -15,9 +23,62 @@ import {
   Route,
   CreditCard,
   Info,
+  Loader2,
 } from "lucide-react";
 
 const ZONES = ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"];
+
+/** Fetches and renders the order flow timeline for a given order. */
+function OrderFlowSection({ orderId }: { orderId: string | undefined }) {
+  const { data, loading, error } = useApiGet<{ orderId: string; steps: TimelineStep[]; totalEvents: number }>(
+    orderId ? `/api/order-flow/orders/${orderId}/flow` : null
+  );
+
+  if (!orderId) return null;
+
+  if (loading) {
+    return (
+      <div className="pt-2">
+        <h3 className="text-xs font-medium text-secondary uppercase mb-3">Order Flow</h3>
+        <div className="flex flex-col items-center justify-center py-10 gap-2">
+          <Loader2 size={20} className="animate-spin text-keeta" />
+          <p className="text-xs text-secondary">Loading timeline...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="pt-2">
+        <h3 className="text-xs font-medium text-secondary uppercase mb-3">Order Flow</h3>
+        <div className="text-center py-8 text-sm text-secondary">
+          Unable to load order flow data
+        </div>
+      </div>
+    );
+  }
+
+  const steps = data?.steps || [];
+
+  if (steps.length === 0) {
+    return (
+      <div className="pt-2">
+        <h3 className="text-xs font-medium text-secondary uppercase mb-3">Order Flow</h3>
+        <div className="text-center py-8 text-sm text-secondary">
+          No order flow data available
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pt-2">
+      <h3 className="text-xs font-medium text-secondary uppercase mb-3">Order Flow</h3>
+      <OrderTimeline steps={steps} />
+    </div>
+  );
+}
 
 export default function KeetaOrdersPage() {
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -224,7 +285,7 @@ export default function KeetaOrdersPage() {
       <SlidePanel
         open={!!selected}
         onClose={() => setSelected(null)}
-        title={selected?.driver?.name || "Order Detail"}
+        title={selected ? cleanDriverName(selected.driver?.name || selected.driverName) || "Order Detail" : "Order Detail"}
         subtitle="Keeta / Sidra"
       >
         {selected && (
@@ -232,13 +293,15 @@ export default function KeetaOrdersPage() {
             <div className="grid grid-cols-2 gap-3">
               {[
                 ["Date", selected.date ? new Date(selected.date).toLocaleDateString() : "-"],
+                ["Order #", selected.orderNumber || selected.id?.slice(0, 8) || "-"],
+                ["Driver", cleanDriverName(selected.driver?.name || selected.driverName) || "-"],
                 ["Zone", selected.driver?.zone || selected.zone || "-"],
                 ["Order Count", selected.orderCount ?? selected.orders ?? "-"],
                 ["Distance", selected.distanceKm != null ? `${Number(selected.distanceKm).toFixed(1)} km` : "-"],
                 ["On-Time Rate", selected.onTimeRate != null ? `${selected.onTimeRate}%` : "-"],
                 ["Source", selected.source || "-"],
                 ["Platform", "KEETA"],
-                ["Payment", "Digital (Cashless)"],
+                ["Payment", selected.paymentSource || "Digital (Cashless)"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
@@ -252,6 +315,9 @@ export default function KeetaOrdersPage() {
                 <p className="text-sm">{selected.notes}</p>
               </div>
             )}
+
+            {/* Order Flow Timeline */}
+            <OrderFlowSection orderId={selected.id} />
           </div>
         )}
       </SlidePanel>

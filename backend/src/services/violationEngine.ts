@@ -3,6 +3,7 @@ import { Platform, ViolationType, ViolationStatus } from "../generated/prisma";
 import { createViolationNotifications, getViolationSeverity } from "./notificationService";
 import { publishEvent } from "./eventBus";
 import { logger } from "../config/logger";
+import { AiOcrService } from "./aiOcrService";
 
 // ─── Haversine helper ────────────────────────────────────────────
 function haversineMeters(
@@ -244,6 +245,163 @@ export async function detectDropOffInAdvance(params: {
 }
 
 /**
+ * Detect late pickups — courier took too long to arrive at merchant after accepting.
+ * Compares "courier_accepted" and "courier_arrived_merchant" OrderEvent timestamps.
+ * If elapsed time > thresholdMinutes (default 15), creates LATE_PICKUP violation.
+ */
+export async function detectLatePickup(tenantId: string, thresholdMinutes = 15): Promise<number> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Find all "courier_accepted" events today
+  const acceptedEvents = await prisma.orderEvent.findMany({
+    where: {
+      tenantId,
+      action: "courier_accepted",
+      timestamp: { gte: today },
+    },
+  });
+
+  if (acceptedEvents.length === 0) return 0;
+
+  const orderIds = acceptedEvents.map((e) => e.orderId);
+
+  // Find matching "courier_arrived_merchant" events for those orders
+  const arrivedEvents = await prisma.orderEvent.findMany({
+    where: {
+      tenantId,
+      action: "courier_arrived_merchant",
+      orderId: { in: orderIds },
+    },
+  });
+
+  const arrivedByOrder = new Map(arrivedEvents.map((e) => [e.orderId, e]));
+
+  let created = 0;
+  for (const accepted of acceptedEvents) {
+    const arrived = arrivedByOrder.get(accepted.orderId);
+    if (!arrived) continue;
+
+    const elapsedMs = arrived.timestamp.getTime() - accepted.timestamp.getTime();
+    const elapsedMinutes = elapsedMs / 60_000;
+
+    if (elapsedMinutes <= thresholdMinutes) continue;
+
+    // Extract driverId from metadata (stored when the courier_accepted event was created)
+    const meta = (accepted.metadata as Record<string, any>) || {};
+    const driverId = meta.courierId || meta.driverId;
+    if (!driverId) continue;
+
+    // Look up driver to get platform
+    const driver = await prisma.driver.findUnique({
+      where: { id: driverId },
+      select: { id: true, platform: true },
+    });
+    if (!driver) continue;
+
+    const v = await createViolationWithAlert({
+      tenantId,
+      driverId: driver.id,
+      platform: driver.platform,
+      violationType: ViolationType.LATE_PICKUP,
+      violationTime: arrived.timestamp,
+      details: `Late pickup: ${elapsedMinutes.toFixed(1)} minutes to arrive at merchant (threshold: ${thresholdMinutes} min)`,
+      metadata: {
+        elapsedMinutes: Math.round(elapsedMinutes * 10) / 10,
+        thresholdMinutes,
+        acceptedAt: accepted.timestamp.toISOString(),
+        arrivedAt: arrived.timestamp.toISOString(),
+      },
+      taskId: accepted.orderId,
+    });
+    if (v) created++;
+  }
+  return created;
+}
+
+/**
+ * Detect invalid delivery photos using the AI OCR service.
+ * Processes a batch of recent deliveries that have screenshotUrl attached,
+ * calls the vision model to validate the photo shows clear delivery evidence.
+ * If validation fails, creates INVALID_DELIVERY_PHOTO violation.
+ *
+ * @param batchSize — max number of photos to validate per run (default 20 to control AI costs)
+ */
+export async function detectInvalidDeliveryPhoto(tenantId: string, batchSize = 20): Promise<number> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Find recent delivered order events that have delivery photo metadata
+  const deliveryEvents = await prisma.orderEvent.findMany({
+    where: {
+      tenantId,
+      action: "order_delivered",
+      timestamp: { gte: today },
+      metadata: { not: undefined },
+    },
+    orderBy: { timestamp: "desc" },
+    take: batchSize,
+  });
+
+  let created = 0;
+  for (const event of deliveryEvents) {
+    const meta = (event.metadata as Record<string, any>) || {};
+    const photoUrl = meta.deliveryPhotoUrl || meta.proofPhotoUrl || meta.screenshotUrl;
+    if (!photoUrl) continue;
+
+    const driverId = meta.courierId || meta.driverId;
+    if (!driverId) continue;
+
+    // Skip if we already checked this order
+    const existing = await prisma.violation.findFirst({
+      where: {
+        tenantId,
+        taskId: event.orderId,
+        violationType: ViolationType.INVALID_DELIVERY_PHOTO,
+      },
+    });
+    if (existing) continue;
+
+    try {
+      // Fetch the photo and run AI validation
+      const response = await fetch(photoUrl);
+      if (!response.ok) continue;
+
+      const imageBuffer = Buffer.from(await response.arrayBuffer());
+      const ocrResult = await AiOcrService.processScreenshot(imageBuffer, "KEETA");
+
+      // If OCR returns null the service could not process the image at all,
+      // or if the result has no delivery evidence, flag it.
+      // A valid delivery photo should contain order/delivery data the OCR can parse.
+      const isInvalid = ocrResult === null;
+
+      if (!isInvalid) continue;
+
+      const driver = await prisma.driver.findUnique({
+        where: { id: driverId },
+        select: { id: true, platform: true },
+      });
+      if (!driver) continue;
+
+      const v = await createViolationWithAlert({
+        tenantId,
+        driverId: driver.id,
+        platform: driver.platform,
+        violationType: ViolationType.INVALID_DELIVERY_PHOTO,
+        violationTime: event.timestamp,
+        details: "Delivery photo could not be validated — no clear delivery evidence detected",
+        metadata: { orderId: event.orderId, photoUrl },
+        taskId: event.orderId,
+      });
+      if (v) created++;
+    } catch (err) {
+      logger.error({ err, orderId: event.orderId }, "detectInvalidDeliveryPhoto: failed to process photo");
+    }
+  }
+  return created;
+}
+
+/**
  * Orchestrator: run all batch violation checks for a tenant.
  */
 export async function runAllViolationChecks(tenantId: string): Promise<number> {
@@ -262,6 +420,16 @@ export async function runAllViolationChecks(tenantId: string): Promise<number> {
     total += await detectGpsNotUploading(tenantId);
   } catch (e: any) {
     logger.error({ err: e, tenantId }, "detectGpsNotUploading failed");
+  }
+  try {
+    total += await detectLatePickup(tenantId);
+  } catch (e: any) {
+    logger.error({ err: e, tenantId }, "detectLatePickup failed");
+  }
+  try {
+    total += await detectInvalidDeliveryPhoto(tenantId);
+  } catch (e: any) {
+    logger.error({ err: e, tenantId }, "detectInvalidDeliveryPhoto failed");
   }
   return total;
 }

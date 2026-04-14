@@ -2,11 +2,16 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import dynamic from "next/dynamic";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
-import ChatWidget from "@/components/ai/ChatWidget";
 import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/cn";
+
+const ChatWidget = dynamic(() => import("@/components/ai/ChatWidget"), {
+  ssr: false,
+  loading: () => null,
+});
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { collapsed, open } = useSidebar();

@@ -9,6 +9,7 @@ import { cn } from "@/lib/cn";
 import { cleanDriverName } from "@/lib/formatters";
 import { useRouter } from "next/navigation";
 import type { Platform, Violation } from "@/types/api";
+import { PageSkeleton } from "@/components/shared/Skeleton";
 import {
   ShieldAlert,
   AlertTriangle,
@@ -16,7 +17,6 @@ import {
   CheckCircle2,
   ChevronRight,
   ExternalLink,
-  Loader2,
 } from "lucide-react";
 
 /* ─── Violation type tabs ─── */
@@ -249,9 +249,7 @@ export default function ViolationsPage({ platform }: ViolationsPageProps) {
 
       {/* Loading State */}
       {loading && violations.length === 0 && (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 size={24} className="animate-spin text-secondary" />
-        </div>
+        <PageSkeleton statCards={0} tableRows={8} tableCols={9} />
       )}
 
       {/* Table */}

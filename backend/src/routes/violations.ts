@@ -10,7 +10,48 @@ import { ViolationType, ViolationStatus, AppealStatus } from "../generated/prism
 const router = Router();
 router.use(authMiddleware, tenantScope);
 
-// GET / - List violations with filters, paginated
+/**
+ * @swagger
+ * /api/violations:
+ *   get:
+ *     tags: [Violations]
+ *     summary: List violations with filters and pagination
+ *     parameters:
+ *       - in: query
+ *         name: violationType
+ *         schema: { type: string, enum: [LATE_PICKUP, ORDER_REJECTION_TIMEOUT, DROP_OFF_IN_ADVANCE, ORDER_SLIGHTLY_LATE, ORDER_VERY_LATE, INVALID_DELIVERY_PHOTO, GPS_NOT_UPLOADING] }
+ *       - in: query
+ *         name: violationStatus
+ *         schema: { type: string, enum: [ESTABLISHED, UNDER_REVIEW, OVERTURNED, EXPIRED] }
+ *       - in: query
+ *         name: appealStatus
+ *         schema: { type: string, enum: [NOT_RAISED, PENDING, APPROVED, REJECTED] }
+ *       - in: query
+ *         name: driverId
+ *         schema: { type: string }
+ *       - in: query
+ *         name: platform
+ *         schema: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *       - in: query
+ *         name: dateFrom
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: dateTo
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *         description: Search by driver name
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated violation list with driver info
+ */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
@@ -49,7 +90,20 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-// GET /summary - Aggregate counts by type, status, appeal status
+/**
+ * @swagger
+ * /api/violations/summary:
+ *   get:
+ *     tags: [Violations]
+ *     summary: Aggregate violation counts by type, status, and pending appeals
+ *     parameters:
+ *       - in: query
+ *         name: platform
+ *         schema: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *     responses:
+ *       200:
+ *         description: Summary with total, byType, byStatus, and pendingAppeals counts
+ */
 router.get("/summary", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -83,7 +137,23 @@ router.get("/summary", async (req: Request, res: Response) => {
   }
 });
 
-// GET /:id - Single violation with penalties and appeals
+/**
+ * @swagger
+ * /api/violations/{id}:
+ *   get:
+ *     tags: [Violations]
+ *     summary: Get a single violation with linked penalties and appeal history
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Violation detail with driver, penalties, and appeals
+ *       404:
+ *         description: Violation not found
+ */
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const violation = await prisma.violation.findFirst({
@@ -101,7 +171,33 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// POST / - Create violation (manual or automated)
+/**
+ * @swagger
+ * /api/violations:
+ *   post:
+ *     tags: [Violations]
+ *     summary: Create a new violation (manual or automated)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [driverId, platform, violationType, violationTime]
+ *             properties:
+ *               driverId: { type: string }
+ *               platform: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *               violationType: { type: string, enum: [LATE_PICKUP, ORDER_REJECTION_TIMEOUT, DROP_OFF_IN_ADVANCE, ORDER_SLIGHTLY_LATE, ORDER_VERY_LATE, INVALID_DELIVERY_PHOTO, GPS_NOT_UPLOADING] }
+ *               violationTime: { type: string, format: date-time }
+ *               details: { type: string }
+ *               metadata: { type: object }
+ *               taskId: { type: string }
+ *     responses:
+ *       201:
+ *         description: Created violation with driver info
+ *       400:
+ *         description: Validation error
+ */
 router.post("/", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -138,7 +234,31 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// PUT /:id - Update violation status
+/**
+ * @swagger
+ * /api/violations/{id}:
+ *   put:
+ *     tags: [Violations]
+ *     summary: Update violation status
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               violationStatus: { type: string, enum: [ESTABLISHED, UNDER_REVIEW, OVERTURNED, EXPIRED] }
+ *     responses:
+ *       200:
+ *         description: Updated violation
+ *       404:
+ *         description: Violation not found
+ */
 router.put("/:id", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -160,7 +280,33 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// POST /:id/appeal - Submit an appeal for a violation
+/**
+ * @swagger
+ * /api/violations/{id}/appeal:
+ *   post:
+ *     tags: [Violations]
+ *     summary: Submit an appeal for a violation
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: Violation ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               channel: { type: string, enum: [APP, PHONE, EMAIL] }
+ *               reason: { type: string }
+ *     responses:
+ *       201:
+ *         description: Created appeal, violation status set to PENDING
+ *       404:
+ *         description: Violation not found
+ */
 router.post("/:id/appeal", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -189,7 +335,38 @@ router.post("/:id/appeal", async (req: Request, res: Response) => {
   }
 });
 
-// PUT /:id/appeal/:appealId - Review an appeal (approve/reject)
+/**
+ * @swagger
+ * /api/violations/{id}/appeal/{appealId}:
+ *   put:
+ *     tags: [Violations]
+ *     summary: Review an appeal (approve or reject)
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: Violation ID
+ *       - in: path
+ *         name: appealId
+ *         required: true
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [appealStatus]
+ *             properties:
+ *               appealStatus: { type: string, enum: [APPROVED, REJECTED] }
+ *               rejectionNote: { type: string }
+ *     responses:
+ *       200:
+ *         description: Updated appeal; if approved, violation status set to OVERTURNED
+ *       404:
+ *         description: Appeal not found
+ */
 router.put("/:id/appeal/:appealId", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;

@@ -17,6 +17,35 @@ router.use(authMiddleware, tenantScope);
 const MUTATORS = ["ADMIN", "OPS_MANAGER", "ACCOUNTANT"];
 const DESTRUCTIVE = ["ADMIN", "ACCOUNTANT"];
 
+/**
+ * @swagger
+ * /api/cash:
+ *   get:
+ *     tags: [Cash]
+ *     summary: List cash records with filters and pagination
+ *     parameters:
+ *       - in: query
+ *         name: driverId
+ *         schema: { type: string }
+ *       - in: query
+ *         name: status
+ *         schema: { type: string }
+ *       - in: query
+ *         name: dateFrom
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: dateTo
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated cash records with driver info
+ */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
@@ -45,6 +74,33 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/cash/ledger:
+ *   get:
+ *     tags: [Cash]
+ *     summary: List pending dues ledger entries with filters and pagination
+ *     parameters:
+ *       - in: query
+ *         name: driverId
+ *         schema: { type: string }
+ *       - in: query
+ *         name: month
+ *         schema: { type: string }
+ *         description: Month filter in YYYY-MM format
+ *       - in: query
+ *         name: status
+ *         schema: { type: string }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated ledger entries with driver info
+ */
 router.get("/ledger", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
@@ -79,6 +135,31 @@ router.get("/ledger", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/cash/deposit:
+ *   post:
+ *     tags: [Cash]
+ *     summary: Record a cash deposit for a driver
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [riderId, amount]
+ *             properties:
+ *               riderId: { type: string, description: Platform driver ID }
+ *               amount: { type: number, minimum: 0.001, maximum: 50000 }
+ *               method: { type: string, enum: [CASH, BANK_TRANSFER, AL_MUZAINI] }
+ *               note: { type: string }
+ *               platform: { type: string }
+ *     responses:
+ *       201:
+ *         description: Created cash deposit record
+ *       404:
+ *         description: Driver not found
+ */
 router.post("/deposit", rbac(...MUTATORS), async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -247,6 +328,23 @@ router.get("/transactions/daily-summary", async (req: Request, res: Response) =>
   }
 });
 
+/**
+ * @swagger
+ * /api/cash/{id}:
+ *   get:
+ *     tags: [Cash]
+ *     summary: Get a single cash record by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Cash record with driver details
+ *       404:
+ *         description: Cash record not found
+ */
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const record = await prisma.cashRecord.findFirst({
@@ -260,6 +358,32 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/cash:
+ *   post:
+ *     tags: [Cash]
+ *     summary: Create a new cash record
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [driverId, date, salesAmount, collectionAmount]
+ *             properties:
+ *               driverId: { type: string }
+ *               date: { type: string, format: date }
+ *               salesAmount: { type: number }
+ *               collectionAmount: { type: number }
+ *               pendingDues: { type: number }
+ *               status: { type: string }
+ *     responses:
+ *       201:
+ *         description: Created cash record
+ *       403:
+ *         description: Driver is restricted
+ */
 router.post("/", rbac(...MUTATORS), validateBody(createCashRecordSchema.passthrough()), async (req: Request, res: Response) => {
   try {
     await assertDriverNotRestricted(req.user!.tenantId, req.body.driverId);
@@ -276,6 +400,23 @@ router.post("/", rbac(...MUTATORS), validateBody(createCashRecordSchema.passthro
   }
 });
 
+/**
+ * @swagger
+ * /api/cash/{id}:
+ *   put:
+ *     tags: [Cash]
+ *     summary: Update a cash record
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Updated cash record
+ *       404:
+ *         description: Cash record not found
+ */
 router.put("/:id", rbac(...MUTATORS), async (req: Request, res: Response) => {
   try {
     const record = await prisma.cashRecord.updateMany({
@@ -290,6 +431,21 @@ router.put("/:id", rbac(...MUTATORS), async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/cash/{id}:
+ *   delete:
+ *     tags: [Cash]
+ *     summary: Delete a cash record
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Deletion confirmation
+ */
 router.delete("/:id", rbac(...DESTRUCTIVE), async (req: Request, res: Response) => {
   try {
     await prisma.cashRecord.deleteMany({

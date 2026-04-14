@@ -17,7 +17,45 @@ const MUTATORS = ["ADMIN", "OPS_MANAGER", "SUPERVISOR"];
 
 // ─── Sessions ───────────────────────────────────────────────────────────────
 
-// GET /sessions - List with filters, paginated
+/**
+ * @swagger
+ * /api/talabat/sessions:
+ *   get:
+ *     tags: [Talabat Sessions]
+ *     summary: List Talabat sessions with filters and pagination
+ *     parameters:
+ *       - in: query
+ *         name: dateFrom
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: dateTo
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: zone
+ *         schema: { type: string }
+ *       - in: query
+ *         name: driverId
+ *         schema: { type: string }
+ *       - in: query
+ *         name: status
+ *         schema: { type: string }
+ *       - in: query
+ *         name: companyId
+ *         schema: { type: string }
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *         description: Search by driver name
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated session list with driver info
+ */
 router.get("/sessions", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
@@ -49,7 +87,24 @@ router.get("/sessions", async (req: Request, res: Response) => {
   }
 });
 
-// GET /sessions/summary - Aggregate stats for a given date
+/**
+ * @swagger
+ * /api/talabat/sessions/summary:
+ *   get:
+ *     tags: [Talabat Sessions]
+ *     summary: Aggregate session stats for a date (totals, hours, zone/status breakdown)
+ *     parameters:
+ *       - in: query
+ *         name: date
+ *         schema: { type: string, format: date }
+ *         description: Defaults to today
+ *       - in: query
+ *         name: companyId
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Summary with totalSessions, plannedHoursSum, actualHoursSum, faceFailCount, zoneBreakdown, statusBreakdown
+ */
 router.get("/sessions/summary", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -98,7 +153,21 @@ router.get("/sessions/summary", async (req: Request, res: Response) => {
   }
 });
 
-// GET /sessions/daily-overview - All sessions grouped by driver for a date
+/**
+ * @swagger
+ * /api/talabat/sessions/daily-overview:
+ *   get:
+ *     tags: [Talabat Sessions]
+ *     summary: All sessions grouped by driver for a date with gap analysis
+ *     parameters:
+ *       - in: query
+ *         name: date
+ *         schema: { type: string, format: date }
+ *         description: Defaults to today
+ *     responses:
+ *       200:
+ *         description: Array of driver groups, each with sessions and gapMinutes between sessions
+ */
 router.get("/sessions/daily-overview", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -146,7 +215,23 @@ router.get("/sessions/daily-overview", async (req: Request, res: Response) => {
   }
 });
 
-// GET /sessions/:id - Single session with driver + complianceEvents
+/**
+ * @swagger
+ * /api/talabat/sessions/{id}:
+ *   get:
+ *     tags: [Talabat Sessions]
+ *     summary: Get a single session with driver, violation events, and delivery items
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Session detail with driver, violationEvents, and deliveryItems
+ *       404:
+ *         description: Session not found
+ */
 router.get("/sessions/:id", async (req: Request, res: Response) => {
   try {
     const session = await prisma.talabatSession.findFirst({
@@ -160,7 +245,32 @@ router.get("/sessions/:id", async (req: Request, res: Response) => {
   }
 });
 
-// POST /sessions - Create session
+/**
+ * @swagger
+ * /api/talabat/sessions:
+ *   post:
+ *     tags: [Talabat Sessions]
+ *     summary: Create a new Talabat session
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [driverId, date]
+ *             properties:
+ *               driverId: { type: string }
+ *               date: { type: string, format: date }
+ *               zone: { type: string }
+ *               plannedStart: { type: string, format: date-time }
+ *               plannedEnd: { type: string, format: date-time }
+ *               plannedHours: { type: number }
+ *     responses:
+ *       201:
+ *         description: Created session
+ *       403:
+ *         description: Driver is restricted
+ */
 router.post("/sessions", rbac(...MUTATORS), validateBody(createTalabatSessionSchema.passthrough()), async (req: Request, res: Response) => {
   try {
     await assertDriverNotRestricted(req.user!.tenantId, req.body.driverId);
@@ -177,7 +287,23 @@ router.post("/sessions", rbac(...MUTATORS), validateBody(createTalabatSessionSch
   }
 });
 
-// PUT /sessions/:id - Update session
+/**
+ * @swagger
+ * /api/talabat/sessions/{id}:
+ *   put:
+ *     tags: [Talabat Sessions]
+ *     summary: Update a Talabat session
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Updated session
+ *       404:
+ *         description: Session not found
+ */
 router.put("/sessions/:id", rbac(...MUTATORS), async (req: Request, res: Response) => {
   try {
     const session = await prisma.talabatSession.updateMany({

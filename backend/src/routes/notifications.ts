@@ -6,7 +6,29 @@ import { tenantScope } from "../middleware/tenantScope";
 const router = Router();
 router.use(authMiddleware, tenantScope);
 
-// GET / - List notifications for the current user
+/**
+ * @swagger
+ * /api/notifications:
+ *   get:
+ *     tags: [Notifications]
+ *     summary: List notifications for the current user
+ *     parameters:
+ *       - in: query
+ *         name: unreadOnly
+ *         schema: { type: string, enum: ["true", "false"] }
+ *       - in: query
+ *         name: category
+ *         schema: { type: string, enum: [IMPORTANT, OPS_TODO, BENEFITS, OTHER] }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 50 }
+ *       - in: query
+ *         name: offset
+ *         schema: { type: integer, default: 0 }
+ *     responses:
+ *       200:
+ *         description: Notification list with total count
+ */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const userId = (req.user as any).id;
@@ -33,7 +55,16 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-// GET /counts - Unread counts per category
+/**
+ * @swagger
+ * /api/notifications/counts:
+ *   get:
+ *     tags: [Notifications]
+ *     summary: Get unread notification counts per category
+ *     responses:
+ *       200:
+ *         description: Unread counts for total, important, opsTodo, benefits, other
+ */
 router.get("/counts", async (req: Request, res: Response) => {
   try {
     const baseWhere = { tenantId: req.user!.tenantId, userId: (req.user as any).id, read: false };
@@ -50,7 +81,16 @@ router.get("/counts", async (req: Request, res: Response) => {
   }
 });
 
-// GET /unread-count - Get unread notification count
+/**
+ * @swagger
+ * /api/notifications/unread-count:
+ *   get:
+ *     tags: [Notifications]
+ *     summary: Get total unread notification count for the current user
+ *     responses:
+ *       200:
+ *         description: Object with count field
+ */
 router.get("/unread-count", async (req: Request, res: Response) => {
   try {
     const count = await prisma.notification.count({
@@ -66,7 +106,23 @@ router.get("/unread-count", async (req: Request, res: Response) => {
   }
 });
 
-// PUT /:id/read - Mark a single notification as read
+/**
+ * @swagger
+ * /api/notifications/{id}/read:
+ *   put:
+ *     tags: [Notifications]
+ *     summary: Mark a single notification as read
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Success confirmation
+ *       404:
+ *         description: Notification not found
+ */
 router.put("/:id/read", async (req: Request, res: Response) => {
   try {
     const result = await prisma.notification.updateMany({
@@ -87,7 +143,16 @@ router.put("/:id/read", async (req: Request, res: Response) => {
   }
 });
 
-// PUT /read-all - Mark all notifications as read
+/**
+ * @swagger
+ * /api/notifications/read-all:
+ *   put:
+ *     tags: [Notifications]
+ *     summary: Mark all notifications as read for the current user
+ *     responses:
+ *       200:
+ *         description: Number of notifications updated
+ */
 router.put("/read-all", async (req: Request, res: Response) => {
   try {
     const result = await prisma.notification.updateMany({
@@ -104,7 +169,16 @@ router.put("/read-all", async (req: Request, res: Response) => {
   }
 });
 
-// GET /rules - List notification rules for this tenant
+/**
+ * @swagger
+ * /api/notifications/rules:
+ *   get:
+ *     tags: [Notifications]
+ *     summary: List notification rules for this tenant
+ *     responses:
+ *       200:
+ *         description: Array of notification rules sorted by eventType and role
+ */
 router.get("/rules", async (req: Request, res: Response) => {
   try {
     const rules = await prisma.notificationRule.findMany({
@@ -117,8 +191,17 @@ router.get("/rules", async (req: Request, res: Response) => {
   }
 });
 
-// GET /stream - Server-Sent Events stream for real-time notifications
-// Client subscribes and receives new notifications as they arrive (replaces polling)
+/**
+ * @swagger
+ * /api/notifications/stream:
+ *   get:
+ *     tags: [Notifications]
+ *     summary: SSE stream for real-time notification delivery
+ *     description: Server-Sent Events endpoint. Sends unread_count on connect, then pushes new notifications and heartbeats every 10s.
+ *     responses:
+ *       200:
+ *         description: SSE event stream (Content-Type text/event-stream)
+ */
 router.get("/stream", (req: Request, res: Response) => {
   const userId = (req.user as any).id;
   const tenantId = req.user!.tenantId;
@@ -168,7 +251,27 @@ router.get("/stream", (req: Request, res: Response) => {
   });
 });
 
-// PUT /rules - Upsert a notification rule
+/**
+ * @swagger
+ * /api/notifications/rules:
+ *   put:
+ *     tags: [Notifications]
+ *     summary: Upsert a notification rule (enable/disable per event type and role)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [eventType, role, enabled]
+ *             properties:
+ *               eventType: { type: string }
+ *               role: { type: string }
+ *               enabled: { type: boolean }
+ *     responses:
+ *       200:
+ *         description: Upserted notification rule
+ */
 router.put("/rules", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;

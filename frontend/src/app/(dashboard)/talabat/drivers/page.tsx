@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useApiGet } from "@/hooks/useApi";
 import DataTable from "@/components/shared/DataTable";
 import FilterBar from "@/components/shared/FilterBar";
@@ -8,8 +9,13 @@ import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
 import { cleanDriverName } from "@/lib/formatters";
-import AddDriverModal from "@/components/shared/AddDriverModal";
+import { PageSkeleton } from "@/components/shared/Skeleton";
 import { Plus, Users, ShieldCheck, AlertTriangle, FileText, CheckCircle2, XCircle, TrendingUp, Package } from "lucide-react";
+
+const AddDriverModal = dynamic(() => import("@/components/shared/AddDriverModal"), {
+  ssr: false,
+  loading: () => null,
+});
 
 const TALABAT_ZONES = [
   "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",
@@ -43,14 +49,13 @@ export default function TalabatDriversPage() {
   const summaryParams = new URLSearchParams({ platform: "TALABAT" });
   if (filters.company) summaryParams.set("companyId", filters.company);
 
-  const { data, refetch } = useApiGet<any>(`/api/drivers?${params}`);
+  const { data, refetch, loading } = useApiGet<any>(`/api/drivers?${params}`);
   const { data: summary } = useApiGet<any>(`/api/drivers/summary?${summaryParams}`);
   const rawDrivers = data?.data || [];
-  // Mock face verification + mismatch data for demo
-  const drivers = rawDrivers.map((d: any, i: number) => ({
+  const drivers = rawDrivers.map((d: any) => ({
     ...d,
-    faceVerified: d.faceVerified ?? (i % 7 !== 0 && i % 11 !== 0),
-    faceMismatch: d.faceMismatch ?? (i % 7 === 0),
+    faceVerified: d.faceVerified ?? null,
+    faceMismatch: d.faceMismatch ?? null,
   }));
 
   const columns = [
@@ -168,6 +173,14 @@ export default function TalabatDriversPage() {
       },
     },
   ];
+
+  if (loading && !data) {
+    return (
+      <div className="space-y-6 w-full">
+        <PageSkeleton statCards={4} tableRows={8} tableCols={10} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 w-full">

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { useApiGet } from "@/hooks/useApi";
 import api from "@/lib/api";
 import DataTable from "@/components/shared/DataTable";
@@ -129,7 +130,7 @@ export default function KeetaAttendancePage() {
       label: "Selfie",
       render: (_: any, r: any) =>
         r.selfieUrl ? (
-          <img src={r.selfieUrl} alt="selfie" className="w-8 h-8 rounded-lg object-cover border border-gray-100" />
+          <Image src={r.selfieUrl} alt="Driver clock-in selfie" width={32} height={32} className="w-8 h-8 rounded-lg object-cover border border-gray-100" unoptimized />
         ) : (
           <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
             <Camera size={12} className="text-gray-400" />
@@ -399,7 +400,9 @@ export default function KeetaAttendancePage() {
             {selected.selfieUrl && (
               <div>
                 <p className="text-[10px] text-secondary uppercase font-medium mb-2">Clock-In Selfie</p>
-                <img src={selected.selfieUrl} alt="Clock-in selfie" className="w-full rounded-xl object-cover max-h-48 border border-gray-100" />
+                <div className="relative w-full max-h-48 overflow-hidden rounded-xl border border-gray-100">
+                  <Image src={selected.selfieUrl} alt="Clock-in selfie" width={400} height={192} className="w-full rounded-xl object-cover" unoptimized />
+                </div>
               </div>
             )}
             {selected.notes && (

@@ -8,6 +8,41 @@ import { sendXlsx } from "../utils/xlsxExport";
 const router = Router();
 router.use(authMiddleware, tenantScope);
 
+/**
+ * @swagger
+ * /api/attendance:
+ *   get:
+ *     tags: [Attendance]
+ *     summary: List attendance records with filters and pagination
+ *     parameters:
+ *       - in: query
+ *         name: platform
+ *         schema: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *       - in: query
+ *         name: driverId
+ *         schema: { type: string }
+ *       - in: query
+ *         name: status
+ *         schema: { type: string, enum: [PRESENT, LATE, ABSENT, EXCUSED] }
+ *       - in: query
+ *         name: dateFrom
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: dateTo
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: companyId
+ *         schema: { type: string }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated attendance records with driver and shift info
+ */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
@@ -52,6 +87,24 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/attendance/summary:
+ *   get:
+ *     tags: [Attendance]
+ *     summary: Get attendance summary counts for a date (present, late, absent, excused)
+ *     parameters:
+ *       - in: query
+ *         name: date
+ *         schema: { type: string, format: date }
+ *         description: Defaults to today; falls back to most recent date with data
+ *       - in: query
+ *         name: platform
+ *         schema: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *     responses:
+ *       200:
+ *         description: Summary with present, late, absent, excused counts and presentPercentage
+ */
 router.get("/summary", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -112,6 +165,30 @@ router.get("/summary", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/attendance/monthly:
+ *   get:
+ *     tags: [Attendance]
+ *     summary: Get monthly attendance aggregates per driver
+ *     parameters:
+ *       - in: query
+ *         name: month
+ *         schema: { type: string }
+ *         description: Month in YYYY-MM or numeric format
+ *       - in: query
+ *         name: year
+ *         schema: { type: integer }
+ *       - in: query
+ *         name: platform
+ *         schema: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *       - in: query
+ *         name: companyId
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Per-driver monthly totals (present, absent, late, totalHours)
+ */
 router.get("/monthly", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -180,6 +257,31 @@ router.get("/monthly", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/attendance/export:
+ *   get:
+ *     tags: [Attendance]
+ *     summary: Export attendance records as XLSX
+ *     parameters:
+ *       - in: query
+ *         name: platform
+ *         schema: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *       - in: query
+ *         name: dateFrom
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: dateTo
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: companyId
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: XLSX file download
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: {}
+ */
 router.get("/export", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -225,6 +327,29 @@ router.get("/export", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/attendance:
+ *   post:
+ *     tags: [Attendance]
+ *     summary: Create an attendance record
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [driverId, date, status]
+ *             properties:
+ *               driverId: { type: string }
+ *               date: { type: string, format: date }
+ *               status: { type: string, enum: [PRESENT, LATE, ABSENT, EXCUSED] }
+ *               source: { type: string }
+ *               lateMinutes: { type: integer }
+ *     responses:
+ *       201:
+ *         description: Created attendance record
+ */
 router.post("/", async (req: Request, res: Response) => {
   try {
     const record = await prisma.attendanceRecord.create({

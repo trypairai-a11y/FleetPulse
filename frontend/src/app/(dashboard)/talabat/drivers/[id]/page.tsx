@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useApiGet } from "@/hooks/useApi";
 import { cn } from "@/lib/cn";
+import { Skeleton, StatCardSkeleton } from "@/components/shared/Skeleton";
 import { ArrowLeft } from "lucide-react";
 
 import DriverHeader from "@/components/platform/talabat/DriverHeader";
@@ -65,8 +66,15 @@ export default function TalabatDriverProfilePage() {
           <button onClick={() => router.push("/talabat/drivers")} className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
             <ArrowLeft size={18} />
           </button>
-          <span className="w-11 h-11 rounded-full bg-gray-200 animate-pulse" />
-          <h1 className="text-xl font-semibold">Loading...</h1>
+          <Skeleton className="w-11 h-11 rounded-full" />
+          <Skeleton className="h-6 w-40" />
+        </div>
+        <StatCardSkeleton count={4} />
+        <Skeleton className="h-10 w-64" />
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+          ))}
         </div>
       </div>
     );

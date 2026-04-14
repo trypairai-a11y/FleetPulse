@@ -1,13 +1,16 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useApiGet } from "@/hooks/useApi";
+import { useSSE } from "@/hooks/useSSE";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
+import { StatCardSkeleton, TableSkeleton } from "@/components/shared/Skeleton";
 import {
   Activity, Users, Wifi, WifiOff, MapPin, Phone, Clock,
   Package, AlertTriangle, Radio, ChevronRight, Truck, Bike,
+  RefreshCw,
 } from "lucide-react";
 
 /* ─── Types ─── */
@@ -55,7 +58,7 @@ export default function KeetaMonitorPage() {
   if (filters.zone) courierParams.set("zone", filters.zone);
   if (filters.status) courierParams.set("status", filters.status);
 
-  const { data: monitorData, refetch: refetchCouriers } = useApiGet<any>(
+  const { data: monitorData, refetch: refetchCouriers, loading: couriersLoading } = useApiGet<any>(
     `/api/keeta/monitor/couriers?${courierParams}`
   );
   const { data: alertsData, refetch: refetchAlerts } = useApiGet<any>(
@@ -70,13 +73,23 @@ export default function KeetaMonitorPage() {
     orderRejections: { count: 0, drivers: [] },
   };
 
-  // Auto-refresh every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refetchCouriers();
-      refetchAlerts();
-    }, 30_000);
-    return () => clearInterval(interval);
+  // SSE: refetch monitor data on every server-sent event
+  const handleSSEMessage = useCallback(() => {
+    refetchCouriers();
+    refetchAlerts();
+  }, [refetchCouriers, refetchAlerts]);
+
+  const { connected: sseConnected } = useSSE({
+    url: "/api/notifications/stream",
+    onMessage: handleSSEMessage,
+    enabled: true,
+  });
+
+  const [refreshing, setRefreshing] = useState(false);
+  const handleManualRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([refetchCouriers(), refetchAlerts()]);
+    setRefreshing(false);
   }, [refetchCouriers, refetchAlerts]);
 
   function formatOnlineTime(minutes: number) {
@@ -85,14 +98,47 @@ export default function KeetaMonitorPage() {
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   }
 
+  if (couriersLoading && !monitorData) {
+    return (
+      <div className="space-y-6">
+        <StatCardSkeleton count={4} />
+        <TableSkeleton rows={6} cols={7} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <span className="w-3 h-3 rounded-full bg-keeta" />
-        <h1 className="text-xl font-semibold">Keeta</h1>
-        <span className="text-secondary/30 text-lg font-light">/</span>
-        <span className="text-xl text-secondary font-medium">Monitor</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="w-3 h-3 rounded-full bg-keeta" />
+          <h1 className="text-xl font-semibold">Keeta</h1>
+          <span className="text-secondary/30 text-lg font-light">/</span>
+          <span className="text-xl text-secondary font-medium">Monitor</span>
+        </div>
+        <div className="flex items-center gap-3">
+          {/* SSE connection indicator */}
+          <span className={cn(
+            "flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full",
+            sseConnected ? "bg-green-50 text-green-700" : "bg-gray-100 text-secondary"
+          )}>
+            <span className={cn(
+              "w-1.5 h-1.5 rounded-full",
+              sseConnected ? "bg-green-500" : "bg-gray-400"
+            )} />
+            {sseConnected ? "Live" : "Connecting..."}
+          </span>
+          {/* Manual refresh button */}
+          <button
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={cn(refreshing && "animate-spin")} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}

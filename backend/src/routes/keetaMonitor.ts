@@ -6,7 +6,27 @@ import { tenantScope } from "../middleware/tenantScope";
 const router = Router();
 router.use(authMiddleware, tenantScope);
 
-// GET /couriers - List all Keeta couriers with real-time status
+/**
+ * @swagger
+ * /api/keeta/monitor/couriers:
+ *   get:
+ *     tags: [Keeta Monitor]
+ *     summary: List all active Keeta couriers with real-time status, GPS, and today's metrics
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *         description: Filter by courier name
+ *       - in: query
+ *         name: zone
+ *         schema: { type: string }
+ *       - in: query
+ *         name: status
+ *         schema: { type: string, enum: [working, idle, offline] }
+ *     responses:
+ *       200:
+ *         description: Courier list with status breakdown summary (total, working, idle, offline)
+ */
 router.get("/couriers", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -120,7 +140,16 @@ router.get("/couriers", async (req: Request, res: Response) => {
   }
 });
 
-// GET /alerts - Irregular courier alerts
+/**
+ * @swagger
+ * /api/keeta/monitor/alerts:
+ *   get:
+ *     tags: [Keeta Monitor]
+ *     summary: Get irregular courier alerts (scheduled-not-online, GPS failures, order rejections)
+ *     responses:
+ *       200:
+ *         description: Three alert categories each with count and driver list
+ */
 router.get("/alerts", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;

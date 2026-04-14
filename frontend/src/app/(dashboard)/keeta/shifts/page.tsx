@@ -17,6 +17,49 @@ import {
 
 const ZONES = ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"];
 
+const ZONE_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
+  Hawally:          { bg: "bg-blue-50",   text: "text-blue-700",   dot: "bg-blue-400" },
+  Salmiya:          { bg: "bg-teal-50",   text: "text-teal-700",   dot: "bg-teal-400" },
+  Ardiya:           { bg: "bg-purple-50", text: "text-purple-700", dot: "bg-purple-400" },
+  Jahra:            { bg: "bg-amber-50",  text: "text-amber-700",  dot: "bg-amber-400" },
+  Khiran:           { bg: "bg-green-50",  text: "text-green-700",  dot: "bg-green-400" },
+  Mishref:          { bg: "bg-pink-50",   text: "text-pink-700",   dot: "bg-pink-400" },
+  "Sabah Al Salem": { bg: "bg-indigo-50", text: "text-indigo-700", dot: "bg-indigo-400" },
+  "Abu Halifa":     { bg: "bg-orange-50", text: "text-orange-700", dot: "bg-orange-400" },
+  Fahaheel:         { bg: "bg-red-50",    text: "text-red-700",    dot: "bg-red-400" },
+  Mangaf:           { bg: "bg-cyan-50",   text: "text-cyan-700",   dot: "bg-cyan-400" },
+};
+
+const DEFAULT_ZONE_COLOR = { bg: "bg-gray-50", text: "text-gray-600", dot: "bg-gray-400" };
+
+function getZoneColor(zone: string | undefined | null) {
+  if (!zone) return DEFAULT_ZONE_COLOR;
+  return ZONE_COLORS[zone] || DEFAULT_ZONE_COLOR;
+}
+
+/**
+ * Checks if a shift is currently live based on the current time falling between
+ * scheduledStart and scheduledEnd (or the slot start/end as a fallback).
+ */
+function isShiftLive(shift: any, slotStart: string, slotEnd: string): boolean {
+  const now = new Date();
+  const today = now.toISOString().split("T")[0];
+  const shiftDate = shift.date ? shift.date.split("T")[0] : "";
+  if (shiftDate !== today) return false;
+
+  // Use scheduledStart/scheduledEnd if available, else derive from slot
+  let start: Date;
+  let end: Date;
+  if (shift.scheduledStart) {
+    start = new Date(shift.scheduledStart);
+    end = shift.scheduledEnd ? new Date(shift.scheduledEnd) : new Date(shift.scheduledStart);
+  } else {
+    start = new Date(`${today}T${slotStart}:00`);
+    end = new Date(`${today}T${slotEnd}:00`);
+  }
+  return now >= start && now <= end;
+}
+
 const KEETA_SLOTS = [
   { id: "s1", label: "04:00 – 08:00", start: "04:00", end: "08:00" },
   { id: "s2", label: "08:00 – 12:00", start: "08:00", end: "12:00" },
@@ -96,6 +139,26 @@ export default function KeetaShiftsPage() {
     const key = `${dateStr}_${slotId}`;
     if (!shiftMap[key]) shiftMap[key] = [];
     shiftMap[key].push(shift);
+  }
+
+  // Compute multi-area info per driver per day:
+  // key = "driverId_date" -> Set of unique zones
+  const driverDayZones: Record<string, Set<string>> = {};
+  for (const shift of shifts) {
+    const driverId = shift.driverId || shift.driver?.id;
+    const dateStr = shift.date ? shift.date.split("T")[0] : "";
+    if (!driverId || !dateStr) continue;
+    const ddKey = `${driverId}_${dateStr}`;
+    if (!driverDayZones[ddKey]) driverDayZones[ddKey] = new Set();
+    const zone = shift.driver?.zone || shift.zone;
+    if (zone) driverDayZones[ddKey].add(zone);
+  }
+
+  function getDriverDayAreaCount(shift: any): number {
+    const driverId = shift.driverId || shift.driver?.id;
+    const dateStr = shift.date ? shift.date.split("T")[0] : "";
+    if (!driverId || !dateStr) return 0;
+    return driverDayZones[`${driverId}_${dateStr}`]?.size || 0;
   }
 
   // Violation stats
@@ -220,22 +283,51 @@ export default function KeetaShiftsPage() {
                         <span className="text-gray-200 text-xs">·</span>
                       </div>
                     ) : (
-                      cells.map((shift: any) => (
-                        <button
-                          key={shift.id}
-                          onClick={() => setSelected(shift)}
-                          className={cn(
-                            "w-full text-left rounded-lg px-2 py-1.5 text-[11px] transition-all hover:opacity-80 space-y-0.5",
-                            SHIFT_STATUS_STYLES[shift.status] || "bg-gray-50 border border-gray-100 text-gray-600"
-                          )}
-                        >
-                          <div className="flex items-center gap-1 justify-between">
-                            <span className="font-semibold truncate max-w-[70px]">{shift.driver?.name?.split(" ")[0] || "-"}</span>
-                            <ShiftValidity valid={shift.isValid ?? null} />
-                          </div>
-                          <div className="text-[10px] opacity-70 truncate">{shift.driver?.zone || shift.zone || "-"}</div>
-                        </button>
-                      ))
+                      cells.map((shift: any) => {
+                        const zone = shift.driver?.zone || shift.zone || null;
+                        const zc = getZoneColor(zone);
+                        const live = isShiftLive(shift, slot.start, slot.end);
+                        const areaCount = getDriverDayAreaCount(shift);
+                        return (
+                          <button
+                            key={shift.id}
+                            onClick={() => setSelected(shift)}
+                            className={cn(
+                              "w-full text-left rounded-lg px-2 py-1.5 text-[11px] transition-all hover:opacity-80 space-y-0.5",
+                              SHIFT_STATUS_STYLES[shift.status] || "bg-gray-50 border border-gray-100 text-gray-600",
+                              live && "ring-2 ring-green-400 ring-offset-1"
+                            )}
+                          >
+                            <div className="flex items-center gap-1 justify-between">
+                              <span className="font-semibold truncate max-w-[70px]">{shift.driver?.name?.split(" ")[0] || "-"}</span>
+                              <div className="flex items-center gap-1 shrink-0">
+                                {live && (
+                                  <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                                  </span>
+                                )}
+                                <ShiftValidity valid={shift.isValid ?? null} />
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {zone ? (
+                                <span className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium", zc.bg, zc.text)}>
+                                  <span className={cn("w-1.5 h-1.5 rounded-full", zc.dot)} />
+                                  <span className="truncate max-w-[60px]">{zone}</span>
+                                </span>
+                              ) : (
+                                <span className="text-[10px] opacity-70">-</span>
+                              )}
+                              {areaCount >= 2 && (
+                                <span className="text-[9px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded font-semibold shrink-0">
+                                  {areaCount} areas
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })
                     )}
                   </div>
                 );
@@ -262,6 +354,20 @@ export default function KeetaShiftsPage() {
         ))}
       </div>
 
+      {/* Zone color legend */}
+      <div className="flex items-center gap-3 flex-wrap text-xs text-secondary">
+        <span className="font-medium text-foreground">Zones:</span>
+        {ZONES.map((z) => {
+          const zc = getZoneColor(z);
+          return (
+            <span key={z} className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-md", zc.bg, zc.text)}>
+              <span className={cn("w-1.5 h-1.5 rounded-full", zc.dot)} />
+              {z}
+            </span>
+          );
+        })}
+      </div>
+
       {/* Detail Panel */}
       <SlidePanel
         open={!!selected}
@@ -274,7 +380,7 @@ export default function KeetaShiftsPage() {
             <div className="grid grid-cols-2 gap-3">
               {[
                 ["Date", selected.date ? new Date(selected.date).toLocaleDateString() : "-"],
-                ["Zone", selected.driver?.zone || selected.zone || "-"],
+                ["Zone", selected.driver?.zone || selected.zone || "-", selected.driver?.zone || selected.zone],
                 ["Slot", KEETA_SLOTS.find((s) => selected.startTime?.includes(s.start))?.label || "-"],
                 ["Status", selected.status],
                 ["Validity", selected.isValid === true ? "Valid" : selected.isValid === false ? "Invalid" : "-"],
@@ -282,12 +388,23 @@ export default function KeetaShiftsPage() {
                 ["Actual Hours", selected.actualHours ? `${selected.actualHours}h` : "-"],
                 ["Actual Start", selected.actualStart ? new Date(selected.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
                 ["Actual End", selected.actualEnd ? new Date(selected.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
-              ].map(([label, val]) => (
-                <div key={label} className="bg-gray-50 rounded-xl p-3">
-                  <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
-                  <p className="text-sm font-medium mt-0.5">{val}</p>
-                </div>
-              ))}
+              ].map(([label, val, zoneKey]) => {
+                const isZoneField = label === "Zone" && zoneKey;
+                const zoneStyle = isZoneField ? getZoneColor(zoneKey as string) : null;
+                return (
+                  <div key={label as string} className="bg-gray-50 rounded-xl p-3">
+                    <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
+                    {isZoneField && zoneStyle ? (
+                      <span className={cn("inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-md text-sm font-medium", zoneStyle.bg, zoneStyle.text)}>
+                        <span className={cn("w-2 h-2 rounded-full", zoneStyle.dot)} />
+                        {val}
+                      </span>
+                    ) : (
+                      <p className="text-sm font-medium mt-0.5">{val}</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             {selected.notes && (
               <div className="bg-yellow-50 rounded-xl p-3">

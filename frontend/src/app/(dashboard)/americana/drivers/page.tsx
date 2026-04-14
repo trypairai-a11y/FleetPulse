@@ -1,13 +1,18 @@
 "use client";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useApiGet } from "@/hooks/useApi";
 import DataTable from "@/components/shared/DataTable";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
-import AddDriverModal from "@/components/shared/AddDriverModal";
 import { Plus, Users, ShieldCheck, Bike, Car, CheckCircle2, XCircle } from "lucide-react";
+
+const AddDriverModal = dynamic(() => import("@/components/shared/AddDriverModal"), {
+  ssr: false,
+  loading: () => null,
+});
 
 const CHAINS = ["12", "13", "14", "15"];
 const STORES = [

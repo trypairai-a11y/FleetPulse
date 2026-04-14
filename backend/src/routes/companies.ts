@@ -22,6 +22,26 @@ const companySchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+/**
+ * @swagger
+ * /api/companies:
+ *   get:
+ *     tags: [Companies]
+ *     summary: List companies with pagination
+ *     parameters:
+ *       - in: query
+ *         name: platform
+ *         schema: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated company list with driver count
+ */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
@@ -44,6 +64,23 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/companies/{id}:
+ *   get:
+ *     tags: [Companies]
+ *     summary: Get a single company by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Company detail with driver and vehicle counts
+ *       404:
+ *         description: Company not found
+ */
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const company = await prisma.company.findFirst({
@@ -57,6 +94,30 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/companies:
+ *   post:
+ *     tags: [Companies]
+ *     summary: Create a new company
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, platform]
+ *             properties:
+ *               name: { type: string }
+ *               platform: { type: string, enum: [TALABAT, KEETA, DELIVEROO, AMERICANA] }
+ *               contactPerson: { type: string }
+ *               contactPhone: { type: string }
+ *               contactEmail: { type: string, format: email }
+ *               isActive: { type: boolean }
+ *     responses:
+ *       201:
+ *         description: Created company
+ */
 router.post("/", rbac(...MUTATORS), validateBody(companySchema.passthrough()), async (req: Request, res: Response) => {
   try {
     const company = await prisma.company.create({
@@ -68,6 +129,23 @@ router.post("/", rbac(...MUTATORS), validateBody(companySchema.passthrough()), a
   }
 });
 
+/**
+ * @swagger
+ * /api/companies/{id}:
+ *   put:
+ *     tags: [Companies]
+ *     summary: Update a company
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Updated company
+ *       404:
+ *         description: Company not found
+ */
 router.put("/:id", rbac(...MUTATORS), async (req: Request, res: Response) => {
   try {
     const company = await prisma.company.updateMany({
@@ -82,6 +160,21 @@ router.put("/:id", rbac(...MUTATORS), async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/companies/{id}:
+ *   delete:
+ *     tags: [Companies]
+ *     summary: Delete a company
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Deletion confirmation
+ */
 router.delete("/:id", rbac(...DESTRUCTIVE), async (req: Request, res: Response) => {
   try {
     await prisma.company.deleteMany({

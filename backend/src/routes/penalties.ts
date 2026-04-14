@@ -7,7 +7,36 @@ import { getPagination, paginatedResponse } from "../utils/pagination";
 const router = Router();
 router.use(authMiddleware, tenantScope);
 
-// GET / - List penalties with filters, paginated
+/**
+ * @swagger
+ * /api/penalties:
+ *   get:
+ *     tags: [Penalties]
+ *     summary: List penalties with filters and pagination
+ *     parameters:
+ *       - in: query
+ *         name: driverId
+ *         schema: { type: string }
+ *       - in: query
+ *         name: penaltyType
+ *         schema: { type: string, enum: [ONLINE_TRAINING, VIOLATION_RECORD, ACCOUNT_SUSPENSION, WARNING] }
+ *       - in: query
+ *         name: penaltyStatus
+ *         schema: { type: string, enum: [EFFECTIVE, COMPLETED, OVERTURNED] }
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *         description: Search by driver name
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Paginated penalty list with driver info and violation count
+ */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
@@ -40,7 +69,23 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-// GET /:id - Single penalty with linked violations
+/**
+ * @swagger
+ * /api/penalties/{id}:
+ *   get:
+ *     tags: [Penalties]
+ *     summary: Get a single penalty with all linked violations
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Penalty detail with driver and violation history
+ *       404:
+ *         description: Penalty not found
+ */
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const penalty = await prisma.penalty.findFirst({

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useApiGet } from "@/hooks/useApi";
 import { cn } from "@/lib/cn";
 import { cleanDriverName } from "@/lib/formatters";
@@ -671,7 +672,7 @@ export default function TalabatOverviewPage() {
                   <div key={r.name} className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
                       {logo ? (
-                        <img src={logo} alt={r.name} className="w-5 h-5 rounded object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        <Image src={logo} alt={r.name} width={20} height={20} className="w-5 h-5 rounded object-contain" unoptimized />
                       ) : (
                         <div className="w-5 h-5 rounded bg-gray-100 flex items-center justify-center text-[9px] text-gray-400 font-bold">{r.name[0]}</div>
                       )}

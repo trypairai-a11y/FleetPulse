@@ -6,7 +6,23 @@ import { tenantScope } from "../middleware/tenantScope";
 const router = Router();
 router.use(authMiddleware, tenantScope);
 
-// GET /orders/:id/flow - Returns ordered list of events for an order
+/**
+ * @swagger
+ * /api/orders/{id}/flow:
+ *   get:
+ *     tags: [Order Flow]
+ *     summary: Get the step-by-step event timeline for an order
+ *     description: Returns chronologically ordered events with elapsed time between each step (e.g. customer placed order, courier picked up, delivered).
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *         description: Order ID
+ *     responses:
+ *       200:
+ *         description: Order flow with steps array, each containing action, description, timestamp, and elapsed time from previous step
+ */
 router.get("/orders/:id/flow", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
