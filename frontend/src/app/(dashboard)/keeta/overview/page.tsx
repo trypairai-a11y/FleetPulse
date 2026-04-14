@@ -7,6 +7,7 @@ import PlatformOverviewPage, {
   AttendanceBadge,
 } from "@/components/platform/PlatformOverviewPage";
 import { cn } from "@/lib/cn";
+import { cleanDriverName } from "@/lib/formatters";
 import { Users, Package, CheckCircle2, Target, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -26,7 +27,7 @@ const columns: ColumnConfig[] = [
   { key: "rank", label: "#", sortable: false, render: (d) => <span className="text-sm text-secondary font-medium">{d.rank}</span> },
   { key: "driver", label: "Driver", sortable: false, render: (d) => (
     <div>
-      <p className="text-sm font-medium">{(d.name || "").replace(/\s+\d+[A-Za-z]?\s*[-–—]\s*\w+$/i, "").trim() || d.name}</p>
+      <p className="text-sm font-medium">{cleanDriverName(d.name)}</p>
       <p className="text-xs text-secondary">{d.company}</p>
     </div>
   )},
@@ -166,7 +167,7 @@ function KeetaMiddleSlot({ drivers, summary }: { drivers: any[]; summary: any; l
               {sorted.map((d: any) => (
                 <div key={d.id}>
                   <div className="flex justify-between mb-0.5">
-                    <span className="text-xs truncate flex-1">{d.name.replace(/\s+\d+[A-Za-z]?\s*[-–—]\s*\w+$/i, "").trim()}</span>
+                    <span className="text-xs truncate flex-1">{cleanDriverName(d.name)}</span>
                     <span className="text-xs font-semibold ml-2 flex-shrink-0">
                       {Math.floor(d.onlineMinutes / 60)}h {d.onlineMinutes % 60}m
                     </span>

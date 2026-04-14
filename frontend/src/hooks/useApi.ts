@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 
 export function useApiGet<T>(url: string | null) {
@@ -45,4 +46,38 @@ export function useApiGet<T>(url: string | null) {
 export function getErrorProps(error: string | null, refetch: () => void) {
   if (!error) return null;
   return { error, onRetry: refetch };
+}
+
+/** React Query hook — use this for new code. */
+export function useApiQuery<T>(key: string[], url: string | null, options?: { enabled?: boolean; staleTime?: number; refetchInterval?: number }) {
+  return useQuery<T>({
+    queryKey: key,
+    queryFn: async () => {
+      if (!url) throw new Error("No URL");
+      const { data } = await api.get(url);
+      return data;
+    },
+    enabled: !!url && (options?.enabled !== false),
+    staleTime: options?.staleTime,
+    refetchInterval: options?.refetchInterval,
+  });
+}
+
+/** Mutation hook for POST/PUT/DELETE operations. */
+export function useApiMutation<TData = any, TVariables = any>(
+  mutationFn: (variables: TVariables) => Promise<TData>,
+  options?: { onSuccess?: (data: TData) => void; invalidateKeys?: string[][] }
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: (data) => {
+      if (options?.invalidateKeys) {
+        for (const key of options.invalidateKeys) {
+          queryClient.invalidateQueries({ queryKey: key });
+        }
+      }
+      options?.onSuccess?.(data);
+    },
+  });
 }

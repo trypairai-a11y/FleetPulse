@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useApiGet } from "@/hooks/useApi";
 import { cn } from "@/lib/cn";
+import { cleanDriverName } from "@/lib/formatters";
 import {
   ShoppingBag, DollarSign, AlertTriangle, Users, Clock, TrendingUp,
   TrendingDown, Minus, ChevronRight, ShieldAlert, ArrowUpRight,
@@ -754,7 +755,7 @@ export default function TalabatOverviewPage() {
                     <td className="px-5 py-3 text-sm text-secondary font-medium">{driver.rank}</td>
                     <td className="px-5 py-3">
                       <div>
-                        <p className="text-sm font-medium">{(driver.name || "").replace(/\s+\d+[A-Za-z]?\s*[-–—]\s*\w+$/i, "").trim() || driver.name}</p>
+                        <p className="text-sm font-medium">{cleanDriverName(driver.name)}</p>
                         <p className="text-xs text-secondary">{driver.company}</p>
                       </div>
                     </td>

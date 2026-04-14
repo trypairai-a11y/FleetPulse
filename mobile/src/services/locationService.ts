@@ -1,15 +1,52 @@
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { uploadLocations } from "../api/client";
 
 const LOCATION_TASK = "darb-background-location";
+const BUFFER_STORAGE_KEY = "darb_location_buffer";
 
-let locationBuffer: {
+type LocationEntry = {
   latitude: number;
   longitude: number;
   accuracy: number;
   timestamp: string;
-}[] = [];
+};
+
+let locationBuffer: LocationEntry[] = [];
+
+/**
+ * Persist the current in-memory buffer to AsyncStorage.
+ * Called after every buffer mutation so data survives app crashes.
+ */
+async function persistBuffer(): Promise<void> {
+  try {
+    await AsyncStorage.setItem(BUFFER_STORAGE_KEY, JSON.stringify(locationBuffer));
+  } catch {
+    // Storage write failed — buffer remains in memory only
+  }
+}
+
+/**
+ * Restore any previously persisted buffer from disk on startup.
+ * Merges with the current in-memory buffer.
+ */
+async function restoreBuffer(): Promise<void> {
+  try {
+    const stored = await AsyncStorage.getItem(BUFFER_STORAGE_KEY);
+    if (stored) {
+      const parsed: LocationEntry[] = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        locationBuffer = [...parsed, ...locationBuffer];
+      }
+    }
+  } catch {
+    // Restore failed — start with empty buffer
+  }
+}
+
+// Restore persisted buffer when the module loads
+restoreBuffer();
 
 /**
  * Define the background location task. This runs even when the app is
@@ -29,6 +66,8 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
     });
   }
 
+  await persistBuffer();
+
   if (locationBuffer.length >= 10) {
     await flushLocations();
   }
@@ -38,11 +77,15 @@ async function flushLocations() {
   if (locationBuffer.length === 0) return;
   const batch = [...locationBuffer];
   locationBuffer = [];
+  await persistBuffer();
   try {
     await uploadLocations(batch);
+    // Clear persisted buffer on successful upload
+    await AsyncStorage.removeItem(BUFFER_STORAGE_KEY);
   } catch {
     // Re-queue on failure — will be sent next flush
     locationBuffer = [...batch, ...locationBuffer];
+    await persistBuffer();
   }
 }
 

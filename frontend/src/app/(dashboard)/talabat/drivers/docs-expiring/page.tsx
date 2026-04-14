@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useApiGet } from "@/hooks/useApi";
 import DataTable from "@/components/shared/DataTable";
 import { cn } from "@/lib/cn";
+import { cleanDriverName } from "@/lib/formatters";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 
 const DOC_FIELDS = [
@@ -75,8 +76,7 @@ export default function DocsExpiringPage() {
       key: "driverName",
       label: "Driver",
       render: (_: any, r: DriverDoc) => {
-        const clean = r.driverName.replace(/\s+\d+[A-Za-z]?\s*[-–—]\s*\w+$/i, "").trim();
-        return <span className="font-medium text-sm">{clean || r.driverName}</span>;
+        return <span className="font-medium text-sm">{cleanDriverName(r.driverName)}</span>;
       },
     },
     { key: "platformDriverId", label: "Talabat ID" },

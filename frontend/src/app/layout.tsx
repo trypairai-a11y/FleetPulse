@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/components/shared/Toast";
 import { I18nProvider } from "@/i18n/I18nProvider";
+import { QueryProvider } from "@/providers/QueryProvider";
 import { DEFAULT_LOCALE, LOCALES, Locale, isRtl } from "@/i18n/messages";
 
 export const metadata: Metadata = {
@@ -31,13 +32,15 @@ export default function RootLayout({
   return (
     <html lang={locale} dir={dir}>
       <body className="antialiased">
-        <I18nProvider locale={locale}>
-          <AuthProvider>
-            <ToastProvider>
-              {children}
-            </ToastProvider>
-          </AuthProvider>
-        </I18nProvider>
+        <QueryProvider>
+          <I18nProvider locale={locale}>
+            <AuthProvider>
+              <ToastProvider>
+                {children}
+              </ToastProvider>
+            </AuthProvider>
+          </I18nProvider>
+        </QueryProvider>
       </body>
     </html>
   );

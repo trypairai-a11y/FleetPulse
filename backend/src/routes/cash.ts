@@ -79,13 +79,19 @@ router.get("/ledger", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/deposit", async (req: Request, res: Response) => {
+router.post("/deposit", rbac(...MUTATORS), async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
     const { riderId, amount, method, note, platform } = req.body;
 
-    if (!riderId || !amount) {
+    if (!riderId || amount == null) {
       res.status(400).json({ error: "riderId and amount are required" });
+      return;
+    }
+
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0 || parsedAmount > 50000) {
+      res.status(400).json({ error: "Amount must be between 0.001 and 50,000 KD" });
       return;
     }
 
@@ -108,7 +114,7 @@ router.post("/deposit", async (req: Request, res: Response) => {
         driverId: driver.id,
         date: new Date(),
         salesAmount: 0,
-        collectionAmount: parseFloat(amount),
+        collectionAmount: parsedAmount,
         depositMethod: depositMethod as any,
         pendingDues: 0,
         status: "SETTLED",

@@ -4,7 +4,8 @@ import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
 import { validateBody, createLeaveRequestSchema } from "../utils/validate";
-import { isKuwaitWeekend, getDayOfWeekInTz } from "../utils/timezone";
+import { rbac } from "../middleware/rbac";
+import { validatePersonalLeave, createLeaveAttendanceRecords, removeLeaveAttendanceRecords } from "../services/leaveService";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -92,52 +93,13 @@ router.post("/", validateBody(createLeaveRequestSchema), async (req: Request, re
     const tenantId = req.user!.tenantId;
     const { driverId, startDate, endDate, type } = req.body;
 
-    // ── Day-off validation rules ──────────────────────────────────────────────
-    if (type === "PERSONAL") {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      const now = new Date();
-
-      // Rule 1: Must be submitted at least 7 days before the first off day
-      const daysUntilStart = Math.floor((start.getTime() - now.getTime()) / 86400000);
-      if (daysUntilStart < 7) {
-        res.status(400).json({ error: "Day-off requests must be submitted at least 1 week in advance." });
+    if (type === "PERSONAL" && driverId) {
+      const validation = await validatePersonalLeave(tenantId, driverId, startDate, endDate);
+      if (!validation.valid) {
+        res.status(400).json({ error: validation.error });
         return;
-      }
-
-      // Rule 2: Cannot apply for off on weekends (Thu/Fri/Sat in Kuwait timezone)
-      const weekendDayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      const invalidDays: string[] = [];
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        if (isKuwaitWeekend(d)) {
-          invalidDays.push(weekendDayNames[getDayOfWeekInTz(d)]);
-        }
-      }
-      if (invalidDays.length > 0) {
-        res.status(400).json({ error: `Day-off cannot be on weekends (Thu/Fri/Sat). Invalid days: ${invalidDays.join(", ")}.` });
-        return;
-      }
-
-      // Rule 3: Max 2 personal day-offs per calendar month
-      if (driverId) {
-        const monthStart = new Date(start.getFullYear(), start.getMonth(), 1);
-        const monthEnd = new Date(start.getFullYear(), start.getMonth() + 1, 0, 23, 59, 59);
-        const usedLeaves = await prisma.leaveRequest.count({
-          where: {
-            tenantId,
-            driverId,
-            type: "PERSONAL",
-            status: { in: ["PENDING", "APPROVED"] },
-            startDate: { gte: monthStart, lte: monthEnd },
-          },
-        });
-        if (usedLeaves >= 2) {
-          res.status(400).json({ error: "Monthly day-off quota reached (max 2 per month)." });
-          return;
-        }
       }
     }
-    // ─────────────────────────────────────────────────────────────────────────
 
     const record = await prisma.leaveRequest.create({
       data: { ...req.body, tenantId },
@@ -148,7 +110,7 @@ router.post("/", validateBody(createLeaveRequestSchema), async (req: Request, re
   }
 });
 
-router.put("/:id/approve", async (req: Request, res: Response) => {
+router.put("/:id/approve", rbac("ADMIN", "OPS_MANAGER", "SUPERVISOR"), async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
     const leave = await prisma.leaveRequest.findFirst({
@@ -166,38 +128,20 @@ router.put("/:id/approve", async (req: Request, res: Response) => {
       },
     });
 
-    // Auto-create EXCUSED attendance records for the leave dates
-    const start = new Date(leave.startDate);
-    const end = new Date(leave.endDate);
-    const records = [];
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      records.push({
-        tenantId,
-        driverId: leave.driverId,
-        date: new Date(d),
-        status: "EXCUSED" as const,
-        source: "leave_request",
-      });
-    }
-    if (records.length > 0) {
-      await prisma.attendanceRecord.createMany({ data: records });
-    }
-
+    await createLeaveAttendanceRecords(tenantId, leave.driverId, leave.startDate, leave.endDate);
     res.json({ message: "Leave approved" });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }
 });
 
-router.put("/:id/reject", async (req: Request, res: Response) => {
+router.put("/:id/reject", rbac("ADMIN", "OPS_MANAGER", "SUPERVISOR"), async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
-
-    // Fetch the leave before updating so we know the date range and driver
-    const leaveRecord = await prisma.leaveRequest.findFirst({
+    const leave = await prisma.leaveRequest.findFirst({
       where: { id: req.params.id, tenantId },
     });
-    if (!leaveRecord) { res.status(404).json({ error: "Leave request not found" }); return; }
+    if (!leave) { res.status(404).json({ error: "Leave request not found" }); return; }
 
     await prisma.leaveRequest.update({
       where: { id: req.params.id },
@@ -209,22 +153,7 @@ router.put("/:id/reject", async (req: Request, res: Response) => {
       },
     });
 
-    // Delete EXCUSED attendance records that were created when this leave was approved
-    const start = new Date(leaveRecord.startDate);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(leaveRecord.endDate);
-    end.setHours(23, 59, 59, 999);
-
-    await prisma.attendanceRecord.deleteMany({
-      where: {
-        tenantId,
-        driverId: leaveRecord.driverId,
-        status: "EXCUSED",
-        source: "leave_request",
-        date: { gte: start, lte: end },
-      },
-    });
-
+    await removeLeaveAttendanceRecords(tenantId, leave.driverId, leave.startDate, leave.endDate);
     res.json({ message: "Leave rejected" });
   } catch (err: any) {
     res.status(400).json({ error: err.message });

@@ -5,6 +5,7 @@ import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
+import { cleanDriverName } from "@/lib/formatters";
 import {
   Target,
   Users,
@@ -320,7 +321,7 @@ export default function KpisPage() {
                     className="border-b border-gray-50 last:border-0 cursor-pointer hover:bg-gray-50/50 transition-colors"
                   >
                     <td className="px-5 py-3">
-                      <p className="text-sm font-medium">{(driver.name || "").replace(/\s+\d+[A-Za-z]?\s*[-–—]\s*\w+$/i, "").trim() || driver.name}</p>
+                      <p className="text-sm font-medium">{cleanDriverName(driver.name)}</p>
                       <p className="text-[11px] text-secondary">{driver.company?.name || "-"}</p>
                     </td>
                     <td className="px-5 py-3">

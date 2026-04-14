@@ -9,10 +9,40 @@ export const prisma = {
     findFirst: jest.fn(),
     create: jest.fn(),
     findMany: jest.fn(),
+    count: jest.fn(),
   },
   driver: {
     findMany: jest.fn(),
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    count: jest.fn(),
+    create: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
+    deleteMany: jest.fn(),
+  },
+  driverInventory: {
+    createMany: jest.fn(),
+  },
+  company: {
+    findMany: jest.fn(),
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    count: jest.fn(),
+    create: jest.fn(),
+    updateMany: jest.fn(),
+    deleteMany: jest.fn(),
+  },
+  orderLog: {
+    findMany: jest.fn(),
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    count: jest.fn(),
+    create: jest.fn(),
+    updateMany: jest.fn(),
+    deleteMany: jest.fn(),
+    aggregate: jest.fn(),
+    groupBy: jest.fn(),
   },
   shift: {
     findMany: jest.fn(),
@@ -21,12 +51,15 @@ export const prisma = {
   cashRecord: {
     findFirst: jest.fn(),
     findMany: jest.fn(),
+    aggregate: jest.fn(),
   },
   pendingDuesLedger: {
     findMany: jest.fn(),
   },
   talabatSession: {
     findMany: jest.fn(),
+    count: jest.fn(),
+    aggregate: jest.fn(),
   },
   attendanceRecord: {
     findFirst: jest.fn(),
@@ -43,6 +76,7 @@ export const prisma = {
     update: jest.fn(),
     count: jest.fn(),
   },
+  $transaction: jest.fn(),
 };
 
 export const redis = null;

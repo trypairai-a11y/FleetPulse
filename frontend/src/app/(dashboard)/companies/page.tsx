@@ -6,6 +6,7 @@ import DataTable from "@/components/shared/DataTable";
 import FilterBar from "@/components/shared/FilterBar";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
+import { cleanDriverName } from "@/lib/formatters";
 import { Building2, Users, ArrowRightLeft, Check, X } from "lucide-react";
 
 const PLATFORMS = [
@@ -111,8 +112,7 @@ export default function CompaniesPage() {
       label: "Driver Name",
       render: (v: string, r: any) => {
         const raw = r.talabatDisplayName || r.name || "";
-        const cleanName = raw.replace(/\s+\d+[A-Z]?\s*[–—-]\s*\w+$/i, "").trim();
-        return <span className="font-medium text-sm">{cleanName || raw}</span>;
+        return <span className="font-medium text-sm">{cleanDriverName(raw)}</span>;
       },
     },
     {

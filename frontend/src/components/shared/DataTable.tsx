@@ -195,12 +195,12 @@ export default function DataTable({
       )}
 
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-50">
+        <table className="w-full" role="table">
+          <thead role="rowgroup">
+            <tr className="border-b border-gray-50" role="row">
               {selectable && (
-                <th className="w-10 px-3 py-3">
-                  <button onClick={toggleAll} className="text-secondary hover:text-primary transition-colors" aria-label="Select all">
+                <th className="w-10 px-3 py-3" role="columnheader">
+                  <button onClick={toggleAll} className="text-secondary hover:text-primary transition-colors" aria-label={allSelected ? "Deselect all rows" : "Select all rows"}>
                     {allSelected ? <CheckSquare size={16} /> : someSelected ? <MinusSquare size={16} /> : <Square size={16} />}
                   </button>
                 </th>
@@ -212,6 +212,7 @@ export default function DataTable({
                 return (
                   <th
                     key={col.key}
+                    role="columnheader"
                     onClick={() => isSortable && handleSort(col)}
                     title={col.headerTitle}
                     className={cn(
@@ -241,7 +242,7 @@ export default function DataTable({
               })}
             </tr>
           </thead>
-          <tbody>
+          <tbody role="rowgroup">
             {loading ? (
               <tr>
                 <td colSpan={columns.length} className="px-5 py-12 text-center">
@@ -264,6 +265,7 @@ export default function DataTable({
                 return (
                 <tr
                   key={id || i}
+                  role="row"
                   onClick={() => onRowClick?.(row)}
                   className={cn(
                     "border-b border-gray-50 last:border-0 transition-colors",
@@ -271,18 +273,18 @@ export default function DataTable({
                     isSelected && "bg-primary/5"
                   )}
                   tabIndex={onRowClick ? 0 : undefined}
-                  onKeyDown={onRowClick ? (e) => { if (e.key === "Enter" || e.key === " ") onRowClick(row); } : undefined}
-                  role={onRowClick ? "button" : undefined}
+                  onKeyDown={onRowClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onRowClick(row); } } : undefined}
+                  aria-label={onRowClick ? `View details for row ${i + 1}` : undefined}
                 >
                   {selectable && (
-                    <td className="w-10 px-3 py-3">
+                    <td className="w-10 px-3 py-3" role="cell">
                       <button onClick={(e) => toggleRow(id, e)} className="text-secondary hover:text-primary transition-colors" aria-label={isSelected ? "Deselect row" : "Select row"}>
                         {isSelected ? <CheckSquare size={16} className="text-primary" /> : <Square size={16} />}
                       </button>
                     </td>
                   )}
                   {columns.map((col) => (
-                    <td key={col.key} className={cn("px-5 py-3 text-sm whitespace-nowrap", col.className)}>
+                    <td key={col.key} role="cell" className={cn("px-5 py-3 text-sm whitespace-nowrap", col.className)}>
                       {col.render ? col.render(row[col.key], row, i) : row[col.key] ?? "-"}
                     </td>
                   ))}
@@ -296,7 +298,7 @@ export default function DataTable({
 
       {/* Pagination controls */}
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between px-5 py-3 border-t border-gray-50">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-gray-50" role="navigation" aria-label="Table pagination">
           <div className="flex items-center gap-2">
             <span className="text-xs text-secondary">
               {((pagination.page - 1) * pagination.limit) + 1}–

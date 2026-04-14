@@ -5,6 +5,7 @@ import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
+import { cleanDriverName } from "@/lib/formatters";
 import {
   Clock, CheckCircle2, XCircle, AlertTriangle,
   ShieldCheck, Camera, MapPin, CalendarDays, ChevronRight, ChevronUp, ChevronDown,
@@ -13,10 +14,6 @@ import {
 
 type SortKey = "driverName" | "phone" | "batchNumber" | "company" | "zone" | "booking" | "weeklyBookings" | "bookedHours" | "actualHours" | "actualStart" | "actualEnd";
 
-/** Strip batch number and company suffix from driver name, e.g. "AKHIL MATHEW 4 - WAHI" → "AKHIL MATHEW" */
-function cleanDriverName(raw: string) {
-  return raw.replace(/\s+\d+\s*-\s*\w+$/i, "").trim();
-}
 type SortDir = "asc" | "desc";
 
 const TALABAT_ZONES = [

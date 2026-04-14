@@ -6,6 +6,7 @@ import { getPagination, paginatedResponse } from "../utils/pagination";
 import { sendXlsx } from "../utils/xlsxExport";
 import { validateBody, createDriverSchema } from "../utils/validate";
 import { rbac } from "../middleware/rbac";
+import { resolveDriverDateRange, batchLoadDriverStats, resolveTalabatStatus } from "../services/driverService";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -87,46 +88,7 @@ router.get("/", async (req: Request, res: Response) => {
       ];
     }
 
-    // Use query param "date" if provided, otherwise try today then fall back to most recent
-    let targetStart: Date;
-    let targetEnd: Date;
-
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const tomorrowStart = new Date(todayStart);
-    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-
-    if (req.query.date) {
-      targetStart = new Date(req.query.date as string);
-      targetStart.setHours(0, 0, 0, 0);
-      targetEnd = new Date(targetStart);
-      targetEnd.setDate(targetEnd.getDate() + 1);
-    } else {
-      // Check if there's data for today first
-      const todayCount = await prisma.orderLog.count({
-        where: { tenantId, date: { gte: todayStart, lt: tomorrowStart } },
-      });
-      if (todayCount > 0) {
-        targetStart = todayStart;
-        targetEnd = tomorrowStart;
-      } else {
-        // Fall back to the most recent date with data
-        const latest = await prisma.orderLog.findFirst({
-          where: { tenantId },
-          orderBy: { date: "desc" },
-          select: { date: true },
-        });
-        if (latest) {
-          targetStart = new Date(latest.date);
-          targetStart.setHours(0, 0, 0, 0);
-          targetEnd = new Date(targetStart);
-          targetEnd.setDate(targetEnd.getDate() + 1);
-        } else {
-          targetStart = todayStart;
-          targetEnd = tomorrowStart;
-        }
-      }
-    }
+    const dateRange = await resolveDriverDateRange(tenantId, req.query.date as string | undefined);
 
     const [data, total] = await Promise.all([
       prisma.driver.findMany({
@@ -136,97 +98,27 @@ router.get("/", async (req: Request, res: Response) => {
         orderBy: { createdAt: "desc" },
         include: {
           company: { select: { name: true, platform: true } },
-          orderLogs: {
-            where: { date: { gte: targetStart, lt: targetEnd } },
-            select: { orderCount: true, totalAmount: true, cashCollected: true, tips: true },
-          },
-          shifts: {
-            where: { date: { gte: targetStart, lt: targetEnd } },
-            select: { actualHoursMinutes: true },
-          },
-          talabatSessions: {
-            where: { date: { gte: targetStart, lt: targetEnd } },
-            select: { actualHours: true, plannedHours: true, cashCollected: true, deliveries: true, status: true },
-          },
-          cashRecords: {
-            where: { date: { gte: targetStart, lt: targetEnd } },
-            select: { collectionAmount: true },
-          },
         },
       }),
       prisma.driver.count({ where }),
     ]);
 
+    // Batch-load performance stats for all drivers in one pass (4 queries total, not 4*N)
+    const driverIds = data.map((d) => d.id);
+    const statsMap = await batchLoadDriverStats(tenantId, driverIds, dateRange);
+
     const enriched = data.map((d) => {
-      const orderLogOrders = d.orderLogs.reduce((sum, o) => sum + o.orderCount, 0);
-      const sessionOrders = d.talabatSessions.reduce((sum, s) => sum + (s.deliveries || 0), 0);
-      const dailyOrders = orderLogOrders + sessionOrders;
-
-      // Sales: sum of totalAmount from orderLogs, fallback to cashCollected + tips
-      const totalSales = d.orderLogs.reduce(
-        (sum, o) => {
-          if (o.totalAmount) return sum + Number(o.totalAmount);
-          const cash = o.cashCollected ? Number(o.cashCollected) : 0;
-          const tips = o.tips ? Number(o.tips) : 0;
-          return sum + cash + tips;
-        },
-        0
-      );
-
-      // Cash: sum from orderLogs + talabatSessions
-      const orderCash = d.orderLogs.reduce(
-        (sum, o) => sum + (o.cashCollected ? Number(o.cashCollected) : 0),
-        0
-      );
-      const sessionCash = d.talabatSessions.reduce(
-        (sum, s) => sum + Number(s.cashCollected),
-        0
-      );
-      const cashCollected = orderCash + sessionCash;
-
-      // Hours: from shifts (actualHoursMinutes) or talabatSessions (actualHours)
-      const shiftHours = d.shifts.reduce(
-        (sum, s) => sum + (s.actualHoursMinutes ? s.actualHoursMinutes / 60 : 0),
-        0
-      );
-      const sessionHours = d.talabatSessions.reduce(
-        (sum, s) => sum + (s.actualHours ? Number(s.actualHours) : 0),
-        0
-      );
-      const workingHours = shiftHours + sessionHours;
-
-      // UTR: actual orders per working hour (deliveries per hour)
-      const uti = workingHours > 0 ? Math.round((dailyOrders / workingHours) * 100) / 100 : 0;
-
-      // Cash deposited from CashRecord
-      const cashDeposited = d.cashRecords.reduce(
-        (sum, r) => sum + (r.collectionAmount ? Number(r.collectionAmount) : 0),
-        0
-      );
-
-      // Talabat-specific status: RESTRICTED/PERMANENTLY_RESTRICTED take priority,
-      // then ONLINE if active session exists today, otherwise OFFLINE
-      let talabatStatus: string | undefined;
-      if (d.platform === "TALABAT") {
-        if (d.status === "RESTRICTED_PERMANENTLY") talabatStatus = "PERMANENTLY_RESTRICTED";
-        else if (d.status === "RESTRICTED") talabatStatus = "RESTRICTED";
-        else if (d.talabatSessions.some((s: any) => s.status === "ACTIVE")) talabatStatus = "ONLINE";
-        else talabatStatus = "OFFLINE";
-      }
-
+      const stats = statsMap.get(d.id);
+      const talabatStatus = resolveTalabatStatus(d.status, d.platform, stats?.talabatStatus);
       return {
         ...d,
-        dailyOrders,
-        totalSales: totalSales || null,
-        cashCollected: cashCollected || null,
-        cashDeposited: cashDeposited || null,
-        uti,
-        workingHours: workingHours || null,
+        dailyOrders: stats?.dailyOrders ?? 0,
+        totalSales: stats?.totalSales ?? null,
+        cashCollected: stats?.cashCollected ?? null,
+        cashDeposited: stats?.cashDeposited ?? null,
+        uti: stats?.uti ?? 0,
+        workingHours: stats?.workingHours ?? null,
         talabatStatus,
-        orderLogs: undefined,
-        shifts: undefined,
-        talabatSessions: undefined,
-        cashRecords: undefined,
       };
     });
 

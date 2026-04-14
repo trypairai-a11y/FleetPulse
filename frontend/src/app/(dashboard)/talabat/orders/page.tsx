@@ -5,6 +5,7 @@ import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
+import { cleanDriverName } from "@/lib/formatters";
 import api from "@/lib/api";
 import {
   Package, UploadCloud, Sparkles, Banknote,
@@ -17,11 +18,6 @@ import {
 type PageTab = "orders" | "performance";
 type SortField = "date" | "driver" | "deliveries" | "cash" | "zone";
 type SortDir = "asc" | "desc";
-
-/** Strip batch number and company suffix from driver name, e.g. "MUKESH AMBANI 1 - WAHI" → "MUKESH AMBANI" */
-function cleanDriverName(raw: string) {
-  return raw.replace(/\s+\d+[A-Z]?\s*(?:\u2013|\u2014|-)\s*\w+$/i, "").trim();
-}
 
 const TALABAT_ZONES = [
   "Ardiya", "Hawally", "Mahboula", "Khairan", "Jahra", "Mutla", "Sabha Al Saleem",

@@ -3,6 +3,7 @@ import { useState, useMemo, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useApiGet } from "@/hooks/useApi";
 import { cn } from "@/lib/cn";
+import { cleanDriverName } from "@/lib/formatters";
 import StatCard from "@/components/shared/StatCard";
 import {
   AlertTriangle, Users, TrendingUp,
@@ -89,7 +90,7 @@ export function AttendanceBadge({ status }: { status: string | null }) {
 }
 
 function driverName(name: string) {
-  return (name || "").replace(/\s+\d+[A-Za-z]?\s*[-–—]\s*\w+$/i, "").trim() || name;
+  return cleanDriverName(name);
 }
 
 // ─── Default column config ──────────────────────────────────────────────────

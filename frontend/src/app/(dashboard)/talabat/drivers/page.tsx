@@ -7,6 +7,7 @@ import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
+import { cleanDriverName } from "@/lib/formatters";
 import AddDriverModal from "@/components/shared/AddDriverModal";
 import { Plus, Users, ShieldCheck, AlertTriangle, FileText, CheckCircle2, XCircle, TrendingUp, Package } from "lucide-react";
 
@@ -58,10 +59,9 @@ export default function TalabatDriversPage() {
       label: "Name",
       render: (_: any, r: any) => {
         const raw = r.talabatDisplayName || r.name || "";
-        const cleanName = raw.replace(/\s+\d+[A-Z]?\s*[-\u2013\u2014]+\s*\w+$/i, "").trim();
         return (
           <span className="font-medium font-mono text-sm">
-            {cleanName || raw}
+            {cleanDriverName(raw)}
           </span>
         );
       },
@@ -220,7 +220,7 @@ export default function TalabatDriversPage() {
       <SlidePanel
         open={!!selected}
         onClose={() => setSelected(null)}
-        title={(selected?.talabatDisplayName || selected?.name || "").replace(/\s+\d+[A-Z]?\s*[-\u2013\u2014]+\s*\w+$/i, "").trim()}
+        title={cleanDriverName(selected?.talabatDisplayName || selected?.name || "")}
         subtitle={`Talabat / ${selected?.company?.name || "-"}`}
       >
         {selected && (

@@ -3,9 +3,24 @@ import { prisma } from "../config";
 import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { getPagination, paginatedResponse } from "../utils/pagination";
+import { rbac } from "../middleware/rbac";
+import { validateBody } from "../utils/validate";
+import { z } from "zod";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
+
+const MUTATORS = ["ADMIN", "OPS_MANAGER"];
+const DESTRUCTIVE = ["ADMIN"];
+
+const companySchema = z.object({
+  name: z.string().min(1, "Company name is required").max(200),
+  platform: z.enum(["TALABAT", "KEETA", "DELIVEROO", "AMERICANA"]),
+  contactPerson: z.string().max(200).optional(),
+  contactPhone: z.string().max(20).optional(),
+  contactEmail: z.string().email().max(200).optional(),
+  isActive: z.boolean().optional(),
+});
 
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -42,7 +57,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", rbac(...MUTATORS), validateBody(companySchema.passthrough()), async (req: Request, res: Response) => {
   try {
     const company = await prisma.company.create({
       data: { ...req.body, tenantId: req.user!.tenantId },
@@ -53,7 +68,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-router.put("/:id", async (req: Request, res: Response) => {
+router.put("/:id", rbac(...MUTATORS), async (req: Request, res: Response) => {
   try {
     const company = await prisma.company.updateMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },
@@ -67,7 +82,7 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/:id", rbac(...DESTRUCTIVE), async (req: Request, res: Response) => {
   try {
     await prisma.company.deleteMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },

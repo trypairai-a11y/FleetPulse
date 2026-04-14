@@ -166,6 +166,9 @@ function DriverSearchFilter({
         onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
         onFocus={() => setOpen(true)}
         placeholder={filter.placeholder || "Search driver…"}
+        aria-label={`Search by ${filter.label}`}
+        aria-autocomplete="list"
+        aria-expanded={open && suggestions.length > 0}
         className="pl-9 pr-7 py-2 rounded-lg border border-gray-200 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-w-[180px] placeholder:text-gray-400"
       />
       {query && (
@@ -198,7 +201,7 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
   });
 
   return (
-    <div className="flex gap-3 flex-wrap items-center">
+    <div className="flex gap-3 flex-wrap items-center" role="search" aria-label="Filter controls">
       {filters.map((filter) => {
         if (filter.type === "search") {
           return (
@@ -209,6 +212,7 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
                 value={values[filter.key] || ""}
                 onChange={(e) => onChange(filter.key, e.target.value)}
                 placeholder={filter.placeholder || `Search...`}
+                aria-label={`Search by ${filter.label}`}
                 className="pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-w-[220px] placeholder:text-gray-400"
               />
             </div>
@@ -235,6 +239,7 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
               type="date"
               value={values[filter.key] || ""}
               onChange={(e) => onChange(filter.key, e.target.value)}
+              aria-label={`Filter by ${filter.label}`}
               className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           );
@@ -247,6 +252,7 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
               placeholder={filter.label || "HH:MM"}
               value={values[filter.key] || ""}
               onChange={(e) => onChange(filter.key, e.target.value)}
+              aria-label={`Filter by ${filter.label}`}
               className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 w-[120px] placeholder:text-gray-400 font-mono"
             />
           );
@@ -276,6 +282,7 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
             <select
               value={values[filter.key] || ""}
               onChange={(e) => onChange(filter.key, e.target.value)}
+              aria-label={`Filter by ${filter.label}`}
               className="appearance-none pl-3 pr-8 py-2 rounded-lg border border-gray-200 bg-white text-sm text-primary hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
             >
               <option value="">{filter.label}</option>
