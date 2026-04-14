@@ -1590,6 +1590,201 @@ async function main() {
   }
   console.log(`Created ${locCount} location logs`);
 
+  // ─── 29. Violations, Penalties & Appeals ──────────────────────────────────
+  const violationTypes = [
+    "LATE_PICKUP", "ORDER_REJECTION_TIMEOUT", "DROP_OFF_IN_ADVANCE",
+    "ORDER_SLIGHTLY_LATE", "ORDER_VERY_LATE", "INVALID_DELIVERY_PHOTO", "GPS_NOT_UPLOADING",
+  ] as const;
+  const violationStatuses = ["ESTABLISHED", "UNDER_REVIEW", "OVERTURNED", "EXPIRED"] as const;
+  const appealStatuses = ["NOT_RAISED", "PENDING", "APPROVED", "REJECTED"] as const;
+  const penaltyTypes = ["ONLINE_TRAINING", "VIOLATION_RECORD", "ACCOUNT_SUSPENSION", "WARNING"];
+  const penaltyStatuses = ["EFFECTIVE", "COMPLETED", "OVERTURNED"];
+  const appealChannels = ["APP", "PHONE", "EMAIL"];
+  const appealReasons = [
+    "GPS signal was weak in the area",
+    "Restaurant delayed the order preparation",
+    "Traffic congestion on main road",
+    "Customer changed delivery location",
+    "App glitched and showed wrong status",
+    "Was on break when the order came",
+    "Building entrance was hard to find",
+    "Customer was not available at delivery point",
+  ];
+
+  const violationDrivers = allDrivers.slice(0, 40);
+  let vCount = 0, pCount = 0, aCount = 0;
+
+  for (let i = 0; i < 60; i++) {
+    const driver = pick(violationDrivers);
+    const daysAgo = rand(0, 25);
+    const vTime = new Date(Date.now() - daysAgo * 86400000 - rand(0, 43200000));
+    const vType = pick([...violationTypes]);
+    const vStatus = i < 35 ? "ESTABLISHED" : pick([...violationStatuses]);
+    const aStatus = vStatus === "OVERTURNED" ? "APPROVED" : (i % 5 === 0 ? pick([...appealStatuses]) : "NOT_RAISED");
+
+    const violation = await prisma.violation.create({
+      data: {
+        tenantId: tenant.id, driverId: driver.id, platform: driver.platform as any,
+        violationType: vType as any, violationStatus: vStatus as any, appealStatus: aStatus as any,
+        violationTime: vTime,
+        details: vType === "DROP_OFF_IN_ADVANCE"
+          ? `Distance between drop-off and customer: ${rand(500, 5000)} meters`
+          : vType === "ORDER_SLIGHTLY_LATE"
+          ? `Delivery exceeded ETA by ${rand(5, 15)} minutes`
+          : vType === "GPS_NOT_UPLOADING"
+          ? `GPS location not updated for ${rand(15, 60)} minutes`
+          : vType === "LATE_PICKUP"
+          ? `Courier arrived ${rand(15, 45)} minutes after accepting order`
+          : `Violation detected at ${vTime.toLocaleTimeString()}`,
+        metadata: { detectedBy: "system", threshold: vType === "DROP_OFF_IN_ADVANCE" ? 500 : 15 },
+        taskId: `KT-${rand(100000, 999999)}`,
+      },
+    });
+    vCount++;
+
+    // Create penalty for ~60% of violations
+    if (i % 5 !== 3 && i % 5 !== 4) {
+      await prisma.penalty.create({
+        data: {
+          tenantId: tenant.id, driverId: driver.id,
+          penaltyType: pick(penaltyTypes),
+          penaltyStatus: vStatus === "OVERTURNED" ? "OVERTURNED" : pick(penaltyStatuses),
+          penaltyValue: pick(["TRN-" + rand(1000, 9999), "3 days", "1 week", "Warning issued"]),
+          violations: { connect: [{ id: violation.id }] },
+        },
+      });
+      pCount++;
+    }
+
+    // Create appeal for violations with non-NOT_RAISED appeal status
+    if (aStatus !== "NOT_RAISED") {
+      await prisma.appeal.create({
+        data: {
+          tenantId: tenant.id, violationId: violation.id,
+          appealStatus: aStatus as any,
+          channel: pick(appealChannels),
+          reason: pick(appealReasons),
+          appealedAt: new Date(vTime.getTime() + rand(3600000, 86400000)),
+          reviewedAt: aStatus !== "PENDING" ? new Date(vTime.getTime() + rand(86400000, 172800000)) : null,
+          reviewedBy: aStatus !== "PENDING" ? users[0].id : null,
+          rejectionNote: aStatus === "REJECTED" ? "Evidence does not support the appeal" : null,
+        },
+      });
+      aCount++;
+    }
+  }
+  console.log(`Created ${vCount} violations, ${pCount} penalties, ${aCount} appeals`);
+
+  // ─── 30. Order Events (timeline data) ────────────────────────────────────
+  const recentOrders = await prisma.orderLog.findMany({
+    where: { tenantId: tenant.id },
+    take: 20,
+    orderBy: { date: "desc" },
+    include: { driver: { select: { name: true, platformDriverId: true } } },
+  });
+
+  const MERCHANTS = ["Al Baik", "McDonald's", "Burger King", "Pizza Hut", "KFC", "Hardee's", "Subway", "Popeyes"];
+  const CUSTOMERS = ["Fatima Al-Sabah", "Ahmad Al-Mutairi", "Sara Al-Enezi", "Khalid Al-Rashidi", "Noura Al-Shammari"];
+  let evCount = 0;
+
+  for (const order of recentOrders) {
+    const baseTime = new Date(order.date);
+    baseTime.setHours(rand(10, 22), rand(0, 59));
+    const merchant = pick(MERCHANTS);
+    const customer = pick(CUSTOMERS);
+    const driverName = order.driver?.name || "Driver";
+
+    const events = [
+      { action: "customer_placed_order", description: `${customer} placed order`, operator: customer, offset: 0 },
+      { action: "customer_paid", description: `Payment of ${decimal(1, 15)} KD received`, operator: customer, offset: rand(5, 30) },
+      { action: "merchant_accepted", description: `${merchant} accepted the order`, operator: merchant, offset: rand(30, 120) },
+      { action: "merchant_placed", description: `${merchant} started preparing`, operator: merchant, offset: rand(60, 180) },
+      { action: "courier_accepted", description: `Courier ${driverName} accepted`, operator: driverName, offset: rand(120, 300) },
+      { action: "courier_arrived_merchant", description: `Courier arrived at ${merchant}`, operator: driverName, offset: rand(300, 600) },
+      { action: "courier_picked_up", description: "Order picked up from merchant", operator: driverName, offset: rand(420, 720) },
+      { action: "courier_arrived_customer", description: `Courier arrived at customer location`, operator: driverName, offset: rand(720, 1200) },
+      { action: "order_delivered", description: "Order delivered successfully", operator: driverName, offset: rand(780, 1260) },
+    ];
+
+    for (const ev of events) {
+      await prisma.orderEvent.create({
+        data: {
+          tenantId: tenant.id,
+          orderId: order.id,
+          action: ev.action,
+          description: ev.description,
+          operator: ev.operator,
+          operatorId: order.driverId,
+          timestamp: new Date(baseTime.getTime() + ev.offset * 1000),
+          metadata: ev.action === "customer_paid" ? { amount: decimal(1, 15), currency: "KWD" } : {},
+        },
+      });
+      evCount++;
+    }
+  }
+  console.log(`Created ${evCount} order events`);
+
+  // ─── 31. Courier Online Sessions (for monitor page) ──────────────────────
+  const monitorDrivers = allDrivers.filter(d => d.platform === "KEETA").slice(0, 20);
+  const AREAS = ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Fahaheel"];
+  let sessionCount = 0;
+
+  for (const driver of monitorDrivers) {
+    const coord = pick(KUWAIT_COORDS);
+    const isOnline = sessionCount < 15; // first 15 are online
+    const hoursAgo = isOnline ? rand(1, 6) : rand(6, 24);
+
+    await prisma.courierOnlineSession.create({
+      data: {
+        tenantId: tenant.id, driverId: driver.id,
+        startTime: new Date(Date.now() - hoursAgo * 3600000),
+        endTime: isOnline ? null : new Date(Date.now() - rand(0, 3) * 3600000),
+        isOnline,
+        lastGpsAt: isOnline ? new Date(Date.now() - rand(0, 600) * 1000) : new Date(Date.now() - rand(3600, 86400) * 1000),
+        lastGpsLat: coord.lat + decimal(-0.02, 0.02),
+        lastGpsLng: coord.lng + decimal(-0.02, 0.02),
+        area: pick(AREAS),
+      },
+    });
+    sessionCount++;
+  }
+  console.log(`Created ${sessionCount} courier online sessions`);
+
+  // ─── 32. Bilingual Notifications (all categories) ────────────────────────
+  const notifCategories = ["IMPORTANT", "OPS_TODO", "BENEFITS", "OTHER"];
+  const notifData = [
+    { title: "GPS Alert: Driver not uploading", titleAr: "تنبيه GPS: السائق لا يحمل الموقع", body: "Driver Anil Kumar has not uploaded GPS for 20 minutes", bodyAr: "السائق أنيل كومار لم يحمل الموقع لمدة 20 دقيقة", category: "IMPORTANT", severity: "HIGH" },
+    { title: "New violation detected", titleAr: "تم اكتشاف مخالفة جديدة", body: "Late pickup violation for driver Rajesh Sharma", bodyAr: "مخالفة تأخر استلام للسائق راجيش شارما", category: "IMPORTANT", severity: "MEDIUM" },
+    { title: "Cash threshold exceeded", titleAr: "تجاوز حد النقد", body: "Driver Mohammed Ali has KD 45.500 pending cash", bodyAr: "السائق محمد علي لديه 45.500 د.ك نقد معلق", category: "IMPORTANT", severity: "CRITICAL" },
+    { title: "Shift coverage needed", titleAr: "مطلوب تغطية وردية", body: "Hawally area needs 3 more drivers for evening shift", bodyAr: "منطقة حولي تحتاج 3 سائقين إضافيين للوردية المسائية", category: "OPS_TODO", severity: "MEDIUM" },
+    { title: "Document expiring soon", titleAr: "وثيقة ستنتهي قريباً", body: "5 drivers have health certificates expiring this week", bodyAr: "5 سائقين لديهم شهادات صحية تنتهي هذا الأسبوع", category: "OPS_TODO", severity: "HIGH" },
+    { title: "Vehicle inspection due", titleAr: "فحص مركبة مستحق", body: "12 vehicles due for monthly inspection", bodyAr: "12 مركبة مستحقة للفحص الشهري", category: "OPS_TODO", severity: "LOW" },
+    { title: "Attendance report ready", titleAr: "تقرير الحضور جاهز", body: "Weekly attendance report for all platforms is ready", bodyAr: "تقرير الحضور الأسبوعي لجميع المنصات جاهز", category: "OPS_TODO", severity: "LOW" },
+    { title: "Ramadan bonus campaign", titleAr: "حملة مكافأة رمضان", body: "Extra KD 0.500 per delivery during iftar hours (6-8 PM)", bodyAr: "0.500 د.ك إضافية لكل توصيلة خلال ساعات الإفطار (6-8 مساءً)", category: "BENEFITS", severity: "LOW" },
+    { title: "Driver referral program", titleAr: "برنامج إحالة السائقين", body: "Refer a driver and earn KD 25 bonus", bodyAr: "أحل سائق واحصل على مكافأة 25 د.ك", category: "BENEFITS", severity: "LOW" },
+    { title: "Safety training completion", titleAr: "إكمال تدريب السلامة", body: "15 drivers completed road safety training this week", bodyAr: "15 سائق أكملوا تدريب السلامة المرورية هذا الأسبوع", category: "OTHER", severity: "LOW" },
+    { title: "System maintenance notice", titleAr: "إشعار صيانة النظام", body: "Scheduled maintenance on Saturday 2 AM - 4 AM", bodyAr: "صيانة مجدولة يوم السبت من 2 صباحاً - 4 صباحاً", category: "OTHER", severity: "LOW" },
+    { title: "New Keeta zone added", titleAr: "تمت إضافة منطقة كيتا جديدة", body: "Mangaf zone is now active for Keeta deliveries", bodyAr: "منطقة المنقف نشطة الآن لتوصيلات كيتا", category: "OTHER", severity: "LOW" },
+  ];
+
+  for (const userTarget of users) {
+    for (let i = 0; i < notifData.length; i++) {
+      const n = notifData[i];
+      await prisma.notification.create({
+        data: {
+          tenantId: tenant.id, userId: userTarget.id,
+          title: n.title, message: n.body,
+          titleAr: n.titleAr, bodyAr: n.bodyAr,
+          category: n.category, severity: n.severity,
+          type: "system",
+          read: i > 4, // first 5 are unread
+          createdAt: new Date(Date.now() - i * rand(1800000, 7200000)),
+        },
+      });
+    }
+  }
+  console.log(`Created ${notifData.length * (1 + users.length)} bilingual notifications`);
+
   console.log("\nSeed complete!");
   console.log("Login: osama@fleet.kw / demo123");
   console.log(`Total: ${allDrivers.length} drivers, 30 days of data`);
