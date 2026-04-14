@@ -5,8 +5,8 @@ services:
       POSTGRES_USER: darb
       POSTGRES_PASSWORD: darb_secret
       POSTGRES_DB: darb
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -17,8 +17,8 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -39,15 +39,12 @@ services:
       JWT_SECRET: darb-jwt-secret-change-in-production
       JWT_REFRESH_SECRET: darb-jwt-refresh-secret-change-in-production
       PORT: "3001"
-      NODE_ENV: development
+      NODE_ENV: production
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./backend/src:/app/src
-      - ./backend/prisma:/app/prisma
     restart: unless-stopped
 
   frontend:

@@ -1,9 +1,11 @@
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
+
+RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json ./
+RUN npm install --legacy-peer-deps --ignore-scripts
 
 COPY prisma ./prisma
 RUN npx prisma generate
@@ -12,15 +14,17 @@ COPY . .
 RUN npm run build
 
 # ─── Production ──────────────────────────────────────────────
-FROM node:20-alpine
+FROM node:22-alpine
+
+RUN apk add --no-cache openssl postgresql-client
 
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+COPY package.json ./
+RUN npm install --omit=dev --legacy-peer-deps --ignore-scripts
 
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/src/generated ./dist/generated
 COPY --from=builder /app/dist ./dist
 
 EXPOSE 3001
@@ -28,4 +32,4 @@ EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/health || exit 1
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
+CMD ["sh", "-c", "until pg_isready -h postgres -p 5432 -U darb; do echo 'Waiting for postgres...'; sleep 2; done && npx prisma migrate deploy && node dist/server.js"]

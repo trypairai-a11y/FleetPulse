@@ -1,9 +1,9 @@
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json ./
+RUN npm install --legacy-peer-deps
 
 COPY . .
 
@@ -11,23 +11,20 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # ─── Production ──────────────────────────────────────────────
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
-
-COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
-
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.mjs ./
-
-EXPOSE 3000
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+EXPOSE 3000
+
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
