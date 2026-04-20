@@ -281,6 +281,43 @@ router.put("/:id", async (req: Request, res: Response) => {
 });
 
 /**
+ * PATCH /api/violations/:id/root-cause
+ * Body: { rootCause: "NO_RIDER_IN_ZONE" | "ALL_RIDERS_BUSY" | "ALL_REJECTED" | "SYSTEM_ERROR" | "UNKNOWN", riderIds?: string[] }
+ * Ops tool for tagging unassigned-order violations. Updates metadata.rootCause
+ * and metadata.riderIds (when ALL_REJECTED).
+ */
+router.patch("/:id/root-cause", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { rootCause, riderIds } = req.body ?? {};
+
+    const ALLOWED = ["NO_RIDER_IN_ZONE", "ALL_RIDERS_BUSY", "ALL_REJECTED", "SYSTEM_ERROR", "UNKNOWN"];
+    if (!ALLOWED.includes(rootCause)) {
+      res.status(400).json({ error: `rootCause must be one of ${ALLOWED.join(", ")}` });
+      return;
+    }
+
+    const violation = await prisma.violation.findFirst({
+      where: { id: req.params.id, tenantId },
+    });
+    if (!violation) { res.status(404).json({ error: "Violation not found" }); return; }
+
+    const meta = (violation.metadata as any) ?? {};
+    const nextMeta = { ...meta, rootCause, rootCauseSetAt: new Date().toISOString(), rootCauseSetBy: req.user!.userId };
+    if (rootCause === "ALL_REJECTED" && Array.isArray(riderIds)) nextMeta.riderIds = riderIds;
+
+    const updated = await prisma.violation.update({
+      where: { id: violation.id },
+      data: { metadata: nextMeta },
+    });
+
+    res.json(updated);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+/**
  * @swagger
  * /api/violations/{id}/appeal:
  *   post:
