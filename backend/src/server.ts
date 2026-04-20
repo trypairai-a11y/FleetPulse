@@ -61,6 +61,7 @@ import v2Routes from "./routes/v2";
 import { startAnomalyScheduler } from "./services/anomalyScheduler";
 import { startGpsMonitorScheduler } from "./services/gpsMonitorService";
 import { startKeetaPortalScraperScheduler } from "./queues/keetaPortalScraperWorker";
+import { startPerformanceTierScheduler } from "./queues/performanceTierWorker";
 import { startInsightsScheduler } from "./services/insightsScheduler";
 import { startShiftComplianceScheduler } from "./queues/shiftComplianceWorker";
 import "./services/agents"; // registers agents as a side-effect
@@ -192,6 +193,7 @@ if (process.env.VERCEL !== "1") {
     startAnomalyScheduler();
     startGpsMonitorScheduler();
     startKeetaPortalScraperScheduler();
+    startPerformanceTierScheduler();
     startInsightsScheduler();
     startShiftComplianceScheduler();
     // v2 agent runtime — no-op when ANTHROPIC_API_KEY is unset

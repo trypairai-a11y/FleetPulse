@@ -405,6 +405,66 @@ export async function detectInvalidDeliveryPhoto(tenantId: string, batchSize = 2
 }
 
 /**
+ * Detect Deliveroo unassigned orders — fired when a DeliverooDailyMetrics row
+ * is written with unassignedCount > 0. Creates exactly `unassignedCount`
+ * platform-level Violations (driverId = null) tagged with zone + shiftDate.
+ *
+ * Root-cause is left as "UNKNOWN" by default; Ops set it inline in the
+ * violations page. Dedup: if the metric already produced violations, we skip.
+ */
+export async function detectDeliverooUnassignedOrders(params: {
+  tenantId: string;
+  metricId: string;
+}): Promise<number> {
+  const { tenantId, metricId } = params;
+
+  const metric = await prisma.deliverooDailyMetrics.findFirst({
+    where: { id: metricId, tenantId },
+    include: { driver: { select: { id: true, zone: true, name: true } } },
+  });
+  if (!metric) return 0;
+  const unassigned = metric.unassignedCount;
+  if (unassigned <= 0) return 0;
+
+  // Dedup: count violations already linked to this metric via metadata.sourceMetricId
+  const existing = await prisma.violation.count({
+    where: {
+      tenantId,
+      violationType: ViolationType.DELIVEROO_UNASSIGNED_ORDER,
+      metadata: { path: ["sourceMetricId"], equals: metricId } as any,
+    },
+  });
+  if (existing >= unassigned) return 0;
+
+  const toCreate = unassigned - existing;
+  const zone = metric.driver?.zone ?? "Unassigned";
+
+  let created = 0;
+  for (let i = 0; i < toCreate; i++) {
+    const v = await createViolationWithAlert({
+      tenantId,
+      driverId: null,
+      platform: Platform.DELIVEROO,
+      violationType: ViolationType.DELIVEROO_UNASSIGNED_ORDER,
+      violationTime: metric.shiftDate,
+      details: `Deliveroo offered an order that no rider in ${zone} accepted on ${metric.shiftDate
+        .toISOString()
+        .slice(0, 10)}.`,
+      metadata: {
+        zone,
+        shiftDate: metric.shiftDate.toISOString().slice(0, 10),
+        sourceMetricId: metricId,
+        sourceDriverId: metric.driverId,
+        rootCause: "UNKNOWN",
+      },
+      skipDedup: true,
+    });
+    if (v) created++;
+  }
+  return created;
+}
+
+/**
  * Orchestrator: run all batch violation checks for a tenant.
  */
 export async function runAllViolationChecks(tenantId: string): Promise<number> {
