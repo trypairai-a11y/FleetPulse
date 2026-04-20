@@ -14,13 +14,13 @@ import {
   ClipboardList, DollarSign, Briefcase,
   ShieldAlert, BarChart3, Target, Gauge, Building2, Lightbulb,
   Activity, AlertTriangle, Ban, Map as MapIcon, Calendar, Trophy, Wallet, PieChart,
-  Smartphone, Truck,
 } from "lucide-react";
 
 // Platform names stay as brand strings; sub-page labels translate via i18n keys.
 // R11 · Simplified per PRD:
 //   - Talabat drops Phones, Vehicles, Available-shifts, Sessions (now under Driver 360 / Shifts).
 //   - Keeta drops Phones, Vehicles, Penalties, Copilot, Courier-details, Shift-monitor, Available-shifts.
+//   - Deliveroo drops Phones, Vehicles (now under Driver 360 / Assets) and the Schedule redirector page (folded into Attendance).
 const PLATFORMS = [
   {
     name: "Talabat",
@@ -66,13 +66,11 @@ const PLATFORMS = [
     subPages: [
       { i18n: "nav.overview", path: "/deliveroo/overview", icon: Gauge },
       { i18n: "nav.drivers", path: "/deliveroo/drivers", icon: Users },
-      { i18n: "nav.schedule", path: "/deliveroo/schedule", icon: Calendar },
+      { i18n: "nav.attendanceShifts", path: "/deliveroo/attendance", icon: Calendar },
       { i18n: "nav.orders", path: "/deliveroo/orders", icon: Briefcase },
       { i18n: "nav.cash", path: "/deliveroo/cash", icon: Wallet },
       { i18n: "nav.violations", path: "/deliveroo/violations", icon: ShieldAlert },
       { i18n: "nav.ingestReview", path: "/deliveroo/ingest-review", icon: ClipboardList },
-      { i18n: "nav.phones", path: "/deliveroo/phones", icon: Smartphone },
-      { i18n: "nav.vehicles", path: "/deliveroo/vehicles", icon: Truck },
       { i18n: "nav.settings", path: "/deliveroo/settings", icon: Settings },
     ],
   },
@@ -84,9 +82,8 @@ const PLATFORMS = [
     subPages: [
       { i18n: "nav.overview", path: "/americana/overview", icon: Gauge },
       { i18n: "nav.drivers", path: "/americana/drivers", icon: Users },
-      { i18n: "nav.shifts", path: "/americana/shifts", icon: ClipboardList },
       { i18n: "nav.orders", path: "/americana/orders", icon: Briefcase },
-      { i18n: "nav.performance", path: "/americana/performance", icon: BarChart3 },
+      { i18n: "nav.violations", path: "/americana/violations", icon: ShieldAlert },
       { i18n: "nav.settings", path: "/americana/settings", icon: Settings },
     ],
   },
