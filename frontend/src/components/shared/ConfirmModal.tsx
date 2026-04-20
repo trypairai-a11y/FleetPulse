@@ -28,14 +28,10 @@ export default function ConfirmModal({
 }: ConfirmModalProps) {
   const confirmRef = useRef<HTMLButtonElement>(null);
 
-  // Focus trap: focus confirm button when modal opens
   useEffect(() => {
-    if (open) {
-      setTimeout(() => confirmRef.current?.focus(), 50);
-    }
+    if (open) setTimeout(() => confirmRef.current?.focus(), 50);
   }, [open]);
 
-  // Close on Escape key
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -49,14 +45,14 @@ export default function ConfirmModal({
 
   const iconColors = {
     danger: "bg-red-100 text-red-600",
-    warning: "bg-yellow-100 text-yellow-600",
-    default: "bg-blue-100 text-blue-600",
+    warning: "bg-amber-100 text-amber-700",
+    default: "bg-primary/10 text-primary",
   };
 
   const confirmColors = {
     danger: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
-    warning: "bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-400",
-    default: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
+    warning: "bg-amber-500 hover:bg-amber-600 focus:ring-amber-400",
+    default: "bg-primary hover:bg-primary-hover focus:ring-primary",
   };
 
   return (
@@ -67,43 +63,41 @@ export default function ConfirmModal({
       aria-labelledby="confirm-modal-title"
       aria-describedby="confirm-modal-message"
     >
-      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-forest-900/40 backdrop-blur-sm"
         onClick={onCancel}
         aria-hidden="true"
       />
 
-      {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in slide-in-from-bottom-4 duration-200">
+      <div className="relative bg-card rounded-2xl border border-sand-200 shadow-float w-full max-w-md p-6 animate-in fade-in slide-in-from-bottom-4 duration-250">
         <button
           onClick={onCancel}
-          className="absolute top-4 right-4 p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+          className="absolute top-4 right-4 p-1.5 rounded-pill text-sand-500 hover:text-sand-900 hover:bg-sand-100 transition-colors duration-250 ease-sierra-out"
           aria-label="Close dialog"
         >
           <X size={16} />
         </button>
 
         <div className="flex items-start gap-4">
-          <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shrink-0", iconColors[variant])}>
+          <div className={cn("w-11 h-11 rounded-full flex items-center justify-center shrink-0", iconColors[variant])}>
             {variant === "danger" ? <Trash2 size={18} aria-hidden="true" /> : <AlertTriangle size={18} aria-hidden="true" />}
           </div>
 
           <div className="flex-1 min-w-0">
-            <h2 id="confirm-modal-title" className="text-base font-semibold text-gray-900">
+            <h2 id="confirm-modal-title" className="font-display text-xl text-sand-900 leading-tight">
               {title}
             </h2>
-            <p id="confirm-modal-message" className="mt-1 text-sm text-gray-500">
+            <p id="confirm-modal-message" className="mt-1.5 text-sm text-sand-700 leading-relaxed">
               {message}
             </p>
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end gap-3">
+        <div className="mt-6 flex justify-end gap-2">
           <button
             onClick={onCancel}
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+            className="px-5 h-10 text-sm font-medium text-sand-800 bg-sand-100 hover:bg-sand-200 rounded-pill transition-colors duration-250 ease-sierra-out disabled:opacity-50"
           >
             {cancelLabel}
           </button>
@@ -112,7 +106,7 @@ export default function ConfirmModal({
             onClick={onConfirm}
             disabled={loading}
             className={cn(
-              "px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50",
+              "px-5 h-10 text-sm font-medium text-white rounded-pill transition-colors duration-250 ease-sierra-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card disabled:opacity-50",
               confirmColors[variant]
             )}
           >

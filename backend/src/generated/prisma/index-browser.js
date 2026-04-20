@@ -658,6 +658,40 @@ exports.Prisma.KeetaDailyMetricsScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.IngestRunScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  platform: 'platform',
+  source: 'source',
+  status: 'status',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  rowsIn: 'rowsIn',
+  rowsOk: 'rowsOk',
+  errorLog: 'errorLog'
+};
+
+exports.Prisma.TalabatDailyMetricsScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  shiftDate: 'shiftDate',
+  utr: 'utr',
+  ordersCompleted: 'ordersCompleted',
+  onlineHours: 'onlineHours',
+  earnings: 'earnings',
+  source: 'source',
+  status: 'status',
+  rawImageUrl: 'rawImageUrl',
+  ocrConfidence: 'ocrConfidence',
+  ocrRaw: 'ocrRaw',
+  reviewedBy: 'reviewedBy',
+  reviewedAt: 'reviewedAt',
+  reviewNote: 'reviewNote',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.PlatformSettingsScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -807,6 +841,8 @@ exports.Prisma.ViolationScalarFieldEnum = {
   violationType: 'violationType',
   violationStatus: 'violationStatus',
   appealStatus: 'appealStatus',
+  firstAppealStatus: 'firstAppealStatus',
+  secondAppealStatus: 'secondAppealStatus',
   violationTime: 'violationTime',
   details: 'details',
   metadata: 'metadata',
@@ -830,6 +866,7 @@ exports.Prisma.AppealScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   violationId: 'violationId',
+  appealLevel: 'appealLevel',
   appealStatus: 'appealStatus',
   channel: 'channel',
   reason: 'reason',
@@ -907,6 +944,26 @@ exports.Prisma.CourierAttendanceSlotScalarFieldEnum = {
   status: 'status',
   onShiftMin: 'onShiftMin',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.KeetaAvailableShiftSlotScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  platform: 'platform',
+  date: 'date',
+  area: 'area',
+  slotStart: 'slotStart',
+  slotEnd: 'slotEnd',
+  capacity: 'capacity',
+  claimed: 'claimed',
+  vehicleType: 'vehicleType',
+  branchId: 'branchId',
+  branchName: 'branchName',
+  source: 'source',
+  externalId: 'externalId',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.ShiftComplianceConfigScalarFieldEnum = {
@@ -1031,6 +1088,56 @@ exports.Prisma.PaymentWithdrawalScalarFieldEnum = {
   status: 'status',
   operationStatus: 'operationStatus',
   note: 'note',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AgentRunLogScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  agentId: 'agentId',
+  triggerEvent: 'triggerEvent',
+  model: 'model',
+  promptTokens: 'promptTokens',
+  completionTokens: 'completionTokens',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt',
+  status: 'status',
+  error: 'error',
+  actionsProposed: 'actionsProposed',
+  actionsApproved: 'actionsApproved',
+  actionsRejected: 'actionsRejected',
+  feedback: 'feedback'
+};
+
+exports.Prisma.AgentToolCallScalarFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  toolName: 'toolName',
+  input: 'input',
+  output: 'output',
+  error: 'error',
+  durationMs: 'durationMs',
+  approvedBy: 'approvedBy',
+  executedAt: 'executedAt'
+};
+
+exports.Prisma.PendingAgentActionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  runId: 'runId',
+  agentId: 'agentId',
+  toolName: 'toolName',
+  input: 'input',
+  recommendation: 'recommendation',
+  confidence: 'confidence',
+  reasoning: 'reasoning',
+  priorityScore: 'priorityScore',
+  subjectType: 'subjectType',
+  subjectId: 'subjectId',
+  resolvedAt: 'resolvedAt',
+  resolution: 'resolution',
+  overrideReason: 'overrideReason',
+  resolvedBy: 'resolvedBy',
   createdAt: 'createdAt'
 };
 
@@ -1348,6 +1455,25 @@ exports.Prisma.KeetaDailyMetricsOrderByRelevanceFieldEnum = {
   source: 'source'
 };
 
+exports.Prisma.IngestRunOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  source: 'source',
+  status: 'status',
+  errorLog: 'errorLog'
+};
+
+exports.Prisma.TalabatDailyMetricsOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  source: 'source',
+  status: 'status',
+  rawImageUrl: 'rawImageUrl',
+  reviewedBy: 'reviewedBy',
+  reviewNote: 'reviewNote'
+};
+
 exports.Prisma.PlatformSettingsOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId'
@@ -1500,6 +1626,20 @@ exports.Prisma.CourierAttendanceSlotOrderByRelevanceFieldEnum = {
   status: 'status'
 };
 
+exports.Prisma.KeetaAvailableShiftSlotOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  area: 'area',
+  slotStart: 'slotStart',
+  slotEnd: 'slotEnd',
+  vehicleType: 'vehicleType',
+  branchId: 'branchId',
+  branchName: 'branchName',
+  source: 'source',
+  externalId: 'externalId',
+  notes: 'notes'
+};
+
 exports.Prisma.ShiftComplianceConfigOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId',
   evaluateCron: 'evaluateCron'
@@ -1583,6 +1723,39 @@ exports.Prisma.PaymentWithdrawalOrderByRelevanceFieldEnum = {
   tailNumber: 'tailNumber',
   operationStatus: 'operationStatus',
   note: 'note'
+};
+
+exports.Prisma.AgentRunLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  agentId: 'agentId',
+  triggerEvent: 'triggerEvent',
+  model: 'model',
+  status: 'status',
+  error: 'error'
+};
+
+exports.Prisma.AgentToolCallOrderByRelevanceFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  toolName: 'toolName',
+  error: 'error',
+  approvedBy: 'approvedBy'
+};
+
+exports.Prisma.PendingAgentActionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  runId: 'runId',
+  agentId: 'agentId',
+  toolName: 'toolName',
+  recommendation: 'recommendation',
+  reasoning: 'reasoning',
+  subjectType: 'subjectType',
+  subjectId: 'subjectId',
+  resolution: 'resolution',
+  overrideReason: 'overrideReason',
+  resolvedBy: 'resolvedBy'
 };
 exports.SubscriptionPlan = exports.$Enums.SubscriptionPlan = {
   FREE: 'FREE',
@@ -1880,7 +2053,8 @@ exports.ViolationType = exports.$Enums.ViolationType = {
   ORDER_SLIGHTLY_LATE: 'ORDER_SLIGHTLY_LATE',
   ORDER_VERY_LATE: 'ORDER_VERY_LATE',
   INVALID_DELIVERY_PHOTO: 'INVALID_DELIVERY_PHOTO',
-  GPS_NOT_UPLOADING: 'GPS_NOT_UPLOADING'
+  GPS_NOT_UPLOADING: 'GPS_NOT_UPLOADING',
+  CASH_DISCREPANCY: 'CASH_DISCREPANCY'
 };
 
 exports.ViolationStatus = exports.$Enums.ViolationStatus = {
@@ -1950,6 +2124,8 @@ exports.Prisma.ModelName = {
   TalabatViolationEvent: 'TalabatViolationEvent',
   TalabatDelivery: 'TalabatDelivery',
   KeetaDailyMetrics: 'KeetaDailyMetrics',
+  IngestRun: 'IngestRun',
+  TalabatDailyMetrics: 'TalabatDailyMetrics',
   PlatformSettings: 'PlatformSettings',
   PlatformInventory: 'PlatformInventory',
   AmericanaDailyOrders: 'AmericanaDailyOrders',
@@ -1967,6 +2143,7 @@ exports.Prisma.ModelName = {
   DemandHeatmap: 'DemandHeatmap',
   DeliveryArea: 'DeliveryArea',
   CourierAttendanceSlot: 'CourierAttendanceSlot',
+  KeetaAvailableShiftSlot: 'KeetaAvailableShiftSlot',
   ShiftComplianceConfig: 'ShiftComplianceConfig',
   Partner: 'Partner',
   PartnerBankAccount: 'PartnerBankAccount',
@@ -1976,7 +2153,10 @@ exports.Prisma.ModelName = {
   CourierIncentivePayout: 'CourierIncentivePayout',
   Billing: 'Billing',
   TaxInvoice: 'TaxInvoice',
-  PaymentWithdrawal: 'PaymentWithdrawal'
+  PaymentWithdrawal: 'PaymentWithdrawal',
+  AgentRunLog: 'AgentRunLog',
+  AgentToolCall: 'AgentToolCall',
+  PendingAgentAction: 'PendingAgentAction'
 };
 
 /**

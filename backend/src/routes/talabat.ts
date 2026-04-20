@@ -10,6 +10,9 @@ import { validateBody, createTalabatSessionSchema } from "../utils/validate";
 import { assertDriverNotRestricted, DriverRestrictedError } from "../utils/driverRestriction";
 import { getAdapter } from "../adapters";
 import { reconcilePlatformClock } from "../services/attendanceReconciliation";
+import { upload } from "../utils/upload";
+import { AiOcrService } from "../services/aiOcrService";
+import fs from "fs";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -1113,6 +1116,213 @@ router.get("/overview", async (req: Request, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// ─── R1 · Daily metrics OCR ingestion ───────────────────────────────────────
+
+const OCR_CONFIDENCE_THRESHOLD = 0.85;
+
+/**
+ * POST /api/talabat/metrics/ingest-screenshot
+ * Multipart: image (required), driverId, shiftDate? (ISO date).
+ * Runs Talabat stat-screen OCR and writes a TalabatDailyMetrics row.
+ * Status is PARSED if confidence ≥ 0.85, else PENDING_REVIEW (notifies Ops).
+ */
+router.post(
+  "/metrics/ingest-screenshot",
+  rbac(...MUTATORS),
+  upload.single("image"),
+  async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const { driverId, shiftDate: shiftDateRaw } = req.body;
+
+      if (!req.file) return res.status(400).json({ error: "image is required" });
+      if (!driverId) return res.status(400).json({ error: "driverId is required" });
+
+      const driver = await prisma.driver.findFirst({
+        where: { id: driverId, tenantId, platform: "TALABAT" },
+        select: { id: true, name: true },
+      });
+      if (!driver) return res.status(404).json({ error: "Talabat driver not found" });
+
+      const buffer = fs.readFileSync(req.file.path);
+      const extracted = await AiOcrService.extractTalabatMetrics(buffer);
+
+      const confidence = extracted?.confidence ?? 0;
+      const status =
+        !extracted || confidence < OCR_CONFIDENCE_THRESHOLD ? "PENDING_REVIEW" : "PARSED";
+
+      const shiftDate = shiftDateRaw
+        ? parseLocalDate(shiftDateRaw)
+        : extracted?.shiftDate
+          ? parseLocalDate(extracted.shiftDate)
+          : (() => {
+              const d = new Date();
+              d.setHours(0, 0, 0, 0);
+              return d;
+            })();
+
+      const source =
+        req.user!.role === "DRIVER" ? "OCR_MOBILE" : "OCR_WEB";
+
+      const row = await prisma.talabatDailyMetrics.upsert({
+        where: { tenantId_driverId_shiftDate: { tenantId, driverId, shiftDate } },
+        create: {
+          tenantId,
+          driverId,
+          shiftDate,
+          utr: extracted?.utr ?? null,
+          ordersCompleted: extracted?.ordersCompleted ?? null,
+          onlineHours: extracted?.onlineHours ?? null,
+          earnings: extracted?.earnings ?? null,
+          source,
+          status,
+          rawImageUrl: `/uploads/${req.file.filename}`,
+          ocrConfidence: confidence,
+          ocrRaw: extracted as any,
+        },
+        update: {
+          utr: extracted?.utr ?? undefined,
+          ordersCompleted: extracted?.ordersCompleted ?? undefined,
+          onlineHours: extracted?.onlineHours ?? undefined,
+          earnings: extracted?.earnings ?? undefined,
+          source,
+          status,
+          rawImageUrl: `/uploads/${req.file.filename}`,
+          ocrConfidence: confidence,
+          ocrRaw: extracted as any,
+        },
+      });
+
+      if (status === "PENDING_REVIEW") {
+        await createViolationNotifications({
+          tenantId,
+          eventType: "OCR_PENDING_REVIEW",
+          severity: "MEDIUM",
+          title: "Talabat shift screenshot needs review",
+          message: `OCR confidence ${(confidence * 100).toFixed(0)}% for ${driver.name} — please verify`,
+          sourceId: row.id,
+          metadata: {
+            category: "OPS_TODO",
+            titleAr: "لقطة شاشة وردية طلبات بحاجة إلى مراجعة",
+            bodyAr: `ثقة OCR ${(confidence * 100).toFixed(0)}% للسائق ${driver.name} — يرجى التحقق`,
+            driverId,
+            metricId: row.id,
+          },
+        }).catch(() => {});
+      }
+
+      res.json({
+        status,
+        extracted,
+        metricId: row.id,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+/**
+ * GET /api/talabat/metrics/pending-review
+ * Paginated list of TalabatDailyMetrics awaiting Ops review.
+ */
+router.get("/metrics/pending-review", async (req: Request, res: Response) => {
+  try {
+    const { skip, limit, page } = getPagination(req);
+    const tenantId = req.user!.tenantId;
+
+    const where = { tenantId, status: "PENDING_REVIEW" };
+    const [data, total] = await Promise.all([
+      prisma.talabatDailyMetrics.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: { driver: { select: { id: true, name: true, phone: true, zone: true } } },
+      }),
+      prisma.talabatDailyMetrics.count({ where }),
+    ]);
+
+    res.json(paginatedResponse(data, total, page, limit));
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/talabat/metrics/:id/approve
+ * Body: { utr?, ordersCompleted?, onlineHours?, earnings?, note? }
+ */
+router.post(
+  "/metrics/:id/approve",
+  rbac(...MUTATORS),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user!.tenantId;
+      const { utr, ordersCompleted, onlineHours, earnings, note } = req.body ?? {};
+
+      const existing = await prisma.talabatDailyMetrics.findFirst({
+        where: { id, tenantId },
+      });
+      if (!existing) return res.status(404).json({ error: "Metric not found" });
+
+      const updated = await prisma.talabatDailyMetrics.update({
+        where: { id },
+        data: {
+          status: "APPROVED",
+          utr: utr ?? existing.utr,
+          ordersCompleted: ordersCompleted ?? existing.ordersCompleted,
+          onlineHours: onlineHours ?? existing.onlineHours,
+          earnings: earnings ?? existing.earnings,
+          reviewedBy: req.user!.userId,
+          reviewedAt: new Date(),
+          reviewNote: note ?? null,
+        },
+      });
+
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+/**
+ * POST /api/talabat/metrics/:id/reject
+ * Body: { note? }
+ */
+router.post(
+  "/metrics/:id/reject",
+  rbac(...MUTATORS),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user!.tenantId;
+      const { note } = req.body ?? {};
+
+      const existing = await prisma.talabatDailyMetrics.findFirst({
+        where: { id, tenantId },
+      });
+      if (!existing) return res.status(404).json({ error: "Metric not found" });
+
+      const updated = await prisma.talabatDailyMetrics.update({
+        where: { id },
+        data: {
+          status: "REJECTED",
+          reviewedBy: req.user!.userId,
+          reviewedAt: new Date(),
+          reviewNote: note ?? null,
+        },
+      });
+
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
 
 // ─── Rules ──────────────────────────────────────────────────────────────────
 

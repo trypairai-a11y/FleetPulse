@@ -117,7 +117,7 @@ export default function LeafletMap({ drivers, activeFilters }: LeafletMapProps) 
         const timeStr = minutesAgo < 1 ? "Just now" : `${minutesAgo}m ago`;
 
         marker.bindPopup(`
-          <div style="min-width:180px;font-family:system-ui,sans-serif;">
+          <div style="min-width:180px;font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
               <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></span>
               <div>

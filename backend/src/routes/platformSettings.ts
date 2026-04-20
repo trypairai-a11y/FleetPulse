@@ -3,6 +3,7 @@ import { prisma } from "../config";
 import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { rbac } from "../middleware/rbac";
+import { encryptCred, hasEncryptedShape } from "../utils/portalCreds";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -413,5 +414,75 @@ function getDefaultNotificationConfig() {
     quietHoursEnd: "07:00",
   };
 }
+
+// ─── R6 · Keeta portal credentials (encrypted at rest) ──────────────────────
+/**
+ * PUT /api/platform-settings/keeta/portal-credentials
+ *   body: { username, password }
+ * Stores creds AES-256-GCM encrypted under PlatformSettings.notificationConfig.portalCredentials.
+ *
+ * GET /api/platform-settings/keeta/portal-credentials
+ *   Returns only { username, hasPassword } — password plaintext is never exposed.
+ */
+router.put(
+  "/keeta/portal-credentials",
+  rbac("ADMIN"),
+  async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const { username, password } = req.body ?? {};
+      if (!username || !password) {
+        return res.status(400).json({ error: "username and password required" });
+      }
+
+      const encrypted = encryptCred(password);
+
+      const existing = await prisma.platformSettings.findUnique({
+        where: { tenantId_platform: { tenantId, platform: "KEETA" } },
+      });
+      const prevConfig = (existing?.notificationConfig as any) ?? {};
+      const nextConfig = {
+        ...prevConfig,
+        portalCredentials: { username, password: encrypted, updatedAt: new Date().toISOString() },
+      };
+
+      const saved = await prisma.platformSettings.upsert({
+        where: { tenantId_platform: { tenantId, platform: "KEETA" } },
+        update: { notificationConfig: nextConfig },
+        create: {
+          tenantId,
+          platform: "KEETA",
+          targets: {},
+          notificationConfig: nextConfig,
+        },
+      });
+
+      res.json({ ok: true, updatedAt: (saved.notificationConfig as any)?.portalCredentials?.updatedAt });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+router.get(
+  "/keeta/portal-credentials",
+  rbac("ADMIN", "OPS_MANAGER"),
+  async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const settings = await prisma.platformSettings.findUnique({
+        where: { tenantId_platform: { tenantId, platform: "KEETA" } },
+      });
+      const pc = (settings?.notificationConfig as any)?.portalCredentials;
+      res.json({
+        username: pc?.username ?? null,
+        hasPassword: hasEncryptedShape(pc?.password),
+        updatedAt: pc?.updatedAt ?? null,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
 
 export default router;

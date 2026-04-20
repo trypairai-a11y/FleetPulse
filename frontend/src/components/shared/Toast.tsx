@@ -36,7 +36,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const toast = useCallback((message: string, variant: ToastVariant = "info") => {
     const id = Math.random().toString(36).slice(2);
-    setToasts((prev) => [...prev.slice(-4), { id, message, variant }]); // keep max 5
+    setToasts((prev) => [...prev.slice(-4), { id, message, variant }]);
     setTimeout(() => dismiss(id), 5000);
   }, [dismiss]);
 
@@ -48,7 +48,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast, success, error, warning, info }}>
       {children}
-      {/* Toast container */}
       <div
         aria-live="polite"
         aria-atomic="false"
@@ -71,32 +70,32 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
   };
 
   const styles = {
-    success: "bg-green-50 border-green-200 text-green-800",
+    success: "bg-primary/10 border-primary/20 text-primary",
     error: "bg-red-50 border-red-200 text-red-800",
-    warning: "bg-yellow-50 border-yellow-200 text-yellow-800",
-    info: "bg-blue-50 border-blue-200 text-blue-800",
+    warning: "bg-amber-50 border-amber-200 text-amber-800",
+    info: "bg-slate2/10 border-slate2/20 text-slate2",
   };
 
   const iconStyles = {
-    success: "text-green-500",
+    success: "text-primary",
     error: "text-red-500",
-    warning: "text-yellow-500",
-    info: "text-blue-500",
+    warning: "text-amber-500",
+    info: "text-slate2",
   };
 
   return (
     <div
       role="alert"
       className={cn(
-        "pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-xl border shadow-lg text-sm",
-        "animate-in slide-in-from-right-4 fade-in duration-200",
+        "pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-xl border shadow-lift text-sm backdrop-blur-sm",
+        "animate-in slide-in-from-right-4 fade-in duration-250",
         styles[toast.variant]
       )}
     >
       <span className={cn("shrink-0 mt-0.5", iconStyles[toast.variant])}>
         {icons[toast.variant]}
       </span>
-      <span className="flex-1">{toast.message}</span>
+      <span className="flex-1 leading-relaxed">{toast.message}</span>
       <button
         onClick={() => onDismiss(toast.id)}
         className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"

@@ -263,7 +263,7 @@ export default function ViolationsPage({ platform }: ViolationsPageProps) {
                     ID
                   </th>
                   <th className="text-left text-xs font-medium text-secondary px-5 py-3">
-                    Reason
+                    Violations
                   </th>
                   <th className="text-left text-xs font-medium text-secondary px-5 py-3">
                     Task ID
@@ -358,14 +358,27 @@ export default function ViolationsPage({ platform }: ViolationsPageProps) {
                         </span>
                       </td>
                       <td className="px-5 py-3">
-                        <span
-                          className={cn(
-                            "text-xs px-2 py-0.5 rounded-md font-medium",
-                            APPEAL_COLORS[v.appealStatus] || "bg-gray-100"
-                          )}
-                        >
-                          {v.appealStatus}
-                        </span>
+                        {(() => {
+                          const second = v.secondAppealStatus && v.secondAppealStatus !== "NOT_RAISED";
+                          const status = second ? v.secondAppealStatus : v.firstAppealStatus || v.appealStatus;
+                          return (
+                            <div className="flex items-center gap-1">
+                              <span
+                                className={cn(
+                                  "text-xs px-2 py-0.5 rounded-md font-medium",
+                                  APPEAL_COLORS[status] || "bg-gray-100"
+                                )}
+                              >
+                                {status}
+                              </span>
+                              {second && (
+                                <span className="text-[9px] font-bold text-secondary bg-gray-100 px-1 rounded">
+                                  2ND
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="px-5 py-3">
                         <ChevronRight size={14} className="text-secondary" />
@@ -430,14 +443,25 @@ export default function ViolationsPage({ platform }: ViolationsPageProps) {
                 </span>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-[10px] text-secondary uppercase font-medium">Appeal</p>
+                <p className="text-[10px] text-secondary uppercase font-medium">1st Appeal</p>
                 <span
                   className={cn(
                     "text-xs px-2 py-0.5 rounded-md font-medium",
-                    APPEAL_COLORS[selected.appealStatus]
+                    APPEAL_COLORS[selected.firstAppealStatus || "NOT_RAISED"]
                   )}
                 >
-                  {selected.appealStatus}
+                  {selected.firstAppealStatus || "NOT_RAISED"}
+                </span>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-[10px] text-secondary uppercase font-medium">2nd Appeal</p>
+                <span
+                  className={cn(
+                    "text-xs px-2 py-0.5 rounded-md font-medium",
+                    APPEAL_COLORS[selected.secondAppealStatus || "NOT_RAISED"]
+                  )}
+                >
+                  {selected.secondAppealStatus || "NOT_RAISED"}
                 </span>
               </div>
               <div className="bg-gray-50 rounded-xl p-3">
@@ -511,14 +535,19 @@ export default function ViolationsPage({ platform }: ViolationsPageProps) {
                   {selected.appeals.map((a) => (
                     <div key={a.id} className="bg-gray-50 rounded-xl p-3">
                       <div className="flex items-center justify-between mb-1">
-                        <span
-                          className={cn(
-                            "text-xs px-2 py-0.5 rounded-md font-medium",
-                            APPEAL_COLORS[a.appealStatus] || "bg-gray-100"
-                          )}
-                        >
-                          {a.appealStatus}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-secondary bg-white border border-gray-200 px-1.5 py-0.5 rounded">
+                            {a.appealLevel === 2 ? "2ND APPEAL" : "1ST APPEAL"}
+                          </span>
+                          <span
+                            className={cn(
+                              "text-xs px-2 py-0.5 rounded-md font-medium",
+                              APPEAL_COLORS[a.appealStatus] || "bg-gray-100"
+                            )}
+                          >
+                            {a.appealStatus}
+                          </span>
+                        </div>
                         {a.channel && (
                           <span className="text-xs text-secondary">{a.channel}</span>
                         )}

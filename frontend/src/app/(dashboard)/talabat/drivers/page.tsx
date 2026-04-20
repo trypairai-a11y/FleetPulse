@@ -223,7 +223,7 @@ export default function TalabatDriversPage() {
               { value: "RESTRICTED_PERMANENTLY", label: "Permanently Restricted" },
               { value: "INACTIVE", label: "Inactive" },
               { value: "TERMINATED", label: "Terminated" },
-              { value: "TERMINATION", label: "Termination" },
+              { value: "TERMINATION", label: "Pending Termination" },
             ]
           },
         ]}

@@ -79,6 +79,8 @@ export interface Violation {
   violationType: string;
   violationStatus: string;
   appealStatus: string;
+  firstAppealStatus: string;
+  secondAppealStatus: string;
   violationTime: string;
   details?: string | null;
   taskId?: string | null;
@@ -99,6 +101,7 @@ export interface Penalty {
 export interface Appeal {
   id: string;
   violationId: string;
+  appealLevel: number;
   appealStatus: string;
   channel?: string | null;
   reason?: string | null;

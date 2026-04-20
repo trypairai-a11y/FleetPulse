@@ -149,7 +149,7 @@ export default function DataTable({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-card border border-sand-200 rounded-2xl shadow-soft overflow-hidden">
       {/* Bulk action bar */}
       {selectable && selectedIds.size > 0 && bulkActions && bulkActions.length > 0 && (
         <div className="flex items-center gap-3 px-5 py-2.5 bg-primary/5 border-b border-primary/10">
@@ -185,7 +185,7 @@ export default function DataTable({
         <div className="flex justify-end px-5 pt-3">
           <button
             onClick={handleExport}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sand-800 bg-sand-100 hover:bg-sand-200 rounded-pill transition-colors duration-250 ease-sierra-out"
             aria-label="Export table data as CSV"
           >
             <Download size={12} aria-hidden="true" />
@@ -197,7 +197,7 @@ export default function DataTable({
       <div className="overflow-x-auto">
         <table className="w-full" role="table">
           <thead role="rowgroup">
-            <tr className="border-b border-gray-50" role="row">
+            <tr className="border-b border-sand-200" role="row">
               {selectable && (
                 <th className="w-10 px-3 py-3" role="columnheader">
                   <button onClick={toggleAll} className="text-secondary hover:text-primary transition-colors" aria-label={allSelected ? "Deselect all rows" : "Select all rows"}>
@@ -268,8 +268,8 @@ export default function DataTable({
                   role="row"
                   onClick={() => onRowClick?.(row)}
                   className={cn(
-                    "border-b border-gray-50 last:border-0 transition-colors",
-                    onRowClick && "cursor-pointer hover:bg-gray-50/50",
+                    "border-b border-sand-200 last:border-0 transition-colors",
+                    onRowClick && "cursor-pointer hover:bg-sand-100/60",
                     isSelected && "bg-primary/5"
                   )}
                   tabIndex={onRowClick ? 0 : undefined}
@@ -298,7 +298,7 @@ export default function DataTable({
 
       {/* Pagination controls */}
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between px-5 py-3 border-t border-gray-50" role="navigation" aria-label="Table pagination">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-sand-200" role="navigation" aria-label="Table pagination">
           <div className="flex items-center gap-2">
             <span className="text-xs text-secondary">
               {((pagination.page - 1) * pagination.limit) + 1}–
@@ -308,7 +308,7 @@ export default function DataTable({
               <select
                 value={pagination.limit}
                 onChange={(e) => pagination.onLimitChange!(Number(e.target.value))}
-                className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white"
+                className="text-xs border border-sand-300 rounded-pill px-3 py-1 bg-card"
                 aria-label="Rows per page"
               >
                 {[25, 50, 100].map((n) => (
@@ -321,7 +321,7 @@ export default function DataTable({
             <button
               onClick={() => pagination.onPageChange(pagination.page - 1)}
               disabled={pagination.page <= 1}
-              className="p-1.5 rounded-lg text-secondary hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg text-secondary hover:bg-sand-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               aria-label="Previous page"
             >
               <ChevronLeft size={14} aria-hidden="true" />
@@ -332,7 +332,7 @@ export default function DataTable({
             <button
               onClick={() => pagination.onPageChange(pagination.page + 1)}
               disabled={pagination.page >= pagination.totalPages}
-              className="p-1.5 rounded-lg text-secondary hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 rounded-lg text-secondary hover:bg-sand-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               aria-label="Next page"
             >
               <ChevronRight size={14} aria-hidden="true" />
@@ -355,7 +355,7 @@ export default function DataTable({
                   min={1}
                   max={pagination.totalPages}
                   defaultValue={pagination.page}
-                  className="w-14 text-xs border border-gray-200 rounded-lg px-2 py-1"
+                  className="w-14 text-xs border border-sand-300 rounded-pill px-2.5 py-1 bg-card"
                   aria-label="Jump to page"
                 />
                 <button type="submit" className="text-xs font-medium text-primary hover:underline">Jump</button>

@@ -6,7 +6,26 @@ import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
 import { cn } from "@/lib/cn";
 import { useRouter } from "next/navigation";
-import { Ban, ChevronRight, AlertTriangle } from "lucide-react";
+import { Ban, ChevronRight, AlertTriangle, GraduationCap, FileWarning, ShieldOff, BellRing, CheckCircle2, RotateCcw } from "lucide-react";
+
+type Solution = { label: string; icon: any; tone: string };
+
+function getSolution(p: any): Solution {
+  if (p.penaltyStatus === "COMPLETED") return { label: "No action — closed", icon: CheckCircle2, tone: "bg-green-50 text-green-700" };
+  if (p.penaltyStatus === "OVERTURNED") return { label: "Refund / restore record", icon: RotateCcw, tone: "bg-blue-50 text-blue-700" };
+  switch (p.penaltyType) {
+    case "ONLINE_TRAINING":
+      return { label: "Assign training module", icon: GraduationCap, tone: "bg-amber-50 text-amber-700" };
+    case "VIOLATION_RECORD":
+      return { label: "Review & notify courier", icon: FileWarning, tone: "bg-purple-50 text-purple-700" };
+    case "ACCOUNT_SUSPENSION":
+      return { label: "Suspend account now", icon: ShieldOff, tone: "bg-red-50 text-red-700" };
+    case "WARNING":
+      return { label: "Send warning notice", icon: BellRing, tone: "bg-yellow-50 text-yellow-700" };
+    default:
+      return { label: "Review penalty", icon: AlertTriangle, tone: "bg-gray-50 text-gray-700" };
+  }
+}
 
 const PENALTY_STATUS_COLORS: Record<string, string> = {
   EFFECTIVE: "bg-red-50 text-red-600",
@@ -101,6 +120,7 @@ export default function KeetaPenaltiesPage() {
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Value</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Courier</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Violations</th>
+                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Solution</th>
                 <th className="text-left text-xs font-medium text-secondary px-5 py-3">Created</th>
                 <th className="px-5 py-3" />
               </tr>
@@ -108,12 +128,15 @@ export default function KeetaPenaltiesPage() {
             <tbody>
               {penalties.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-12 text-center text-sm text-secondary">
+                  <td colSpan={9} className="px-5 py-12 text-center text-sm text-secondary">
                     No penalties found
                   </td>
                 </tr>
               ) : (
-                penalties.map((p: any) => (
+                penalties.map((p: any) => {
+                  const solution = getSolution(p);
+                  const SolutionIcon = solution.icon;
+                  return (
                   <tr
                     key={p.id}
                     onClick={() => setSelected(p)}
@@ -132,12 +155,19 @@ export default function KeetaPenaltiesPage() {
                       <p className="text-xs text-secondary">{p.driver?.platformDriverId || ""}</p>
                     </td>
                     <td className="px-5 py-3 text-sm font-semibold">{p._count?.violations ?? 0}</td>
+                    <td className="px-5 py-3">
+                      <span className={cn("inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-md font-medium", solution.tone)}>
+                        <SolutionIcon size={12} />
+                        {solution.label}
+                      </span>
+                    </td>
                     <td className="px-5 py-3 text-xs text-secondary">
                       {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "—"}
                     </td>
                     <td className="px-5 py-3"><ChevronRight size={14} className="text-secondary" /></td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -172,6 +202,12 @@ export default function KeetaPenaltiesPage() {
               <div className="bg-gray-50 rounded-xl p-3">
                 <p className="text-[10px] text-secondary uppercase font-medium">Courier</p>
                 <p className="text-sm font-medium">{selected.driver?.name || "—"}</p>
+              </div>
+              <div className="col-span-2 bg-amber-50/60 border border-amber-100 rounded-xl p-3">
+                <p className="text-[10px] text-amber-700 uppercase font-semibold">Recommended Action</p>
+                <div className="flex items-center gap-2 mt-1">
+                  {(() => { const s = getSolution(selected); const I = s.icon; return <><I size={14} className="text-amber-700" /><p className="text-sm font-medium text-amber-900">{s.label}</p></>; })()}
+                </div>
               </div>
               <div className="col-span-2 bg-gray-50 rounded-xl p-3">
                 <p className="text-[10px] text-secondary uppercase font-medium">Created</p>

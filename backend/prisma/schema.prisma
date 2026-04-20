@@ -285,6 +285,7 @@ enum ViolationType {
   ORDER_VERY_LATE
   INVALID_DELIVERY_PHOTO
   GPS_NOT_UPLOADING
+  CASH_DISCREPANCY
 }
 
 enum ViolationStatus {
@@ -357,6 +358,7 @@ model Tenant {
   vehicles                Vehicle[]
   talabatSessions         TalabatSession[]
   talabatViolationEvents TalabatViolationEvent[]
+  talabatDailyMetrics     TalabatDailyMetrics[]
   keetaDailyMetrics       KeetaDailyMetrics[]
   americanaDailyOrders    AmericanaDailyOrders[]
   kpiDefinitions          KpiDefinition[]
@@ -384,6 +386,9 @@ model Tenant {
   billings                Billing[]
   taxInvoices             TaxInvoice[]
   paymentWithdrawals      PaymentWithdrawal[]
+  agentRunLogs            AgentRunLog[]
+  pendingAgentActions     PendingAgentAction[]
+  ingestRuns              IngestRun[]
 }
 
 // 2. Company
@@ -498,6 +503,7 @@ model Driver {
   submittedTickets        Ticket[]           @relation("TicketSubmitterDriver")
   talabatSessions         TalabatSession[]
   talabatViolationEvents TalabatViolationEvent[]
+  talabatDailyMetrics     TalabatDailyMetrics[]
   keetaDailyMetrics       KeetaDailyMetrics[]
   americanaDailyOrders    AmericanaDailyOrders[]
   talabatDeliveries       TalabatDelivery[]
@@ -1228,6 +1234,53 @@ model KeetaDailyMetrics {
   @@index([date])
 }
 
+// 29.2. IngestRun - audit trail for scheduled ingestion (Keeta portal scraper, OCR batches, etc.)
+model IngestRun {
+  id         String    @id @default(cuid())
+  tenantId   String
+  platform   Platform
+  source     String    // "PORTAL_SCRAPER" | "MANUAL_UPLOAD" | "OCR_MOBILE" | "OCR_WEB"
+  status     String    // "SUCCESS" | "PARTIAL" | "FAILED"
+  startedAt  DateTime
+  finishedAt DateTime?
+  rowsIn     Int?
+  rowsOk     Int?
+  errorLog   String?
+  tenant     Tenant    @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, platform, startedAt])
+}
+
+// 29.1. TalabatDailyMetrics - per-driver daily KPIs sourced from mobile OCR / manual upload / portal API
+model TalabatDailyMetrics {
+  id              String    @id @default(cuid())
+  tenantId        String
+  driverId        String
+  shiftDate       DateTime
+  utr             Float?
+  ordersCompleted Int?
+  onlineHours     Float?
+  earnings        Float?
+  source          String    // "OCR_MOBILE" | "OCR_WEB" | "MANUAL_UPLOAD" | "PORTAL_API"
+  status          String    @default("PARSED") // "PARSED" | "PENDING_REVIEW" | "APPROVED" | "REJECTED"
+  rawImageUrl     String?
+  ocrConfidence   Float?
+  ocrRaw          Json?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  reviewNote      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@unique([tenantId, driverId, shiftDate])
+  @@index([tenantId, shiftDate])
+  @@index([tenantId, status])
+  @@index([driverId, shiftDate])
+}
+
 // 30. PlatformSettings - configurable targets, KPIs, and inventory per platform
 model PlatformSettings {
   id         String   @id @default(uuid())
@@ -1463,6 +1516,8 @@ model Violation {
   violationType   ViolationType
   violationStatus ViolationStatus @default(ESTABLISHED)
   appealStatus    AppealStatus    @default(NOT_RAISED)
+  firstAppealStatus  AppealStatus @default(NOT_RAISED)
+  secondAppealStatus AppealStatus @default(NOT_RAISED)
   violationTime   DateTime
   details         String?
   metadata        Json?
@@ -1504,6 +1559,7 @@ model Appeal {
   id            String       @id @default(uuid())
   tenantId      String
   violationId   String
+  appealLevel   Int          @default(1) // 1 = first appeal, 2 = second appeal
   appealStatus  AppealStatus @default(PENDING)
   channel       String?      // APP, PHONE, EMAIL
   reason        String?
@@ -1519,6 +1575,7 @@ model Appeal {
 
   @@index([violationId])
   @@index([tenantId, appealStatus])
+  @@unique([violationId, appealLevel])
 }
 
 // 38. OrderEvent - order lifecycle events for flow timeline
@@ -1624,11 +1681,12 @@ model CourierAttendanceSlot {
   @@index([tenantId, date])
 }
 
-// Keeta driver-app "available shifts" — open slots drivers can claim in the Keeta app.
+// Driver-app "available shifts" — open slots drivers can claim in the platform app.
 // Mirrored here so admins can see / plan capacity alongside booked shifts.
 model KeetaAvailableShiftSlot {
   id            String   @id @default(cuid())
   tenantId      String
+  platform      Platform @default(KEETA)
   date          DateTime
   area          String
   slotStart     String   // "HH:mm"
@@ -1638,17 +1696,17 @@ model KeetaAvailableShiftSlot {
   vehicleType   String?  // BIKE, CAR — optional scope
   branchId      String?
   branchName    String?
-  source        String   @default("MANUAL") // MANUAL, KEETA_SYNC
-  externalId    String?  // id from Keeta app when synced
+  source        String   @default("MANUAL") // MANUAL, KEETA_SYNC, TALABAT_SYNC
+  externalId    String?  // id from the platform app when synced
   notes         String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
 
-  @@unique([tenantId, date, area, slotStart, vehicleType])
-  @@index([tenantId, date])
-  @@index([tenantId, area])
+  @@unique([tenantId, platform, date, area, slotStart, vehicleType])
+  @@index([tenantId, platform, date])
+  @@index([tenantId, platform, area])
 }
 
 // F10 — per-tenant shift compliance configuration
@@ -1855,4 +1913,78 @@ model PaymentWithdrawal {
   billing Billing @relation(fields: [billingId], references: [id])
 
   @@index([tenantId, withdrawTime])
+}
+
+// ─── Agent Runtime (v2) ──────────────────────────────────────────────────────
+// One AgentRunLog per agent invocation. AgentToolCall rows record every tool
+// the agent called during that run. PendingAgentAction is the human approval
+// queue for write tools that didn't meet the auto-execute threshold.
+
+model AgentRunLog {
+  id               String    @id @default(cuid())
+  tenantId         String
+  agentId          String    // "triage" | "reconciliation" | "narrator" | "chat"
+  triggerEvent     String    // e.g. "violation", "appeal_submitted", "cron:15m"
+  model            String
+  promptTokens     Int       @default(0)
+  completionTokens Int       @default(0)
+  startedAt        DateTime  @default(now())
+  finishedAt       DateTime?
+  status           String    @default("running") // running | completed | failed
+  error            String?
+  actionsProposed  Int       @default(0)
+  actionsApproved  Int       @default(0)
+  actionsRejected  Int       @default(0)
+  feedback         Json?
+
+  tenant    Tenant          @relation(fields: [tenantId], references: [id])
+  toolCalls AgentToolCall[]
+  pending   PendingAgentAction[]
+
+  @@index([tenantId, agentId, startedAt])
+  @@index([tenantId, status])
+}
+
+model AgentToolCall {
+  id          String   @id @default(cuid())
+  runId       String
+  toolName    String
+  input       Json
+  output      Json?
+  error       String?
+  durationMs  Int      @default(0)
+  approvedBy  String?  // userId of approving operator, if human-gated
+  executedAt  DateTime @default(now())
+
+  run AgentRunLog @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([toolName, executedAt])
+}
+
+model PendingAgentAction {
+  id             String    @id @default(cuid())
+  tenantId       String
+  runId          String
+  agentId        String
+  toolName       String
+  input          Json
+  recommendation String    // "approve" | "reject" | "escalate"
+  confidence     Float     @default(0)
+  reasoning      String
+  priorityScore  Float     @default(0)
+  subjectType    String?   // "appeal" | "violation" | "cash_record" | ...
+  subjectId      String?
+  resolvedAt     DateTime?
+  resolution     String?   // "approved" | "rejected"
+  overrideReason String?
+  resolvedBy     String?
+  createdAt      DateTime  @default(now())
+
+  tenant Tenant      @relation(fields: [tenantId], references: [id])
+  run    AgentRunLog @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, resolvedAt, priorityScore])
+  @@index([tenantId, agentId, resolvedAt])
+  @@index([subjectType, subjectId])
 }

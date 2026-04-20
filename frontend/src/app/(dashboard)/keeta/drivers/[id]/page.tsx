@@ -1,5 +1,8 @@
-import DriverDetailPage from "@/components/platform/DriverDetailPage";
+"use client";
+import { useParams } from "next/navigation";
+import Driver360 from "@/components/shared/Driver360";
 
 export default function KeetaDriverDetailPage() {
-  return <DriverDetailPage platformKey="keeta" platformLabel="Keeta" />;
+  const { id } = useParams<{ id: string }>();
+  return <Driver360 driverId={id} platform="keeta" />;
 }

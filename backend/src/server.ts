@@ -52,13 +52,19 @@ import aiInsightsRoutes from "./routes/aiInsights";
 import keetaOperationCentreRoutes from "./routes/keetaOperationCentre";
 import keetaCourierDetailsRoutes from "./routes/keetaCourierDetails";
 import keetaShiftMonitorRoutes from "./routes/keetaShiftMonitor";
+import keetaAvailableShiftsRoutes, { createAvailableShiftsRouter } from "./routes/keetaAvailableShifts";
 import keetaReportsRoutes from "./routes/keetaReports";
 import incentivesRoutes from "./routes/incentives";
 import financialRoutes from "./routes/financial";
+import queueRoutes from "./routes/queue";
+import v2Routes from "./routes/v2";
 import { startAnomalyScheduler } from "./services/anomalyScheduler";
 import { startGpsMonitorScheduler } from "./services/gpsMonitorService";
+import { startKeetaPortalScraperScheduler } from "./queues/keetaPortalScraperWorker";
 import { startInsightsScheduler } from "./services/insightsScheduler";
 import { startShiftComplianceScheduler } from "./queues/shiftComplianceWorker";
+import "./services/agents"; // registers agents as a side-effect
+import { startAgentScheduler } from "./services/agents/agentScheduler";
 
 const app = express();
 
@@ -97,7 +103,7 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 // to make this durable. /auth/demo and /auth/refresh are included (were skipped).
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20,
+  max: process.env.NODE_ENV === "production" ? 20 : 500,
   message: { error: "Too many auth attempts. Please try again in 15 minutes." },
   standardHeaders: true,
   legacyHeaders: false,
@@ -155,9 +161,13 @@ app.use("/api/ai-insights", aiInsightsRoutes);
 app.use("/api/keeta/operation-centre", keetaOperationCentreRoutes);
 app.use("/api/keeta/courier-details", keetaCourierDetailsRoutes);
 app.use("/api/keeta/shift-monitor", keetaShiftMonitorRoutes);
+app.use("/api/keeta/available-shifts", keetaAvailableShiftsRoutes);
+app.use("/api/talabat/available-shifts", createAvailableShiftsRouter("TALABAT"));
 app.use("/api/keeta/reports", keetaReportsRoutes);
 app.use("/api/incentives", incentivesRoutes);
 app.use("/api/financial", financialRoutes);
+app.use("/api/queue", queueRoutes);
+app.use("/api/v2", v2Routes);
 
 // API Documentation (Swagger UI — available at /api-docs)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -181,8 +191,11 @@ if (process.env.VERCEL !== "1") {
     logger.info({ port: env.PORT }, "Darb backend running");
     startAnomalyScheduler();
     startGpsMonitorScheduler();
+    startKeetaPortalScraperScheduler();
     startInsightsScheduler();
     startShiftComplianceScheduler();
+    // v2 agent runtime — no-op when ANTHROPIC_API_KEY is unset
+    void startAgentScheduler();
   });
 }
 

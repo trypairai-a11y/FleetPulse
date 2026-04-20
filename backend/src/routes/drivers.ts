@@ -249,7 +249,7 @@ router.get("/:id/summary", async (req: Request, res: Response) => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [sessionsThisMonth, sessionStats, pendingCash, violationEvents] = await Promise.all([
+    const [sessionsThisMonth, sessionStats, pendingCash, violationEvents, keetaMetrics, keetaSessionCount] = await Promise.all([
       // Sessions this month
       prisma.talabatSession.count({
         where: { driverId, tenantId, date: { gte: startOfMonth } },
@@ -269,18 +269,219 @@ router.get("/:id/summary", async (req: Request, res: Response) => {
       prisma.talabatViolationEvent.count({
         where: { driverId, tenantId, resolved: false },
       }),
+      // Keeta rates + deliveries this month
+      prisma.keetaDailyMetrics.findMany({
+        where: { driverId, tenantId, date: { gte: startOfMonth } },
+        select: { onTimeRate: true, completionRate: true, deliveredTasks: true, validDay: true },
+      }),
+      prisma.keetaDailyMetrics.count({
+        where: { driverId, tenantId, date: { gte: startOfMonth }, validDay: true },
+      }),
     ]);
 
-    const totalDeliveries = sessionStats._sum.deliveries || 0;
-    const sessionCount = sessionStats._count.id || 1;
-    const avgDeliveriesPerDay = totalDeliveries / sessionCount;
+    const isKeeta = driver.platform === "KEETA";
+    let avgDeliveriesPerDay: number;
+    let sessionsCount: number;
+    if (isKeeta) {
+      sessionsCount = keetaSessionCount;
+      const totalK = keetaMetrics.reduce((a, m) => a + (m.deliveredTasks || 0), 0);
+      avgDeliveriesPerDay = keetaSessionCount > 0 ? totalK / keetaSessionCount : 0;
+    } else {
+      sessionsCount = sessionsThisMonth;
+      const totalDeliveries = sessionStats._sum.deliveries || 0;
+      const divisor = sessionStats._count.id || 1;
+      avgDeliveriesPerDay = totalDeliveries / divisor;
+    }
     const pendingDuesKd = Number(pendingCash._sum.pendingDues || 0);
 
+    const onTimeVals = keetaMetrics.map(m => m.onTimeRate != null ? Number(m.onTimeRate) : null).filter((v): v is number => v != null);
+    const completionVals = keetaMetrics.map(m => m.completionRate != null ? Number(m.completionRate) : null).filter((v): v is number => v != null);
+    const onTimeRate = onTimeVals.length > 0 ? onTimeVals.reduce((a, b) => a + b, 0) / onTimeVals.length : null;
+    const completionRate = completionVals.length > 0 ? completionVals.reduce((a, b) => a + b, 0) / completionVals.length : null;
+
     res.json({
-      sessionsThisMonth,
+      sessionsThisMonth: sessionsCount,
       avgDeliveriesPerDay,
       pendingDuesKd,
       violationEvents,
+      onTimeRate,
+      completionRate,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * R3 · Driver 360 aggregator.
+ * GET /api/drivers/:id/profile?platform=TALABAT|KEETA
+ *
+ * Composes the tabs Driver 360 needs in a single round-trip:
+ *   { overview, attendance, orders, performance, cash, violations, assets, documents }
+ */
+router.get("/:id/profile", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { id } = req.params;
+
+    const driver = await prisma.driver.findFirst({
+      where: { id, tenantId },
+      include: {
+        company: { select: { id: true, name: true } },
+        supervisor: { select: { id: true, name: true } },
+        device: { select: { id: true, imei: true, model: true, lastSeen: true, isOnline: true } },
+        assignedVehicle: { select: { id: true, plateNumber: true, vehicleType: true, status: true } },
+      },
+    });
+    if (!driver) return res.status(404).json({ error: "Driver not found" });
+
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - 7);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const [
+      todayOrders,
+      weekOrders,
+      recentAttendance,
+      recentLeaves,
+      pendingCash,
+      cashMonth,
+      recentViolations,
+      activeRestrictions,
+      talabatMetrics,
+      keetaMetrics,
+      activeSession,
+    ] = await Promise.all([
+      prisma.orderLog.aggregate({
+        where: { tenantId, driverId: id, date: { gte: todayStart } },
+        _sum: { orderCount: true, cashCollected: true, tips: true },
+      }),
+      prisma.orderLog.aggregate({
+        where: { tenantId, driverId: id, date: { gte: weekStart } },
+        _sum: { orderCount: true, cashCollected: true, tips: true },
+      }),
+      prisma.attendanceRecord.findMany({
+        where: { tenantId, driverId: id, date: { gte: monthStart } },
+        select: { id: true, date: true, status: true, lateMinutes: true },
+        orderBy: { date: "desc" },
+        take: 30,
+      }),
+      prisma.leaveRequest.findMany({
+        where: { tenantId, driverId: id },
+        select: { id: true, startDate: true, endDate: true, status: true, reason: true },
+        orderBy: { startDate: "desc" },
+        take: 10,
+      }),
+      prisma.cashRecord.aggregate({
+        where: { tenantId, driverId: id, status: "PENDING" },
+        _sum: { pendingDues: true },
+      }),
+      prisma.cashRecord.findMany({
+        where: { tenantId, driverId: id, date: { gte: monthStart } },
+        select: { id: true, date: true, salesAmount: true, collectionAmount: true, pendingDues: true, status: true },
+        orderBy: { date: "desc" },
+        take: 30,
+      }),
+      prisma.violation.findMany({
+        where: { tenantId, driverId: id },
+        select: { id: true, violationType: true, violationStatus: true, appealStatus: true, violationTime: true, details: true },
+        orderBy: { violationTime: "desc" },
+        take: 20,
+      }),
+      prisma.driverRestriction.findMany({
+        where: { tenantId, driverId: id, OR: [{ endDate: null }, { endDate: { gte: now } }] },
+        select: { id: true, type: true, startDate: true, endDate: true, reason: true },
+      }),
+      driver.platform === "TALABAT"
+        ? prisma.talabatDailyMetrics.findMany({
+            where: { tenantId, driverId: id, shiftDate: { gte: weekStart } },
+            orderBy: { shiftDate: "desc" },
+          })
+        : Promise.resolve([]),
+      driver.platform === "KEETA"
+        ? prisma.keetaDailyMetrics.findMany({
+            where: { tenantId, driverId: id, date: { gte: weekStart } },
+            orderBy: { date: "desc" },
+          })
+        : Promise.resolve([]),
+      prisma.courierOnlineSession.findFirst({
+        where: { tenantId, driverId: id, isOnline: true },
+        select: { id: true, startTime: true, lastGpsAt: true, area: true },
+      }),
+    ]);
+
+    // Overview tab
+    const utrThisWeek =
+      driver.platform === "TALABAT" && talabatMetrics.length > 0
+        ? (talabatMetrics.reduce((s, m) => s + (m.utr ?? 0), 0) / talabatMetrics.length)
+        : driver.platform === "KEETA" && keetaMetrics.length > 0
+          ? keetaMetrics.reduce((s, m) => s + Number(m.completionRate ?? 0), 0) / keetaMetrics.length
+          : null;
+
+    const overview = {
+      driver: {
+        id: driver.id,
+        name: driver.name,
+        phone: driver.phone,
+        zone: driver.zone,
+        batchNumber: driver.batchNumber,
+        platform: driver.platform,
+        status: driver.status,
+        vehicleType: driver.vehicleType,
+        company: driver.company?.name ?? null,
+        supervisor: driver.supervisor?.name ?? null,
+        performanceTier: (driver as any).performanceTier ?? null,
+        photoUrl: driver.photoUrl,
+      },
+      todayOrders: todayOrders._sum.orderCount ?? 0,
+      todayCash: Number(todayOrders._sum.cashCollected ?? 0),
+      todayTips: Number(todayOrders._sum.tips ?? 0),
+      weekOrders: weekOrders._sum.orderCount ?? 0,
+      weekCash: Number(weekOrders._sum.cashCollected ?? 0),
+      utrThisWeek: utrThisWeek != null ? Math.round(utrThisWeek * 100) / 100 : null,
+      activeSession,
+    };
+
+    // Documents — pull expiry fields off driver
+    const documents = {
+      healthCert: { expiry: driver.healthCertExpiry, status: driver.healthCertStatus },
+      workPermit: { expiry: driver.workPermitExpiry, status: driver.workPermitStatus },
+      foodHandling: { expiry: driver.foodHandlingCertExpiry, status: driver.foodHandlingCertStatus },
+      vehicleReg: { expiry: driver.vehicleRegExpiry, status: driver.vehicleRegStatus },
+      vehicleInsurance: { expiry: driver.vehicleInsuranceExpiry, status: driver.vehicleInsuranceStatus },
+      drivingLicense: { expiry: driver.drivingLicenseExpiry, status: driver.drivingLicenseStatus },
+      civilId: { expiry: driver.civilIdExpiry, status: driver.civilIdStatus },
+    };
+
+    res.json({
+      overview,
+      attendance: {
+        records: recentAttendance,
+        leaves: recentLeaves,
+      },
+      orders: {
+        todayCount: todayOrders._sum.orderCount ?? 0,
+        weekCount: weekOrders._sum.orderCount ?? 0,
+      },
+      performance: {
+        talabatMetrics,
+        keetaMetrics,
+      },
+      cash: {
+        pendingDues: Number(pendingCash._sum.pendingDues ?? 0),
+        records: cashMonth,
+      },
+      violations: {
+        items: recentViolations,
+        activeRestrictions,
+      },
+      assets: {
+        device: driver.device,
+        vehicle: driver.assignedVehicle,
+      },
+      documents,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

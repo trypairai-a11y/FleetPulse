@@ -150,6 +150,18 @@ router.get("/couriers", async (req: Request, res: Response) => {
  *       200:
  *         description: Three alert categories each with count and driver list
  */
+// Haversine (metres) — mirrors helper in violationEngine.ts
+function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6_371_000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 router.get("/alerts", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -174,8 +186,8 @@ router.get("/alerts", async (req: Request, res: Response) => {
       },
     });
 
-    // 2. GPS failures: online drivers with stale GPS
-    const gpsFailures = await prisma.device.findMany({
+    // 2. GPS stale: online drivers with lastSeen > 10 min ago
+    const gpsStale = await prisma.device.findMany({
       where: {
         driver: { tenantId, platform: "KEETA", status: "ACTIVE" },
         isOnline: true,
@@ -187,7 +199,7 @@ router.get("/alerts", async (req: Request, res: Response) => {
       },
     });
 
-    // 3. Order rejections >= 3
+    // 3. Order rejections ×3
     const orderRejections = await prisma.keetaDailyMetrics.findMany({
       where: {
         tenantId,
@@ -201,10 +213,64 @@ router.get("/alerts", async (req: Request, res: Response) => {
       },
     });
 
+    // 4. Flight-mode: isOnline AND last two LocationLog entries within 50 m over ≥10 min
+    const activeSessions = await prisma.courierOnlineSession.findMany({
+      where: { tenantId, isOnline: true, driver: { platform: "KEETA" } },
+      select: { driverId: true, driver: { select: { name: true, platformDriverId: true } } },
+    });
+
+    const flightModeDrivers: Array<{
+      id: string;
+      name: string;
+      platformDriverId: string | null;
+    }> = [];
+    for (const s of activeSessions) {
+      const recent = await prisma.locationLog.findMany({
+        where: { driverId: s.driverId, capturedAt: { gte: tenMinAgo } },
+        orderBy: { capturedAt: "desc" },
+        take: 5,
+        select: { latitude: true, longitude: true, capturedAt: true },
+      });
+      if (recent.length < 2) continue;
+      const first = recent[0];
+      const last = recent[recent.length - 1];
+      const dist = haversineMeters(
+        Number(first.latitude),
+        Number(first.longitude),
+        Number(last.latitude),
+        Number(last.longitude)
+      );
+      const spanMs = first.capturedAt.getTime() - last.capturedAt.getTime();
+      if (dist < 50 && spanMs >= 10 * 60 * 1000) {
+        flightModeDrivers.push({
+          id: s.driverId,
+          name: s.driver!.name,
+          platformDriverId: s.driver!.platformDriverId ?? null,
+        });
+      }
+    }
+
     res.json({
-      scheduledNotOnline: { count: scheduledNotOnline.length, drivers: scheduledNotOnline },
-      gpsFailures: { count: gpsFailures.length, drivers: gpsFailures },
-      orderRejections: { count: orderRejections.length, drivers: orderRejections },
+      scheduledNotOnline: {
+        count: scheduledNotOnline.length,
+        courierIds: scheduledNotOnline.map((s) => s.driver.id),
+        drivers: scheduledNotOnline,
+      },
+      gpsStale: {
+        count: gpsStale.length,
+        courierIds: gpsStale.map((d) => d.driver!.id),
+        drivers: gpsStale,
+      },
+      rejectionsX3: {
+        count: orderRejections.length,
+        courierIds: orderRejections.map((m) => m.driver.id),
+        drivers: orderRejections,
+      },
+      flightMode: {
+        count: flightModeDrivers.length,
+        courierIds: flightModeDrivers.map((d) => d.id),
+        drivers: flightModeDrivers.map((d) => ({ driver: d })),
+      },
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

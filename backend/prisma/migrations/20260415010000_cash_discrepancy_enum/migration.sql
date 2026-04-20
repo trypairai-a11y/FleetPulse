@@ -1,0 +1,2 @@
+-- Add CASH_DISCREPANCY value to ViolationType enum
+ALTER TYPE "ViolationType" ADD VALUE IF NOT EXISTS 'CASH_DISCREPANCY';

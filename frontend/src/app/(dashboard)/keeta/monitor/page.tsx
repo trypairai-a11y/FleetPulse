@@ -70,10 +70,13 @@ export default function KeetaMonitorPage() {
   const couriers: Courier[] = monitorData?.couriers || [];
   const summary = monitorData?.summary || { total: 0, working: 0, idle: 0, offline: 0 };
   const alerts = alertsData || {
-    scheduledNotOnline: { count: 0, drivers: [] },
-    gpsFailures: { count: 0, drivers: [] },
-    orderRejections: { count: 0, drivers: [] },
+    scheduledNotOnline: { count: 0, courierIds: [], drivers: [] },
+    gpsStale: { count: 0, courierIds: [], drivers: [] },
+    rejectionsX3: { count: 0, courierIds: [], drivers: [] },
+    flightMode: { count: 0, courierIds: [], drivers: [] },
   };
+  const [alertPill, setAlertPill] = useState<null | "scheduledNotOnline" | "gpsStale" | "rejectionsX3" | "flightMode">(null);
+  const alertFilteredIds = alertPill ? new Set<string>(alerts[alertPill]?.courierIds ?? []) : null;
 
   // SSE: refetch monitor data on every server-sent event
   const handleSSEMessage = useCallback(() => {
@@ -151,23 +154,46 @@ export default function KeetaMonitorPage() {
         <StatCard title="Offline" value={summary.offline} icon={WifiOff} />
       </div>
 
-      {/* Alert Panel */}
+      {/* Alert Panel — four pills, click to filter courier list */}
       <div className="flex flex-wrap gap-3">
-        <div className="flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-2 rounded-full text-sm font-medium">
-          <WifiOff size={14} />
-          <span>Scheduled Not Online</span>
-          <span className="bg-amber-200/50 px-2 py-0.5 rounded-full text-xs font-semibold">{alerts.scheduledNotOnline.count}</span>
-        </div>
-        <div className="flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-full text-sm font-medium">
-          <MapPin size={14} />
-          <span>GPS Failures</span>
-          <span className="bg-red-200/50 px-2 py-0.5 rounded-full text-xs font-semibold">{alerts.gpsFailures.count}</span>
-        </div>
-        <div className="flex items-center gap-2 bg-purple-50 text-purple-700 px-4 py-2 rounded-full text-sm font-medium">
-          <AlertTriangle size={14} />
-          <span>Order Rejections 3+</span>
-          <span className="bg-purple-200/50 px-2 py-0.5 rounded-full text-xs font-semibold">{alerts.orderRejections.count}</span>
-        </div>
+        {([
+          { key: "scheduledNotOnline", label: "Scheduled not online", icon: WifiOff, color: "amber" },
+          { key: "gpsStale", label: "GPS stale", icon: MapPin, color: "red" },
+          { key: "rejectionsX3", label: "Rejections ×3", icon: AlertTriangle, color: "purple" },
+          { key: "flightMode", label: "Flight-mode", icon: Activity, color: "rose" },
+        ] as const).map(({ key, label, icon: Icon, color }) => {
+          const count = alerts[key]?.count ?? 0;
+          const active = alertPill === key;
+          const base = {
+            amber: "bg-amber-50 text-amber-700",
+            red: "bg-red-50 text-red-700",
+            purple: "bg-purple-50 text-purple-700",
+            rose: "bg-rose-50 text-rose-700",
+          }[color];
+          const chip = {
+            amber: "bg-amber-200/50",
+            red: "bg-red-200/50",
+            purple: "bg-purple-200/50",
+            rose: "bg-rose-200/50",
+          }[color];
+          return (
+            <button
+              key={key}
+              onClick={() => setAlertPill(active ? null : key)}
+              className={cn(
+                "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                base,
+                active && "ring-2 ring-offset-1 ring-current"
+              )}
+            >
+              <Icon size={14} />
+              <span>{label}</span>
+              <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", chip)}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* AI Insights */}
@@ -209,10 +235,18 @@ export default function KeetaMonitorPage() {
       {/* Courier List */}
       {tab === "courier" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {couriers.length === 0 ? (
-            <div className="col-span-full py-16 text-center text-sm text-secondary">No couriers found</div>
-          ) : (
-            couriers.map((c) => (
+          {(() => {
+            const visible = alertFilteredIds
+              ? couriers.filter((c) => alertFilteredIds.has(c.id))
+              : couriers;
+            if (visible.length === 0) {
+              return (
+                <div className="col-span-full py-16 text-center text-sm text-secondary">
+                  {alertPill ? "No couriers match the selected alert." : "No couriers found"}
+                </div>
+              );
+            }
+            return visible.map((c) => (
               <div
                 key={c.id}
                 onClick={() => { setSelected(c); setDetailTab("current"); }}
@@ -264,8 +298,8 @@ export default function KeetaMonitorPage() {
                   </div>
                 )}
               </div>
-            ))
-          )}
+            ));
+          })()}
         </div>
       )}
 

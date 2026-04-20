@@ -9,7 +9,7 @@ export default function RootPage() {
 
   useEffect(() => {
     if (!loading) {
-      router.replace(user ? "/talabat/drivers" : "/login");
+      router.replace(user ? "/overview" : "/marketing");
     }
   }, [user, loading, router]);
 

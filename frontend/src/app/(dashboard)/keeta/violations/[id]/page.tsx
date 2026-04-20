@@ -84,9 +84,15 @@ export default function ViolationDetailPage() {
             </span>
           </div>
           <div className="bg-gray-50 rounded-xl p-3">
-            <p className="text-[10px] text-secondary uppercase font-medium">Appeal Status</p>
-            <span className={cn("text-xs px-2 py-0.5 rounded-md font-medium", APPEAL_COLORS[violation.appealStatus])}>
-              {violation.appealStatus}
+            <p className="text-[10px] text-secondary uppercase font-medium">1st Appeal</p>
+            <span className={cn("text-xs px-2 py-0.5 rounded-md font-medium", APPEAL_COLORS[violation.firstAppealStatus || "NOT_RAISED"])}>
+              {violation.firstAppealStatus || "NOT_RAISED"}
+            </span>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-3">
+            <p className="text-[10px] text-secondary uppercase font-medium">2nd Appeal</p>
+            <span className={cn("text-xs px-2 py-0.5 rounded-md font-medium", APPEAL_COLORS[violation.secondAppealStatus || "NOT_RAISED"])}>
+              {violation.secondAppealStatus || "NOT_RAISED"}
             </span>
           </div>
           <div className="bg-gray-50 rounded-xl p-3">
@@ -179,6 +185,7 @@ export default function ViolationDetailPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-50">
+                  <th className="text-left text-xs font-medium text-secondary px-4 py-2">Level</th>
                   <th className="text-left text-xs font-medium text-secondary px-4 py-2">Date</th>
                   <th className="text-left text-xs font-medium text-secondary px-4 py-2">Status</th>
                   <th className="text-left text-xs font-medium text-secondary px-4 py-2">Channel</th>
@@ -190,6 +197,11 @@ export default function ViolationDetailPage() {
               <tbody>
                 {appeals.map((a: any) => (
                   <tr key={a.id} className="border-b border-gray-50 last:border-0">
+                    <td className="px-4 py-2">
+                      <span className="text-[10px] font-bold text-secondary bg-gray-100 px-1.5 py-0.5 rounded">
+                        {a.appealLevel === 2 ? "2ND" : "1ST"}
+                      </span>
+                    </td>
                     <td className="px-4 py-2 text-xs text-secondary">
                       {a.appealedAt ? new Date(a.appealedAt).toLocaleString() : "—"}
                     </td>

@@ -10,20 +10,20 @@ interface ErrorStateProps {
 export default function ErrorState({ error, onRetry, className }: ErrorStateProps) {
   return (
     <div
-      className={`flex flex-col items-center justify-center gap-3 py-12 px-4 text-center ${className || ""}`}
+      className={`flex flex-col items-center justify-center gap-4 py-14 px-4 text-center ${className || ""}`}
       role="alert"
     >
       <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
         <AlertCircle size={22} className="text-red-500" aria-hidden="true" />
       </div>
       <div>
-        <p className="text-sm font-medium text-gray-800">Something went wrong</p>
-        <p className="text-xs text-gray-500 mt-0.5 max-w-xs">{error}</p>
+        <p className="font-display text-lg text-sand-900">Something went wrong</p>
+        <p className="text-xs text-sand-600 mt-1 max-w-xs leading-relaxed">{error}</p>
       </div>
       {onRetry && (
         <button
           onClick={onRetry}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 h-9 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/15 rounded-pill transition-colors duration-250 ease-sierra-out"
           aria-label="Retry loading data"
         >
           <RefreshCw size={12} aria-hidden="true" />

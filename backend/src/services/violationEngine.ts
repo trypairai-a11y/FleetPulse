@@ -36,7 +36,7 @@ async function violationExistsToday(
 }
 
 // ─── Core: create violation + alert + notification ───────────────
-async function createViolationWithAlert(params: {
+export async function createViolationWithAlert(params: {
   tenantId: string;
   driverId: string;
   platform: Platform;

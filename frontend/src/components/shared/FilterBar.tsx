@@ -69,13 +69,13 @@ function MultiSelectFilter({
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-label={`Filter by ${filter.label}: ${label}`}
-        className="flex items-center gap-1 pl-3 pr-8 py-2 rounded-lg border border-gray-200 bg-white text-sm text-primary hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer whitespace-nowrap"
+        className="flex items-center gap-1 pl-3 pr-8 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary hover:border-sand-400 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer whitespace-nowrap"
       >
         {label}
       </button>
-      <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" aria-hidden="true" />
+      <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none" aria-hidden="true" />
       {open && (
-        <div role="listbox" aria-label={filter.label} aria-multiselectable="true" className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[180px] py-1 max-h-60 overflow-y-auto">
+        <div role="listbox" aria-label={filter.label} aria-multiselectable="true" className="absolute top-full left-0 mt-1 bg-white border border-sand-300 rounded-pill shadow-lg z-50 min-w-[180px] py-1 max-h-60 overflow-y-auto">
           {filter.options?.map((opt) => {
             const isSelected = selected.includes(opt.value);
             return (
@@ -85,12 +85,12 @@ function MultiSelectFilter({
                 role="option"
                 aria-selected={isSelected}
                 onClick={() => toggle(opt.value)}
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-sand-100 transition-colors"
               >
                 <span
                   aria-hidden="true"
                   className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
-                    isSelected ? "bg-primary border-primary text-white" : "border-gray-300"
+                    isSelected ? "bg-primary border-primary text-white" : "border-sand-400"
                   }`}
                 >
                   {isSelected && <Check size={10} />}
@@ -101,11 +101,11 @@ function MultiSelectFilter({
           })}
           {selected.length > 0 && (
             <>
-              <div className="border-t border-gray-100 my-1" />
+              <div className="border-t border-sand-200 my-1" />
               <button
                 type="button"
                 onClick={() => onChange("")}
-                className="w-full px-3 py-2 text-sm text-left text-secondary hover:bg-gray-50 transition-colors"
+                className="w-full px-3 py-2 text-sm text-left text-secondary hover:bg-sand-100 transition-colors"
               >
                 Clear all
               </button>
@@ -159,7 +159,7 @@ function DriverSearchFilter({
 
   return (
     <div ref={ref} className="relative">
-      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none" />
       <input
         type="text"
         value={query}
@@ -169,21 +169,21 @@ function DriverSearchFilter({
         aria-label={`Search by ${filter.label}`}
         aria-autocomplete="list"
         aria-expanded={open && suggestions.length > 0}
-        className="pl-9 pr-7 py-2 rounded-lg border border-gray-200 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-w-[180px] placeholder:text-gray-400"
+        className="pl-9 pr-7 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-w-[180px] placeholder:text-sand-500"
       />
       {query && (
-        <button type="button" onClick={clear} aria-label="Clear search" className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+        <button type="button" onClick={clear} aria-label="Clear search" className="absolute right-2 top-1/2 -translate-y-1/2 text-sand-500 hover:text-sand-800">
           <X size={13} aria-hidden="true" />
         </button>
       )}
       {open && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[220px] py-1 max-h-60 overflow-y-auto">
+        <div className="absolute top-full left-0 mt-1 bg-white border border-sand-300 rounded-pill shadow-lg z-50 min-w-[220px] py-1 max-h-60 overflow-y-auto">
           {suggestions.map((opt) => (
             <button
               key={opt.value}
               type="button"
               onClick={() => select(opt)}
-              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-50 transition-colors"
+              className="w-full px-3 py-2 text-sm text-left hover:bg-sand-100 transition-colors"
             >
               {opt.label}
             </button>
@@ -206,14 +206,14 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
         if (filter.type === "search") {
           return (
             <div key={filter.key} className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none" />
               <input
                 type="text"
                 value={values[filter.key] || ""}
                 onChange={(e) => onChange(filter.key, e.target.value)}
                 placeholder={filter.placeholder || `Search...`}
                 aria-label={`Search by ${filter.label}`}
-                className="pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-w-[220px] placeholder:text-gray-400"
+                className="pl-9 pr-3 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-w-[220px] placeholder:text-sand-500"
               />
             </div>
           );
@@ -240,7 +240,7 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
               value={values[filter.key] || ""}
               onChange={(e) => onChange(filter.key, e.target.value)}
               aria-label={`Filter by ${filter.label}`}
-              className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="px-3 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           );
         }
@@ -253,7 +253,7 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
               value={values[filter.key] || ""}
               onChange={(e) => onChange(filter.key, e.target.value)}
               aria-label={`Filter by ${filter.label}`}
-              className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 w-[120px] placeholder:text-gray-400 font-mono"
+              className="px-3 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 w-[120px] placeholder:text-sand-500 font-mono"
             />
           );
         }
@@ -283,14 +283,14 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
               value={values[filter.key] || ""}
               onChange={(e) => onChange(filter.key, e.target.value)}
               aria-label={`Filter by ${filter.label}`}
-              className="appearance-none pl-3 pr-8 py-2 rounded-lg border border-gray-200 bg-white text-sm text-primary hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              className="appearance-none pl-3 pr-8 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary hover:border-sand-400 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
             >
               <option value="">{filter.label}</option>
               {filter.options?.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
-            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" aria-hidden="true" />
+            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none" aria-hidden="true" />
           </div>
         );
       })}
@@ -299,7 +299,7 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
           type="button"
           onClick={onClear}
           aria-label="Clear all filters"
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-pill text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
         >
           <X size={14} aria-hidden="true" />
           Clear Filters

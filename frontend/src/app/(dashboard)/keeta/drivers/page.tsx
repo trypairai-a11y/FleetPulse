@@ -96,7 +96,7 @@ export default function KeetaDriversPage() {
             { value: "RESTRICTED_PERMANENTLY", label: "Restricted (Permanent)" },
             { value: "INACTIVE", label: "Inactive" },
             { value: "TERMINATED", label: "Terminated" },
-            { value: "TERMINATION", label: "Termination" },
+            { value: "TERMINATION", label: "Pending Termination" },
           ]},
         ]}
         values={filters}

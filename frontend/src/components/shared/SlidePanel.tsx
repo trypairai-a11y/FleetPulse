@@ -12,17 +12,17 @@ interface SlidePanelProps {
 export default function SlidePanel({ open, onClose, title, subtitle, children }: SlidePanelProps) {
   if (!open) return null;
   return (
-    <div className="fixed top-16 left-0 right-0 bottom-0 bg-black/20 backdrop-blur-sm z-50 flex justify-end" onClick={onClose}>
+    <div className="fixed top-16 left-0 right-0 bottom-0 bg-forest-900/25 backdrop-blur-sm z-50 flex justify-end" onClick={onClose}>
       <div
-        className="bg-white w-full max-w-md h-full shadow-lg overflow-y-auto p-6 animate-in slide-in-from-right duration-200"
+        className="bg-card border-s border-sand-200 w-full max-w-md h-full shadow-float overflow-y-auto p-6 animate-in slide-in-from-right duration-250"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-6">
           <div>
-            {subtitle && <span className="text-xs text-secondary">{subtitle}</span>}
-            <h2 className="text-lg font-semibold">{title}</h2>
+            {subtitle && <span className="text-[11px] uppercase tracking-widest text-sand-600">{subtitle}</span>}
+            <h2 className="font-display text-display-sm text-sand-900 mt-0.5">{title}</h2>
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-gray-50 rounded-lg">
+          <button onClick={onClose} className="p-1.5 rounded-pill hover:bg-sand-100 text-sand-700 transition-colors duration-250 ease-sierra-out">
             <X size={18} />
           </button>
         </div>

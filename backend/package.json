@@ -7,7 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "worker:notifications": "tsx src/queues/notificationWorker.ts",
     "worker:notifications:prod": "node dist/queues/notificationWorker.js",
-    "build": "prisma generate && prisma migrate deploy && tsc",
+    "build": "prisma generate && tsc",
     "start": "node dist/server.js",
     "test": "jest",
     "test:watch": "jest --watch",

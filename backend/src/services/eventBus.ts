@@ -10,8 +10,21 @@ import { logger } from "../config/logger";
  * subscribers only see their own data (enforced server-side, not client-side).
  */
 
+export type DarbEventType =
+  | "alert"
+  | "violation"
+  | "notification"
+  | "driver_update"
+  | "score_update"
+  // v2 agent runtime events:
+  | "appeal_submitted"
+  | "cash_record_upserted"
+  | "agent_action_pending"
+  | "agent_action_resolved"
+  | "briefing_published";
+
 export interface DarbEvent {
-  type: "alert" | "violation" | "notification" | "driver_update" | "score_update";
+  type: DarbEventType;
   tenantId: string;
   payload: Record<string, unknown>;
   timestamp: string;

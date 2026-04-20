@@ -39,6 +39,7 @@ export interface Messages {
     operationCentre: string;
     courierDetails: string;
     shiftMonitor: string;
+    availableShifts: string;
     incentives: string;
     billings: string;
     taxInvoices: string;
@@ -280,6 +281,7 @@ export const en: Messages = {
     operationCentre: "Operation Centre",
     courierDetails: "Courier Details",
     shiftMonitor: "Shift Monitor",
+    availableShifts: "Available Shifts",
     incentives: "Incentives",
     billings: "Billings",
     taxInvoices: "Tax Invoices",
@@ -521,6 +523,7 @@ export const ar: Messages = {
     operationCentre: "مركز العمليات",
     courierDetails: "تفاصيل السائقين",
     shiftMonitor: "مراقبة المناوبات",
+    availableShifts: "المناوبات المتاحة",
     incentives: "الحوافز",
     billings: "الفواتير",
     taxInvoices: "الفواتير الضريبية",

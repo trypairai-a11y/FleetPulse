@@ -272,7 +272,7 @@ export default function CompaniesPage() {
                     { value: "ACTIVE", label: "Active" },
                     { value: "SUSPENDED", label: "Suspended" },
                     { value: "LEAVE", label: "Leave" },
-                    { value: "TERMINATION", label: "Termination" },
+                    { value: "TERMINATION", label: "Pending Termination" },
                   ],
                 },
               ]}

@@ -161,7 +161,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       include: {
         driver: { select: { id: true, name: true, platform: true, vehicleType: true, platformDriverId: true, phone: true } },
         penalties: true,
-        appeals: { orderBy: { appealedAt: "desc" } },
+        appeals: { orderBy: { appealLevel: "asc" } },
       },
     });
     if (!violation) { res.status(404).json({ error: "Violation not found" }); return; }
@@ -313,19 +313,34 @@ router.post("/:id/appeal", async (req: Request, res: Response) => {
     const violationId = req.params.id;
     const { channel, reason } = req.body;
 
-    // Verify the violation belongs to this tenant
     const violation = await prisma.violation.findFirst({
       where: { id: violationId, tenantId },
     });
     if (!violation) { res.status(404).json({ error: "Violation not found" }); return; }
 
+    // Determine appeal level: 1 if none yet, 2 if first was REJECTED, otherwise block
+    let appealLevel = 1;
+    if (violation.firstAppealStatus === "NOT_RAISED") {
+      appealLevel = 1;
+    } else if (violation.firstAppealStatus === "REJECTED" && violation.secondAppealStatus === "NOT_RAISED") {
+      appealLevel = 2;
+    } else {
+      res.status(400).json({ error: "No further appeal allowed for this violation" });
+      return;
+    }
+
     const [appeal] = await Promise.all([
       prisma.appeal.create({
-        data: { tenantId, violationId, channel, reason },
+        data: { tenantId, violationId, channel, reason, appealLevel },
       }),
       prisma.violation.update({
         where: { id: violationId },
-        data: { appealStatus: "PENDING" },
+        data: {
+          appealStatus: "PENDING",
+          ...(appealLevel === 1
+            ? { firstAppealStatus: "PENDING" as AppealStatus }
+            : { secondAppealStatus: "PENDING" as AppealStatus }),
+        },
       }),
     ]);
 
@@ -394,11 +409,13 @@ router.put("/:id/appeal/:appealId", async (req: Request, res: Response) => {
       },
     });
 
-    // Update the violation's appeal status accordingly
     await prisma.violation.update({
       where: { id: violationId },
       data: {
         appealStatus,
+        ...(updated.appealLevel === 2
+          ? { secondAppealStatus: appealStatus as AppealStatus }
+          : { firstAppealStatus: appealStatus as AppealStatus }),
         ...(appealStatus === "APPROVED" ? { violationStatus: "OVERTURNED" as ViolationStatus } : {}),
       },
     });

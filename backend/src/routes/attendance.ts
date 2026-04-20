@@ -44,6 +44,125 @@ router.use(authMiddleware, tenantScope);
  *       200:
  *         description: Paginated attendance records with driver and shift info
  */
+/**
+ * R7 · Live "On shift now" by zone.
+ *
+ * GET /api/attendance/live?platform=TALABAT&zone=<optional>
+ *   → { window, zones: [{ name, expected, online, late, noShow, drivers[] }] }
+ *
+ * "Late" threshold is read from platformSettings.shiftRules.lateThresholdMinutes
+ * (default 15). Expected = drivers with a BOOKED shift whose window includes now.
+ */
+router.get("/live", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const platform = String(req.query.platform ?? "TALABAT").toUpperCase() as any;
+    const zoneFilter = req.query.zone ? String(req.query.zone) : undefined;
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+    const settings = await prisma.platformSettings.findUnique({
+      where: { tenantId_platform: { tenantId, platform } },
+      select: { shiftRules: true },
+    });
+    const lateThresholdMin =
+      ((settings?.shiftRules as any)?.lateThresholdMinutes ?? 15) * 1;
+
+    const shifts = await prisma.shift.findMany({
+      where: {
+        tenantId,
+        platform,
+        date: { gte: todayStart, lt: todayEnd },
+        scheduledStart: { lte: now },
+        scheduledEnd: { gte: now },
+        ...(zoneFilter ? { zone: zoneFilter } : {}),
+      },
+      select: {
+        id: true,
+        zone: true,
+        scheduledStart: true,
+        scheduledEnd: true,
+        actualStart: true,
+        driver: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            zone: true,
+            device: { select: { isOnline: true, lastSeen: true } },
+          },
+        },
+      },
+    });
+
+    type Row = {
+      shiftId: string;
+      driverId: string;
+      name: string;
+      phone: string;
+      onlineNow: boolean;
+      lateMinutes: number;
+      status: "PRESENT" | "LATE" | "NO_SHOW";
+    };
+    const byZone = new Map<
+      string,
+      { name: string; expected: number; online: number; late: number; noShow: number; drivers: Row[] }
+    >();
+
+    const getZone = (name: string) => {
+      if (!byZone.has(name)) {
+        byZone.set(name, { name, expected: 0, online: 0, late: 0, noShow: 0, drivers: [] });
+      }
+      return byZone.get(name)!;
+    };
+
+    for (const s of shifts) {
+      const zoneName = s.zone ?? s.driver?.zone ?? "Unassigned";
+      const z = getZone(zoneName);
+      z.expected += 1;
+
+      const onlineNow = !!s.driver?.device?.isOnline;
+      if (onlineNow) z.online += 1;
+
+      let status: Row["status"] = "PRESENT";
+      let lateMinutes = 0;
+      if (!s.actualStart) {
+        const minutesPast = (now.getTime() - s.scheduledStart.getTime()) / 60_000;
+        if (minutesPast >= lateThresholdMin) {
+          status = minutesPast > lateThresholdMin * 4 ? "NO_SHOW" : "LATE";
+          lateMinutes = Math.floor(minutesPast);
+          if (status === "LATE") z.late += 1;
+          else z.noShow += 1;
+        }
+      } else if (s.actualStart.getTime() - s.scheduledStart.getTime() > lateThresholdMin * 60_000) {
+        status = "LATE";
+        lateMinutes = Math.floor((s.actualStart.getTime() - s.scheduledStart.getTime()) / 60_000);
+        z.late += 1;
+      }
+
+      z.drivers.push({
+        shiftId: s.id,
+        driverId: s.driver!.id,
+        name: s.driver!.name,
+        phone: s.driver!.phone,
+        onlineNow,
+        lateMinutes,
+        status,
+      });
+    }
+
+    res.json({
+      window: { startAt: todayStart, endAt: todayEnd, nowAt: now },
+      lateThresholdMinutes: lateThresholdMin,
+      zones: [...byZone.values()].sort((a, b) => b.expected - a.expected),
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);

@@ -4,6 +4,7 @@ import { useApiGet } from "@/hooks/useApi";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
+import TalabatOnShiftNow from "@/components/platform/TalabatOnShiftNow";
 import { cn } from "@/lib/cn";
 import {
   CalendarCheck, Clock, UserX, FileText, ShieldAlert,

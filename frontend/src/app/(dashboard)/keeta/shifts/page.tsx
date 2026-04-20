@@ -71,7 +71,7 @@ const KEETA_SLOTS = [
   { id: "s4", label: "15:00 – 19:00", start: "15:00", end: "19:00" },
 ];
 
-const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WEEK_DAYS = ["Wed", "Thu", "Fri", "Sat", "Sun", "Mon", "Tue"];
 
 const SHIFT_STATUS_STYLES: Record<string, string> = {
   BOOKED: "bg-blue-50 text-blue-700 border border-blue-100",
@@ -91,10 +91,10 @@ const SHIFT_STATUS_LABELS: Record<string, string> = {
 
 function getMonday(d: Date): Date {
   const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(d);
-  monday.setDate(diff);
-  return monday;
+  const offset = (day - 3 + 7) % 7;
+  const wednesday = new Date(d);
+  wednesday.setDate(d.getDate() - offset);
+  return wednesday;
 }
 
 function addDays(d: Date, n: number): Date {

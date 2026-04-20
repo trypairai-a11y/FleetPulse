@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useApiGet } from "@/hooks/useApi";
 import { cn } from "@/lib/cn";
 import { cleanDriverName } from "@/lib/formatters";
+import TalabatLiveOpsHeader from "@/components/platform/TalabatLiveOpsHeader";
 import {
   ShoppingBag, DollarSign, AlertTriangle, Users, Clock, TrendingUp,
   TrendingDown, Minus, ChevronRight, ShieldAlert, ArrowUpRight,
@@ -208,6 +209,9 @@ export default function TalabatOverviewPage() {
           {companies.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
       </div>
+
+      {/* R2 · Live Ops · Attention · DoD KPIs */}
+      <TalabatLiveOpsHeader />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
