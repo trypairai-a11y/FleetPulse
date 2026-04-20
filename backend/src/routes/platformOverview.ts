@@ -192,6 +192,183 @@ router.get("/talabat/live", async (req: Request, res: Response) => {
   }
 });
 
+// ─── D2 · Deliveroo overview (unassigned by zone + top/bottom riders) ───────
+router.get("/deliveroo/overview", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    const sevenStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const weekStart = new Date(todayStart);
+    const dayOfWeek = weekStart.getDay(); // 0 = Sun
+    weekStart.setDate(weekStart.getDate() - dayOfWeek);
+
+    const settings = await prisma.platformSettings.findUnique({
+      where: { tenantId_platform: { tenantId, platform: "DELIVEROO" } },
+    });
+    const amberThreshold =
+      (settings?.zones as any)?.unassignedAmberThreshold ?? 1;
+    const redThreshold = (settings?.zones as any)?.unassignedRedThreshold ?? 3;
+
+    const [todayMetrics, sevenMetrics, weekMetrics, yesterdayMetrics] =
+      await Promise.all([
+        prisma.deliverooDailyMetrics.findMany({
+          where: {
+            tenantId,
+            shiftDate: { gte: todayStart, lt: todayEnd },
+            status: { in: ["PARSED", "APPROVED"] },
+          },
+          include: { driver: { select: { id: true, name: true, zone: true } } },
+        }),
+        prisma.deliverooDailyMetrics.findMany({
+          where: {
+            tenantId,
+            shiftDate: { gte: sevenStart, lt: todayStart },
+            status: { in: ["PARSED", "APPROVED"] },
+          },
+          include: { driver: { select: { zone: true } } },
+        }),
+        prisma.deliverooDailyMetrics.findMany({
+          where: {
+            tenantId,
+            shiftDate: { gte: weekStart, lt: todayEnd },
+            status: { in: ["PARSED", "APPROVED"] },
+          },
+          include: {
+            driver: { select: { id: true, name: true, zone: true, utr: true } },
+          },
+        }),
+        prisma.deliverooDailyMetrics.findMany({
+          where: {
+            tenantId,
+            shiftDate: {
+              gte: new Date(todayStart.getTime() - 24 * 60 * 60 * 1000),
+              lt: todayStart,
+            },
+            status: { in: ["PARSED", "APPROVED"] },
+          },
+        }),
+      ]);
+
+    // Zone aggregation — today
+    type ZoneRow = { zone: string; today: number; avg7: number; severity: "green" | "amber" | "red" };
+    const zoneTodayMap = new Map<string, number>();
+    const zoneHistMap = new Map<string, number>();
+    for (const m of todayMetrics) {
+      const z = m.driver?.zone ?? "Unassigned";
+      zoneTodayMap.set(z, (zoneTodayMap.get(z) ?? 0) + (m.unassignedCount ?? 0));
+    }
+    for (const m of sevenMetrics) {
+      const z = m.driver?.zone ?? "Unassigned";
+      zoneHistMap.set(z, (zoneHistMap.get(z) ?? 0) + (m.unassignedCount ?? 0));
+    }
+    const allZones = new Set<string>([
+      ...zoneTodayMap.keys(),
+      ...zoneHistMap.keys(),
+    ]);
+    const unassignedByZone: ZoneRow[] = [...allZones]
+      .map((zone) => {
+        const today = zoneTodayMap.get(zone) ?? 0;
+        const avg7 = Math.round(((zoneHistMap.get(zone) ?? 0) / 7) * 10) / 10;
+        const severity: ZoneRow["severity"] =
+          today >= redThreshold ? "red" : today >= amberThreshold ? "amber" : "green";
+        return { zone, today, avg7, severity };
+      })
+      .sort((a, b) => b.today - a.today);
+
+    // Top / Bottom riders — this week by composite of deliveries + UTR stand-in
+    // (acceptance not yet extracted; use deliveriesCount / onlineHour estimates).
+    type RiderAgg = {
+      driverId: string;
+      name: string;
+      deliveries: number;
+      onlineHours: number;
+      unassignedLinked: number;
+    };
+    const riders = new Map<string, RiderAgg>();
+    for (const m of weekMetrics) {
+      if (!m.driver) continue;
+      const r = riders.get(m.driverId) ?? {
+        driverId: m.driverId,
+        name: m.driver.name,
+        deliveries: 0,
+        onlineHours: 0,
+        unassignedLinked: 0,
+      };
+      r.deliveries += m.deliveriesCount ?? 0;
+      const buckets = Array.isArray(m.hourlyBuckets)
+        ? (m.hourlyBuckets as any[])
+        : [];
+      // Each non-zero 2-hour bucket contributes ~2 online hours (heuristic)
+      r.onlineHours += buckets.reduce(
+        (sum: number, v: any) => sum + (Number(v) > 0 ? 2 : 0),
+        0
+      );
+      r.unassignedLinked += m.unassignedCount ?? 0;
+      riders.set(m.driverId, r);
+    }
+    const riderRows = [...riders.values()].map((r) => ({
+      driverId: r.driverId,
+      name: r.name,
+      deliveries: r.deliveries,
+      utr:
+        r.onlineHours > 0
+          ? Math.round((r.deliveries / r.onlineHours) * 100) / 100
+          : 0,
+      unassignedLinked: r.unassignedLinked,
+      // Composite: higher utr, higher deliveries, lower unassigned
+      composite:
+        (r.onlineHours > 0 ? (r.deliveries / r.onlineHours) * 10 : 0) +
+        r.deliveries * 0.1 -
+        r.unassignedLinked * 2,
+    }));
+    riderRows.sort((a, b) => b.composite - a.composite);
+    const topRiders = riderRows.slice(0, 5);
+    const bottomRiders = riderRows.slice(-5).reverse();
+
+    // KPI strip — today vs yesterday DoD
+    const sum = (rows: any[], k: "deliveriesCount" | "unassignedCount") =>
+      rows.reduce((s, r) => s + (r[k] ?? 0), 0);
+    const sumDec = (rows: any[], k: "codCollectedKwd" | "tipsKwd") =>
+      rows.reduce((s, r) => s + Number(r[k] ?? 0), 0);
+
+    const todayKpis = {
+      deliveries: sum(todayMetrics, "deliveriesCount"),
+      cashKwd: Math.round(sumDec(todayMetrics, "codCollectedKwd") * 1000) / 1000,
+      tipsKwd: Math.round(sumDec(todayMetrics, "tipsKwd") * 1000) / 1000,
+      unassigned: sum(todayMetrics, "unassignedCount"),
+    };
+    const ydKpis = {
+      deliveries: sum(yesterdayMetrics, "deliveriesCount"),
+      cashKwd:
+        Math.round(sumDec(yesterdayMetrics, "codCollectedKwd") * 1000) / 1000,
+      tipsKwd: Math.round(sumDec(yesterdayMetrics, "tipsKwd") * 1000) / 1000,
+      unassigned: sum(yesterdayMetrics, "unassignedCount"),
+    };
+    const dod = (t: number, y: number) =>
+      y === 0 ? null : Math.round(((t - y) / y) * 10000) / 100;
+
+    res.json({
+      unassignedByZone,
+      topRiders,
+      bottomRiders,
+      kpis: {
+        ...todayKpis,
+        dodPct: {
+          deliveries: dod(todayKpis.deliveries, ydKpis.deliveries),
+          cashKwd: dod(todayKpis.cashKwd, ydKpis.cashKwd),
+          tipsKwd: dod(todayKpis.tipsKwd, ydKpis.tipsKwd),
+          unassigned: dod(todayKpis.unassigned, ydKpis.unassigned),
+        },
+      },
+      thresholds: { amber: amberThreshold, red: redThreshold },
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/platform-overview/:platform
 router.get("/:platform", async (req: Request, res: Response) => {
   try {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useApiGet } from "@/hooks/useApi";
+import api from "@/lib/api";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
@@ -29,9 +30,10 @@ type ViolationTab =
   | "ORDER_SLIGHTLY_LATE"
   | "ORDER_VERY_LATE"
   | "INVALID_DELIVERY_PHOTO"
-  | "GPS_NOT_UPLOADING";
+  | "GPS_NOT_UPLOADING"
+  | "DELIVEROO_UNASSIGNED_ORDER";
 
-const VIOLATION_TABS: { key: ViolationTab; label: string }[] = [
+const BASE_VIOLATION_TABS: { key: ViolationTab; label: string }[] = [
   { key: "ALL", label: "All" },
   { key: "LATE_PICKUP", label: "Late Pickup" },
   { key: "ORDER_REJECTION_TIMEOUT", label: "Rejection Timeout" },
@@ -41,6 +43,11 @@ const VIOLATION_TABS: { key: ViolationTab; label: string }[] = [
   { key: "INVALID_DELIVERY_PHOTO", label: "Invalid Photo" },
   { key: "GPS_NOT_UPLOADING", label: "GPS Not Uploading" },
 ];
+
+const DELIVEROO_UNASSIGNED_TAB: { key: ViolationTab; label: string } = {
+  key: "DELIVEROO_UNASSIGNED_ORDER",
+  label: "Unassigned",
+};
 
 /* ─── Color maps ─── */
 
@@ -52,6 +59,7 @@ const TYPE_COLORS: Record<string, string> = {
   ORDER_VERY_LATE: "bg-red-100 text-red-700",
   INVALID_DELIVERY_PHOTO: "bg-blue-50 text-blue-600",
   GPS_NOT_UPLOADING: "bg-orange-50 text-orange-600",
+  DELIVEROO_UNASSIGNED_ORDER: "bg-pink-50 text-pink-700",
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -121,7 +129,21 @@ export default function ViolationsPage({ platform }: ViolationsPageProps) {
   const { data: summaryData, loading: summaryLoading } = useApiGet<any>(
     `/api/violations/summary?platform=${platform}`
   );
-  const { data, loading } = useApiGet<any>(`/api/violations?${params}`);
+  const { data, loading, refetch: refetchList } = useApiGet<any>(`/api/violations?${params}`);
+  const [rootCauseBusy, setRootCauseBusy] = useState(false);
+
+  const setRootCause = async (violationId: string, rootCause: string) => {
+    setRootCauseBusy(true);
+    try {
+      const resp = await api.patch(`/api/violations/${violationId}/root-cause`, { rootCause });
+      setSelected((prev) => (prev && prev.id === violationId ? { ...prev, metadata: resp.data.metadata } : prev));
+      refetchList();
+    } catch {
+      /* no-op */
+    } finally {
+      setRootCauseBusy(false);
+    }
+  };
 
   const violations: Violation[] = data?.data || [];
   const pagination = data?.pagination;
@@ -148,7 +170,14 @@ export default function ViolationsPage({ platform }: ViolationsPageProps) {
       byType.find((t: any) => t.type === "INVALID_DELIVERY_PHOTO")?.count || 0,
     GPS_NOT_UPLOADING:
       byType.find((t: any) => t.type === "GPS_NOT_UPLOADING")?.count || 0,
+    DELIVEROO_UNASSIGNED_ORDER:
+      byType.find((t: any) => t.type === "DELIVEROO_UNASSIGNED_ORDER")?.count || 0,
   };
+
+  const VIOLATION_TABS =
+    platform === "DELIVEROO"
+      ? [...BASE_VIOLATION_TABS, DELIVEROO_UNASSIGNED_TAB]
+      : BASE_VIOLATION_TABS;
 
   const platformLabel = PLATFORM_LABELS[platform] || platform;
   const platformDot = PLATFORM_DOT[platform] || "bg-gray-400";
@@ -493,6 +522,53 @@ export default function ViolationsPage({ platform }: ViolationsPageProps) {
                   Details
                 </p>
                 <p className="text-sm">{selected.details}</p>
+              </div>
+            )}
+
+            {/* Root-cause picker (Deliveroo unassigned orders) */}
+            {selected.violationType === "DELIVEROO_UNASSIGNED_ORDER" && (
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-[10px] text-secondary uppercase font-medium mb-2">
+                  Root cause
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      ["NO_RIDER_IN_ZONE", "No rider in zone"],
+                      ["ALL_RIDERS_BUSY", "All riders busy"],
+                      ["ALL_REJECTED", "All rejected"],
+                      ["SYSTEM_ERROR", "System error"],
+                      ["UNKNOWN", "Unknown"],
+                    ] as const
+                  ).map(([code, label]) => {
+                    const current =
+                      ((selected.metadata as any) ?? {}).rootCause ?? "UNKNOWN";
+                    const active = current === code;
+                    return (
+                      <button
+                        key={code}
+                        disabled={rootCauseBusy}
+                        onClick={() => setRootCause(selected.id, code)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border",
+                          active
+                            ? "bg-foreground text-white border-foreground"
+                            : "bg-white text-secondary border-gray-200 hover:bg-gray-50"
+                        )}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {(selected.metadata as any)?.zone && (
+                  <p className="text-xs text-secondary mt-2">
+                    Zone:{" "}
+                    <span className="font-medium text-foreground">
+                      {(selected.metadata as any).zone}
+                    </span>
+                  </p>
+                )}
               </div>
             )}
 

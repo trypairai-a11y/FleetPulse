@@ -627,9 +627,10 @@ export class AiInsightsEngine {
       orderBy: { violationTime: "desc" },
     });
 
-    // Group by driver and compute weekly trend
+    // Group by driver and compute weekly trend — skip platform-level (driverless) violations
     const driverViolations = new Map<string, { name: string; platform: string; weeks: Map<number, number> }>();
     for (const v of recentViolations) {
+      if (!v.driverId || !v.driver) continue;
       if (!driverViolations.has(v.driverId)) {
         driverViolations.set(v.driverId, { name: v.driver.name, platform: v.driver.platform, weeks: new Map() });
       }

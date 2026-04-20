@@ -84,6 +84,7 @@ export interface Violation {
   violationTime: string;
   details?: string | null;
   taskId?: string | null;
+  metadata?: Record<string, unknown> | null;
   driver?: Pick<Driver, "id" | "name" | "platformDriverId" | "vehicleType">;
   penalties?: Penalty[];
   appeals?: Appeal[];

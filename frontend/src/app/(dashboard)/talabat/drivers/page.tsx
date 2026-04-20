@@ -45,6 +45,7 @@ export default function TalabatDriversPage() {
   if (filters.status) params.set("status", filters.status);
   if (filters.batch) params.set("batchNumber", filters.batch);
   if (filters.search) params.set("search", filters.search);
+  if (filters.tier) params.set("performanceTier", filters.tier);
 
   const summaryParams = new URLSearchParams({ platform: "TALABAT" });
   if (filters.company) summaryParams.set("companyId", filters.company);
@@ -224,6 +225,14 @@ export default function TalabatDriversPage() {
               { value: "INACTIVE", label: "Inactive" },
               { value: "TERMINATED", label: "Terminated" },
               { value: "TERMINATION", label: "Pending Termination" },
+            ]
+          },
+          {
+            key: "tier", type: "multi-select", label: "Performance tier", options: [
+              { value: "GOLD", label: "Gold" },
+              { value: "SILVER", label: "Silver" },
+              { value: "BRONZE", label: "Bronze" },
+              { value: "WATCHLIST", label: "Watchlist" },
             ]
           },
         ]}

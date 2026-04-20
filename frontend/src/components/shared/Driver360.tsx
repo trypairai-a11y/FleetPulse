@@ -18,7 +18,7 @@ import {
   Gauge,
 } from "lucide-react";
 
-type Platform = "talabat" | "keeta";
+type Platform = "talabat" | "keeta" | "deliveroo";
 
 type Tab =
   | "overview"
@@ -27,7 +27,7 @@ type Tab =
   | "cash-violations"
   | "assets";
 
-const TABS: Array<{ key: Tab; label: string; icon: any }> = [
+const ALL_TABS: Array<{ key: Tab; label: string; icon: any }> = [
   { key: "overview", label: "Overview", icon: Gauge },
   { key: "attendance", label: "Attendance & Shifts", icon: Calendar },
   { key: "performance", label: "Orders & Performance", icon: Activity },
@@ -58,6 +58,30 @@ export default function Driver360({
     ["driver360", driverId, platform],
     `/api/drivers/${driverId}/profile?platform=${platform.toUpperCase()}`
   );
+
+  // Deliveroo-specific: per-order contract means attendance is optional.
+  // Default hide; tenant opts in via platformSettings.deliveroo.showAttendanceTab.
+  const attendanceSettingsEnabled = platform === "deliveroo";
+  const { data: settings } = useApiQuery<any>(
+    ["platform-settings", platform],
+    attendanceSettingsEnabled ? `/api/platform-settings/${platform.toUpperCase()}` : null
+  );
+  const showAttendanceForDeliveroo =
+    settings?.shiftRules?.showAttendanceTab === true ||
+    settings?.bookingRules?.showAttendanceTab === true;
+
+  const TABS = ALL_TABS.filter((t) => {
+    if (t.key === "attendance" && platform === "deliveroo" && !showAttendanceForDeliveroo) {
+      return false;
+    }
+    return true;
+  });
+
+  if (tab === "attendance" && platform === "deliveroo" && !showAttendanceForDeliveroo) {
+    // Active tab was hidden by settings — bounce back to overview.
+    // Avoid updating during render: schedule a tick.
+    setTimeout(() => setTab("overview"), 0);
+  }
 
   if (isLoading || !data) return <PageSkeleton />;
 
@@ -134,7 +158,7 @@ export default function Driver360({
       {tab === "overview" && <OverviewTab data={data} />}
       {tab === "attendance" && <AttendanceTab data={data} />}
       {tab === "performance" && <PerformanceTab data={data} platform={platform} />}
-      {tab === "cash-violations" && <CashViolationsTab data={data} />}
+      {tab === "cash-violations" && <CashViolationsTab data={data} platform={platform} />}
       {tab === "assets" && <AssetsTab data={data} />}
     </div>
   );
@@ -241,7 +265,9 @@ function PerformanceTab({ data, platform }: { data: any; platform: Platform }) {
   const metrics =
     platform === "talabat"
       ? data.performance?.talabatMetrics ?? []
-      : data.performance?.keetaMetrics ?? [];
+      : platform === "keeta"
+        ? data.performance?.keetaMetrics ?? []
+        : data.performance?.deliverooMetrics ?? [];
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
       <header className="border-b border-gray-100 px-4 py-2 text-sm font-semibold">
@@ -254,30 +280,62 @@ function PerformanceTab({ data, platform }: { data: any; platform: Platform }) {
             <th className="px-4 py-2">Orders</th>
             <th className="px-4 py-2">Online h</th>
             <th className="px-4 py-2">UTR</th>
-            <th className="px-4 py-2">On-time</th>
+            <th className="px-4 py-2">
+              {platform === "deliveroo" ? "Unassigned" : "On-time"}
+            </th>
           </tr>
         </thead>
         <tbody>
           {metrics.map((m: any) => {
-            const date = platform === "talabat" ? m.shiftDate : m.date;
-            const orders = platform === "talabat" ? m.ordersCompleted : m.deliveredTasks;
-            const online =
+            const date =
+              platform === "talabat"
+                ? m.shiftDate
+                : platform === "keeta"
+                  ? m.date
+                  : m.shiftDate;
+            const orders =
+              platform === "talabat"
+                ? m.ordersCompleted
+                : platform === "keeta"
+                  ? m.deliveredTasks
+                  : m.deliveriesCount;
+            const onlineHours =
               platform === "talabat"
                 ? m.onlineHours
-                : m.onlineTime != null
-                  ? (m.onlineTime / 60).toFixed(1)
-                  : null;
-            const utr = platform === "talabat" ? m.utr : null;
-            const onTime = platform === "keeta" && m.onTimeRate != null
-              ? `${(Number(m.onTimeRate) * 100).toFixed(1)}%`
-              : "—";
+                : platform === "keeta"
+                  ? m.onlineTime != null
+                    ? (m.onlineTime / 60).toFixed(1)
+                    : null
+                  : Array.isArray(m.hourlyBuckets)
+                    ? m.hourlyBuckets.reduce(
+                        (s: number, v: any) => s + (Number(v) > 0 ? 2 : 0),
+                        0
+                      )
+                    : null;
+            let utr: number | null = null;
+            if (platform === "talabat") utr = m.utr ?? null;
+            else if (platform === "deliveroo") {
+              const online = Array.isArray(m.hourlyBuckets)
+                ? m.hourlyBuckets.reduce(
+                    (s: number, v: any) => s + (Number(v) > 0 ? 2 : 0),
+                    0
+                  )
+                : 0;
+              utr = online > 0 ? (m.deliveriesCount ?? 0) / online : null;
+            }
+            const lastCol =
+              platform === "deliveroo"
+                ? m.unassignedCount ?? 0
+                : platform === "keeta" && m.onTimeRate != null
+                  ? `${(Number(m.onTimeRate) * 100).toFixed(1)}%`
+                  : "—";
             return (
               <tr key={m.id} className="border-t border-gray-100">
                 <td className="px-4 py-2">{new Date(date).toLocaleDateString()}</td>
                 <td className="px-4 py-2">{orders ?? "—"}</td>
-                <td className="px-4 py-2">{online ?? "—"}</td>
+                <td className="px-4 py-2">{onlineHours ?? "—"}</td>
                 <td className="px-4 py-2">{utr != null ? Number(utr).toFixed(2) : "—"}</td>
-                <td className="px-4 py-2">{onTime}</td>
+                <td className="px-4 py-2">{lastCol}</td>
               </tr>
             );
           })}
@@ -294,11 +352,13 @@ function PerformanceTab({ data, platform }: { data: any; platform: Platform }) {
   );
 }
 
-function CashViolationsTab({ data }: { data: any }) {
+function CashViolationsTab({ data, platform }: { data: any; platform: Platform }) {
   const cash = data.cash ?? {};
   const v = data.violations ?? {};
   const docs = data.documents ?? {};
   const docRows = Object.entries(docs);
+  const deliverooMetrics: any[] =
+    platform === "deliveroo" ? data.performance?.deliverooMetrics ?? [] : [];
   return (
     <div className="grid gap-4 lg:grid-cols-3">
       <div className="rounded-xl border border-gray-200 bg-white">
@@ -306,35 +366,65 @@ function CashViolationsTab({ data }: { data: any }) {
           <span className="inline-flex items-center gap-1">
             <DollarSign size={14} /> Cash
           </span>
-          <span className="text-xs text-red-600">
-            Outstanding {Number(cash.pendingDues ?? 0).toFixed(3)} KD
-          </span>
+          {platform !== "deliveroo" && (
+            <span className="text-xs text-red-600">
+              Outstanding {Number(cash.pendingDues ?? 0).toFixed(3)} KD
+            </span>
+          )}
         </header>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs uppercase text-gray-500">
-              <th className="px-4 py-2">Date</th>
-              <th className="px-4 py-2">Collected</th>
-              <th className="px-4 py-2">Pending</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(cash.records ?? []).map((c: any) => (
-              <tr key={c.id} className="border-t border-gray-100">
-                <td className="px-4 py-2">{new Date(c.date).toLocaleDateString()}</td>
-                <td className="px-4 py-2">{Number(c.collectionAmount).toFixed(3)}</td>
-                <td className="px-4 py-2">{Number(c.pendingDues).toFixed(3)}</td>
+        {platform === "deliveroo" ? (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase text-gray-500">
+                <th className="px-4 py-2">Date</th>
+                <th className="px-4 py-2">COD</th>
+                <th className="px-4 py-2">Tips</th>
               </tr>
-            ))}
-            {(cash.records ?? []).length === 0 && (
-              <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-xs text-gray-400">
-                  No cash records this month.
-                </td>
+            </thead>
+            <tbody>
+              {deliverooMetrics.map((m: any) => (
+                <tr key={m.id} className="border-t border-gray-100">
+                  <td className="px-4 py-2">{new Date(m.shiftDate).toLocaleDateString()}</td>
+                  <td className="px-4 py-2">{Number(m.codCollectedKwd ?? 0).toFixed(3)}</td>
+                  <td className="px-4 py-2">{Number(m.tipsKwd ?? 0).toFixed(3)}</td>
+                </tr>
+              ))}
+              {deliverooMetrics.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="px-4 py-6 text-center text-xs text-gray-400">
+                    No Deliveroo cash uploads this week.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase text-gray-500">
+                <th className="px-4 py-2">Date</th>
+                <th className="px-4 py-2">Collected</th>
+                <th className="px-4 py-2">Pending</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {(cash.records ?? []).map((c: any) => (
+                <tr key={c.id} className="border-t border-gray-100">
+                  <td className="px-4 py-2">{new Date(c.date).toLocaleDateString()}</td>
+                  <td className="px-4 py-2">{Number(c.collectionAmount).toFixed(3)}</td>
+                  <td className="px-4 py-2">{Number(c.pendingDues).toFixed(3)}</td>
+                </tr>
+              ))}
+              {(cash.records ?? []).length === 0 && (
+                <tr>
+                  <td colSpan={3} className="px-4 py-6 text-center text-xs text-gray-400">
+                    No cash records this month.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white">

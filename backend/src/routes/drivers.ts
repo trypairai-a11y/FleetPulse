@@ -59,10 +59,14 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     const { skip, limit, page } = getPagination(req);
     const tenantId = req.user!.tenantId;
-    const { platform, status, companyId, zone, batchNumber, search } = req.query;
+    const { platform, status, companyId, zone, batchNumber, search, performanceTier } = req.query;
 
     const where: any = { tenantId };
     if (platform) where.platform = platform;
+    if (performanceTier) {
+      const vals = String(performanceTier).split(",").filter(Boolean);
+      where.performanceTier = vals.length === 1 ? vals[0] : { in: vals };
+    }
     if (status) {
       const vals = (status as string).split(",").filter(Boolean);
       where.status = vals.length === 1 ? vals[0] : { in: vals };
@@ -352,6 +356,7 @@ router.get("/:id/profile", async (req: Request, res: Response) => {
       activeRestrictions,
       talabatMetrics,
       keetaMetrics,
+      deliverooMetrics,
       activeSession,
     ] = await Promise.all([
       prisma.orderLog.aggregate({
@@ -406,6 +411,12 @@ router.get("/:id/profile", async (req: Request, res: Response) => {
             orderBy: { date: "desc" },
           })
         : Promise.resolve([]),
+      driver.platform === "DELIVEROO"
+        ? prisma.deliverooDailyMetrics.findMany({
+            where: { tenantId, driverId: id, shiftDate: { gte: weekStart } },
+            orderBy: { shiftDate: "desc" },
+          })
+        : Promise.resolve([]),
       prisma.courierOnlineSession.findFirst({
         where: { tenantId, driverId: id, isOnline: true },
         select: { id: true, startTime: true, lastGpsAt: true, area: true },
@@ -418,7 +429,25 @@ router.get("/:id/profile", async (req: Request, res: Response) => {
         ? (talabatMetrics.reduce((s, m) => s + (m.utr ?? 0), 0) / talabatMetrics.length)
         : driver.platform === "KEETA" && keetaMetrics.length > 0
           ? keetaMetrics.reduce((s, m) => s + Number(m.completionRate ?? 0), 0) / keetaMetrics.length
-          : null;
+          : driver.platform === "DELIVEROO" && deliverooMetrics.length > 0
+            ? (() => {
+                const totals = deliverooMetrics.reduce(
+                  (acc: { d: number; h: number }, m: any) => {
+                    const buckets = Array.isArray(m.hourlyBuckets)
+                      ? (m.hourlyBuckets as number[])
+                      : [];
+                    acc.d += m.deliveriesCount ?? 0;
+                    acc.h += buckets.reduce(
+                      (s: number, v: any) => s + (Number(v) > 0 ? 2 : 0),
+                      0
+                    );
+                    return acc;
+                  },
+                  { d: 0, h: 0 }
+                );
+                return totals.h > 0 ? totals.d / totals.h : null;
+              })()
+            : null;
 
     const overview = {
       driver: {
@@ -468,6 +497,7 @@ router.get("/:id/profile", async (req: Request, res: Response) => {
       performance: {
         talabatMetrics,
         keetaMetrics,
+        deliverooMetrics,
       },
       cash: {
         pendingDues: Number(pendingCash._sum.pendingDues ?? 0),

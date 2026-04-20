@@ -14,9 +14,13 @@ import {
   ClipboardList, DollarSign, Briefcase,
   ShieldAlert, BarChart3, Target, Gauge, Building2, Lightbulb,
   Activity, AlertTriangle, Ban, Map as MapIcon, Calendar, Trophy, Wallet, PieChart,
+  Smartphone, Truck,
 } from "lucide-react";
 
 // Platform names stay as brand strings; sub-page labels translate via i18n keys.
+// R11 · Simplified per PRD:
+//   - Talabat drops Phones, Vehicles, Available-shifts, Sessions (now under Driver 360 / Shifts).
+//   - Keeta drops Phones, Vehicles, Penalties, Copilot, Courier-details, Shift-monitor, Available-shifts.
 const PLATFORMS = [
   {
     name: "Talabat",
@@ -26,10 +30,12 @@ const PLATFORMS = [
     subPages: [
       { i18n: "nav.overview", path: "/talabat/overview", icon: Gauge },
       { i18n: "nav.drivers", path: "/talabat/drivers", icon: Users },
-      { i18n: "nav.shifts", path: "/talabat/shifts", icon: ClipboardList },
+      { i18n: "nav.attendanceShifts", path: "/talabat/attendance", icon: Calendar },
       { i18n: "nav.orders", path: "/talabat/orders", icon: Briefcase },
       { i18n: "nav.cash", path: "/talabat/cash", icon: DollarSign },
       { i18n: "nav.violations", path: "/talabat/violations", icon: ShieldAlert },
+      { i18n: "nav.performance", path: "/talabat/performance", icon: BarChart3 },
+      { i18n: "nav.ingestReview", path: "/talabat/ingest-review", icon: ClipboardList },
       { i18n: "nav.settings", path: "/talabat/settings", icon: Settings },
     ],
   },
@@ -40,14 +46,15 @@ const PLATFORMS = [
     bg: "bg-keeta/10",
     subPages: [
       { i18n: "nav.overview", path: "/keeta/overview", icon: Gauge },
-      { i18n: "nav.drivers", path: "/keeta/drivers", icon: Users },
-      { i18n: "nav.shifts", path: "/keeta/shifts", icon: ClipboardList },
-      { i18n: "nav.shiftMonitor", path: "/keeta/shift-monitor", icon: Activity },
-      { i18n: "nav.orders", path: "/keeta/orders", icon: Briefcase },
-      { i18n: "nav.performance", path: "/keeta/performance", icon: BarChart3 },
       { i18n: "nav.monitor", path: "/keeta/monitor", icon: Activity },
+      { i18n: "nav.drivers", path: "/keeta/drivers", icon: Users },
+      { i18n: "nav.attendanceShifts", path: "/keeta/attendance", icon: Calendar },
+      { i18n: "nav.orders", path: "/keeta/orders", icon: Briefcase },
+      { i18n: "nav.financial", path: "/keeta/financial/billings", icon: Wallet },
       { i18n: "nav.violations", path: "/keeta/violations", icon: AlertTriangle },
-      { i18n: "nav.penalties", path: "/keeta/penalties", icon: Ban },
+      { i18n: "nav.performance", path: "/keeta/performance", icon: BarChart3 },
+      { i18n: "nav.operationCentre", path: "/keeta/operation-centre", icon: MapIcon },
+      { i18n: "nav.reports", path: "/keeta/reports", icon: PieChart },
       { i18n: "nav.settings", path: "/keeta/settings", icon: Settings },
     ],
   },
@@ -59,8 +66,13 @@ const PLATFORMS = [
     subPages: [
       { i18n: "nav.overview", path: "/deliveroo/overview", icon: Gauge },
       { i18n: "nav.drivers", path: "/deliveroo/drivers", icon: Users },
-      { i18n: "nav.shifts", path: "/deliveroo/shifts", icon: ClipboardList },
-      { i18n: "nav.ordersCash", path: "/deliveroo/orders-cash", icon: Briefcase },
+      { i18n: "nav.schedule", path: "/deliveroo/schedule", icon: Calendar },
+      { i18n: "nav.orders", path: "/deliveroo/orders", icon: Briefcase },
+      { i18n: "nav.cash", path: "/deliveroo/cash", icon: Wallet },
+      { i18n: "nav.violations", path: "/deliveroo/violations", icon: ShieldAlert },
+      { i18n: "nav.ingestReview", path: "/deliveroo/ingest-review", icon: ClipboardList },
+      { i18n: "nav.phones", path: "/deliveroo/phones", icon: Smartphone },
+      { i18n: "nav.vehicles", path: "/deliveroo/vehicles", icon: Truck },
       { i18n: "nav.settings", path: "/deliveroo/settings", icon: Settings },
     ],
   },

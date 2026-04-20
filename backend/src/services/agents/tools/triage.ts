@@ -56,8 +56,8 @@ const queryOpenAppeals = defineTool({
       violationType: a.violation.violationType,
       platform: a.violation.platform,
       violationTime: a.violation.violationTime.toISOString(),
-      driverId: a.violation.driver.id,
-      driverName: a.violation.driver.name,
+      driverId: a.violation.driver?.id ?? null,
+      driverName: a.violation.driver?.name ?? null,
     }));
   },
 });
@@ -103,8 +103,8 @@ const queryOpenViolations = defineTool({
       platform: v.platform,
       violationTime: v.violationTime.toISOString(),
       details: (v.details ?? "").slice(0, 200),
-      driverId: v.driver.id,
-      driverName: v.driver.name,
+      driverId: v.driver?.id ?? null,
+      driverName: v.driver?.name ?? null,
       appealStatus: v.appealStatus,
     }));
   },

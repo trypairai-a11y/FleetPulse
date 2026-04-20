@@ -45,6 +45,9 @@ export interface Messages {
     taxInvoices: string;
     payments: string;
     reports: string;
+    attendanceShifts: string;
+    ingestReview: string;
+    financial: string;
   };
   status: {
     active: string;
@@ -287,6 +290,9 @@ export const en: Messages = {
     taxInvoices: "Tax Invoices",
     payments: "Payments",
     reports: "Reports",
+    attendanceShifts: "Attendance & Shifts",
+    ingestReview: "Ingest review",
+    financial: "Financial",
   },
   status: {
     active: "Active",
@@ -529,6 +535,9 @@ export const ar: Messages = {
     taxInvoices: "الفواتير الضريبية",
     payments: "المدفوعات",
     reports: "التقارير",
+    attendanceShifts: "الحضور والمناوبات",
+    ingestReview: "مراجعة الإدخال",
+    financial: "المالية",
   },
   status: {
     active: "نشط",
