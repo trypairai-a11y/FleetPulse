@@ -4,7 +4,7 @@ import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { upload } from "../utils/upload";
 import { parseLocalDate } from "../utils/date";
-import { enqueueContractOcr } from "../queues/americanaContractOcrWorker";
+// Contract OCR deferred to v2 per DS3 — upload archives PDF only, no extraction.
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -62,8 +62,6 @@ router.post("/upload", upload.single("file"), async (req: Request, res: Response
         notes: notes || null,
       },
     });
-    // fire-and-forget OCR enqueue (no-op when API key is missing)
-    enqueueContractOcr(contract.id).catch(() => {});
     res.status(201).json(contract);
   } catch (err: any) {
     res.status(400).json({ error: err.message });

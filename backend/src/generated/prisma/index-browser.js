@@ -787,7 +787,6 @@ exports.Prisma.AmericanaStoreScalarFieldEnum = {
   costCenter: 'costCenter',
   managerName: 'managerName',
   managerPhone: 'managerPhone',
-  managerWhatsapp: 'managerWhatsapp',
   backupContactName: 'backupContactName',
   backupContactPhone: 'backupContactPhone',
   notes: 'notes',
@@ -1652,7 +1651,6 @@ exports.Prisma.AmericanaStoreOrderByRelevanceFieldEnum = {
   costCenter: 'costCenter',
   managerName: 'managerName',
   managerPhone: 'managerPhone',
-  managerWhatsapp: 'managerWhatsapp',
   backupContactName: 'backupContactName',
   backupContactPhone: 'backupContactPhone',
   notes: 'notes'
