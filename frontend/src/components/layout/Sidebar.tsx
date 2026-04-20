@@ -82,9 +82,8 @@ const PLATFORMS = [
     subPages: [
       { i18n: "nav.overview", path: "/americana/overview", icon: Gauge },
       { i18n: "nav.drivers", path: "/americana/drivers", icon: Users },
-      { i18n: "nav.shifts", path: "/americana/shifts", icon: ClipboardList },
       { i18n: "nav.orders", path: "/americana/orders", icon: Briefcase },
-      { i18n: "nav.performance", path: "/americana/performance", icon: BarChart3 },
+      { i18n: "nav.violations", path: "/americana/violations", icon: ShieldAlert },
       { i18n: "nav.settings", path: "/americana/settings", icon: Settings },
     ],
   },

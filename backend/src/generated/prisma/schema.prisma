@@ -287,9 +287,6 @@ enum ViolationType {
   GPS_NOT_UPLOADING
   CASH_DISCREPANCY
   DELIVEROO_UNASSIGNED_ORDER
-  AMERICANA_LATE_ARRIVAL
-  AMERICANA_NO_SHOW
-  AMERICANA_EARLY_DEPARTURE_QUIT
 }
 
 enum ViolationStatus {
@@ -341,65 +338,59 @@ model Tenant {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  companies                 Company[]
-  users                     User[]
-  drivers                   Driver[]
-  shifts                    Shift[]
-  attendanceRecords         AttendanceRecord[]
-  orderLogs                 OrderLog[]
-  cashRecords               CashRecord[]
-  cashTransactions          CashTransaction[]
-  pendingDuesLedgers        PendingDuesLedger[]
-  vehicleInspections        VehicleInspection[]
-  maintenanceRecords        MaintenanceRecord[]
-  aiScores                  AiScore[]
-  alerts                    Alert[]
-  aiDigests                 AiDigest[]
-  auditLogs                 AuditLog[]
-  tickets                   Ticket[]
-  leaveRequests             LeaveRequest[]
-  recruitmentPipeline       RecruitmentPipeline[]
-  vehicles                  Vehicle[]
-  talabatSessions           TalabatSession[]
-  talabatViolationEvents    TalabatViolationEvent[]
-  talabatDailyMetrics       TalabatDailyMetrics[]
-  deliverooDailyMetrics     DeliverooDailyMetrics[]
-  keetaDailyMetrics         KeetaDailyMetrics[]
-  americanaDailyOrders      AmericanaDailyOrders[]
-  kpiDefinitions            KpiDefinition[]
-  kpiRecords                KpiRecord[]
-  platformSettings          PlatformSettings[]
-  platformInventory         PlatformInventory[]
-  notifications             Notification[]
-  notificationRules         NotificationRule[]
-  notificationDeliveries    NotificationDelivery[]
-  driverRestrictions        DriverRestriction[]
-  courierOnlineSessions     CourierOnlineSession[]
-  violations                Violation[]
-  penalties                 Penalty[]
-  appeals                   Appeal[]
-  orderEvents               OrderEvent[]
-  aiInsights                AiInsight[]
-  demandHeatmaps            DemandHeatmap[]
-  courierAttendanceSlots    CourierAttendanceSlot[]
-  shiftComplianceConfig     ShiftComplianceConfig?
-  keetaAvailableSlots       KeetaAvailableShiftSlot[]
-  deliveryAreas             DeliveryArea[]
-  partners                  Partner[]
-  incentiveTargetRounds     IncentiveTargetRound[]
-  courierIncentivePayouts   CourierIncentivePayout[]
-  billings                  Billing[]
-  taxInvoices               TaxInvoice[]
-  paymentWithdrawals        PaymentWithdrawal[]
-  agentRunLogs              AgentRunLog[]
-  pendingAgentActions       PendingAgentAction[]
-  ingestRuns                IngestRun[]
-  americanaChains           AmericanaChain[]
-  americanaStores           AmericanaStore[]
-  americanaContracts        AmericanaContract[]
-  americanaChainRates       AmericanaChainRate[]
-  americanaStoreAssignments AmericanaStoreAssignment[]
-  americanaDailyIngestions  AmericanaDailyIngestion[]
+  companies               Company[]
+  users                   User[]
+  drivers                 Driver[]
+  shifts                  Shift[]
+  attendanceRecords       AttendanceRecord[]
+  orderLogs               OrderLog[]
+  cashRecords             CashRecord[]
+  cashTransactions        CashTransaction[]
+  pendingDuesLedgers      PendingDuesLedger[]
+  vehicleInspections      VehicleInspection[]
+  maintenanceRecords      MaintenanceRecord[]
+  aiScores                AiScore[]
+  alerts                  Alert[]
+  aiDigests               AiDigest[]
+  auditLogs               AuditLog[]
+  tickets                 Ticket[]
+  leaveRequests           LeaveRequest[]
+  recruitmentPipeline     RecruitmentPipeline[]
+  vehicles                Vehicle[]
+  talabatSessions         TalabatSession[]
+  talabatViolationEvents  TalabatViolationEvent[]
+  talabatDailyMetrics     TalabatDailyMetrics[]
+  deliverooDailyMetrics   DeliverooDailyMetrics[]
+  keetaDailyMetrics       KeetaDailyMetrics[]
+  americanaDailyOrders    AmericanaDailyOrders[]
+  kpiDefinitions          KpiDefinition[]
+  kpiRecords              KpiRecord[]
+  platformSettings        PlatformSettings[]
+  platformInventory       PlatformInventory[]
+  notifications           Notification[]
+  notificationRules       NotificationRule[]
+  notificationDeliveries  NotificationDelivery[]
+  driverRestrictions      DriverRestriction[]
+  courierOnlineSessions   CourierOnlineSession[]
+  violations              Violation[]
+  penalties               Penalty[]
+  appeals                 Appeal[]
+  orderEvents             OrderEvent[]
+  aiInsights              AiInsight[]
+  demandHeatmaps          DemandHeatmap[]
+  courierAttendanceSlots  CourierAttendanceSlot[]
+  shiftComplianceConfig   ShiftComplianceConfig?
+  keetaAvailableSlots     KeetaAvailableShiftSlot[]
+  deliveryAreas           DeliveryArea[]
+  partners                Partner[]
+  incentiveTargetRounds   IncentiveTargetRound[]
+  courierIncentivePayouts CourierIncentivePayout[]
+  billings                Billing[]
+  taxInvoices             TaxInvoice[]
+  paymentWithdrawals      PaymentWithdrawal[]
+  agentRunLogs            AgentRunLog[]
+  pendingAgentActions     PendingAgentAction[]
+  ingestRuns              IngestRun[]
 }
 
 // 2. Company
@@ -494,41 +485,40 @@ model Driver {
   company    Company @relation(fields: [companyId], references: [id])
   supervisor User?   @relation("DriverSupervisor", fields: [supervisorId], references: [id])
 
-  inventory                 DriverInventory[]
-  shifts                    Shift[]
-  attendanceRecords         AttendanceRecord[]
-  orderLogs                 OrderLog[]
-  cashRecords               CashRecord[]
-  cashTransactions          CashTransaction[]
-  pendingDuesLedgers        PendingDuesLedger[]
-  vehicleInspections        VehicleInspection[]
-  maintenanceRecords        MaintenanceRecord[]
-  aiScores                  AiScore[]
-  alerts                    Alert[]
-  capturedOrders            CapturedOrder[]
-  locationLogs              LocationLog[]
-  appUsageLogs              AppUsageLog[]
-  device                    Device?
-  assignedVehicle           Vehicle?                   @relation("AssignedDriver")
-  leaveRequests             LeaveRequest[]
-  restrictions              DriverRestriction[]
-  tickets                   Ticket[]                   @relation("TicketDriver")
-  submittedTickets          Ticket[]                   @relation("TicketSubmitterDriver")
-  talabatSessions           TalabatSession[]
-  talabatViolationEvents    TalabatViolationEvent[]
-  talabatDailyMetrics       TalabatDailyMetrics[]
-  deliverooDailyMetrics     DeliverooDailyMetrics[]
-  keetaDailyMetrics         KeetaDailyMetrics[]
-  americanaDailyOrders      AmericanaDailyOrders[]
-  talabatDeliveries         TalabatDelivery[]
-  kpiRecords                KpiRecord[]
-  courierOnlineSessions     CourierOnlineSession[]
-  violations                Violation[]
-  penalties                 Penalty[]
-  aiInsights                AiInsight[]
-  courierAttendanceSlots    CourierAttendanceSlot[]
-  courierIncentivePayouts   CourierIncentivePayout[]
-  americanaStoreAssignments AmericanaStoreAssignment[]
+  inventory               DriverInventory[]
+  shifts                  Shift[]
+  attendanceRecords       AttendanceRecord[]
+  orderLogs               OrderLog[]
+  cashRecords             CashRecord[]
+  cashTransactions        CashTransaction[]
+  pendingDuesLedgers      PendingDuesLedger[]
+  vehicleInspections      VehicleInspection[]
+  maintenanceRecords      MaintenanceRecord[]
+  aiScores                AiScore[]
+  alerts                  Alert[]
+  capturedOrders          CapturedOrder[]
+  locationLogs            LocationLog[]
+  appUsageLogs            AppUsageLog[]
+  device                  Device?
+  assignedVehicle         Vehicle?                 @relation("AssignedDriver")
+  leaveRequests           LeaveRequest[]
+  restrictions            DriverRestriction[]
+  tickets                 Ticket[]                 @relation("TicketDriver")
+  submittedTickets        Ticket[]                 @relation("TicketSubmitterDriver")
+  talabatSessions         TalabatSession[]
+  talabatViolationEvents  TalabatViolationEvent[]
+  talabatDailyMetrics     TalabatDailyMetrics[]
+  deliverooDailyMetrics   DeliverooDailyMetrics[]
+  keetaDailyMetrics       KeetaDailyMetrics[]
+  americanaDailyOrders    AmericanaDailyOrders[]
+  talabatDeliveries       TalabatDelivery[]
+  kpiRecords              KpiRecord[]
+  courierOnlineSessions   CourierOnlineSession[]
+  violations              Violation[]
+  penalties               Penalty[]
+  aiInsights              AiInsight[]
+  courierAttendanceSlots  CourierAttendanceSlot[]
+  courierIncentivePayouts CourierIncentivePayout[]
 
   @@index([tenantId])
   @@index([companyId])
@@ -1376,11 +1366,9 @@ model AmericanaDailyOrders {
   tenantId    String
   driverId    String
   month       DateTime
-  chain       String? // legacy free-text, kept 3 months then drop
-  chainId     String?
+  chain       String?
   empId       String?
-  storeName   String? // legacy free-text, kept 3 months then drop
-  storeId     String?
+  storeName   String?
   costCenter  String?
   company     String?
   position    String? // Car or Bike
@@ -1390,157 +1378,13 @@ model AmericanaDailyOrders {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  tenant   Tenant          @relation(fields: [tenantId], references: [id])
-  driver   Driver          @relation(fields: [driverId], references: [id])
-  chainRef AmericanaChain? @relation(fields: [chainId], references: [id])
-  storeRef AmericanaStore? @relation(fields: [storeId], references: [id])
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
 
   @@unique([tenantId, driverId, month])
   @@index([tenantId])
   @@index([driverId])
   @@index([month])
-  @@index([tenantId, chainId, month])
-  @@index([tenantId, storeId, month])
-}
-
-// ─── Americana B2B fleet models ─────────────────────────────
-
-model AmericanaChain {
-  id        String   @id @default(uuid())
-  tenantId  String
-  name      String
-  slug      String
-  logoUrl   String?
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  tenant      Tenant                 @relation(fields: [tenantId], references: [id])
-  stores      AmericanaStore[]
-  rates       AmericanaChainRate[]
-  dailyOrders AmericanaDailyOrders[]
-
-  @@unique([tenantId, slug])
-  @@index([tenantId, active])
-}
-
-model AmericanaStore {
-  id                 String   @id @default(uuid())
-  tenantId           String
-  chainId            String
-  name               String
-  area               String?
-  costCenter         String?
-  managerName        String?
-  managerPhone       String?
-  managerWhatsapp    String?
-  backupContactName  String?
-  backupContactPhone String?
-  notes              String?
-  active             Boolean  @default(true)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  tenant      Tenant                     @relation(fields: [tenantId], references: [id])
-  chain       AmericanaChain             @relation(fields: [chainId], references: [id])
-  assignments AmericanaStoreAssignment[]
-  dailyOrders AmericanaDailyOrders[]
-
-  @@unique([tenantId, name])
-  @@index([tenantId, chainId])
-  @@index([tenantId, active])
-}
-
-model AmericanaContract {
-  id              String    @id @default(uuid())
-  tenantId        String
-  contractRef     String
-  signedDate      DateTime
-  effectiveFrom   DateTime
-  effectiveTo     DateTime?
-  originalFileUrl String
-  ocrStatus       String    @default("PENDING") // PENDING | PROCESSING | DONE | FAILED
-  ocrExtractedAt  DateTime?
-  ocrConfidence   Float?
-  ocrDraftRates   Json?
-  notes           String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  tenant Tenant               @relation(fields: [tenantId], references: [id])
-  rates  AmericanaChainRate[]
-
-  @@unique([tenantId, contractRef])
-  @@index([tenantId, effectiveFrom])
-}
-
-model AmericanaChainRate {
-  id            String    @id @default(uuid())
-  tenantId      String
-  chainId       String
-  vehicleType   String // CAR | BIKE
-  ratePerOrder  Decimal   @db.Decimal(10, 3)
-  effectiveFrom DateTime
-  effectiveTo   DateTime?
-  contractId    String?
-  createdBy     String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  tenant   Tenant             @relation(fields: [tenantId], references: [id])
-  chain    AmericanaChain     @relation(fields: [chainId], references: [id])
-  contract AmericanaContract? @relation(fields: [contractId], references: [id])
-
-  @@index([tenantId, chainId, vehicleType, effectiveFrom])
-}
-
-model AmericanaStoreAssignment {
-  id                   String    @id @default(uuid())
-  tenantId             String
-  driverId             String
-  storeId              String
-  month                DateTime // first-of-month
-  startDate            DateTime
-  endDate              DateTime?
-  vehicleType          String // CAR | BIKE
-  reasonForChange      String?
-  previousAssignmentId String?
-  createdBy            String
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-
-  tenant Tenant         @relation(fields: [tenantId], references: [id])
-  driver Driver         @relation(fields: [driverId], references: [id])
-  store  AmericanaStore @relation(fields: [storeId], references: [id])
-
-  @@unique([tenantId, driverId, month, startDate])
-  @@index([tenantId, storeId, month])
-  @@index([tenantId, driverId, month])
-}
-
-model AmericanaDailyIngestion {
-  id             String    @id @default(uuid())
-  tenantId       String
-  source         String // EMAIL | MANUAL_UPLOAD
-  emailMessageId String?
-  rawFileUrl     String
-  capturedAt     DateTime  @default(now())
-  ingestDate     DateTime
-  status         String    @default("PENDING_REVIEW") // PENDING_REVIEW | APPROVED | REJECTED | FAILED
-  parsedRows     Json
-  rowCount       Int
-  errorLog       String?
-  approvedBy     String?
-  approvedAt     DateTime?
-  rejectedReason String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  tenant Tenant @relation(fields: [tenantId], references: [id])
-
-  @@unique([tenantId, emailMessageId])
-  @@index([tenantId, ingestDate])
-  @@index([tenantId, status])
 }
 
 // 30. KpiDefinition - configurable KPI definitions with targets per platform
@@ -1714,9 +1558,6 @@ model Violation {
   details            String?
   metadata           Json?
   taskId             String?
-  overrideReason     String?
-  overriddenBy       String?
-  overriddenAt       DateTime?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 

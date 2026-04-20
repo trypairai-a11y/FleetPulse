@@ -753,111 +753,14 @@ exports.Prisma.AmericanaDailyOrdersScalarFieldEnum = {
   driverId: 'driverId',
   month: 'month',
   chain: 'chain',
-  chainId: 'chainId',
   empId: 'empId',
   storeName: 'storeName',
-  storeId: 'storeId',
   costCenter: 'costCenter',
   company: 'company',
   position: 'position',
   dailyOrders: 'dailyOrders',
   totalOrders: 'totalOrders',
   source: 'source',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.AmericanaChainScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  name: 'name',
-  slug: 'slug',
-  logoUrl: 'logoUrl',
-  active: 'active',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.AmericanaStoreScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  chainId: 'chainId',
-  name: 'name',
-  area: 'area',
-  costCenter: 'costCenter',
-  managerName: 'managerName',
-  managerPhone: 'managerPhone',
-  managerWhatsapp: 'managerWhatsapp',
-  backupContactName: 'backupContactName',
-  backupContactPhone: 'backupContactPhone',
-  notes: 'notes',
-  active: 'active',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.AmericanaContractScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  contractRef: 'contractRef',
-  signedDate: 'signedDate',
-  effectiveFrom: 'effectiveFrom',
-  effectiveTo: 'effectiveTo',
-  originalFileUrl: 'originalFileUrl',
-  ocrStatus: 'ocrStatus',
-  ocrExtractedAt: 'ocrExtractedAt',
-  ocrConfidence: 'ocrConfidence',
-  ocrDraftRates: 'ocrDraftRates',
-  notes: 'notes',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.AmericanaChainRateScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  chainId: 'chainId',
-  vehicleType: 'vehicleType',
-  ratePerOrder: 'ratePerOrder',
-  effectiveFrom: 'effectiveFrom',
-  effectiveTo: 'effectiveTo',
-  contractId: 'contractId',
-  createdBy: 'createdBy',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.AmericanaStoreAssignmentScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  driverId: 'driverId',
-  storeId: 'storeId',
-  month: 'month',
-  startDate: 'startDate',
-  endDate: 'endDate',
-  vehicleType: 'vehicleType',
-  reasonForChange: 'reasonForChange',
-  previousAssignmentId: 'previousAssignmentId',
-  createdBy: 'createdBy',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.AmericanaDailyIngestionScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  source: 'source',
-  emailMessageId: 'emailMessageId',
-  rawFileUrl: 'rawFileUrl',
-  capturedAt: 'capturedAt',
-  ingestDate: 'ingestDate',
-  status: 'status',
-  parsedRows: 'parsedRows',
-  rowCount: 'rowCount',
-  errorLog: 'errorLog',
-  approvedBy: 'approvedBy',
-  approvedAt: 'approvedAt',
-  rejectedReason: 'rejectedReason',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -968,9 +871,6 @@ exports.Prisma.ViolationScalarFieldEnum = {
   details: 'details',
   metadata: 'metadata',
   taskId: 'taskId',
-  overrideReason: 'overrideReason',
-  overriddenBy: 'overriddenBy',
-  overriddenAt: 'overriddenAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -1625,78 +1525,12 @@ exports.Prisma.AmericanaDailyOrdersOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId',
   driverId: 'driverId',
   chain: 'chain',
-  chainId: 'chainId',
   empId: 'empId',
   storeName: 'storeName',
-  storeId: 'storeId',
   costCenter: 'costCenter',
   company: 'company',
   position: 'position',
   source: 'source'
-};
-
-exports.Prisma.AmericanaChainOrderByRelevanceFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  name: 'name',
-  slug: 'slug',
-  logoUrl: 'logoUrl'
-};
-
-exports.Prisma.AmericanaStoreOrderByRelevanceFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  chainId: 'chainId',
-  name: 'name',
-  area: 'area',
-  costCenter: 'costCenter',
-  managerName: 'managerName',
-  managerPhone: 'managerPhone',
-  managerWhatsapp: 'managerWhatsapp',
-  backupContactName: 'backupContactName',
-  backupContactPhone: 'backupContactPhone',
-  notes: 'notes'
-};
-
-exports.Prisma.AmericanaContractOrderByRelevanceFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  contractRef: 'contractRef',
-  originalFileUrl: 'originalFileUrl',
-  ocrStatus: 'ocrStatus',
-  notes: 'notes'
-};
-
-exports.Prisma.AmericanaChainRateOrderByRelevanceFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  chainId: 'chainId',
-  vehicleType: 'vehicleType',
-  contractId: 'contractId',
-  createdBy: 'createdBy'
-};
-
-exports.Prisma.AmericanaStoreAssignmentOrderByRelevanceFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  driverId: 'driverId',
-  storeId: 'storeId',
-  vehicleType: 'vehicleType',
-  reasonForChange: 'reasonForChange',
-  previousAssignmentId: 'previousAssignmentId',
-  createdBy: 'createdBy'
-};
-
-exports.Prisma.AmericanaDailyIngestionOrderByRelevanceFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  source: 'source',
-  emailMessageId: 'emailMessageId',
-  rawFileUrl: 'rawFileUrl',
-  status: 'status',
-  errorLog: 'errorLog',
-  approvedBy: 'approvedBy',
-  rejectedReason: 'rejectedReason'
 };
 
 exports.Prisma.KpiDefinitionOrderByRelevanceFieldEnum = {
@@ -1759,9 +1593,7 @@ exports.Prisma.ViolationOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId',
   driverId: 'driverId',
   details: 'details',
-  taskId: 'taskId',
-  overrideReason: 'overrideReason',
-  overriddenBy: 'overriddenBy'
+  taskId: 'taskId'
 };
 
 exports.Prisma.PenaltyOrderByRelevanceFieldEnum = {
@@ -2259,10 +2091,7 @@ exports.ViolationType = exports.$Enums.ViolationType = {
   INVALID_DELIVERY_PHOTO: 'INVALID_DELIVERY_PHOTO',
   GPS_NOT_UPLOADING: 'GPS_NOT_UPLOADING',
   CASH_DISCREPANCY: 'CASH_DISCREPANCY',
-  DELIVEROO_UNASSIGNED_ORDER: 'DELIVEROO_UNASSIGNED_ORDER',
-  AMERICANA_LATE_ARRIVAL: 'AMERICANA_LATE_ARRIVAL',
-  AMERICANA_NO_SHOW: 'AMERICANA_NO_SHOW',
-  AMERICANA_EARLY_DEPARTURE_QUIT: 'AMERICANA_EARLY_DEPARTURE_QUIT'
+  DELIVEROO_UNASSIGNED_ORDER: 'DELIVEROO_UNASSIGNED_ORDER'
 };
 
 exports.ViolationStatus = exports.$Enums.ViolationStatus = {
@@ -2338,12 +2167,6 @@ exports.Prisma.ModelName = {
   PlatformSettings: 'PlatformSettings',
   PlatformInventory: 'PlatformInventory',
   AmericanaDailyOrders: 'AmericanaDailyOrders',
-  AmericanaChain: 'AmericanaChain',
-  AmericanaStore: 'AmericanaStore',
-  AmericanaContract: 'AmericanaContract',
-  AmericanaChainRate: 'AmericanaChainRate',
-  AmericanaStoreAssignment: 'AmericanaStoreAssignment',
-  AmericanaDailyIngestion: 'AmericanaDailyIngestion',
   KpiDefinition: 'KpiDefinition',
   KpiRecord: 'KpiRecord',
   Notification: 'Notification',
