@@ -291,7 +291,7 @@ export const en: Messages = {
     payments: "Payments",
     reports: "Reports",
     attendanceShifts: "Attendance & Shifts",
-    ingestReview: "Shift intake",
+    ingestReview: "Ingest review",
     financial: "Financial",
   },
   status: {
@@ -536,7 +536,7 @@ export const ar: Messages = {
     payments: "المدفوعات",
     reports: "التقارير",
     attendanceShifts: "الحضور والمناوبات",
-    ingestReview: "استلام المناوبات",
+    ingestReview: "مراجعة الإدخال",
     financial: "المالية",
   },
   status: {
