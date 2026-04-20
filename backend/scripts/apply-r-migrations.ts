@@ -72,10 +72,17 @@ async function run() {
       const sql = fs.readFileSync(c.sqlPath, "utf8");
       console.log(`[apply-r-migrations] ${c.name}: applying ${path.basename(path.dirname(c.sqlPath))}`);
       // Split on `;` and run each DDL statement separately for driver portability.
+      // Strip leading `--` comments from each chunk (but keep the statement itself).
       const statements = sql
         .split(/;\s*(?:\n|$)/)
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0 && !s.startsWith("--"));
+        .map((s) =>
+          s
+            .split("\n")
+            .filter((line) => !line.trim().startsWith("--"))
+            .join("\n")
+            .trim()
+        )
+        .filter((s) => s.length > 0);
       for (const stmt of statements) {
         await prisma.$executeRawUnsafe(stmt);
       }

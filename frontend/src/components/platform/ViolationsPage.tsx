@@ -31,7 +31,10 @@ type ViolationTab =
   | "ORDER_VERY_LATE"
   | "INVALID_DELIVERY_PHOTO"
   | "GPS_NOT_UPLOADING"
-  | "DELIVEROO_UNASSIGNED_ORDER";
+  | "DELIVEROO_UNASSIGNED_ORDER"
+  | "AMERICANA_LATE_ARRIVAL"
+  | "AMERICANA_NO_SHOW"
+  | "AMERICANA_EARLY_DEPARTURE_QUIT";
 
 const BASE_VIOLATION_TABS: { key: ViolationTab; label: string }[] = [
   { key: "ALL", label: "All" },
@@ -48,6 +51,12 @@ const DELIVEROO_UNASSIGNED_TAB: { key: ViolationTab; label: string } = {
   key: "DELIVEROO_UNASSIGNED_ORDER",
   label: "Unassigned",
 };
+
+const AMERICANA_TABS: { key: ViolationTab; label: string }[] = [
+  { key: "AMERICANA_LATE_ARRIVAL", label: "Late Arrival" },
+  { key: "AMERICANA_NO_SHOW", label: "No-show" },
+  { key: "AMERICANA_EARLY_DEPARTURE_QUIT", label: "Early Quit" },
+];
 
 /* ─── Color maps ─── */
 
@@ -172,11 +181,19 @@ export default function ViolationsPage({ platform }: ViolationsPageProps) {
       byType.find((t: any) => t.type === "GPS_NOT_UPLOADING")?.count || 0,
     DELIVEROO_UNASSIGNED_ORDER:
       byType.find((t: any) => t.type === "DELIVEROO_UNASSIGNED_ORDER")?.count || 0,
+    AMERICANA_LATE_ARRIVAL:
+      byType.find((t: any) => t.type === "AMERICANA_LATE_ARRIVAL")?.count || 0,
+    AMERICANA_NO_SHOW:
+      byType.find((t: any) => t.type === "AMERICANA_NO_SHOW")?.count || 0,
+    AMERICANA_EARLY_DEPARTURE_QUIT:
+      byType.find((t: any) => t.type === "AMERICANA_EARLY_DEPARTURE_QUIT")?.count || 0,
   };
 
   const VIOLATION_TABS =
     platform === "DELIVEROO"
       ? [...BASE_VIOLATION_TABS, DELIVEROO_UNASSIGNED_TAB]
+      : platform === "AMERICANA"
+      ? [{ key: "ALL" as ViolationTab, label: "All" }, ...AMERICANA_TABS]
       : BASE_VIOLATION_TABS;
 
   const platformLabel = PLATFORM_LABELS[platform] || platform;
