@@ -57,14 +57,14 @@ router.post("/", async (req: Request, res: Response) => {
     const tenantId = req.user!.tenantId;
     const {
       chainId, name, area, costCenter,
-      managerName, managerPhone, managerWhatsapp,
+      managerName, managerPhone,
       backupContactName, backupContactPhone, notes, active,
     } = req.body;
     if (!chainId || !name) { res.status(400).json({ error: "chainId and name required" }); return; }
     const store = await prisma.americanaStore.create({
       data: {
         tenantId, chainId, name, area, costCenter,
-        managerName, managerPhone, managerWhatsapp,
+        managerName, managerPhone,
         backupContactName, backupContactPhone, notes,
         active: active ?? true,
       },

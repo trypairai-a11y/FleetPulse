@@ -1433,7 +1433,6 @@ model AmericanaStore {
   costCenter         String?
   managerName        String?
   managerPhone       String?
-  managerWhatsapp    String?
   backupContactName  String?
   backupContactPhone String?
   notes              String?

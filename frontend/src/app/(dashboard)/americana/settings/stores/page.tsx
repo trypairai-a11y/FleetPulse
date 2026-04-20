@@ -12,7 +12,6 @@ interface Store {
   costCenter: string | null;
   managerName: string | null;
   managerPhone: string | null;
-  managerWhatsapp: string | null;
   backupContactName: string | null;
   backupContactPhone: string | null;
   notes: string | null;

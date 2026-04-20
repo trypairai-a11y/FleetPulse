@@ -49,8 +49,7 @@ export default function ContractReviewPage() {
     <div className="space-y-6 max-w-[1200px]">
       <h1 className="text-xl font-semibold">Contract {contract.contractRef}</h1>
       <p className="text-sm text-secondary">
-        OCR status: <span className="font-medium">{contract.ocrStatus}</span>
-        {contract.ocrConfidence != null && ` · confidence ${Math.round((contract.ocrConfidence ?? 0) * 100)}%`}
+        Enter the per-order rate for each chain × vehicle type. Rates apply from the contract&apos;s effective date.
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -61,10 +60,10 @@ export default function ContractReviewPage() {
           ) : <div className="p-6 text-secondary">No file.</div>}
         </div>
 
-        {/* Extracted rate table (editable) */}
+        {/* Rate table (manual entry) */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Extracted rates (review before save)</h3>
+            <h3 className="text-sm font-semibold">Rate table</h3>
             <button
               onClick={() => setDraft([...draft, { chainName: "", vehicleType: "CAR", ratePerOrder: 0 }])}
               className="text-xs px-2 py-1 border border-gray-200 rounded-md hover:bg-gray-50"
@@ -74,13 +73,12 @@ export default function ContractReviewPage() {
           </div>
           <div className="space-y-2 max-h-[560px] overflow-y-auto">
             {draft.length === 0 ? (
-              <p className="text-sm text-secondary">No draft rates yet. OCR may still be running, or confidence was too low.</p>
+              <p className="text-sm text-secondary">No rates yet. Click &ldquo;Add row&rdquo; and pick a chain, vehicle type, and per-order rate.</p>
             ) : draft.map((r, i) => (
-              <div key={i} className="grid grid-cols-5 gap-2 items-center text-sm">
-                <input value={r.chainName} readOnly className="px-2 py-1 border border-gray-200 bg-gray-50 rounded-md" title="From OCR" />
+              <div key={i} className="grid grid-cols-4 gap-2 items-center text-sm">
                 <select value={r.chainId ?? ""} onChange={(e) => setDraft(draft.map((x, j) => j === i ? { ...x, chainId: e.target.value } : x))}
                   className="px-2 py-1 border border-gray-200 rounded-md bg-white">
-                  <option value="">Assign chain…</option>
+                  <option value="">Pick chain…</option>
                   {(chains ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
                 <select value={r.vehicleType} onChange={(e) => setDraft(draft.map((x, j) => j === i ? { ...x, vehicleType: e.target.value } : x))}
