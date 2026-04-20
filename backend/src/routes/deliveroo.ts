@@ -1,13 +1,23 @@
 import { Router, Request, Response } from "express";
+import fs from "fs";
 import { prisma } from "../config";
 import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
+import { rbac } from "../middleware/rbac";
 import { getPagination, paginatedResponse } from "../utils/pagination";
 import { sendXlsx } from "../utils/xlsxExport";
+import { parseLocalDate, parseLocalDateEnd } from "../utils/date";
+import { upload } from "../utils/upload";
+import { AiOcrService } from "../services/aiOcrService";
+import { detectDeliverooUnassignedOrders } from "../services/violationEngine";
+import { createViolationNotifications } from "../services/notificationService";
 import { getAdapter } from "../adapters";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
+
+const MUTATORS = ["ADMIN", "OPS_MANAGER", "SUPERVISOR"];
+const OCR_CONFIDENCE_THRESHOLD = 0.85;
 
 // ─── Drivers Summary ────────────────────────────────────────────────────────
 
@@ -195,6 +205,394 @@ router.get("/performance", async (req: Request, res: Response) => {
         : 0,
       attendanceRate,
     });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── D1 · Daily-metrics OCR ingestion ───────────────────────────────────────
+
+/**
+ * POST /api/deliveroo/metrics/ingest-screenshot
+ * Multipart: image (required), driverId, shiftDate? (ISO date).
+ * Extracts Deliveroo "My deliveries" totals via Claude Vision, writes a
+ * DeliverooDailyMetrics row, and fires the unassigned-order violation engine
+ * when applicable.
+ */
+router.post(
+  "/metrics/ingest-screenshot",
+  rbac(...MUTATORS, "DRIVER"),
+  upload.single("image"),
+  async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const { driverId, shiftDate: shiftDateRaw } = req.body ?? {};
+
+      if (!req.file) return res.status(400).json({ error: "image is required" });
+      if (!driverId) return res.status(400).json({ error: "driverId is required" });
+
+      const driver = await prisma.driver.findFirst({
+        where: { id: driverId, tenantId, platform: "DELIVEROO" },
+        select: { id: true, name: true, zone: true },
+      });
+      if (!driver) return res.status(404).json({ error: "Deliveroo driver not found" });
+
+      const buffer = fs.readFileSync(req.file.path);
+      const extracted = await AiOcrService.extractDeliverooMetrics(buffer);
+
+      const confidence = extracted?.confidence ?? 0;
+
+      // Validation: sum of hourly buckets must equal deliveriesCount
+      const bucketSum = Array.isArray(extracted?.hourlyBuckets)
+        ? extracted!.hourlyBuckets!.reduce((s, n) => s + (Number(n) || 0), 0)
+        : null;
+      const deliveries = extracted?.deliveriesCount ?? null;
+      const bucketsValid =
+        bucketSum != null && deliveries != null && bucketSum === deliveries;
+
+      const status =
+        !extracted ||
+        confidence < OCR_CONFIDENCE_THRESHOLD ||
+        deliveries == null ||
+        extracted.codCollectedKwd == null ||
+        !bucketsValid ||
+        (extracted.unassignedCount != null && extracted.unassignedCount < 0)
+          ? "PENDING_REVIEW"
+          : "PARSED";
+
+      const shiftDate = shiftDateRaw
+        ? parseLocalDate(shiftDateRaw)
+        : extracted?.shiftDate
+          ? parseLocalDate(extracted.shiftDate)
+          : (() => {
+              const d = new Date();
+              d.setHours(0, 0, 0, 0);
+              return d;
+            })();
+
+      const source = req.user!.role === "DRIVER" ? "OCR_MOBILE" : "OCR_WEB";
+      const unassigned = extracted?.unassignedCount ?? 0;
+
+      const row = await prisma.deliverooDailyMetrics.upsert({
+        where: { tenantId_driverId_shiftDate: { tenantId, driverId, shiftDate } },
+        create: {
+          tenantId,
+          driverId,
+          shiftDate,
+          codCollectedKwd: (extracted?.codCollectedKwd ?? 0).toString(),
+          tipsKwd: (extracted?.tipsKwd ?? 0).toString(),
+          deliveriesCount: deliveries ?? 0,
+          unassignedCount: unassigned,
+          hourlyBuckets: (extracted?.hourlyBuckets ?? []) as any,
+          source,
+          status,
+          rawImageUrl: `/uploads/${req.file.filename}`,
+          ocrConfidence: confidence,
+          ocrRaw: extracted as any,
+        },
+        update: {
+          codCollectedKwd:
+            extracted?.codCollectedKwd != null
+              ? extracted.codCollectedKwd.toString()
+              : undefined,
+          tipsKwd:
+            extracted?.tipsKwd != null ? extracted.tipsKwd.toString() : undefined,
+          deliveriesCount: deliveries ?? undefined,
+          unassignedCount: unassigned,
+          hourlyBuckets: (extracted?.hourlyBuckets ?? []) as any,
+          source,
+          status,
+          rawImageUrl: `/uploads/${req.file.filename}`,
+          ocrConfidence: confidence,
+          ocrRaw: extracted as any,
+        },
+      });
+
+      // Fire unassigned-order violation engine when PARSED and unassigned > 0
+      if (status === "PARSED" && unassigned > 0) {
+        detectDeliverooUnassignedOrders({ tenantId, metricId: row.id }).catch(
+          () => {}
+        );
+      }
+
+      if (status === "PENDING_REVIEW") {
+        await createViolationNotifications({
+          tenantId,
+          eventType: "OCR_PENDING_REVIEW",
+          severity: "MEDIUM",
+          title: "Deliveroo screenshot needs review",
+          message: `OCR confidence ${(confidence * 100).toFixed(0)}% for ${driver.name} — please verify`,
+          sourceId: row.id,
+          metadata: {
+            category: "OPS_TODO",
+            titleAr: "لقطة شاشة ديليفرو بحاجة إلى مراجعة",
+            bodyAr: `ثقة OCR ${(confidence * 100).toFixed(0)}% للسائق ${driver.name} — يرجى التحقق`,
+            driverId,
+            metricId: row.id,
+          },
+        }).catch(() => {});
+      }
+
+      res.json({
+        status,
+        extracted,
+        metricId: row.id,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+/**
+ * GET /api/deliveroo/metrics/pending-review
+ * Paginated list of DeliverooDailyMetrics awaiting Ops review.
+ */
+router.get("/metrics/pending-review", async (req: Request, res: Response) => {
+  try {
+    const { skip, limit, page } = getPagination(req);
+    const tenantId = req.user!.tenantId;
+
+    const where = { tenantId, status: "PENDING_REVIEW" };
+    const [data, total] = await Promise.all([
+      prisma.deliverooDailyMetrics.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          driver: { select: { id: true, name: true, phone: true, zone: true } },
+        },
+      }),
+      prisma.deliverooDailyMetrics.count({ where }),
+    ]);
+
+    res.json(paginatedResponse(data, total, page, limit));
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/deliveroo/metrics/:id/approve
+ * Body: { codCollectedKwd?, tipsKwd?, deliveriesCount?, unassignedCount?, hourlyBuckets?, note? }
+ */
+router.post(
+  "/metrics/:id/approve",
+  rbac(...MUTATORS),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user!.tenantId;
+      const {
+        codCollectedKwd,
+        tipsKwd,
+        deliveriesCount,
+        unassignedCount,
+        hourlyBuckets,
+        note,
+      } = req.body ?? {};
+
+      const existing = await prisma.deliverooDailyMetrics.findFirst({
+        where: { id, tenantId },
+      });
+      if (!existing) return res.status(404).json({ error: "Metric not found" });
+
+      const prevUnassigned = existing.unassignedCount;
+      const nextUnassigned =
+        unassignedCount != null ? Number(unassignedCount) : prevUnassigned;
+
+      const updated = await prisma.deliverooDailyMetrics.update({
+        where: { id },
+        data: {
+          status: "APPROVED",
+          codCollectedKwd:
+            codCollectedKwd != null ? codCollectedKwd.toString() : undefined,
+          tipsKwd: tipsKwd != null ? tipsKwd.toString() : undefined,
+          deliveriesCount:
+            deliveriesCount != null ? Number(deliveriesCount) : undefined,
+          unassignedCount:
+            unassignedCount != null ? Number(unassignedCount) : undefined,
+          hourlyBuckets: hourlyBuckets ?? undefined,
+          reviewedBy: req.user!.userId,
+          reviewedAt: new Date(),
+          reviewNote: note ?? null,
+        },
+      });
+
+      // If review promotes unassigned > 0, trigger violation creation.
+      if (nextUnassigned > 0) {
+        detectDeliverooUnassignedOrders({ tenantId, metricId: updated.id }).catch(
+          () => {}
+        );
+      }
+
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+/**
+ * POST /api/deliveroo/metrics/:id/reject
+ * Body: { note? }
+ */
+router.post(
+  "/metrics/:id/reject",
+  rbac(...MUTATORS),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user!.tenantId;
+      const { note } = req.body ?? {};
+
+      const existing = await prisma.deliverooDailyMetrics.findFirst({
+        where: { id, tenantId },
+      });
+      if (!existing) return res.status(404).json({ error: "Metric not found" });
+
+      const updated = await prisma.deliverooDailyMetrics.update({
+        where: { id },
+        data: {
+          status: "REJECTED",
+          reviewedBy: req.user!.userId,
+          reviewedAt: new Date(),
+          reviewNote: note ?? null,
+        },
+      });
+
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// ─── D5 · Daily metrics list + cash ledger ──────────────────────────────────
+
+/**
+ * GET /api/deliveroo/metrics?from&to&driverId&status
+ * Paginated DeliverooDailyMetrics with driver info.
+ */
+router.get("/metrics", async (req: Request, res: Response) => {
+  try {
+    const { skip, limit, page } = getPagination(req);
+    const tenantId = req.user!.tenantId;
+    const { from, to, driverId, status } = req.query;
+
+    const where: any = { tenantId };
+    if (driverId) where.driverId = driverId as string;
+    if (status) where.status = status as string;
+    if (from || to) {
+      where.shiftDate = {};
+      if (from) where.shiftDate.gte = parseLocalDate(from as string);
+      if (to) where.shiftDate.lte = parseLocalDateEnd(to as string);
+    }
+
+    const [data, total] = await Promise.all([
+      prisma.deliverooDailyMetrics.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { shiftDate: "desc" },
+        include: {
+          driver: { select: { id: true, name: true, phone: true, zone: true } },
+        },
+      }),
+      prisma.deliverooDailyMetrics.count({ where }),
+    ]);
+
+    res.json(paginatedResponse(data, total, page, limit));
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /api/deliveroo/cash/daily?from&to&driverId
+ * Per-driver-per-day COD + tips ledger from DeliverooDailyMetrics.
+ */
+router.get("/cash/daily", async (req: Request, res: Response) => {
+  try {
+    const { skip, limit, page } = getPagination(req);
+    const tenantId = req.user!.tenantId;
+    const { from, to, driverId } = req.query;
+
+    const where: any = { tenantId, status: { in: ["PARSED", "APPROVED"] } };
+    if (driverId) where.driverId = driverId as string;
+    if (from || to) {
+      where.shiftDate = {};
+      if (from) where.shiftDate.gte = parseLocalDate(from as string);
+      if (to) where.shiftDate.lte = parseLocalDateEnd(to as string);
+    }
+
+    const [rows, total] = await Promise.all([
+      prisma.deliverooDailyMetrics.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { shiftDate: "desc" },
+        include: {
+          driver: { select: { id: true, name: true, phone: true, zone: true } },
+        },
+      }),
+      prisma.deliverooDailyMetrics.count({ where }),
+    ]);
+
+    const data = rows.map((r) => ({
+      id: r.id,
+      shiftDate: r.shiftDate,
+      status: r.status,
+      driver: r.driver,
+      codCollectedKwd: Number(r.codCollectedKwd),
+      tipsKwd: Number(r.tipsKwd),
+      totalKwd: Number(r.codCollectedKwd) + Number(r.tipsKwd),
+      deliveriesCount: r.deliveriesCount,
+      unassignedCount: r.unassignedCount,
+    }));
+
+    res.json(paginatedResponse(data, total, page, limit));
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /api/deliveroo/cash/export?from&to
+ * CSV export of the Deliveroo cash ledger.
+ */
+router.get("/cash/export", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { from, to } = req.query;
+    const where: any = { tenantId, status: { in: ["PARSED", "APPROVED"] } };
+    if (from || to) {
+      where.shiftDate = {};
+      if (from) where.shiftDate.gte = parseLocalDate(from as string);
+      if (to) where.shiftDate.lte = parseLocalDateEnd(to as string);
+    }
+
+    const rows = await prisma.deliverooDailyMetrics.findMany({
+      where,
+      take: 5000,
+      orderBy: { shiftDate: "desc" },
+      include: { driver: { select: { name: true, platformDriverId: true, zone: true } } },
+    });
+
+    const out = rows.map((r) => ({
+      Date: new Date(r.shiftDate).toLocaleDateString(),
+      "Driver Name": r.driver.name,
+      "Driver ID": r.driver.platformDriverId || "",
+      Zone: r.driver.zone || "",
+      "COD Collected (KD)": Number(r.codCollectedKwd),
+      "Tips (KD)": Number(r.tipsKwd),
+      "Total (KD)": Number(r.codCollectedKwd) + Number(r.tipsKwd),
+      Deliveries: r.deliveriesCount,
+      Unassigned: r.unassignedCount,
+    }));
+
+    sendXlsx(res, out, "Deliveroo Cash", "deliveroo-cash.xlsx");
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

@@ -17,6 +17,128 @@ router.use(authMiddleware, tenantScope);
 const MUTATORS = ["ADMIN", "OPS_MANAGER", "ACCOUNTANT"];
 const DESTRUCTIVE = ["ADMIN", "ACCOUNTANT"];
 
+// ─── R8 · COD ledger per driver ─────────────────────────────────────────────
+/**
+ * GET /api/cash/cod?platform=TALABAT&from=&to=&driverId=&zone=&status=
+ *   → paginated rows with { expected, collected, variance, status }
+ */
+router.get("/cod", async (req: Request, res: Response) => {
+  try {
+    const { skip, limit, page } = getPagination(req);
+    const tenantId = req.user!.tenantId;
+    const platform = req.query.platform
+      ? (String(req.query.platform).toUpperCase() as any)
+      : undefined;
+    const from = req.query.from ? new Date(String(req.query.from)) : undefined;
+    const to = req.query.to ? new Date(String(req.query.to)) : undefined;
+    const driverId = req.query.driverId ? String(req.query.driverId) : undefined;
+    const zone = req.query.zone ? String(req.query.zone) : undefined;
+    const status = req.query.status ? String(req.query.status) : undefined;
+
+    const driverFilter: any = {};
+    if (platform) driverFilter.platform = platform;
+    if (zone) driverFilter.zone = zone;
+
+    const where: any = { tenantId };
+    if (driverId) where.driverId = driverId;
+    if (from || to) {
+      where.date = {};
+      if (from) where.date.gte = from;
+      if (to) where.date.lte = to;
+    }
+    if (status) where.status = status;
+    if (Object.keys(driverFilter).length > 0) where.driver = driverFilter;
+
+    const [records, total] = await Promise.all([
+      prisma.cashRecord.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { date: "desc" },
+        include: {
+          driver: { select: { id: true, name: true, platform: true, zone: true } },
+        },
+      }),
+      prisma.cashRecord.count({ where }),
+    ]);
+
+    const rows = records.map((r) => {
+      const expected = Number(r.salesAmount);
+      const collected = Number(r.collectionAmount);
+      const variance = Math.round((collected - expected) * 1000) / 1000;
+      return {
+        id: r.id,
+        date: r.date,
+        driver: r.driver,
+        expected,
+        collected,
+        pendingDues: Number(r.pendingDues),
+        variance,
+        status: r.status,
+        notes: r.notes,
+      };
+    });
+
+    res.json(paginatedResponse(rows, total, page, limit));
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/cash/cod/:id/settle
+ *   body: { amount: number, note?: string }
+ *
+ * Settles a COD row: records the collected amount, zeroes pending dues,
+ * flips status to SETTLED, and writes an AuditLog entry.
+ */
+router.post(
+  "/cod/:id/settle",
+  rbac(...MUTATORS),
+  async (req: Request, res: Response) => {
+    try {
+      const tenantId = req.user!.tenantId;
+      const { id } = req.params;
+      const { amount, note } = req.body ?? {};
+      if (typeof amount !== "number" || Number.isNaN(amount)) {
+        return res.status(400).json({ error: "amount must be a number" });
+      }
+
+      const existing = await prisma.cashRecord.findFirst({ where: { id, tenantId } });
+      if (!existing) return res.status(404).json({ error: "Cash record not found" });
+
+      const updated = await prisma.cashRecord.update({
+        where: { id },
+        data: {
+          collectionAmount: amount,
+          pendingDues: Math.max(0, Number(existing.salesAmount) - amount),
+          status: "SETTLED",
+          notes: note ?? existing.notes,
+        },
+      });
+
+      await prisma.auditLog.create({
+        data: {
+          tenantId,
+          userId: req.user!.userId,
+          action: "CASH_COD_SETTLE",
+          entityType: "CashRecord",
+          entityId: id,
+          changes: {
+            before: { collectionAmount: Number(existing.collectionAmount), status: existing.status },
+            after: { collectionAmount: amount, status: "SETTLED" },
+            note: note ?? null,
+          },
+        },
+      });
+
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
 /**
  * @swagger
  * /api/cash:

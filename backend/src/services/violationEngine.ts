@@ -38,25 +38,26 @@ async function violationExistsToday(
 // ─── Core: create violation + alert + notification ───────────────
 export async function createViolationWithAlert(params: {
   tenantId: string;
-  driverId: string;
+  driverId: string | null;
   platform: Platform;
   violationType: ViolationType;
   violationTime: Date;
   details?: string;
   metadata?: any;
   taskId?: string;
+  skipDedup?: boolean;
 }) {
-  const { tenantId, driverId, platform, violationType, violationTime, details, metadata, taskId } = params;
+  const { tenantId, driverId, platform, violationType, violationTime, details, metadata, taskId, skipDedup } = params;
 
   // Dedup: skip if violation of same type exists today for this driver
-  if (await violationExistsToday(tenantId, driverId, violationType, violationTime)) {
+  if (!skipDedup && driverId && await violationExistsToday(tenantId, driverId, violationType, violationTime)) {
     return null;
   }
 
   const violation = await prisma.violation.create({
     data: {
       tenantId,
-      driverId,
+      driverId: driverId ?? null,
       platform,
       violationType,
       violationTime,
@@ -66,18 +67,20 @@ export async function createViolationWithAlert(params: {
     },
   });
 
-  // Mirror to Alert table for the unified alert feed
-  await prisma.alert.create({
-    data: {
-      tenantId,
-      driverId,
-      type: `VIOLATION_${violationType}`,
-      severity: getViolationSeverity(violationType) as any,
-      title: violationType.replace(/_/g, " "),
-      message: details || violationType,
-      data: { violationId: violation.id, ...(metadata || {}) },
-    },
-  });
+  // Mirror to Alert table only for driver-scoped violations (Alert requires driverId)
+  if (driverId) {
+    await prisma.alert.create({
+      data: {
+        tenantId,
+        driverId,
+        type: `VIOLATION_${violationType}`,
+        severity: getViolationSeverity(violationType) as any,
+        title: violationType.replace(/_/g, " "),
+        message: details || violationType,
+        data: { violationId: violation.id, ...(metadata || {}) },
+      },
+    });
+  }
 
   // Fire notifications to relevant users
   await createViolationNotifications({

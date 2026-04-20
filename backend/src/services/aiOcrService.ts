@@ -210,6 +210,64 @@ export class AiOcrService {
   }
 
   /**
+   * Extract Deliveroo "My deliveries" daily totals (cash, tips, deliveries,
+   * unassigned, hourly buckets) from a rider's screenshot. Returns null on
+   * failure. Uses src/services/ocrPrompts/deliveroo.md.
+   */
+  static async extractDeliverooMetrics(
+    imageBuffer: Buffer
+  ): Promise<DeliverooMetricsOcrResult | null> {
+    if (!env.ANTHROPIC_API_KEY) {
+      console.warn(
+        "[AiOcrService] ANTHROPIC_API_KEY not set - skipping Deliveroo metrics OCR"
+      );
+      return null;
+    }
+
+    const promptPath = path.join(__dirname, "ocrPrompts", "deliveroo.md");
+    const systemPrompt = fs.readFileSync(promptPath, "utf8");
+
+    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+    const mimeType = imageBuffer[0] === 0x89 ? "image/png" : "image/jpeg";
+    const base64Image = imageBuffer.toString("base64");
+
+    try {
+      const response = await client.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: { type: "base64", media_type: mimeType, data: base64Image },
+              },
+              {
+                type: "text",
+                text: "Extract Deliveroo daily totals from this screenshot and return JSON only.",
+              },
+            ],
+          },
+        ],
+      });
+
+      const rawText =
+        response.content[0].type === "text" ? response.content[0].text : "";
+      const cleaned = rawText
+        .replace(/```json\s*/gi, "")
+        .replace(/```\s*/gi, "")
+        .trim();
+      const parsed = JSON.parse(cleaned) as DeliverooMetricsOcrResult;
+      return parsed;
+    } catch (err) {
+      console.error("[AiOcrService] extractDeliverooMetrics failed:", err);
+      return null;
+    }
+  }
+
+  /**
    * Extract Talabat end-of-shift metrics (utr / ordersCompleted / onlineHours /
    * earnings) from a rider's in-app stats screenshot. Returns null on failure.
    *
@@ -275,5 +333,16 @@ export interface TalabatMetricsOcrResult {
   ordersCompleted: number | null;
   onlineHours: number | null;
   earnings: number | null;
+  confidence: number;
+}
+
+export interface DeliverooMetricsOcrResult {
+  shiftDate: string | null;
+  codCollectedKwd: number | null;
+  tipsKwd: number | null;
+  deliveriesCount: number | null;
+  unassignedCount: number | null;
+  hourlyBuckets: number[] | null;
+  sectionLabel: string | null;
   confidence: number;
 }

@@ -176,6 +176,8 @@ exports.Prisma.DriverScalarFieldEnum = {
   monthlySalary: 'monthlySalary',
   monthlyOffDaysUsed: 'monthlyOffDaysUsed',
   offDaysResetMonth: 'offDaysResetMonth',
+  performanceTier: 'performanceTier',
+  tierComputedAt: 'tierComputedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   healthCertExpiry: 'healthCertExpiry',
@@ -669,6 +671,28 @@ exports.Prisma.IngestRunScalarFieldEnum = {
   rowsIn: 'rowsIn',
   rowsOk: 'rowsOk',
   errorLog: 'errorLog'
+};
+
+exports.Prisma.DeliverooDailyMetricsScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  shiftDate: 'shiftDate',
+  codCollectedKwd: 'codCollectedKwd',
+  tipsKwd: 'tipsKwd',
+  deliveriesCount: 'deliveriesCount',
+  unassignedCount: 'unassignedCount',
+  hourlyBuckets: 'hourlyBuckets',
+  source: 'source',
+  status: 'status',
+  rawImageUrl: 'rawImageUrl',
+  ocrConfidence: 'ocrConfidence',
+  ocrRaw: 'ocrRaw',
+  reviewedBy: 'reviewedBy',
+  reviewedAt: 'reviewedAt',
+  reviewNote: 'reviewNote',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.TalabatDailyMetricsScalarFieldEnum = {
@@ -1205,6 +1229,7 @@ exports.Prisma.DriverOrderByRelevanceFieldEnum = {
   photoUrl: 'photoUrl',
   supervisorId: 'supervisorId',
   offDaysResetMonth: 'offDaysResetMonth',
+  performanceTier: 'performanceTier',
   healthCertStatus: 'healthCertStatus',
   workPermitStatus: 'workPermitStatus',
   foodHandlingCertStatus: 'foodHandlingCertStatus',
@@ -1461,6 +1486,17 @@ exports.Prisma.IngestRunOrderByRelevanceFieldEnum = {
   source: 'source',
   status: 'status',
   errorLog: 'errorLog'
+};
+
+exports.Prisma.DeliverooDailyMetricsOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  source: 'source',
+  status: 'status',
+  rawImageUrl: 'rawImageUrl',
+  reviewedBy: 'reviewedBy',
+  reviewNote: 'reviewNote'
 };
 
 exports.Prisma.TalabatDailyMetricsOrderByRelevanceFieldEnum = {
@@ -2054,7 +2090,8 @@ exports.ViolationType = exports.$Enums.ViolationType = {
   ORDER_VERY_LATE: 'ORDER_VERY_LATE',
   INVALID_DELIVERY_PHOTO: 'INVALID_DELIVERY_PHOTO',
   GPS_NOT_UPLOADING: 'GPS_NOT_UPLOADING',
-  CASH_DISCREPANCY: 'CASH_DISCREPANCY'
+  CASH_DISCREPANCY: 'CASH_DISCREPANCY',
+  DELIVEROO_UNASSIGNED_ORDER: 'DELIVEROO_UNASSIGNED_ORDER'
 };
 
 exports.ViolationStatus = exports.$Enums.ViolationStatus = {
@@ -2125,6 +2162,7 @@ exports.Prisma.ModelName = {
   TalabatDelivery: 'TalabatDelivery',
   KeetaDailyMetrics: 'KeetaDailyMetrics',
   IngestRun: 'IngestRun',
+  DeliverooDailyMetrics: 'DeliverooDailyMetrics',
   TalabatDailyMetrics: 'TalabatDailyMetrics',
   PlatformSettings: 'PlatformSettings',
   PlatformInventory: 'PlatformInventory',

@@ -286,6 +286,7 @@ enum ViolationType {
   INVALID_DELIVERY_PHOTO
   GPS_NOT_UPLOADING
   CASH_DISCREPANCY
+  DELIVEROO_UNASSIGNED_ORDER
 }
 
 enum ViolationStatus {
@@ -359,6 +360,7 @@ model Tenant {
   talabatSessions         TalabatSession[]
   talabatViolationEvents  TalabatViolationEvent[]
   talabatDailyMetrics     TalabatDailyMetrics[]
+  deliverooDailyMetrics   DeliverooDailyMetrics[]
   keetaDailyMetrics       KeetaDailyMetrics[]
   americanaDailyOrders    AmericanaDailyOrders[]
   kpiDefinitions          KpiDefinition[]
@@ -458,6 +460,8 @@ model Driver {
   monthlySalary      Float?
   monthlyOffDaysUsed Int          @default(0)
   offDaysResetMonth  String? // format: "YYYY-MM", reset tracker
+  performanceTier    String? // GOLD | SILVER | BRONZE | WATCHLIST (R9)
+  tierComputedAt     DateTime?
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
@@ -504,6 +508,7 @@ model Driver {
   talabatSessions         TalabatSession[]
   talabatViolationEvents  TalabatViolationEvent[]
   talabatDailyMetrics     TalabatDailyMetrics[]
+  deliverooDailyMetrics   DeliverooDailyMetrics[]
   keetaDailyMetrics       KeetaDailyMetrics[]
   americanaDailyOrders    AmericanaDailyOrders[]
   talabatDeliveries       TalabatDelivery[]
@@ -1251,6 +1256,37 @@ model IngestRun {
   @@index([tenantId, platform, startedAt])
 }
 
+// 29.1.5 DeliverooDailyMetrics - per-driver Deliveroo rider "My deliveries" totals (OCR + manual)
+model DeliverooDailyMetrics {
+  id              String    @id @default(cuid())
+  tenantId        String
+  driverId        String
+  shiftDate       DateTime
+  codCollectedKwd Decimal   @db.Decimal(10, 3)
+  tipsKwd         Decimal   @db.Decimal(10, 3)
+  deliveriesCount Int
+  unassignedCount Int       @default(0)
+  hourlyBuckets   Json // int[9] mapped to 08,10,12,14,16,18,20,22,24
+  source          String // "OCR_MOBILE" | "OCR_WEB" | "MANUAL_UPLOAD"
+  status          String    @default("PARSED") // PARSED | PENDING_REVIEW | APPROVED | REJECTED
+  rawImageUrl     String?
+  ocrConfidence   Float?
+  ocrRaw          Json?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  reviewNote      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@unique([tenantId, driverId, shiftDate])
+  @@index([tenantId, shiftDate])
+  @@index([tenantId, status])
+  @@index([driverId, shiftDate])
+}
+
 // 29.1. TalabatDailyMetrics - per-driver daily KPIs sourced from mobile OCR / manual upload / portal API
 model TalabatDailyMetrics {
   id              String    @id @default(cuid())
@@ -1511,7 +1547,7 @@ model CourierOnlineSession {
 model Violation {
   id                 String          @id @default(uuid())
   tenantId           String
-  driverId           String
+  driverId           String?
   platform           Platform
   violationType      ViolationType
   violationStatus    ViolationStatus @default(ESTABLISHED)
@@ -1526,7 +1562,7 @@ model Violation {
   updatedAt          DateTime        @updatedAt
 
   tenant    Tenant    @relation(fields: [tenantId], references: [id])
-  driver    Driver    @relation(fields: [driverId], references: [id])
+  driver    Driver?   @relation(fields: [driverId], references: [id])
   penalties Penalty[]
   appeals   Appeal[]
 

@@ -97,6 +97,9 @@ export default function TalabatAttendancePage() {
         <span className="text-sm text-secondary">Wahoo International</span>
       </div>
 
+      {/* R7 · On shift now, grouped by zone */}
+      <TalabatOnShiftNow />
+
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-4">
         <StatCard
