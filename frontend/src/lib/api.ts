@@ -22,11 +22,15 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+function isRefreshRequest(config: { url?: string }) {
+  return typeof config.url === "string" && config.url.endsWith("/api/auth/refresh");
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshRequest(originalRequest)) {
       originalRequest._retry = true;
       try {
         const { data } = await axios.post(
@@ -39,8 +43,13 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch {
         accessToken = null;
-        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-          window.location.href = "/login";
+        if (typeof window !== "undefined") {
+          const path = window.location.pathname;
+          const publicRoutes = ["/", "/login", "/marketing"];
+          const isPublic = publicRoutes.some((r) => path === r || (r !== "/" && path.startsWith(`${r}/`)));
+          if (!isPublic) {
+            window.location.href = "/login";
+          }
         }
         return Promise.reject(error);
       }
