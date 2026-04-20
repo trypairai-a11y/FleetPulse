@@ -463,4 +463,36 @@ router.put("/:id/appeal/:appealId", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * POST /api/violations/:id/override
+ * Americana supervisor override — flips the violation to OVERTURNED and
+ * records the reason. There is no Appeal workflow for Americana (DA8).
+ */
+router.post("/:id/override", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { reason } = req.body ?? {};
+    if (!reason || String(reason).trim().length < 3) {
+      res.status(400).json({ error: "reason required" });
+      return;
+    }
+    const violation = await prisma.violation.findFirst({
+      where: { id: req.params.id, tenantId },
+    });
+    if (!violation) { res.status(404).json({ error: "Violation not found" }); return; }
+    const updated = await prisma.violation.update({
+      where: { id: violation.id },
+      data: {
+        violationStatus: "OVERTURNED" as ViolationStatus,
+        overrideReason: String(reason).slice(0, 500),
+        overriddenBy: req.user!.userId,
+        overriddenAt: new Date(),
+      },
+    });
+    res.json(updated);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 export default router;
