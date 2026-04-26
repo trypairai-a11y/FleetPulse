@@ -99,17 +99,17 @@ export default function OverviewPage() {
   const { data: ordersYesterday } = useApiGet<any>(`/api/orders/summary?dateFrom=${ydayStr}&dateTo=${ydayStr}${companyParam}`);
   const { data: attendanceSummary } = useApiGet<any>(`/api/attendance/summary${companyOnlyParam}`);
 
-  // Recent OrderLog rows (driverIds in last 3 days) — used to compute inactive list
-  const { data: recentOrders } = useApiGet<{ data: { driverId: string }[] }>(
-    `/api/orders?dateFrom=${threeDaysAgoStr}&dateTo=${todayStr}&limit=5000${companyParam}`,
+  // Distinct active driverIds (last 3 days) — used to compute inactive list
+  const { data: recentOrders } = useApiGet<{ driverIds: string[] }>(
+    `/api/orders/active-drivers?dateFrom=${threeDaysAgoStr}&dateTo=${todayStr}${companyParam}`,
   );
 
-  // Per-platform daily aggregates: this month + last month
+  // Per-platform daily aggregates: this month + last month (server-aggregated)
   const { data: ordersThisMonth } = useApiGet<{ data: any[] }>(
-    `/api/orders?dateFrom=${ymd(monthStart)}&dateTo=${todayStr}&limit=10000${companyParam}`,
+    `/api/orders/daily-by-platform?dateFrom=${ymd(monthStart)}&dateTo=${todayStr}${companyParam}`,
   );
   const { data: ordersLastMonth } = useApiGet<{ data: any[] }>(
-    `/api/orders?dateFrom=${ymd(lastMonthStart)}&dateTo=${ymd(lastMonthEnd)}&limit=10000${companyParam}`,
+    `/api/orders/daily-by-platform?dateFrom=${ymd(lastMonthStart)}&dateTo=${ymd(lastMonthEnd)}${companyParam}`,
   );
 
   const handleRefreshDigest = async (e: React.MouseEvent) => {
@@ -140,7 +140,7 @@ export default function OverviewPage() {
 
   // Inactive >3 days: drivers with no OrderLog rows in last 3 days
   const activeDriverIds = useMemo(
-    () => new Set((recentOrders?.data || []).map((o: any) => o.driverId)),
+    () => new Set(recentOrders?.driverIds || []),
     [recentOrders],
   );
   const inactiveDrivers = useMemo(

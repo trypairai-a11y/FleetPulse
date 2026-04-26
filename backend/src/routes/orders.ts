@@ -146,6 +146,79 @@ router.get("/", async (req: Request, res: Response) => {
  *       200:
  *         description: Order summary with totals, averages, and per-driver breakdown
  */
+/**
+ * @swagger
+ * /api/orders/daily-by-platform:
+ *   get:
+ *     tags: [Orders]
+ *     summary: Daily order counts grouped by platform and date for sparkline charts
+ *     parameters:
+ *       - in: query
+ *         name: dateFrom
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: dateTo
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: companyId
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Array of { platform, date, orderCount } rows
+ */
+router.get("/daily-by-platform", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { dateFrom, dateTo, companyId } = req.query;
+    const where: any = { tenantId };
+    if (companyId) where.driver = { companyId: companyId as string };
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
+      if (dateTo) where.date.lte = parseLocalDateEnd(dateTo as string);
+    }
+    const rows = await prisma.orderLog.groupBy({
+      by: ["platform", "date"],
+      where,
+      _sum: { orderCount: true },
+    });
+    res.json({
+      data: rows.map((r) => ({
+        platform: r.platform,
+        date: r.date,
+        orderCount: r._sum.orderCount || 0,
+      })),
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/orders/active-drivers:
+ *   get:
+ *     tags: [Orders]
+ *     summary: Distinct driver IDs that logged orders in a date range
+ */
+router.get("/active-drivers", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { dateFrom, dateTo, companyId } = req.query;
+    const where: any = { tenantId };
+    if (companyId) where.driver = { companyId: companyId as string };
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
+      if (dateTo) where.date.lte = parseLocalDateEnd(dateTo as string);
+    }
+    const rows = await prisma.orderLog.groupBy({ by: ["driverId"], where });
+    res.json({ driverIds: rows.map((r) => r.driverId) });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/summary", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
