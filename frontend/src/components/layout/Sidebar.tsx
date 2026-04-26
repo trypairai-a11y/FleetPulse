@@ -9,12 +9,13 @@ import { useRole } from "@/hooks/useRole";
 import { useI18n } from "@/i18n/I18nProvider";
 import LanguageSwitcher from "./LanguageSwitcher";
 import {
-  LayoutDashboard, Map, Ticket, Users, Settings,
-  ChevronDown, ChevronRight, PanelLeftClose, PanelLeft,
+  LayoutDashboard, Ticket, Users, Settings,
+  ChevronDown, PanelLeftClose, PanelLeft,
   ClipboardList, DollarSign, Briefcase,
   ShieldAlert, BarChart3, Target, Gauge, Building2, Lightbulb,
-  Activity, AlertTriangle, Ban, Map as MapIcon, Calendar, Trophy, Wallet, PieChart,
+  Activity, AlertTriangle, Ban, Calendar, Trophy, Wallet, PieChart, Compass,
 } from "lucide-react";
+import { DirectionalIcon } from "@/i18n/directionalIcon";
 
 // Platform names stay as brand strings; sub-page labels translate via i18n keys.
 // R11 · Simplified per PRD:
@@ -53,7 +54,7 @@ const PLATFORMS = [
       { i18n: "nav.financial", path: "/keeta/financial/billings", icon: Wallet },
       { i18n: "nav.violations", path: "/keeta/violations", icon: AlertTriangle },
       { i18n: "nav.performance", path: "/keeta/performance", icon: BarChart3 },
-      { i18n: "nav.operationCentre", path: "/keeta/operation-centre", icon: MapIcon },
+      { i18n: "nav.operationCentre", path: "/keeta/operation-centre", icon: Compass },
       { i18n: "nav.reports", path: "/keeta/reports", icon: PieChart },
       { i18n: "nav.settings", path: "/keeta/settings", icon: Settings },
     ],
@@ -95,7 +96,6 @@ const GLOBAL_NAV = [
   { i18n: "nav.kpis", path: "/kpis", icon: Target },
   { i18n: "nav.analytics", path: "/analytics", icon: BarChart3 },
   { i18n: "nav.insights", path: "/insights", icon: Lightbulb },
-  { i18n: "nav.liveMap", path: "/map", icon: Map },
   { i18n: "nav.tickets", path: "/tickets", icon: Ticket },
   { i18n: "nav.recruitment", path: "/recruitment", icon: Users },
   { i18n: "nav.supervisors", path: "/supervisors", icon: Users },
@@ -195,8 +195,8 @@ export default function Sidebar() {
               })} />
               {!collapsed && (
                 <>
-                  <span className="flex-1 text-left">{platform.name}</span>
-                  {expanded[platform.key] ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  <span className="flex-1 text-start">{platform.name}</span>
+                  {expanded[platform.key] ? <ChevronDown size={14} /> : <DirectionalIcon kind="chevron-forward" size={14} />}
                 </>
               )}
             </button>

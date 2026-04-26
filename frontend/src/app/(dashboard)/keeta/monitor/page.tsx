@@ -457,19 +457,6 @@ export default function KeetaMonitorPage() {
               </div>
             )}
 
-            {/* Map placeholder — last known GPS */}
-            {selected.lastGps?.lat && selected.lastGps?.lng && (
-              <div className="mt-4">
-                <p className="text-[10px] text-secondary uppercase font-medium mb-2">Last Known Location</p>
-                <div className="bg-gray-100 rounded-xl h-48 flex items-center justify-center text-sm text-secondary">
-                  <MapPin size={16} className="mr-2" />
-                  {selected.lastGps.lat.toFixed(5)}, {selected.lastGps.lng.toFixed(5)}
-                  {selected.lastGps.at && (
-                    <span className="ml-2 text-xs">({new Date(selected.lastGps.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })})</span>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </SlidePanel>
