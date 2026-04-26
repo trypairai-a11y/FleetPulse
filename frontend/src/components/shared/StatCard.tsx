@@ -23,15 +23,20 @@ export default function StatCard({ title, value, icon: Icon, trend, highlight, c
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-sand-600 mb-3">{title}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] uppercase tracking-[0.14em] font-medium text-sand-600 mb-3 truncate">{title}</p>
           <p className={cn(
-            "font-display text-4xl leading-none tracking-tight truncate",
+            "font-display leading-none tracking-tight whitespace-nowrap overflow-hidden text-ellipsis",
+            // Step down with the length of the value so it always fits the card width
+            typeof value === "string" && value.length > 12 ? "text-xl" :
+            typeof value === "string" && value.length > 9 ? "text-2xl" :
+            typeof value === "string" && value.length > 6 ? "text-3xl" :
+            "text-4xl",
             highlight ? "text-red-600" : "text-sand-900 dark:text-foreground"
           )}>
             {value}
           </p>
-          {trend && <p className="text-xs text-sand-600 mt-2.5">{trend}</p>}
+          {trend && <p className="text-xs text-sand-600 mt-2.5 truncate">{trend}</p>}
         </div>
         {Icon && (
           <div className="h-9 w-9 shrink-0 rounded-pill bg-sand-100 dark:bg-sand-900/40 flex items-center justify-center text-sand-700 transition-colors duration-400 ease-sierra-out group-hover:bg-primary/10 group-hover:text-primary">
