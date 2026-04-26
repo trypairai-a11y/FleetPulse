@@ -63,7 +63,7 @@ function OnTimeBar({ rate }: { rate: number }) {
 }
 
 export default function KeetaPerformancePage() {
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(new Date().toLocaleDateString("en-CA"));
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
 

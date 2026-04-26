@@ -11,6 +11,8 @@ import {
   ChevronDown, ChevronRight, ChevronLeft, X, Check, Loader2,
   Calendar, Bell,
 } from "lucide-react";
+import { useI18n } from "@/i18n/I18nProvider";
+import { formatCurrency, formatTime } from "@/i18n/format";
 
 const DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0"));
 
@@ -68,6 +70,7 @@ function DatePicker({
   selectedDays: string[];
   onDaysChange: (days: string[]) => void;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<"months" | "days">("months");
   const ref = useRef<HTMLDivElement>(null);
@@ -127,7 +130,7 @@ function DatePicker({
   const displayLabel = selectedDays.length > 0
     ? selectedDays.length === 1
       ? `${selectedDays[0]} ${MONTHS[month - 1]} ${year}`
-      : `${selectedDays.length} days in ${MONTHS[month - 1]} ${year}`
+      : `${selectedDays.length} ${t("talabat.daysInMonth")} ${MONTHS[month - 1]} ${year}`
     : `${MONTHS[month - 1]} ${year}`;
 
   return (
@@ -175,7 +178,7 @@ function DatePicker({
                   );
                 })}
               </div>
-              <p className="text-[10px] text-secondary mt-2.5 text-center">Select a month to pick days</p>
+              <p className="text-[10px] text-secondary mt-2.5 text-center">{t("talabat.selectMonthHint")}</p>
             </>
           ) : (
             <>
@@ -185,7 +188,7 @@ function DatePicker({
                 </button>
                 <span className="text-sm font-semibold">{MONTHS[month - 1]} {year}</span>
                 <button onClick={selectAllDays} className="text-xs text-orange-600 hover:text-orange-700 font-medium px-2 py-1 hover:bg-orange-50 rounded-lg transition-colors whitespace-nowrap">
-                  Entire Month
+                  {t("talabat.entireMonth")}
                 </button>
               </div>
               {/* Weekday headers */}
@@ -232,16 +235,16 @@ function DatePicker({
               <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
                 <span className="text-[10px] text-secondary">
                   {rangeStart && selectedDays.length === 1
-                    ? "Click another day to select range"
+                    ? t("talabat.clickAnotherDayRange")
                     : selectedDays.length === 0
-                      ? "Entire month"
-                      : `${selectedDays.length} day${selectedDays.length > 1 ? "s" : ""} selected`}
+                      ? t("talabat.entireMonth")
+                      : `${selectedDays.length} ${selectedDays.length === 1 ? t("talabat.daySelected") : t("talabat.daysSelected")}`}
                 </span>
                 <button
                   onClick={() => { setOpen(false); setView("months"); }}
                   className="text-xs font-medium text-white bg-orange-500 hover:bg-orange-600 px-3 py-1 rounded-lg transition-colors"
                 >
-                  Done
+                  {t("talabat.done")}
                 </button>
               </div>
             </>
@@ -253,6 +256,7 @@ function DatePicker({
 }
 
 function DepositModal({ rider, onClose, onSuccess }: { rider: LedgerRow; onClose: () => void; onSuccess: () => void }) {
+  const { t, locale } = useI18n();
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("CASH");
   const [note, setNote] = useState("");
@@ -261,7 +265,7 @@ function DepositModal({ rider, onClose, onSuccess }: { rider: LedgerRow; onClose
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!amount || isNaN(Number(amount))) { setError("Enter a valid amount"); return; }
+    if (!amount || isNaN(Number(amount))) { setError(t("talabat.enterValidAmount")); return; }
     setLoading(true);
     try {
       await api.post("/api/cash/deposit", {
@@ -274,7 +278,7 @@ function DepositModal({ rider, onClose, onSuccess }: { rider: LedgerRow; onClose
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to record deposit");
+      setError(err.response?.data?.error || t("talabat.failedDeposit"));
     } finally {
       setLoading(false);
     }
@@ -284,16 +288,16 @@ function DepositModal({ rider, onClose, onSuccess }: { rider: LedgerRow; onClose
     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold">Record Deposit</h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-50 rounded-lg"><X size={18} /></button>
+          <h2 className="text-lg font-semibold">{t("talabat.recordDeposit")}</h2>
+          <button onClick={onClose} className="p-1 hover:bg-gray-50 rounded-lg" aria-label={t("common.close")}><X size={18} /></button>
         </div>
         <p className="text-sm text-secondary mb-5">
-          Driver: <span className="font-medium text-foreground">{rider.riderName}</span>
-          {" · "}Pending: <span className="font-medium text-orange-600">{kd(rider.pendingDues)} KD</span>
+          {t("table.driver")}: <span className="font-medium text-foreground">{rider.riderName}</span>
+          {" · "}{t("talabat.pending")}: <span className="font-medium text-orange-600">{formatCurrency(rider.pendingDues, locale)}</span>
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Amount (KD)</label>
+            <label className="block text-xs font-medium text-secondary mb-1.5">{t("talabat.amountKd")}</label>
             <input
               type="number"
               step="0.001"
@@ -304,24 +308,25 @@ function DepositModal({ rider, onClose, onSuccess }: { rider: LedgerRow; onClose
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Method</label>
+            <label className="block text-xs font-medium text-secondary mb-1.5">{t("talabat.method")}</label>
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value)}
               className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
             >
-              <option value="CASH">Cash</option>
-              <option value="AL_MUZAINI">Al-Muzaini</option>
-              <option value="BANK_TRANSFER">Bank Transfer</option>
+              <option value="CASH">{t("talabat.methodCash")}</option>
+              <option value="AL_MUZAINI">{t("talabat.methodAlMuzaini")}</option>
+              <option value="BANK_TRANSFER">{t("talabat.methodBankTransfer")}</option>
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-secondary mb-1.5">Note (optional)</label>
+            <label className="block text-xs font-medium text-secondary mb-1.5">{t("talabat.noteOptional")}</label>
             <input
               type="text"
+              dir="auto"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Reference number, remarks..."
+              placeholder={t("talabat.notePlaceholder")}
               className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
             />
           </div>
@@ -332,7 +337,7 @@ function DepositModal({ rider, onClose, onSuccess }: { rider: LedgerRow; onClose
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50"
           >
             {loading ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-            Confirm Deposit
+            {t("talabat.confirmDeposit")}
           </button>
         </form>
       </div>
@@ -343,7 +348,8 @@ function DepositModal({ rider, onClose, onSuccess }: { rider: LedgerRow; onClose
 const REFRESH_INTERVAL = 30_000; // 30 seconds
 
 export default function TalabatCashPage() {
-  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
+  const { t, locale } = useI18n();
+  const [month, setMonth] = useState(new Date().toLocaleDateString("en-CA").slice(0, 7));
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [companyFilter, setCompanyFilter] = useState("");
@@ -426,7 +432,7 @@ export default function TalabatCashPage() {
   // Month-1 alert: flag any driver with non-zero remaining balance on the 1st of the month
   const today = new Date();
   const isMonthStart = today.getDate() === 1;
-  const isCurrentMonth = month === today.toISOString().slice(0, 7);
+  const isCurrentMonth = month === today.toLocaleDateString("en-CA").slice(0, 7);
   const overdueDrivers = (isMonthStart && isCurrentMonth)
     ? filtered.filter((r) => r.pendingDues > 0)
     : [];
@@ -480,12 +486,12 @@ export default function TalabatCashPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-talabat" />
-          <h1 className="text-xl font-semibold">Talabat - Cash</h1>
-          <span className="text-sm text-secondary">Wahoo International</span>
-          <div className="flex items-center gap-1.5 ml-1">
+          <h1 className="text-xl font-semibold">{t("talabat.cashTitle")}</h1>
+          <span className="text-sm text-secondary">{t("talabat.wahooIntl")}</span>
+          <div className="flex items-center gap-1.5 ms-1">
             <span className={cn("w-2 h-2 rounded-full", refreshing ? "bg-orange-400 animate-pulse" : "bg-green-400 animate-pulse")} />
             <span className="text-xs text-secondary">
-              {refreshing ? "Updating…" : `Updated ${lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`}
+              {refreshing ? t("talabat.updating") : `${t("talabat.updatedAt")} ${formatTime(lastUpdated, locale)}`}
             </span>
           </div>
         </div>
@@ -496,7 +502,7 @@ export default function TalabatCashPage() {
             importLoading && "opacity-50 pointer-events-none"
           )}>
             {importLoading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} className="text-secondary" />}
-            Import XLSX
+            {t("talabat.importXlsx")}
             <input
               type="file"
               accept=".xlsx,.xls,.csv"
@@ -512,7 +518,7 @@ export default function TalabatCashPage() {
             onClick={handleExport}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors"
           >
-            <Download size={15} className="text-secondary" /> Export XLSX
+            <Download size={15} className="text-secondary" /> {t("talabat.exportXlsx")}
           </button>
         </div>
       </div>
@@ -526,18 +532,18 @@ export default function TalabatCashPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-4">
         <StatCard
-          title="Total Collected"
-          value={`${totalCollected.toFixed(3)} KD`}
+          title={t("talabat.totalCollected")}
+          value={formatCurrency(totalCollected, locale)}
           icon={TrendingUp}
         />
         <StatCard
-          title="Total Deposits"
-          value={`${totalDeposits.toFixed(3)} KD`}
+          title={t("talabat.totalDeposits")}
+          value={formatCurrency(totalDeposits, locale)}
           icon={Wallet}
         />
         <StatCard
-          title="Total Remaining Balance"
-          value={`${totalPending.toFixed(3)} KD`}
+          title={t("talabat.totalRemainingBalance")}
+          value={formatCurrency(totalPending, locale)}
           icon={AlertTriangle}
           highlight={totalPending > cashThreshold}
           className={totalPending > cashThreshold ? "ring-orange-200" : ""}
@@ -550,16 +556,16 @@ export default function TalabatCashPage() {
           <Bell size={18} className="text-red-600 mt-0.5 shrink-0" />
           <div className="flex-1">
             <p className="text-sm font-semibold text-red-700">
-              {overdueDrivers.length} driver{overdueDrivers.length > 1 ? "s" : ""} still have outstanding cash balance at start of month
+              {overdueDrivers.length} {t("talabat.overdueMonthStart")}
             </p>
             <p className="text-xs text-red-500 mt-1">
-              Remaining balances must be cleared by end of each month. The following riders have unsettled dues:
+              {t("talabat.overdueMonthDetail")}
             </p>
             <div className="flex flex-wrap gap-2 mt-2">
               {overdueDrivers.map((r) => (
                 <span key={r.id} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-lg">
                   {parseRiderName(r.riderName).name}
-                  <span className="font-mono font-bold">{kd(r.pendingDues)} KD</span>
+                  <span className="font-mono font-bold">{formatCurrency(r.pendingDues, locale)}</span>
                 </span>
               ))}
             </div>
@@ -571,9 +577,10 @@ export default function TalabatCashPage() {
       <div className="flex gap-3 items-center">
         <input
           type="text"
+          dir="auto"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by rider name, ID or company code..."
+          placeholder={t("talabat.searchRiderPlaceholder")}
           className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 min-w-[280px]"
         />
         {companies.length > 0 && (
@@ -582,13 +589,13 @@ export default function TalabatCashPage() {
             onChange={(e) => setCompanyFilter(e.target.value)}
             className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
           >
-            <option value="">All Companies</option>
+            <option value="">{t("companies.allCompanies")}</option>
             {companies.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
         )}
-        <span className="text-sm text-secondary">{filtered.length} riders</span>
+        <span className="text-sm text-secondary">{filtered.length} {t("talabat.riders")}</span>
       </div>
 
       {/* Main Ledger Table */}
@@ -597,21 +604,21 @@ export default function TalabatCashPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/50">
-                <th className="text-left text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Driver ID</th>
-                <th className="text-left text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Rider Name</th>
-                <th className="text-left text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Batch</th>
-                <th className="text-left text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Company</th>
-                <th className="text-left text-xs font-medium text-secondary px-4 py-3">Status</th>
-                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Collected</th>
-                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Deposit</th>
-                <th className="text-right text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">Remaining Balance</th>
+                <th className="text-start text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">{t("talabat.driverIdHeader")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">{t("talabat.riderNameHeader")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">{t("talabat.batchHeader")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">{t("talabat.companyHeader")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-4 py-3">{t("table.status")}</th>
+                <th className="text-end text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">{t("talabat.collectedHeader")}</th>
+                <th className="text-end text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">{t("talabat.depositHeader")}</th>
+                <th className="text-end text-xs font-medium text-secondary px-4 py-3 whitespace-nowrap">{t("talabat.remainingBalanceHeader")}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-5 py-12 text-center text-sm text-secondary">
-                    No ledger data for {month}
+                    {t("talabat.noLedgerData")} {month}
                   </td>
                 </tr>
               ) : (
@@ -639,13 +646,16 @@ export default function TalabatCashPage() {
                             "bg-gray-100 text-gray-500": row.status === "INACTIVE",
                             "bg-red-50 text-red-600": row.status === "SUSPENDED",
                           })}>
-                            {row.status}
+                            {row.status === "ACTIVE" ? t("status.active")
+                              : row.status === "INACTIVE" ? t("status.inactive")
+                              : row.status === "SUSPENDED" ? t("status.suspended")
+                              : row.status}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-right font-mono text-green-600 font-medium">
+                        <td className="px-4 py-3 text-sm text-end font-mono text-green-600 font-medium">
                           {kd(hasDayFilter ? sumForDays(row, "dailyCollections") : row.totalCollection)}
                         </td>
-                        <td className="px-4 py-3 text-sm text-right font-mono text-blue-600 font-medium">
+                        <td className="px-4 py-3 text-sm text-end font-mono text-blue-600 font-medium">
                           {hasDayFilter ? "-" : kd(row.cashAlMuzaini + row.bankTransfer)}
                         </td>
                         {(() => {
@@ -654,7 +664,7 @@ export default function TalabatCashPage() {
                             : row.pendingDues;
                           const isHigh = pending > cashThreshold;
                           return (
-                            <td className="px-4 py-3 text-right">
+                            <td className="px-4 py-3 text-end">
                               <span className={cn(
                                 "text-sm font-mono font-semibold",
                                 isHigh ? "text-red-600" :
@@ -663,7 +673,7 @@ export default function TalabatCashPage() {
                                 {kd(pending)}
                               </span>
                               {isHigh && (
-                                <AlertTriangle size={12} className="inline ml-1 text-red-500" />
+                                <AlertTriangle size={12} className="inline ms-1 text-red-500" />
                               )}
                             </td>
                           );

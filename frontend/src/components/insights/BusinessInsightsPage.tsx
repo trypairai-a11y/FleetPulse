@@ -7,8 +7,10 @@ import OverviewCards from "./OverviewCards";
 import SuggestionList from "./SuggestionList";
 import WeeklyChart from "./WeeklyChart";
 import QuickWins from "./QuickWins";
+import { useI18n } from "@/i18n/I18nProvider";
 
 export default function BusinessInsightsPage() {
+  const { t } = useI18n();
   const { data, loading, error, refetch } = useApiGet<InsightsPayload>("/api/insights");
 
   const generatedAgo = data?.generatedAt
@@ -20,12 +22,14 @@ export default function BusinessInsightsPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Insights</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("insights.title")}</h1>
           <p className="text-sm text-secondary mt-0.5">
-            What to focus on today — in plain English.
+            {t("insights.focus")}
             {generatedAgo !== null && (
-              <span className="ml-1">
-                Updated {generatedAgo === 0 ? "just now" : `${generatedAgo}m ago`}
+              <span className="ms-1">
+                {generatedAgo === 0
+                  ? t("insights.updatedJustNow")
+                  : t("insights.updatedAgo").replace("{n}", String(generatedAgo))}
               </span>
             )}
           </p>
@@ -36,7 +40,7 @@ export default function BusinessInsightsPage() {
           className="flex items-center gap-1.5 text-sm font-medium text-secondary hover:text-foreground transition-colors disabled:opacity-40"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-          Refresh
+          {t("common.refresh")}
         </button>
       </div>
 
@@ -44,10 +48,10 @@ export default function BusinessInsightsPage() {
 
       {error && (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
-          <p className="font-medium text-red-700">Could not load insights</p>
+          <p className="font-medium text-red-700">{t("insights.couldNotLoad")}</p>
           <p className="text-sm text-red-500 mt-1">{error}</p>
           <button onClick={refetch} className="mt-3 text-sm text-red-600 underline">
-            Try again
+            {t("actions.tryAgain")}
           </button>
         </div>
       )}
@@ -57,7 +61,7 @@ export default function BusinessInsightsPage() {
           <OverviewCards overview={data.overview} />
           <QuickWins wins={data.quickWins} />
           <div>
-            <h2 className="text-base font-semibold text-foreground mb-4">What you should do</h2>
+            <h2 className="text-base font-semibold text-foreground mb-4">{t("insights.whatYouShouldDo")}</h2>
             <SuggestionList suggestions={data.suggestions} />
           </div>
           <WeeklyChart thisWeek={data.weeklyChart.thisWeek} lastWeek={data.weeklyChart.lastWeek} />

@@ -6,8 +6,6 @@ import StatCard from "@/components/shared/StatCard";
 import SlidePanel from "@/components/shared/SlidePanel";
 import { cn } from "@/lib/cn";
 import {
-  ChevronLeft,
-  ChevronRight,
   ChevronUp,
   ChevronDown,
   CheckCircle2,
@@ -24,6 +22,9 @@ import {
   Phone,
   Flag,
 } from "lucide-react";
+import { useI18n } from "@/i18n/I18nProvider";
+import { DirectionalIcon } from "@/i18n/directionalIcon";
+import { formatDate as fmtDate, formatTime } from "@/i18n/format";
 
 const ZONES = ["Hawally", "Salmiya", "Ardiya", "Jahra", "Khiran", "Mishref", "Sabah Al Salem", "Abu Halifa", "Fahaheel", "Mangaf"];
 
@@ -80,14 +81,20 @@ const SHIFT_STATUS_STYLES: Record<string, string> = {
   NO_SHOW: "bg-amber-50 text-amber-700 border border-amber-200",
 };
 
-const SHIFT_STATUS_LABELS: Record<string, string> = {
-  BOOKED: "BOOKED",
-  COMPLETED: "COMPLETED",
-  MISSED: "NOT BOOKED",
-  NO_SHOW: "NO SHOW",
-  NOT_BOOKED: "NOT BOOKED",
-  IN_PROGRESS: "IN PROGRESS",
-};
+function useShiftStatusLabel() {
+  const { t } = useI18n();
+  return (status: string): string => {
+    switch (status) {
+      case "BOOKED": return t("keetaPage.statusBooked");
+      case "COMPLETED": return t("keetaPage.statusCompleted");
+      case "IN_PROGRESS": return t("keetaPage.statusInProgress");
+      case "NOT_BOOKED":
+      case "MISSED": return t("keetaPage.statusNotBooked");
+      case "NO_SHOW": return t("keetaPage.statusNoShow");
+      default: return status;
+    }
+  };
+}
 
 function getMonday(d: Date): Date {
   const day = d.getDay();
@@ -125,13 +132,15 @@ type SortKey = "driverName" | "phone" | "zone" | "booking" | "weeklyBookings" | 
 type SortDir = "asc" | "desc";
 
 export default function KeetaShiftsPage() {
+  const { t, locale } = useI18n();
+  const shiftStatusLabel = useShiftStatusLabel();
   const [view, setView] = useState<"calendar" | "table">("calendar");
   const [weekStart, setWeekStart] = useState<Date>(getMonday(new Date()));
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
 
   // Table view state
-  const [tableDate, setTableDate] = useState(new Date().toISOString().split("T")[0]);
+  const [tableDate, setTableDate] = useState(new Date().toLocaleDateString("en-CA"));
   const [tableFilters, setTableFilters] = useState<Record<string, string>>({});
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -243,7 +252,7 @@ export default function KeetaShiftsPage() {
 
   const SortHeader = ({ label, colKey }: { label: string; colKey: SortKey }) => (
     <th
-      className="text-left text-xs font-medium text-secondary px-5 py-3 cursor-pointer select-none hover:text-primary transition-colors"
+      className="text-start text-xs font-medium text-secondary px-5 py-3 cursor-pointer select-none hover:text-primary transition-colors"
       onClick={() => toggleSort(colKey)}
     >
       <span className="inline-flex items-center gap-1">
@@ -258,7 +267,7 @@ export default function KeetaShiftsPage() {
   );
 
   const statusBadge = (status: string) => {
-    const label = SHIFT_STATUS_LABELS[status] || status;
+    const label = shiftStatusLabel(status);
     const styles: Record<string, string> = {
       BOOKED: "bg-blue-50 text-blue-700",
       IN_PROGRESS: "bg-cyan-50 text-cyan-700",
@@ -279,8 +288,8 @@ export default function KeetaShiftsPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-keeta" />
-          <h1 className="text-xl font-semibold">Keeta - Shifts</h1>
-          <span className="text-sm text-secondary">Sidra</span>
+          <h1 className="text-xl font-semibold">{t("keetaPage.shiftsTitle")}</h1>
+          <span className="text-sm text-secondary">{t("keetaPage.sidra")}</span>
         </div>
         {/* View Toggle */}
         <div className="flex items-center rounded-xl border border-gray-200 p-0.5">
@@ -292,7 +301,7 @@ export default function KeetaShiftsPage() {
             )}
           >
             <CalendarDays size={14} />
-            Calendar
+            {t("keetaPage.calendar")}
           </button>
           <button
             onClick={() => setView("table")}
@@ -302,7 +311,7 @@ export default function KeetaShiftsPage() {
             )}
           >
             <Table2 size={14} />
-            Table
+            {t("keetaPage.tableView")}
           </button>
         </div>
       </div>
@@ -314,16 +323,16 @@ export default function KeetaShiftsPage() {
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-5 gap-4">
-            <StatCard title="Total Drivers" value={totalDrivers} icon={Users} />
+            <StatCard title={t("overview.totalDrivers")} value={totalDrivers} icon={Users} />
             <StatCard
-              title="Booked"
+              title={t("talabat.booked")}
               value={bookedCount}
               icon={UserCheck}
-              trend={totalDrivers > 0 ? `${Math.round((bookedCount / totalDrivers) * 100)}% rate` : undefined}
+              trend={totalDrivers > 0 ? `${Math.round((bookedCount / totalDrivers) * 100)}% ${t("keetaPage.rateSuffix")}` : undefined}
             />
-            <StatCard title="Not Booked" value={notBookedCount} icon={UserX} highlight={notBookedCount > 0} />
-            <StatCard title="Completed" value={completedCount} icon={CheckCircle2} />
-            <StatCard title="No Show" value={noShowCount} icon={Flag} highlight={noShowCount > 0} />
+            <StatCard title={t("talabat.notBooked")} value={notBookedCount} icon={UserX} highlight={notBookedCount > 0} />
+            <StatCard title={t("keetaPage.completed")} value={completedCount} icon={CheckCircle2} />
+            <StatCard title={t("keetaPage.noShow")} value={noShowCount} icon={Flag} highlight={noShowCount > 0} />
           </div>
 
           {/* Filters */}
@@ -336,18 +345,18 @@ export default function KeetaShiftsPage() {
             />
             <FilterBar
               filters={[
-                { key: "search", type: "search", label: "Search", placeholder: "Search driver..." },
+                { key: "search", type: "search", label: t("common.search"), placeholder: t("talabatAttendance.searchDriver") },
                 {
-                  key: "zone", type: "select", label: "All Zones",
+                  key: "zone", type: "select", label: t("keetaPage.allZones"),
                   options: ZONES.map(z => ({ value: z, label: z })),
                 },
                 {
-                  key: "bookingFilter", type: "select", label: "All Statuses", options: [
-                    { value: "BOOKED", label: "Booked" },
-                    { value: "COMPLETED", label: "Completed" },
-                    { value: "NOT_BOOKED", label: "Not Booked" },
-                    { value: "NO_SHOW", label: "No Show" },
-                    { value: "FLAGGED", label: "Flagged" },
+                  key: "bookingFilter", type: "select", label: t("companies.allStatuses"), options: [
+                    { value: "BOOKED", label: t("talabat.booked") },
+                    { value: "COMPLETED", label: t("keetaPage.completed") },
+                    { value: "NOT_BOOKED", label: t("talabat.notBooked") },
+                    { value: "NO_SHOW", label: t("keetaPage.noShow") },
+                    { value: "FLAGGED", label: t("talabat.flagged") },
                   ],
                 },
               ]}
@@ -362,16 +371,16 @@ export default function KeetaShiftsPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-50">
-                    <SortHeader label="Driver" colKey="driverName" />
-                    <SortHeader label="Phone" colKey="phone" />
-                    <SortHeader label="Zone" colKey="zone" />
-                    <SortHeader label="Status" colKey="booking" />
-                    <SortHeader label="Week" colKey="weeklyBookings" />
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Flag Reason</th>
-                    <SortHeader label="Scheduled" colKey="bookedHours" />
-                    <SortHeader label="Actual" colKey="actualHours" />
-                    <SortHeader label="In" colKey="actualStart" />
-                    <SortHeader label="Out" colKey="actualEnd" />
+                    <SortHeader label={t("table.driver")} colKey="driverName" />
+                    <SortHeader label={t("table.phone")} colKey="phone" />
+                    <SortHeader label={t("table.zone")} colKey="zone" />
+                    <SortHeader label={t("table.status")} colKey="booking" />
+                    <SortHeader label={t("keetaPage.weekHeader")} colKey="weeklyBookings" />
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("keetaPage.flagReasonHeader")}</th>
+                    <SortHeader label={t("keetaPage.scheduledHeader")} colKey="bookedHours" />
+                    <SortHeader label={t("keetaPage.actualHeader")} colKey="actualHours" />
+                    <SortHeader label={t("keetaPage.inHeader")} colKey="actualStart" />
+                    <SortHeader label={t("keetaPage.outHeader")} colKey="actualEnd" />
                     <th className="px-5 py-3" />
                   </tr>
                 </thead>
@@ -379,7 +388,7 @@ export default function KeetaShiftsPage() {
                   {driverList.length === 0 ? (
                     <tr>
                       <td colSpan={11} className="px-5 py-12 text-center text-sm text-secondary">
-                        No drivers found
+                        {t("keetaPage.noDriversFoundShifts")}
                       </td>
                     </tr>
                   ) : (
@@ -442,9 +451,9 @@ export default function KeetaShiftsPage() {
                           <td className="px-5 py-3 text-sm font-mono text-secondary whitespace-nowrap">
                             {d.scheduledStart && d.scheduledEnd
                               ? <div className="flex flex-col leading-tight gap-1">
-                                  <span>{new Date(d.scheduledStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                                  <span>{formatTime(d.scheduledStart, locale)}</span>
                                   <span className="text-gray-300">↓</span>
-                                  <span>{new Date(d.scheduledEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                                  <span>{formatTime(d.scheduledEnd, locale)}</span>
                                 </div>
                               : d.bookedHours ? `${d.bookedHours.toFixed(1)}h` : "–"}
                           </td>
@@ -454,21 +463,17 @@ export default function KeetaShiftsPage() {
                               !hoursMatch ? "text-amber-600 font-medium" : "text-secondary"
                             )}>
                               {d.actualHours ? `${d.actualHours.toFixed(1)}h` : "-"}
-                              {!hoursMatch && <AlertTriangle size={11} className="inline ml-1" />}
+                              {!hoursMatch && <AlertTriangle size={11} className="inline ms-1" />}
                             </span>
                           </td>
                           <td className="px-5 py-3 text-sm font-mono text-secondary whitespace-nowrap">
-                            {d.actualStart
-                              ? new Date(d.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                              : "–"}
+                            {d.actualStart ? formatTime(d.actualStart, locale) : "–"}
                           </td>
                           <td className="px-5 py-3 text-sm font-mono text-secondary whitespace-nowrap">
-                            {d.actualEnd
-                              ? new Date(d.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                              : "–"}
+                            {d.actualEnd ? formatTime(d.actualEnd, locale) : "–"}
                           </td>
                           <td className="px-5 py-3">
-                            <ChevronRight size={15} className="text-gray-300" />
+                            <DirectionalIcon kind="chevron-forward" size={15} className="text-gray-300" />
                           </td>
                         </tr>
                       );
@@ -488,25 +493,25 @@ export default function KeetaShiftsPage() {
         <>
           {/* Stat Cards */}
           <div className="grid grid-cols-4 gap-4">
-            <StatCard title="Total Shifts" value={total} icon={CalendarCheck} />
+            <StatCard title={t("keetaPage.totalShifts")} value={total} icon={CalendarCheck} />
             <StatCard
-              title="% Booked"
+              title={t("keetaPage.pctBooked")}
               value={`${pct(calBooked)}%`}
               icon={BarChart2}
-              trend={`${calBooked} of ${total}`}
+              trend={`${calBooked} ${t("keetaPage.weekConnector")} ${total}`}
             />
             <StatCard
-              title="% Valid"
+              title={t("keetaPage.pctValid")}
               value={`${pct(valid)}%`}
               icon={CheckCircle2}
-              trend={`${valid} valid shifts`}
+              trend={`${valid} ${t("keetaPage.validShiftsSuffix")}`}
               highlight={pct(valid) < 70}
             />
             <StatCard
-              title="% Completed"
+              title={t("keetaPage.pctCompleted")}
               value={`${pct(completed)}%`}
               icon={Clock}
-              trend={`${totalActual.toFixed(1)}h actual / ${totalPlanned}h planned`}
+              trend={`${totalActual.toFixed(1)}h / ${totalPlanned}h`}
             />
           </div>
 
@@ -514,8 +519,8 @@ export default function KeetaShiftsPage() {
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <FilterBar
               filters={[
-                { key: "zone", type: "select", label: "All Zones", options: ZONES.map((z) => ({ value: z, label: z })) },
-                { key: "driver", type: "search", label: "Driver", placeholder: "Search driver…" },
+                { key: "zone", type: "select", label: t("keetaPage.allZones"), options: ZONES.map((z) => ({ value: z, label: z })) },
+                { key: "driver", type: "search", label: t("table.driver"), placeholder: t("talabatAttendance.searchDriver") },
               ]}
               values={filters}
               onChange={(k, v) => setFilters((prev) => ({ ...prev, [k]: v }))}
@@ -524,8 +529,9 @@ export default function KeetaShiftsPage() {
               <button
                 onClick={() => setWeekStart(addDays(weekStart, -7))}
                 className="p-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+                aria-label={t("actions.previous")}
               >
-                <ChevronLeft size={16} />
+                <DirectionalIcon kind="chevron-back" size={16} />
               </button>
               <span className="text-sm font-medium min-w-[160px] text-center">
                 {formatShortDate(weekStart)} – {formatShortDate(weekEnd)}
@@ -533,14 +539,15 @@ export default function KeetaShiftsPage() {
               <button
                 onClick={() => setWeekStart(addDays(weekStart, 7))}
                 className="p-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+                aria-label={t("actions.next")}
               >
-                <ChevronRight size={16} />
+                <DirectionalIcon kind="chevron-forward" size={16} />
               </button>
               <button
                 onClick={() => setWeekStart(getMonday(new Date()))}
                 className="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
               >
-                This week
+                {t("keetaPage.thisWeekBtn")}
               </button>
             </div>
           </div>
@@ -548,7 +555,7 @@ export default function KeetaShiftsPage() {
           {/* Calendar Grid */}
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
             <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-gray-50">
-              <div className="px-3 py-3 text-xs font-medium text-secondary">Slot</div>
+              <div className="px-3 py-3 text-xs font-medium text-secondary">{t("keetaPage.slot")}</div>
               {weekDates.map((d, i) => (
                 <div
                   key={i}
@@ -564,7 +571,7 @@ export default function KeetaShiftsPage() {
             </div>
 
             {calLoading ? (
-              <div className="px-5 py-12 text-center text-sm text-secondary">Loading shifts…</div>
+              <div className="px-5 py-12 text-center text-sm text-secondary">{t("keetaPage.loadingShifts")}</div>
             ) : (
               KEETA_SLOTS.map((slot) => (
                 <div key={slot.id} className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-gray-50 last:border-0 min-h-[90px]">
@@ -626,7 +633,7 @@ export default function KeetaShiftsPage() {
                                   )}
                                   {areaCount >= 2 && (
                                     <span className="text-[9px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded font-semibold shrink-0">
-                                      {areaCount} areas
+                                      {areaCount} {t("keetaPage.areasSuffix")}
                                     </span>
                                   )}
                                 </div>
@@ -655,13 +662,13 @@ export default function KeetaShiftsPage() {
           {/* Shift status legend */}
           <div className="flex items-center gap-4">
             {Object.entries(SHIFT_STATUS_STYLES).map(([status, cls]) => (
-              <span key={status} className={cn("px-2 py-0.5 rounded-md text-xs font-medium", cls)}>{SHIFT_STATUS_LABELS[status] || status}</span>
+              <span key={status} className={cn("px-2 py-0.5 rounded-md text-xs font-medium", cls)}>{shiftStatusLabel(status)}</span>
             ))}
           </div>
 
           {/* Zone color legend */}
           <div className="flex items-center gap-3 flex-wrap text-xs text-secondary">
-            <span className="font-medium text-foreground">Zones:</span>
+            <span className="font-medium text-foreground">{t("keetaPage.zonesLabel")}</span>
             {ZONES.map((z) => {
               const zc = getZoneColor(z);
               return (
@@ -679,8 +686,8 @@ export default function KeetaShiftsPage() {
       <SlidePanel
         open={!!selected}
         onClose={() => setSelected(null)}
-        title={selected?.driver?.name || selected?.driverName || "Shift Detail"}
-        subtitle={`Keeta / Sidra${selected?.zone ? ` · ${selected.zone}` : ""}`}
+        title={selected?.driver?.name || selected?.driverName || t("keetaPage.shiftDetail")}
+        subtitle={`Keeta / ${t("keetaPage.sidra")}${selected?.zone ? ` · ${selected.zone}` : ""}`}
       >
         {selected && (
           <div className="space-y-5">
@@ -695,14 +702,10 @@ export default function KeetaShiftsPage() {
                     <>
                       <CheckCircle2 size={18} className="text-green-600" />
                       <div>
-                        <p className="text-sm font-semibold text-green-800">Shift Booked</p>
+                        <p className="text-sm font-semibold text-green-800">{t("keetaPage.bookedShiftLabel")}</p>
                         <p className="text-xs text-green-600 font-mono mt-0.5">
-                          {selected.scheduledStart
-                            ? new Date(selected.scheduledStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                            : ""}
-                          {selected.scheduledEnd
-                            ? ` – ${new Date(selected.scheduledEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-                            : ""}
+                          {selected.scheduledStart ? formatTime(selected.scheduledStart, locale) : ""}
+                          {selected.scheduledEnd ? ` – ${formatTime(selected.scheduledEnd, locale)}` : ""}
                         </p>
                       </div>
                     </>
@@ -710,8 +713,8 @@ export default function KeetaShiftsPage() {
                     <>
                       <XCircle size={18} className="text-red-600" />
                       <div>
-                        <p className="text-sm font-semibold text-red-800">No Shift Booked</p>
-                        <p className="text-xs text-red-600 mt-0.5">Driver hasn&apos;t booked a shift for this date</p>
+                        <p className="text-sm font-semibold text-red-800">{t("talabat.noShiftBookedDetail")}</p>
+                        <p className="text-xs text-red-600 mt-0.5">{t("keetaPage.notBookedDriver")}</p>
                       </div>
                     </>
                   )}
@@ -726,7 +729,7 @@ export default function KeetaShiftsPage() {
                 selected.weeklyFlag ? "bg-amber-50 border-amber-100" : "bg-gray-50 border-gray-100"
               )}>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-semibold text-secondary uppercase tracking-wide">This Week</p>
+                  <p className="text-xs font-semibold text-secondary uppercase tracking-wide">{t("talabat.thisWeek")}</p>
                   <span className={cn(
                     "text-lg font-bold font-mono",
                     selected.weeklyFlag ? "text-red-600" : "text-green-700"
@@ -740,7 +743,7 @@ export default function KeetaShiftsPage() {
                     <p className="text-xs text-red-600 font-medium">{selected.weeklyFlagReason}</p>
                   </div>
                 ) : (
-                  <p className="text-xs text-green-600">All days booked — no issues</p>
+                  <p className="text-xs text-green-600">{t("keetaPage.allDaysBookedNoIssues")}</p>
                 )}
               </div>
             )}
@@ -748,13 +751,13 @@ export default function KeetaShiftsPage() {
             {/* Contact Info */}
             {(selected.phone || selected.driver?.phone) && (
               <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-2">Contact</p>
+                <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-2">{t("keetaPage.contactK")}</p>
                 <a
                   href={`tel:${selected.phone || selected.driver?.phone}`}
                   className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
                 >
                   <Phone size={14} />
-                  Call {selected.phone || selected.driver?.phone}
+                  {t("keetaPage.callPrefixK")} {selected.phone || selected.driver?.phone}
                 </a>
               </div>
             )}
@@ -762,14 +765,14 @@ export default function KeetaShiftsPage() {
             {/* Shift Details Grid */}
             <div className="grid grid-cols-2 gap-3">
               {[
-                ["Date", selected.date ? new Date(selected.date).toLocaleDateString() : "-"],
-                ["Zone", selected.driver?.zone || selected.zone || "-"],
-                ["Status", SHIFT_STATUS_LABELS[selected.status] || selected.status],
-                ["Vehicle", selected.vehicleType || selected.driver?.vehicleType || "-"],
-                ["Planned Hours", selected.plannedHours ? `${selected.plannedHours}h` : selected.bookedHours ? `${selected.bookedHours}h` : "-"],
-                ["Actual Hours", selected.actualHours ? `${typeof selected.actualHours === "number" ? selected.actualHours.toFixed(1) : selected.actualHours}h` : "-"],
-                ["Actual Start", selected.actualStart ? new Date(selected.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
-                ["Actual End", selected.actualEnd ? new Date(selected.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
+                [t("table.date"), selected.date ? fmtDate(selected.date, locale) : "-"],
+                [t("table.zone"), selected.driver?.zone || selected.zone || "-"],
+                [t("table.status"), shiftStatusLabel(selected.status)],
+                [t("companies.vehicle"), selected.vehicleType || selected.driver?.vehicleType || "-"],
+                [t("keetaPage.plannedHours"), selected.plannedHours ? `${selected.plannedHours}h` : selected.bookedHours ? `${selected.bookedHours}h` : "-"],
+                [t("keetaPage.actualHoursLabel2"), selected.actualHours ? `${typeof selected.actualHours === "number" ? selected.actualHours.toFixed(1) : selected.actualHours}h` : "-"],
+                [t("keetaPage.actualStart"), selected.actualStart ? formatTime(selected.actualStart, locale) : "-"],
+                [t("keetaPage.actualEnd"), selected.actualEnd ? formatTime(selected.actualEnd, locale) : "-"],
               ].map(([label, val]) => (
                 <div key={label as string} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
@@ -780,7 +783,7 @@ export default function KeetaShiftsPage() {
 
             {selected.notes && (
               <div className="bg-yellow-50 rounded-xl p-3">
-                <p className="text-[10px] text-secondary uppercase font-medium mb-1">Notes</p>
+                <p className="text-[10px] text-secondary uppercase font-medium mb-1">{t("keetaPage.notesLabel")}</p>
                 <p className="text-sm">{selected.notes}</p>
               </div>
             )}

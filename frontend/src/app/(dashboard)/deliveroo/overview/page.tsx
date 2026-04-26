@@ -12,8 +12,9 @@ import {
   TrendingUp,
   TrendingDown,
   PackageX,
-  Coins,
 } from "lucide-react";
+import { useI18n } from "@/i18n/I18nProvider";
+import { formatCurrency, formatNumber } from "@/i18n/format";
 
 type ZoneRow = {
   zone: string;
@@ -56,6 +57,7 @@ const SEVERITY: Record<ZoneRow["severity"], string> = {
 };
 
 export default function DeliverooOverviewPage() {
+  const { t, locale } = useI18n();
   const { data, loading, error } = useApiGet<Overview>("/api/platform-overview/deliveroo/overview");
 
   if (loading || !data) return <PageSkeleton />;
@@ -69,32 +71,32 @@ export default function DeliverooOverviewPage() {
         <span className="h-3 w-3 rounded-full bg-deliveroo" />
         <h1 className="text-xl font-semibold">Deliveroo</h1>
         <span className="text-secondary/30 text-lg font-light">/</span>
-        <span className="text-xl text-secondary font-medium">Overview</span>
+        <span className="text-xl text-secondary font-medium">{t("deliveroo.overview")}</span>
       </div>
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <KPI
-          label="Deliveries today"
-          value={kpis.deliveries.toLocaleString()}
+          label={t("deliveroo.deliveriesToday")}
+          value={formatNumber(kpis.deliveries, locale)}
           dod={kpis.dodPct.deliveries}
           invert={false}
         />
         <KPI
-          label="Cash collected"
-          value={`${kpis.cashKwd.toFixed(3)} KD`}
+          label={t("deliveroo.cashCollected")}
+          value={formatCurrency(kpis.cashKwd, locale)}
           dod={kpis.dodPct.cashKwd}
           invert={false}
         />
         <KPI
-          label="Tips"
-          value={`${kpis.tipsKwd.toFixed(3)} KD`}
+          label={t("deliveroo.tips")}
+          value={formatCurrency(kpis.tipsKwd, locale)}
           dod={kpis.dodPct.tipsKwd}
           invert={false}
         />
         <KPI
-          label="Unassigned"
-          value={kpis.unassigned.toLocaleString()}
+          label={t("deliveroo.unassigned")}
+          value={formatNumber(kpis.unassigned, locale)}
           dod={kpis.dodPct.unassigned}
           invert={true}
           icon={PackageX}
@@ -104,18 +106,18 @@ export default function DeliverooOverviewPage() {
       {/* Unassigned by zone */}
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Unassigned orders by zone — today</h2>
+          <h2 className="text-sm font-semibold">{t("deliveroo.unassignedByZone")}</h2>
           <Link
             href="/deliveroo/violations?violationType=DELIVEROO_UNASSIGNED_ORDER"
             className="text-xs text-deliveroo hover:underline"
           >
-            View all
+            {t("deliveroo.viewAllText")}
           </Link>
         </div>
 
         {unassignedByZone.length === 0 ? (
           <div className="rounded-xl border border-gray-100 bg-white p-8 text-center text-sm text-gray-400">
-            No metrics ingested yet today.
+            {t("deliveroo.noMetricsYet")}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
@@ -132,7 +134,7 @@ export default function DeliverooOverviewPage() {
                   <MapPin size={12} /> {z.zone}
                 </div>
                 <div className="mt-2 text-3xl font-semibold tabular-nums">{z.today}</div>
-                <div className="mt-1 text-xs opacity-70">7-day avg {z.avg7}</div>
+                <div className="mt-1 text-xs opacity-70">{t("deliveroo.sevenDayAvg")} {z.avg7}</div>
               </Link>
             ))}
           </div>
@@ -141,8 +143,8 @@ export default function DeliverooOverviewPage() {
 
       {/* Top / Bottom riders */}
       <section className="grid gap-4 md:grid-cols-2">
-        <RiderList title="Top 5 riders this week" rows={topRiders} tone="top" />
-        <RiderList title="Bottom 5 riders this week" rows={bottomRiders} tone="bottom" />
+        <RiderList title={t("deliveroo.topRiders")} rows={topRiders} tone="top" />
+        <RiderList title={t("deliveroo.bottomRiders")} rows={bottomRiders} tone="bottom" />
       </section>
     </div>
   );
@@ -161,6 +163,7 @@ function KPI({
   invert: boolean;
   icon?: React.ComponentType<any>;
 }) {
+  const { t } = useI18n();
   const positive = dod != null && dod >= 0;
   const good = invert ? !positive : positive;
   return (
@@ -181,7 +184,7 @@ function KPI({
         ) : (
           <>
             {positive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-            {Math.abs(dod).toFixed(1)}% DoD
+            {Math.abs(dod).toFixed(1)}% {t("deliveroo.dod")}
           </>
         )}
       </div>
@@ -198,6 +201,7 @@ function RiderList({
   rows: RiderRow[];
   tone: "top" | "bottom";
 }) {
+  const { t } = useI18n();
   const Icon = tone === "top" ? TrendingUp : TrendingDown;
   return (
     <div className="rounded-xl border border-gray-100 bg-white">
@@ -208,7 +212,7 @@ function RiderList({
         </div>
       </header>
       {rows.length === 0 ? (
-        <div className="p-8 text-center text-xs text-gray-400">No rider data this week.</div>
+        <div className="p-8 text-center text-xs text-gray-400">{t("deliveroo.noRiderData")}</div>
       ) : (
         <ul className="divide-y divide-gray-100">
           {rows.map((r) => (
@@ -220,8 +224,8 @@ function RiderList({
                 {r.name}
               </Link>
               <div className="flex items-center gap-4 text-xs text-gray-600 tabular-nums">
-                <span title="Deliveries">{r.deliveries} deliv.</span>
-                <span title="UTR (deliveries / online h)">UTR {r.utr.toFixed(2)}</span>
+                <span title={t("platform.deliveries")}>{r.deliveries} {t("deliveroo.deliveries")}</span>
+                <span title={t("deliveroo.utrLabel")}>{t("overview.utr")} {r.utr.toFixed(2)}</span>
                 {r.unassignedLinked > 0 && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-red-600">
                     <AlertCircle size={10} /> {r.unassignedLinked}

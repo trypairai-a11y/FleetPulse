@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import PlatformBadge from "@/components/shared/PlatformBadge";
 import { Plus, X, Shield, UserX, UserCheck, Loader2, Bell, Check } from "lucide-react";
 import api from "@/lib/api";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const ROLES = ["ADMIN", "OPS_MANAGER", "SUPERVISOR", "ACCOUNTANT", "VIEWER"] as const;
 
@@ -408,8 +409,15 @@ function NotificationsTab() {
 }
 
 export default function SettingsPage() {
+  const { t } = useI18n();
   const [tab, setTab] = useState<Tab>("companies");
   const { user } = useAuth();
+  const tabLabels: Record<Tab, string> = {
+    companies: t("settingsPage.tabCompanies"),
+    users: t("settingsPage.tabUsers"),
+    notifications: t("settingsPage.tabNotifications"),
+    profile: t("settingsPage.tabProfile"),
+  };
   const { data: companiesData, refetch: refetchCompanies } = useApiGet<any>("/api/companies?limit=50");
   const [showAddCompany, setShowAddCompany] = useState(false);
   const [newCompany, setNewCompany] = useState({ name: "", platform: "KEETA", licenseCount: 1 });
@@ -439,17 +447,17 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <h1 className="text-xl font-semibold">Settings</h1>
+      <h1 className="text-xl font-semibold">{t("settingsPage.title")}</h1>
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-        {(["companies", "users", "notifications", "profile"] as Tab[]).map((t) => (
-          <button key={t} onClick={() => setTab(t)}
+        {(["companies", "users", "notifications", "profile"] as Tab[]).map((tabKey) => (
+          <button key={tabKey} onClick={() => setTab(tabKey)}
             className={cn(
-              "px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize",
-              tab === t ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              tab === tabKey ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
             )}>
-            {t}
+            {tabLabels[tabKey]}
           </button>
         ))}
       </div>
@@ -459,18 +467,18 @@ export default function SettingsPage() {
           <div className="flex justify-end mb-4">
             <button onClick={() => setShowAddCompany(true)}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors">
-              <Plus size={16} /> Add Company
+              <Plus size={16} /> {t("settingsPage.addCompany")}
             </button>
           </div>
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-50">
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Name</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Platform</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Licenses</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Drivers</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("settingsPage.name")}</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.platform")}</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("settingsPage.licensesCol")}</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("companies.drivers")}</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.status")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -483,7 +491,7 @@ export default function SettingsPage() {
                     <td className="px-5 py-3">
                       <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium",
                         company.isActive ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500")}>
-                        {company.isActive ? "Active" : "Inactive"}
+                        {company.isActive ? t("status.active") : t("status.inactive")}
                       </span>
                     </td>
                   </tr>
@@ -496,17 +504,17 @@ export default function SettingsPage() {
             <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
               <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-semibold">Add Company</h2>
-                  <button onClick={() => setShowAddCompany(false)} className="p-1 hover:bg-gray-50 rounded-lg"><X size={18} /></button>
+                  <h2 className="text-lg font-semibold">{t("settingsPage.addCompany")}</h2>
+                  <button onClick={() => setShowAddCompany(false)} className="p-1 hover:bg-gray-50 rounded-lg" aria-label={t("common.close")}><X size={18} /></button>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-medium text-secondary mb-1.5">Company Name</label>
-                    <input value={newCompany.name} onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
+                    <label className="block text-xs font-medium text-secondary mb-1.5">{t("settingsPage.companyName")}</label>
+                    <input value={newCompany.name} onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })} dir="auto"
                       className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-secondary mb-1.5">Platform</label>
+                    <label className="block text-xs font-medium text-secondary mb-1.5">{t("table.platform")}</label>
                     <select value={newCompany.platform} onChange={(e) => setNewCompany({ ...newCompany, platform: e.target.value })}
                       className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
                       {["KEETA", "TALABAT", "DELIVEROO", "AMERICANA"].map((p) => <option key={p} value={p}>{p}</option>)}
@@ -514,7 +522,7 @@ export default function SettingsPage() {
                   </div>
                   <button onClick={handleAddCompany}
                     className="w-full py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors">
-                    Add Company
+                    {t("settingsPage.addCompany")}
                   </button>
                 </div>
               </div>
@@ -529,26 +537,26 @@ export default function SettingsPage() {
 
       {tab === "profile" && (
         <div className="bg-white rounded-2xl shadow-sm p-6 max-w-lg">
-          <h2 className="text-base font-semibold mb-4">Your Profile</h2>
+          <h2 className="text-base font-semibold mb-4">{t("settingsPage.yourProfile")}</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-secondary mb-1.5">Name</label>
-              <input value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+              <label className="block text-xs font-medium text-secondary mb-1.5">{t("settingsPage.name")}</label>
+              <input value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} dir="auto"
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-secondary mb-1.5">Email</label>
+              <label className="block text-xs font-medium text-secondary mb-1.5">{t("settingsPage.email")}</label>
               <input value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-secondary mb-1.5">Role</label>
+              <label className="block text-xs font-medium text-secondary mb-1.5">{t("settingsPage.role")}</label>
               <input value={user?.role?.replace("_", " ") || ""} disabled
                 className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm bg-gray-50 text-secondary" />
             </div>
             <button onClick={handleUpdateProfile}
               className="px-6 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors">
-              Save Changes
+              {t("settingsPage.saveChanges")}
             </button>
           </div>
         </div>

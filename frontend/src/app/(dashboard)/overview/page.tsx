@@ -8,7 +8,6 @@ import {
   Sparkles, ChevronDown, ChevronUp, RefreshCw, ArrowRight, TrendingUp, TrendingDown, Minus, X,
 } from "lucide-react";
 import InsightBanner from "@/components/shared/InsightBanner";
-import InlineChat from "@/components/ai/InlineChat";
 import { cn } from "@/lib/cn";
 import { useState, useMemo, useEffect } from "react";
 import api from "@/lib/api";
@@ -280,9 +279,6 @@ export default function OverviewPage() {
           )}
         </div>
       )}
-
-      {/* Inline Darb AI chat — directly under Morning Briefing */}
-      <InlineChat />
 
       {/* AI Insights */}
       <InsightBanner context="dashboard" maxInsights={3} />

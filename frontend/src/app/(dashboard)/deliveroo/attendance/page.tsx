@@ -12,8 +12,9 @@ import {
   Camera,
   CheckCircle2,
   XCircle,
-  ChevronDown,
 } from "lucide-react";
+import { useI18n } from "@/i18n/I18nProvider";
+import { formatDate, formatTime } from "@/i18n/format";
 
 type AttendanceMode = "FREELANCE" | "CORE_FLEET";
 type Tab = "daily" | "monthly" | "leaves";
@@ -45,27 +46,42 @@ function HoursBar({ hours, target = 12 }: { hours: number; target?: number }) {
 }
 
 function FaceVerifCell({ status }: { status: "VERIFIED" | "FAILED" | "PENDING" | null }) {
+  const { t } = useI18n();
   if (!status || status === "PENDING") {
     return <span className="text-xs text-secondary">-</span>;
   }
   if (status === "VERIFIED") {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
-        <CheckCircle2 size={12} /> Verified
+        <CheckCircle2 size={12} /> {t("deliveroo.verified")}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 text-xs text-red-500 font-medium">
-      <XCircle size={12} /> Failed
+      <XCircle size={12} /> {t("deliveroo.failed")}
     </span>
   );
 }
 
 export default function DeliverooAttendancePage() {
+  const { t, locale } = useI18n();
   const [mode, setMode] = useState<AttendanceMode>("FREELANCE");
   const [tab, setTab] = useState<Tab>("daily");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(new Date().toLocaleDateString("en-CA"));
+
+  const statusLabel = (s: string): string => {
+    switch (s) {
+      case "PRESENT": return t("status.present");
+      case "LATE": return t("status.late");
+      case "ABSENT": return t("status.absent");
+      case "EXCUSED": return t("keetaPage.excused");
+      case "PENDING": return t("status.pending");
+      case "APPROVED": return t("labels.approved");
+      case "REJECTED": return t("labels.rejected");
+      default: return s;
+    }
+  };
 
   const { data: summary } = useApiGet<any>("/api/attendance/summary?platform=DELIVEROO");
   const { data: records } = useApiGet<any>(
@@ -77,7 +93,6 @@ export default function DeliverooAttendancePage() {
   );
 
   const rawAttendance = records?.data || [];
-  // Mock face verification + mismatch data for demo
   const attendanceList = rawAttendance.map((r: any, i: number) => ({
     ...r,
     faceVerifStatus: r.faceVerifStatus ?? (i % 7 === 0 ? "FAILED" : "VERIFIED"),
@@ -91,13 +106,13 @@ export default function DeliverooAttendancePage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-teal-500" />
-        <h1 className="text-xl font-semibold">Deliveroo - Attendance</h1>
-        <span className="text-sm text-secondary">Al Hazm</span>
+        <h1 className="text-xl font-semibold">{t("deliveroo.attendanceTitle")}</h1>
+        <span className="text-sm text-secondary">{t("deliveroo.alHazm")}</span>
       </div>
 
       {/* Mode Toggle */}
       <div className="flex items-center gap-3">
-        <p className="text-sm text-secondary font-medium">Operating Model:</p>
+        <p className="text-sm text-secondary font-medium">{t("deliveroo.operatingModel")}</p>
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
           {(["FREELANCE", "CORE_FLEET"] as AttendanceMode[]).map((m) => (
             <button
@@ -108,7 +123,7 @@ export default function DeliverooAttendancePage() {
                 mode === m ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
               )}
             >
-              {m === "FREELANCE" ? "Freelance" : "Core Fleet"}
+              {m === "FREELANCE" ? t("deliveroo.freelance") : t("deliveroo.coreFleet")}
             </button>
           ))}
         </div>
@@ -116,13 +131,13 @@ export default function DeliverooAttendancePage() {
         {mode === "FREELANCE" && (
           <span className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-xl">
             <Clock size={12} />
-            12h daily target - no fixed clock-in/out
+            {t("deliveroo.freelanceHint")}
           </span>
         )}
         {mode === "CORE_FLEET" && (
           <span className="flex items-center gap-1.5 text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl">
             <Camera size={12} />
-            Selfie + GPS verified clock-in/out
+            {t("deliveroo.coreFleetHint")}
           </span>
         )}
       </div>
@@ -131,53 +146,53 @@ export default function DeliverooAttendancePage() {
       <div className="grid grid-cols-4 gap-4">
         {mode === "FREELANCE" ? (
           <>
-            <StatCard title="Online Today" value={summary?.present || 0} icon={CheckCircle2} />
+            <StatCard title={t("deliveroo.onlineToday")} value={summary?.present || 0} icon={CheckCircle2} />
             <StatCard
-              title="Hit 12h Target"
+              title={t("deliveroo.hit12hTarget")}
               value={summary?.hitTarget || 0}
               icon={Clock}
             />
             <StatCard
-              title="Below 12h"
+              title={t("deliveroo.below12h")}
               value={summary?.belowTarget || 0}
               icon={AlertTriangle}
               highlight={(summary?.belowTarget || 0) > 0}
             />
-            <StatCard title="Pending Leaves" value={summary?.pendingLeaves || 0} icon={FileText} />
+            <StatCard title={t("attendancePage.pendingLeaves")} value={summary?.pendingLeaves || 0} icon={FileText} />
           </>
         ) : (
           <>
             <StatCard
-              title="Present Today"
+              title={t("attendancePage.presentToday")}
               value={`${summary?.present || 0} (${summary?.presentPercentage || 0}%)`}
               icon={CalendarCheck}
             />
-            <StatCard title="Late Today" value={summary?.late || 0} icon={Clock} />
+            <StatCard title={t("attendancePage.lateToday")} value={summary?.late || 0} icon={Clock} />
             <StatCard
-              title="Absent Today"
+              title={t("attendancePage.absentToday")}
               value={summary?.absent || 0}
               icon={UserX}
               highlight={(summary?.absent || 0) > 5}
             />
-            <StatCard title="Pending Leaves" value={summary?.pendingLeaves || 0} icon={FileText} />
+            <StatCard title={t("attendancePage.pendingLeaves")} value={summary?.pendingLeaves || 0} icon={FileText} />
           </>
         )}
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-        {(["daily", "monthly", "leaves"] as Tab[]).map((t) => (
+        {(["daily", "monthly", "leaves"] as Tab[]).map((tabKey) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
             className={cn(
-              "px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize",
-              tab === t
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              tab === tabKey
                 ? "bg-white text-foreground shadow-sm"
                 : "text-secondary hover:text-foreground"
             )}
           >
-            {t === "leaves" ? "Leave Requests" : `${t === "daily" ? "Daily" : "Monthly"} Log`}
+            {tabKey === "daily" ? t("deliveroo.dailyLog") : tabKey === "monthly" ? t("deliveroo.monthlyLog") : t("deliveroo.leaveRequests")}
           </button>
         ))}
       </div>
@@ -198,23 +213,23 @@ export default function DeliverooAttendancePage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-50">
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.driver")}</th>
                   {mode === "FREELANCE" ? (
                     <>
-                      <th className="text-left text-xs font-medium text-secondary px-5 py-3">Online Hours</th>
-                      <th className="text-left text-xs font-medium text-secondary px-5 py-3">vs 12h Target</th>
-                      <th className="text-left text-xs font-medium text-secondary px-5 py-3">Flag</th>
+                      <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("deliveroo.onlineHours")}</th>
+                      <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("deliveroo.vs12hTarget")}</th>
+                      <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("deliveroo.flag")}</th>
                     </>
                   ) : (
                     <>
-                      <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
-                      <th className="text-left text-xs font-medium text-secondary px-5 py-3">Clock In</th>
-                      <th className="text-left text-xs font-medium text-secondary px-5 py-3">Clock Out</th>
-                      <th className="text-left text-xs font-medium text-secondary px-5 py-3">Late (min)</th>
+                      <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.status")}</th>
+                      <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("attendancePage.clockIn")}</th>
+                      <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("attendancePage.clockOut")}</th>
+                      <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("attendancePage.lateMin")}</th>
                     </>
                   )}
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">
-                    Face <span className="text-teal-500">(Darb)</span>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">
+                    {t("deliveroo.faceDarb")} <span className="text-teal-500">(Darb)</span>
                   </th>
                 </tr>
               </thead>
@@ -222,7 +237,7 @@ export default function DeliverooAttendancePage() {
                 {attendanceList.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-5 py-12 text-center text-sm text-secondary">
-                      No attendance records for this date
+                      {t("attendancePage.noAttendanceRecords")}
                     </td>
                   </tr>
                 ) : (
@@ -247,10 +262,10 @@ export default function DeliverooAttendancePage() {
                             <td className="px-5 py-3">
                               {belowTarget ? (
                                 <span className="inline-flex items-center gap-1 text-xs text-amber-600 font-medium">
-                                  <AlertTriangle size={11} /> Below 12h
+                                  <AlertTriangle size={11} /> {t("deliveroo.below12hFlag")}
                                 </span>
                               ) : (
-                                <span className="text-xs text-green-600 font-medium">On target</span>
+                                <span className="text-xs text-green-600 font-medium">{t("deliveroo.onTarget")}</span>
                               )}
                             </td>
                           </>
@@ -258,18 +273,14 @@ export default function DeliverooAttendancePage() {
                           <>
                             <td className="px-5 py-3">
                               <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", STATUS_COLORS[record.status])}>
-                                {record.status}
+                                {statusLabel(record.status)}
                               </span>
                             </td>
                             <td className="px-5 py-3 text-sm text-secondary">
-                              {record.shift?.actualStart
-                                ? new Date(record.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                                : "-"}
+                              {record.shift?.actualStart ? formatTime(record.shift.actualStart, locale) : "-"}
                             </td>
                             <td className="px-5 py-3 text-sm text-secondary">
-                              {record.shift?.actualEnd
-                                ? new Date(record.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                                : "-"}
+                              {record.shift?.actualEnd ? formatTime(record.shift.actualEnd, locale) : "-"}
                             </td>
                             <td className="px-5 py-3 text-sm text-secondary">{record.lateMinutes || "-"}</td>
                           </>
@@ -294,28 +305,28 @@ export default function DeliverooAttendancePage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-50">
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.driver")}</th>
                   {mode === "FREELANCE" ? (
                     <>
-                      <th className="text-left text-xs font-medium text-secondary px-5 py-3">Total Hours</th>
-                      <th className="text-left text-xs font-medium text-secondary px-5 py-3">Days Below 12h</th>
-                      <th className="text-left text-xs font-medium text-secondary px-5 py-3">Target Hit Rate</th>
+                      <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("deliveroo.totalHours")}</th>
+                      <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("deliveroo.daysBelow12h")}</th>
+                      <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("deliveroo.targetHitRate")}</th>
                     </>
                   ) : (
                     <>
-                      <th className="text-left text-xs font-medium text-secondary px-5 py-3">Days Present</th>
-                      <th className="text-left text-xs font-medium text-secondary px-5 py-3">Days Absent</th>
-                      <th className="text-left text-xs font-medium text-secondary px-5 py-3">Avg Hours/Day</th>
+                      <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("deliveroo.daysPresent")}</th>
+                      <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("deliveroo.daysAbsent")}</th>
+                      <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("deliveroo.avgHoursDay")}</th>
                     </>
                   )}
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Face Verif Rate</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("deliveroo.faceVerifRate")}</th>
                 </tr>
               </thead>
               <tbody>
                 {monthlyList.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-5 py-12 text-center text-sm text-secondary">
-                      No monthly data available
+                      {t("deliveroo.noMonthlyData")}
                     </td>
                   </tr>
                 ) : (
@@ -359,20 +370,20 @@ export default function DeliverooAttendancePage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-50">
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Model</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Type</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Start</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">End</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Actions</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.driver")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("deliveroo.modelHeader")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.type")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.start")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.end")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.status")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.actions")}</th>
               </tr>
             </thead>
             <tbody>
               {leaveList.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-5 py-12 text-center text-sm text-secondary">
-                    No leave requests
+                    {t("attendancePage.noLeaveRequests")}
                   </td>
                 </tr>
               ) : (
@@ -385,33 +396,29 @@ export default function DeliverooAttendancePage() {
                           ? "bg-green-50 text-green-700"
                           : "bg-blue-50 text-blue-700"
                       )}>
-                        {leave.driver?.operatingModel === "FREELANCE" ? "Freelance" : "Core Fleet"}
+                        {leave.driver?.operatingModel === "FREELANCE" ? t("deliveroo.freelance") : t("deliveroo.coreFleet")}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-sm text-secondary">{leave.type}</td>
-                    <td className="px-5 py-3 text-sm text-secondary">
-                      {new Date(leave.startDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-5 py-3 text-sm text-secondary">
-                      {new Date(leave.endDate).toLocaleDateString()}
-                    </td>
+                    <td className="px-5 py-3 text-sm text-secondary">{formatDate(leave.startDate, locale)}</td>
+                    <td className="px-5 py-3 text-sm text-secondary">{formatDate(leave.endDate, locale)}</td>
                     <td className="px-5 py-3">
                       <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
                         "bg-yellow-100 text-yellow-700": leave.status === "PENDING",
                         "bg-green-100 text-green-700": leave.status === "APPROVED",
                         "bg-red-100 text-red-700": leave.status === "REJECTED",
                       })}>
-                        {leave.status}
+                        {statusLabel(leave.status)}
                       </span>
                     </td>
                     <td className="px-5 py-3">
                       {leave.status === "PENDING" && (
                         <div className="flex gap-2">
                           <button className="px-3 py-1 text-xs font-medium bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors">
-                            Approve
+                            {t("actions.approve")}
                           </button>
                           <button className="px-3 py-1 text-xs font-medium bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors">
-                            Reject
+                            {t("actions.reject")}
                           </button>
                         </div>
                       )}

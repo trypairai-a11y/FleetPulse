@@ -13,11 +13,12 @@ import {
   Clock,
   Package,
   ShieldCheck,
-  ChevronRight,
-  ChevronLeft,
   Award,
   AlertTriangle,
 } from "lucide-react";
+import { useI18n } from "@/i18n/I18nProvider";
+import { DirectionalIcon } from "@/i18n/directionalIcon";
+import { formatCurrency, formatNumber } from "@/i18n/format";
 
 function n(v: any): number {
   return v != null ? Number(v) : 0;
@@ -55,6 +56,7 @@ function ScoreBar({ score, size = "sm" }: { score: number; size?: "sm" | "lg" })
 }
 
 function CategoryBadge({ category }: { category: string }) {
+  const { t } = useI18n();
   const styles: Record<string, string> = {
     ATTENDANCE: "bg-blue-50 text-blue-600",
     ORDERS: "bg-purple-50 text-purple-600",
@@ -64,12 +66,12 @@ function CategoryBadge({ category }: { category: string }) {
     CUSTOM: "bg-gray-50 text-gray-600",
   };
   const labels: Record<string, string> = {
-    ATTENDANCE: "Attendance",
-    ORDERS: "Orders",
-    DELIVERY_EFFICIENCY: "Efficiency",
-    FINANCIAL: "Financial",
-    COMPLIANCE: "Compliance",
-    CUSTOM: "Custom",
+    ATTENDANCE: t("table.attendance"),
+    ORDERS: t("table.orders"),
+    DELIVERY_EFFICIENCY: t("kpi.efficiency"),
+    FINANCIAL: t("nav.financial"),
+    COMPLIANCE: t("kpi.compliance"),
+    CUSTOM: t("kpi.custom"),
   };
   return (
     <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-medium uppercase", styles[category] || styles.CUSTOM)}>
@@ -79,7 +81,8 @@ function CategoryBadge({ category }: { category: string }) {
 }
 
 function PlatformDot({ platform }: { platform: string | null }) {
-  if (!platform) return <span className="text-[10px] text-secondary">All</span>;
+  const { t } = useI18n();
+  if (!platform) return <span className="text-[10px] text-secondary">{t("labels.all")}</span>;
   const colors: Record<string, string> = {
     TALABAT: "bg-talabat",
     KEETA: "bg-keeta",
@@ -94,19 +97,22 @@ function PlatformDot({ platform }: { platform: string | null }) {
   );
 }
 
-function formatValue(value: number, unit: string): string {
-  switch (unit) {
-    case "PERCENTAGE":
-      return `${value.toFixed(1)}%`;
-    case "MINUTES":
-      return `${value.toFixed(0)}m`;
-    case "HOURS":
-      return `${value.toFixed(1)}h`;
-    case "CURRENCY":
-      return `${value.toFixed(3)} KD`;
-    default:
-      return `${value}`;
-  }
+function useFormatValue() {
+  const { locale } = useI18n();
+  return (value: number, unit: string): string => {
+    switch (unit) {
+      case "PERCENTAGE":
+        return `${value.toFixed(1)}%`;
+      case "MINUTES":
+        return `${formatNumber(value, locale, { maximumFractionDigits: 0 })}m`;
+      case "HOURS":
+        return `${formatNumber(value, locale, { maximumFractionDigits: 1 })}h`;
+      case "CURRENCY":
+        return formatCurrency(value, locale);
+      default:
+        return `${value}`;
+    }
+  };
 }
 
 const CATEGORY_ICONS: Record<string, typeof Target> = {
@@ -118,9 +124,16 @@ const CATEGORY_ICONS: Record<string, typeof Target> = {
   CUSTOM: Target,
 };
 
+function localToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export default function KpisPage() {
-  const [dateFrom, setDateFrom] = useState(new Date().toISOString().split("T")[0]);
-  const [dateTo, setDateTo] = useState(new Date().toISOString().split("T")[0]);
+  const { t } = useI18n();
+  const formatValue = useFormatValue();
+  const [dateFrom, setDateFrom] = useState(localToday());
+  const [dateTo, setDateTo] = useState(localToday());
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
 
@@ -165,8 +178,8 @@ export default function KpisPage() {
             <Target size={20} className="text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold">KPI Dashboard</h1>
-            <p className="text-sm text-secondary">Track driver performance across all platforms</p>
+            <h1 className="text-xl font-semibold">{t("kpi.dashboard")}</h1>
+            <p className="text-sm text-secondary">{t("kpi.trackPerformance")}</p>
           </div>
         </div>
       </div>
@@ -174,23 +187,23 @@ export default function KpisPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-4">
         <StatCard
-          title="Tracked Drivers"
+          title={t("overview.trackedDrivers")}
           value={summary?.totalDrivers ?? 0}
           icon={Users}
         />
         <StatCard
-          title="Overall KPI Score"
+          title={t("overview.overallKpiScore")}
           value={`${n(summary?.overallScore).toFixed(0)}%`}
           icon={TrendingUp}
           highlight={n(summary?.overallScore) < 70}
         />
         <StatCard
-          title="KPI Records"
+          title={t("overview.kpiRecords")}
           value={summary?.totalRecords ?? 0}
           icon={Target}
         />
         <StatCard
-          title="Active KPIs"
+          title={t("overview.activeKpis")}
           value={kpis.length}
           icon={Award}
         />
@@ -221,11 +234,11 @@ export default function KpisPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-secondary">
-                      Avg: <span className="font-mono font-medium text-foreground">{formatValue(kpi.avgValue, kpi.unit)}</span>
+                      {t("overview.avg")}: <span className="font-mono font-medium text-foreground">{formatValue(kpi.avgValue, kpi.unit)}</span>
                     </span>
                     {kpi.target && (
                       <span className="text-xs text-secondary">
-                        Target: <span className="font-mono font-medium">{formatValue(kpi.target, kpi.unit)}</span>
+                        {t("overview.target")}: <span className="font-mono font-medium">{formatValue(kpi.target, kpi.unit)}</span>
                       </span>
                     )}
                   </div>
@@ -233,11 +246,11 @@ export default function KpisPage() {
                   <div className="flex justify-between text-[10px] text-secondary">
                     <span className="flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                      {kpi.driversAboveTarget} above target
+                      {kpi.driversAboveTarget} {t("overview.aboveTarget")}
                     </span>
                     <span className="flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                      {kpi.driversBelowTarget} below target
+                      {kpi.driversBelowTarget} {t("overview.belowTarget")}
                     </span>
                   </div>
                 </div>
@@ -250,8 +263,8 @@ export default function KpisPage() {
       {/* Date picker & Filters */}
       <div className="flex gap-3 flex-wrap items-center">
         <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 shadow-sm border border-gray-100">
-          <button onClick={prevDay} className="p-1 hover:bg-gray-50 rounded-lg transition-colors">
-            <ChevronLeft size={16} />
+          <button onClick={prevDay} className="p-1 hover:bg-gray-50 rounded-lg transition-colors" aria-label={t("actions.previous")}>
+            <DirectionalIcon kind="chevron-back" size={16} />
           </button>
           <input
             type="date"
@@ -259,8 +272,8 @@ export default function KpisPage() {
             onChange={(e) => { setDateFrom(e.target.value); setDateTo(e.target.value); }}
             className="text-sm font-medium border-0 focus:outline-none bg-transparent"
           />
-          <button onClick={nextDay} className="p-1 hover:bg-gray-50 rounded-lg transition-colors">
-            <ChevronRight size={16} />
+          <button onClick={nextDay} className="p-1 hover:bg-gray-50 rounded-lg transition-colors" aria-label={t("actions.next")}>
+            <DirectionalIcon kind="chevron-forward" size={16} />
           </button>
         </div>
         <FilterBar
@@ -268,9 +281,9 @@ export default function KpisPage() {
             {
               key: "platform",
               type: "select",
-              label: "Platform",
+              label: t("table.platform"),
               options: [
-                { value: "", label: "All Platforms" },
+                { value: "", label: t("kpi.allPlatforms") },
                 { value: "TALABAT", label: "Talabat" },
                 { value: "KEETA", label: "Keeta" },
                 { value: "DELIVEROO", label: "Deliveroo" },
@@ -280,8 +293,8 @@ export default function KpisPage() {
             {
               key: "search",
               type: "search",
-              label: "Search",
-              placeholder: "Search driver...",
+              label: t("common.search"),
+              placeholder: t("common.searchDriverPlaceholder"),
             },
           ]}
           values={filters}
@@ -295,12 +308,12 @@ export default function KpisPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-50">
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Platform</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Zone</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Overall Score</th>
-                <th className="text-right text-xs font-medium text-secondary px-5 py-3">KPIs Tracked</th>
-                <th className="text-center text-xs font-medium text-secondary px-5 py-3">Status</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.driver")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.platform")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.zone")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("kpi.overallScore")}</th>
+                <th className="text-end text-xs font-medium text-secondary px-5 py-3">{t("kpi.kpisTracked")}</th>
+                <th className="text-center text-xs font-medium text-secondary px-5 py-3">{t("table.status")}</th>
                 <th className="px-5 py-3" />
               </tr>
             </thead>
@@ -309,8 +322,8 @@ export default function KpisPage() {
                 <tr>
                   <td colSpan={7} className="px-5 py-12 text-center text-sm text-secondary">
                     {loading
-                      ? "Loading..."
-                      : "No KPI data found. Use the compute endpoint to generate KPIs from existing data."}
+                      ? t("errors.loadingData")
+                      : `${t("kpi.noKpiData")} ${t("kpi.useComputeEndpoint")}`}
                   </td>
                 </tr>
               ) : (
@@ -332,25 +345,25 @@ export default function KpisPage() {
                       {driver.overallScore != null ? (
                         <ScoreBar score={driver.overallScore} />
                       ) : (
-                        <span className="text-xs text-secondary">No data</span>
+                        <span className="text-xs text-secondary">{t("errors.noData")}</span>
                       )}
                     </td>
-                    <td className="px-5 py-3 text-sm text-right font-mono text-secondary">
+                    <td className="px-5 py-3 text-sm text-end font-mono text-secondary">
                       {driver.kpis?.length || 0}
                     </td>
                     <td className="px-5 py-3 text-center">
                       {driver.overallScore != null ? (
                         driver.overallScore >= 100 ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-green-50 text-green-600">
-                            <TrendingUp size={10} /> On Target
+                            <TrendingUp size={10} /> {t("overview.onTarget")}
                           </span>
                         ) : driver.overallScore >= 70 ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-amber-50 text-amber-600">
-                            <AlertTriangle size={10} /> Needs Improvement
+                            <AlertTriangle size={10} /> {t("overview.needsImprovement")}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-red-50 text-red-600">
-                            <AlertTriangle size={10} /> Below Target
+                            <AlertTriangle size={10} /> {t("overview.belowTarget")}
                           </span>
                         )
                       ) : (
@@ -358,7 +371,7 @@ export default function KpisPage() {
                       )}
                     </td>
                     <td className="px-5 py-3">
-                      <ChevronRight size={15} className="text-gray-300" />
+                      <DirectionalIcon kind="chevron-forward" size={15} className="text-gray-300" />
                     </td>
                   </tr>
                 ))
@@ -372,17 +385,17 @@ export default function KpisPage() {
       <SlidePanel
         open={!!selected}
         onClose={() => setSelected(null)}
-        title={selected?.name || "Driver KPIs"}
-        subtitle={`${selected?.platform || "All"} - KPI Breakdown`}
+        title={selected?.name || t("kpi.driverKpis")}
+        subtitle={`${selected?.platform || t("labels.all")} — ${t("kpi.kpiBreakdown")}`}
       >
         {selected && (
           <div className="space-y-5">
             {/* Driver Info */}
             <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-              <p className="text-xs text-primary font-medium uppercase tracking-wide mb-1">Driver</p>
+              <p className="text-xs text-primary font-medium uppercase tracking-wide mb-1">{t("table.driver")}</p>
               <p className="text-lg font-semibold">{selected.name}</p>
               <p className="text-sm text-secondary mt-0.5">
-                {selected.company?.name || "-"} &middot; {selected.zone || "No zone"} &middot; {dateFrom}
+                {selected.company?.name || "-"} &middot; {selected.zone || t("kpi.noZone")} &middot; {dateFrom}
               </p>
             </div>
 
@@ -390,7 +403,7 @@ export default function KpisPage() {
             {selected.overallScore != null && (
               <div className="bg-gray-50 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-secondary font-medium uppercase">Overall KPI Score</p>
+                  <p className="text-xs text-secondary font-medium uppercase">{t("overview.overallKpiScore")}</p>
                   <span className={cn(
                     "text-2xl font-bold font-mono",
                     selected.overallScore >= 100 ? "text-green-600" : selected.overallScore >= 70 ? "text-amber-600" : "text-red-500"
@@ -404,7 +417,7 @@ export default function KpisPage() {
 
             {/* Individual KPIs */}
             <div className="space-y-3">
-              <p className="text-xs font-medium text-secondary uppercase tracking-wide">KPI Breakdown</p>
+              <p className="text-xs font-medium text-secondary uppercase tracking-wide">{t("kpi.kpiBreakdown")}</p>
               {selected.kpis && selected.kpis.length > 0 ? (
                 selected.kpis.map((kpi: any, idx: number) => (
                   <div key={idx} className="bg-gray-50 rounded-xl p-3">
@@ -417,7 +430,7 @@ export default function KpisPage() {
                     {kpi.target && (
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-[10px] text-secondary">
-                          Target: {formatValue(kpi.target, kpi.unit)}
+                          {t("overview.target")}: {formatValue(kpi.target, kpi.unit)}
                         </span>
                       </div>
                     )}
@@ -425,7 +438,7 @@ export default function KpisPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-secondary py-4 text-center">No KPI records for this period</p>
+                <p className="text-sm text-secondary py-4 text-center">{t("kpi.noKpiRecordsForPeriod")}</p>
               )}
             </div>
           </div>

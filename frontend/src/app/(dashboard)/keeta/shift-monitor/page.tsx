@@ -11,7 +11,10 @@ type Rollup = {
 };
 
 export default function ShiftMonitorPage() {
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  });
   const [open, setOpen] = useState(true);
   const { data, loading } = useApiGet<Rollup>(`/api/keeta/shift-monitor/rollup?date=${date}`);
 

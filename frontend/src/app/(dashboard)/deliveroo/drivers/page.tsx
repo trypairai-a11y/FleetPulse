@@ -20,6 +20,8 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
+import { useI18n } from "@/i18n/I18nProvider";
+import { formatDate, formatDateTime } from "@/i18n/format";
 
 const AddDriverModal = dynamic(() => import("@/components/shared/AddDriverModal"), {
   ssr: false,
@@ -31,6 +33,7 @@ const ZONES = ["Al Hazm", "Madinat Al Hareer", "Abu Halifa", "Mangaf", "Fahaheel
 type OperatingModel = "FREELANCE" | "CORE_FLEET";
 
 function ModelBadge({ model }: { model: OperatingModel }) {
+  const { t } = useI18n();
   return (
     <span
       className={cn(
@@ -40,12 +43,13 @@ function ModelBadge({ model }: { model: OperatingModel }) {
           : "bg-blue-50 text-blue-700"
       )}
     >
-      {model === "FREELANCE" ? "Freelance" : "Core Fleet"}
+      {model === "FREELANCE" ? t("deliveroo.freelance") : t("deliveroo.coreFleet")}
     </span>
   );
 }
 
 function FaceVerifBadge({ verified }: { verified: boolean }) {
+  const { t } = useI18n();
   return (
     <span
       className={cn(
@@ -54,16 +58,31 @@ function FaceVerifBadge({ verified }: { verified: boolean }) {
       )}
     >
       <Camera size={10} />
-      {verified ? "Verified" : "Unverified"}
+      {verified ? t("deliveroo.verified") : t("deliveroo.unverified")}
     </span>
   );
 }
 
 export default function DeliverooDriversPage() {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
   const [showAdd, setShowAdd] = useState(false);
+
+  const statusLabel = (s: string): string => {
+    switch (s) {
+      case "ACTIVE": return t("status.active");
+      case "INACTIVE": return t("status.inactive");
+      case "SUSPENDED": return t("status.suspended");
+      case "TERMINATED": return t("keetaPage.terminated");
+      case "TERMINATION": return t("keetaPage.pendingTermination");
+      case "LEAVE": return t("attendancePage.leave");
+      case "RESTRICTED": return t("keetaPage.restricted");
+      case "RESTRICTED_PERMANENTLY": return t("keetaPage.restrictedPermanent");
+      default: return s;
+    }
+  };
 
   const params = new URLSearchParams({ platform: "DELIVEROO", limit: "100" });
   if (filters.zone) params.set("zone", filters.zone);
@@ -75,7 +94,6 @@ export default function DeliverooDriversPage() {
   const { data: summary } = useApiGet<any>("/api/deliveroo/drivers/summary");
 
   const rawDrivers = data?.data || [];
-  // Mock face verification + mismatch data for demo
   const drivers = rawDrivers.map((d: any, i: number) => ({
     ...d,
     faceVerified: d.faceVerified ?? (i % 7 !== 0),
@@ -85,7 +103,7 @@ export default function DeliverooDriversPage() {
   const columns = [
     {
       key: "name",
-      label: "Driver Name",
+      label: t("keetaPage.driverNameCol"),
       render: (_: any, r: any) => (
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center text-xs font-semibold text-teal-700">
@@ -97,7 +115,7 @@ export default function DeliverooDriversPage() {
     },
     {
       key: "platformDriverId",
-      label: "Rider ID",
+      label: t("deliveroo.riderId"),
       render: (v: string) => (
         <span className="font-mono text-xs text-secondary">
           #{v || "-"}
@@ -106,13 +124,13 @@ export default function DeliverooDriversPage() {
     },
     {
       key: "operatingModel",
-      label: "Operating Model",
+      label: t("deliveroo.operatingModel"),
       render: (v: OperatingModel) => <ModelBadge model={v || "FREELANCE"} />,
     },
-    { key: "zone", label: "Zone" },
+    { key: "zone", label: t("table.zone") },
     {
       key: "vehicleType",
-      label: "Vehicle",
+      label: t("companies.vehicle"),
       render: (v: string) => (
         <span
           className={cn(
@@ -122,22 +140,22 @@ export default function DeliverooDriversPage() {
               : "bg-blue-50 text-blue-600"
           )}
         >
-          {v === "MOTORCYCLE" ? "Bike" : "Car"}
+          {v === "MOTORCYCLE" ? t("companies.bike") : t("companies.carVehicle")}
         </span>
       ),
     },
     {
       key: "faceVerified",
-      label: "Face",
+      label: t("keetaPage.face"),
       render: (_: any, r: any) =>
         r.faceVerified != null ? (
           r.faceVerified ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
-              <CheckCircle2 size={13} /> Pass
+              <CheckCircle2 size={13} /> {t("keetaPage.facePass")}
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600">
-              <XCircle size={13} /> Fail
+              <XCircle size={13} /> {t("keetaPage.faceFail")}
             </span>
           )
         ) : (
@@ -146,7 +164,7 @@ export default function DeliverooDriversPage() {
     },
     {
       key: "status",
-      label: "Status",
+      label: t("table.status"),
       render: (v: string) => (
         <span
           className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
@@ -155,7 +173,7 @@ export default function DeliverooDriversPage() {
             "bg-red-50 text-red-600": v === "SUSPENDED" || v === "TERMINATED",
           })}
         >
-          {v}
+          {statusLabel(v)}
         </span>
       ),
     },
@@ -167,14 +185,14 @@ export default function DeliverooDriversPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-teal-500" />
-          <h1 className="text-xl font-semibold">Deliveroo - Drivers</h1>
-          <span className="text-sm text-secondary">Al Hazm</span>
+          <h1 className="text-xl font-semibold">{t("deliveroo.driversTitle")}</h1>
+          <span className="text-sm text-secondary">{t("deliveroo.alHazm")}</span>
         </div>
         <button
           onClick={() => setShowAdd(true)}
           className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-xl hover:bg-teal-700 transition-colors"
         >
-          <Plus size={16} /> Add Driver
+          <Plus size={16} /> {t("actions.addDriver")}
         </button>
       </div>
 
@@ -182,17 +200,17 @@ export default function DeliverooDriversPage() {
       <div className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3">
         <AlertCircle size={16} className="text-amber-500 mt-0.5 shrink-0" />
         <p className="text-xs text-amber-700">
-          <span className="font-semibold">Note:</span> Deliveroo does not have native face verification. Darb adds this capability via the Android agent - see the "Face Verif (Darb)" column.
+          <span className="font-semibold">{t("deliveroo.noteLabel")}</span> {t("deliveroo.noteBody")}
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
-        <StatCard title="Total Drivers" value={summary?.total || drivers.length} icon={Users} />
-        <StatCard title="Freelance" value={summary?.freelance || "-"} icon={Bike} />
-        <StatCard title="Core Fleet" value={summary?.coreFleet || "-"} icon={Users} />
+        <StatCard title={t("overview.totalDrivers")} value={summary?.total || drivers.length} icon={Users} />
+        <StatCard title={t("deliveroo.freelanceStat")} value={summary?.freelance || "-"} icon={Bike} />
+        <StatCard title={t("deliveroo.coreFleetStat")} value={summary?.coreFleet || "-"} icon={Users} />
         <StatCard
-          title="Face Verified"
+          title={t("deliveroo.faceVerified")}
           value={summary?.faceVerified || "-"}
           icon={ShieldCheck}
         />
@@ -204,37 +222,37 @@ export default function DeliverooDriversPage() {
           {
             key: "search",
             type: "search",
-            label: "Search",
-            placeholder: "Search name or Rider ID...",
+            label: t("common.search"),
+            placeholder: t("deliveroo.searchRiderId"),
           },
           {
             key: "zone",
             type: "select",
-            label: "All Zones",
+            label: t("keetaPage.allZones"),
             options: ZONES.map((z) => ({ value: z, label: z })),
           },
           {
             key: "model",
             type: "select",
-            label: "All Models",
+            label: t("deliveroo.allModels"),
             options: [
-              { value: "FREELANCE", label: "Freelance" },
-              { value: "CORE_FLEET", label: "Core Fleet" },
+              { value: "FREELANCE", label: t("deliveroo.freelance") },
+              { value: "CORE_FLEET", label: t("deliveroo.coreFleet") },
             ],
           },
           {
             key: "status",
             type: "select",
-            label: "All Statuses",
+            label: t("keetaPage.allStatuses"),
             options: [
-              { value: "ACTIVE", label: "Active" },
-              { value: "LEAVE", label: "Leave" },
-              { value: "SUSPENDED", label: "Suspended" },
-              { value: "RESTRICTED", label: "Restricted" },
-              { value: "RESTRICTED_PERMANENTLY", label: "Restricted (Permanent)" },
-              { value: "INACTIVE", label: "Inactive" },
-              { value: "TERMINATED", label: "Terminated" },
-              { value: "TERMINATION", label: "Pending Termination" },
+              { value: "ACTIVE", label: t("status.active") },
+              { value: "LEAVE", label: t("attendancePage.leave") },
+              { value: "SUSPENDED", label: t("status.suspended") },
+              { value: "RESTRICTED", label: t("keetaPage.restricted") },
+              { value: "RESTRICTED_PERMANENTLY", label: t("keetaPage.restrictedPermanent") },
+              { value: "INACTIVE", label: t("status.inactive") },
+              { value: "TERMINATED", label: t("keetaPage.terminated") },
+              { value: "TERMINATION", label: t("keetaPage.pendingTermination") },
             ],
           },
         ]}
@@ -246,7 +264,7 @@ export default function DeliverooDriversPage() {
         columns={columns}
         data={drivers}
         onRowClick={(row) => router.push(`/deliveroo/drivers/${row.id}`)}
-        emptyMessage="No Deliveroo drivers found"
+        emptyMessage={t("deliveroo.noDriversFound")}
       />
 
       {/* Detail Panel */}
@@ -254,7 +272,7 @@ export default function DeliverooDriversPage() {
         open={!!selected}
         onClose={() => setSelected(null)}
         title={selected?.name || ""}
-        subtitle="Deliveroo / Al Hazm"
+        subtitle={`Deliveroo / ${t("deliveroo.alHazm")}`}
       >
         {selected && (
           <div className="space-y-5">
@@ -266,13 +284,13 @@ export default function DeliverooDriversPage() {
 
             <div className="grid grid-cols-2 gap-3">
               {[
-                ["Rider ID", `#${selected.platformDriverId || "-"}`],
-                ["Zone", selected.zone],
-                ["Vehicle", selected.vehicleType],
-                ["Status", selected.status],
-                ["Company Phone", selected.phone],
-                ["Personal Phone", selected.personalPhone],
-                ["Hire Date", selected.hireDate ? new Date(selected.hireDate).toLocaleDateString() : "-"],
+                [t("deliveroo.riderId"), `#${selected.platformDriverId || "-"}`],
+                [t("table.zone"), selected.zone],
+                [t("companies.vehicle"), selected.vehicleType],
+                [t("table.status"), statusLabel(selected.status)],
+                [t("americana.companyPhoneDetail"), selected.phone],
+                [t("americana.personalPhoneDetail"), selected.personalPhone],
+                [t("americana.hireDate"), selected.hireDate ? formatDate(selected.hireDate, locale) : "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
@@ -283,36 +301,36 @@ export default function DeliverooDriversPage() {
 
             <div className="bg-teal-50 rounded-xl p-4 space-y-2">
               <p className="text-xs font-semibold text-teal-700 uppercase tracking-wide">
-                Darb Face Verification
+                {t("deliveroo.darbFaceVerification")}
               </p>
               <div className="flex items-center gap-2">
                 <Camera size={14} className="text-teal-600" />
                 <span className="text-sm text-teal-800">
                   {selected.faceVerified
-                    ? "Selfie captured & matched at last clock-in"
-                    : "Not yet verified - Android agent required"}
+                    ? t("deliveroo.selfieMatchedLastClockin")
+                    : t("deliveroo.notYetVerifiedAgent")}
                 </span>
               </div>
               {selected.lastFaceVerifAt && (
                 <p className="text-xs text-teal-600">
-                  Last verified: {new Date(selected.lastFaceVerifAt).toLocaleString()}
+                  {t("deliveroo.lastVerified")}: {formatDateTime(selected.lastFaceVerifAt, locale)}
                 </p>
               )}
             </div>
 
             <div className="border-t border-gray-50 pt-4">
               <p className="text-xs font-semibold text-secondary uppercase tracking-wide mb-3">
-                Location
+                {t("deliveroo.location")}
               </p>
               <div className="flex items-center gap-2 text-sm text-secondary">
                 <MapPin size={14} />
-                <span>{selected.zone || "Zone not assigned"}</span>
+                <span>{selected.zone || t("deliveroo.zoneNotAssigned")}</span>
               </div>
             </div>
 
             <div className="border-t border-gray-50 pt-4">
               <p className="text-xs font-semibold text-secondary uppercase tracking-wide mb-3">
-                Contact
+                {t("deliveroo.contact")}
               </p>
               <div className="flex items-center gap-2 text-sm text-secondary">
                 <Phone size={14} />

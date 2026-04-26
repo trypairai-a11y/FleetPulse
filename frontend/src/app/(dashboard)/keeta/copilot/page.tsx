@@ -11,6 +11,7 @@
 
 import { useEffect, useState } from "react";
 import { Sparkles, Send, BrainCircuit, TrendingUp, AlertTriangle } from "lucide-react";
+import api from "@/lib/api";
 
 type CosMode = "briefing" | "ask" | "decide" | "forecast";
 interface CosResponse {
@@ -48,9 +49,8 @@ export default function KeetaCopilotPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    fetch("/api/ai/cos/briefing")
-      .then((r) => r.json())
-      .then(setBriefing)
+    api.get("/api/ai/cos/briefing")
+      .then((r) => setBriefing(r.data))
       .catch(() => setBriefing({ mode: "briefing", text: "Briefing unavailable." }))
       .finally(() => setBriefingLoading(false));
   }, []);
@@ -62,16 +62,12 @@ export default function KeetaCopilotPage() {
     setInput("");
     setBusy(true);
     try {
-      const resp = await fetch("/api/ai/cos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode,
-          prompt,
-          history: history.map((t) => ({ role: t.role, content: t.content })),
-        }),
+      const resp = await api.post("/api/ai/cos", {
+        mode,
+        prompt,
+        history: history.map((t) => ({ role: t.role, content: t.content })),
       });
-      const data: CosResponse = await resp.json();
+      const data: CosResponse = resp.data;
       setHistory((h) => [
         ...h,
         { role: "assistant", content: data.text, ar: data.textAr },

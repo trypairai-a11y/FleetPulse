@@ -7,20 +7,22 @@ import OrdersListTab from "@/components/platform/talabat/OrdersListTab";
 import OrderPerformanceTab from "@/components/platform/talabat/OrderPerformanceTab";
 import { UploadCloud, Sparkles, Download } from "lucide-react";
 import api from "@/lib/api";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type PageTab = "orders" | "performance";
 
 export default function TalabatOrdersPage() {
+  const { t } = useI18n();
   const [pageTab, setPageTab] = useState<PageTab>("orders");
   const [filters, setFilters] = useState<Record<string, string>>({
-    dateFrom: new Date().toISOString().split("T")[0],
+    dateFrom: new Date().toLocaleDateString("en-CA"),
   });
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Company name from settings
   const { data: companiesData, loading } = useApiGet<any>("/api/companies?platform=TALABAT");
-  const companyName = companiesData?.data?.[0]?.name || companiesData?.[0]?.name || "Wahoo International";
+  const companyName = companiesData?.data?.[0]?.name || companiesData?.[0]?.name || t("talabat.wahooIntl");
   const companyOptions = useMemo(() => {
     const list = companiesData?.data || companiesData || [];
     return (Array.isArray(list) ? list : []).map((c: any) => ({ value: c.id, label: c.name }));
@@ -68,7 +70,7 @@ export default function TalabatOrdersPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-talabat" />
-          <h1 className="text-xl font-semibold">Talabat - Orders</h1>
+          <h1 className="text-xl font-semibold">{t("ordersPage.talabatOrders")}</h1>
           <span className="text-sm text-secondary">{companyName}</span>
         </div>
         <div className="flex items-center gap-2">
@@ -88,7 +90,7 @@ export default function TalabatOrdersPage() {
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors"
           >
             <Download size={15} className="text-secondary" />
-            Export CSV
+            {t("ordersPage.exportCsv")}
           </button>
           <button
             onClick={() => fileRef.current?.click()}
@@ -100,9 +102,9 @@ export default function TalabatOrdersPage() {
             ) : (
               <UploadCloud size={15} className="text-secondary" />
             )}
-            Upload Screenshot
+            {t("ordersPage.uploadScreenshot")}
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-gradient-to-r from-violet-500 to-indigo-500 text-white">
-              <Sparkles size={9} /> AI OCR
+              <Sparkles size={9} /> {t("ordersPage.aiOcr")}
             </span>
           </button>
         </div>
@@ -110,16 +112,16 @@ export default function TalabatOrdersPage() {
 
       {/* Tab Bar */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-        {(["orders", "performance"] as PageTab[]).map((t) => (
+        {(["orders", "performance"] as PageTab[]).map((tabKey) => (
           <button
-            key={t}
-            onClick={() => setPageTab(t)}
+            key={tabKey}
+            onClick={() => setPageTab(tabKey)}
             className={cn(
-              "px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize",
-              pageTab === t ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              pageTab === tabKey ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
             )}
           >
-            {t === "orders" ? "Orders List" : "Performance"}
+            {tabKey === "orders" ? t("ordersPage.list") : t("ordersPage.performance")}
           </button>
         ))}
       </div>

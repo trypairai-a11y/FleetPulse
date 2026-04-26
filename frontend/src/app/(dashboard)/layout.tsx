@@ -2,16 +2,10 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import dynamic from "next/dynamic";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/cn";
-
-const ChatWidget = dynamic(() => import("@/components/ai/ChatWidget"), {
-  ssr: false,
-  loading: () => null,
-});
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { collapsed, open } = useSidebar();
@@ -19,11 +13,10 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className={cn("transition-all duration-200", !open ? "ml-0" : collapsed ? "ml-16" : "ml-60")}>
+      <div className={cn("transition-all duration-200", !open ? "ms-0" : collapsed ? "ms-16" : "ms-60")}>
         <Header />
         <main className="p-8">{children}</main>
       </div>
-      <ChatWidget />
     </div>
   );
 }

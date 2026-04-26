@@ -1,7 +1,9 @@
 "use client";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/cn";
-import { ArrowUp, ArrowDown, ArrowUpDown, Download, ChevronLeft, ChevronRight, CheckSquare, Square, MinusSquare } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Download, CheckSquare, Square, MinusSquare } from "lucide-react";
+import { useI18n } from "@/i18n/I18nProvider";
+import { DirectionalIcon } from "@/i18n/directionalIcon";
 
 interface Column {
   key: string;
@@ -52,7 +54,7 @@ export default function DataTable({
   columns,
   data,
   onRowClick,
-  emptyMessage = "No data",
+  emptyMessage,
   pagination,
   exportFilename,
   loading = false,
@@ -60,9 +62,11 @@ export default function DataTable({
   bulkActions,
   rowKey = "id",
 }: DataTableProps) {
+  const { t } = useI18n();
   const [sortCol, setSortCol] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const resolvedEmpty = emptyMessage ?? t("errors.noData");
 
   function handleSort(col: Column) {
     if (col.sortable === false) return;
@@ -153,8 +157,8 @@ export default function DataTable({
       {/* Bulk action bar */}
       {selectable && selectedIds.size > 0 && bulkActions && bulkActions.length > 0 && (
         <div className="flex items-center gap-3 px-5 py-2.5 bg-primary/5 border-b border-primary/10">
-          <span className="text-sm font-medium text-primary">{selectedIds.size} selected</span>
-          <div className="flex items-center gap-2 ml-auto">
+          <span className="text-sm font-medium text-primary">{selectedIds.size} {t("common.selected")}</span>
+          <div className="flex items-center gap-2 ms-auto">
             {bulkActions.map((action, i) => (
               <button
                 key={i}
@@ -172,9 +176,9 @@ export default function DataTable({
             ))}
             <button
               onClick={() => setSelectedIds(new Set())}
-              className="text-xs text-secondary hover:text-foreground ml-2"
+              className="text-xs text-secondary hover:text-foreground ms-2"
             >
-              Clear
+              {t("common.clear")}
             </button>
           </div>
         </div>
@@ -186,10 +190,10 @@ export default function DataTable({
           <button
             onClick={handleExport}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sand-800 bg-sand-100 hover:bg-sand-200 rounded-pill transition-colors duration-250 ease-sierra-out"
-            aria-label="Export table data as CSV"
+            aria-label={t("table.exportAria")}
           >
             <Download size={12} aria-hidden="true" />
-            Export CSV
+            {t("table.exportCsv")}
           </button>
         </div>
       )}
@@ -200,7 +204,7 @@ export default function DataTable({
             <tr className="border-b border-sand-200" role="row">
               {selectable && (
                 <th className="w-10 px-3 py-3" role="columnheader">
-                  <button onClick={toggleAll} className="text-secondary hover:text-primary transition-colors" aria-label={allSelected ? "Deselect all rows" : "Select all rows"}>
+                  <button onClick={toggleAll} className="text-secondary hover:text-primary transition-colors" aria-label={allSelected ? t("table.deselectAllRows") : t("table.selectAllRows")}>
                     {allSelected ? <CheckSquare size={16} /> : someSelected ? <MinusSquare size={16} /> : <Square size={16} />}
                   </button>
                 </th>
@@ -216,7 +220,7 @@ export default function DataTable({
                     onClick={() => isSortable && handleSort(col)}
                     title={col.headerTitle}
                     className={cn(
-                      "text-left text-xs font-medium text-secondary px-5 py-3 select-none",
+                      "text-start text-xs font-medium text-secondary px-5 py-3 select-none",
                       isSortable && "cursor-pointer hover:text-primary transition-colors",
                       col.headerTitle && "cursor-help",
                       col.className
@@ -248,14 +252,14 @@ export default function DataTable({
                 <td colSpan={columns.length} className="px-5 py-12 text-center">
                   <div className="flex items-center justify-center gap-2 text-sm text-secondary">
                     <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" aria-hidden="true" />
-                    Loading...
+                    {t("table.loadingRow")}
                   </div>
                 </td>
               </tr>
             ) : sortedData.length === 0 ? (
               <tr>
                 <td colSpan={columns.length + (selectable ? 1 : 0)} className="px-5 py-12 text-center text-sm text-secondary">
-                  {emptyMessage}
+                  {resolvedEmpty}
                 </td>
               </tr>
             ) : (
@@ -278,7 +282,7 @@ export default function DataTable({
                 >
                   {selectable && (
                     <td className="w-10 px-3 py-3" role="cell">
-                      <button onClick={(e) => toggleRow(id, e)} className="text-secondary hover:text-primary transition-colors" aria-label={isSelected ? "Deselect row" : "Select row"}>
+                      <button onClick={(e) => toggleRow(id, e)} className="text-secondary hover:text-primary transition-colors" aria-label={isSelected ? t("table.deselectRow") : t("table.selectRow")}>
                         {isSelected ? <CheckSquare size={16} className="text-primary" /> : <Square size={16} />}
                       </button>
                     </td>
@@ -298,21 +302,21 @@ export default function DataTable({
 
       {/* Pagination controls */}
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between px-5 py-3 border-t border-sand-200" role="navigation" aria-label="Table pagination">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-sand-200" role="navigation" aria-label={t("table.previousPage") + " / " + t("table.nextPage")}>
           <div className="flex items-center gap-2">
             <span className="text-xs text-secondary">
               {((pagination.page - 1) * pagination.limit) + 1}–
-              {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
+              {Math.min(pagination.page * pagination.limit, pagination.total)} {t("common.of")} {pagination.total}
             </span>
             {pagination.onLimitChange && (
               <select
                 value={pagination.limit}
                 onChange={(e) => pagination.onLimitChange!(Number(e.target.value))}
                 className="text-xs border border-sand-300 rounded-pill px-3 py-1 bg-card"
-                aria-label="Rows per page"
+                aria-label={t("table.rowsPerPage")}
               >
                 {[25, 50, 100].map((n) => (
-                  <option key={n} value={n}>{n} per page</option>
+                  <option key={n} value={n}>{n} {t("common.perPage")}</option>
                 ))}
               </select>
             )}
@@ -322,9 +326,9 @@ export default function DataTable({
               onClick={() => pagination.onPageChange(pagination.page - 1)}
               disabled={pagination.page <= 1}
               className="p-1.5 rounded-lg text-secondary hover:bg-sand-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Previous page"
+              aria-label={t("table.previousPage")}
             >
-              <ChevronLeft size={14} aria-hidden="true" />
+              <DirectionalIcon kind="chevron-back" size={14} aria-hidden="true" />
             </button>
             <span className="text-xs text-secondary px-2">
               {pagination.page} / {pagination.totalPages}
@@ -333,9 +337,9 @@ export default function DataTable({
               onClick={() => pagination.onPageChange(pagination.page + 1)}
               disabled={pagination.page >= pagination.totalPages}
               className="p-1.5 rounded-lg text-secondary hover:bg-sand-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Next page"
+              aria-label={t("table.nextPage")}
             >
-              <ChevronRight size={14} aria-hidden="true" />
+              <DirectionalIcon kind="chevron-forward" size={14} aria-hidden="true" />
             </button>
             {/* F14 — page-jump */}
             {pagination.totalPages > 10 && (
@@ -348,7 +352,7 @@ export default function DataTable({
                 }}
                 className="flex items-center gap-1 ms-2"
               >
-                <span className="text-xs text-secondary">Go to</span>
+                <span className="text-xs text-secondary">{t("common.goToPage")}</span>
                 <input
                   name="jump"
                   type="number"
@@ -356,9 +360,9 @@ export default function DataTable({
                   max={pagination.totalPages}
                   defaultValue={pagination.page}
                   className="w-14 text-xs border border-sand-300 rounded-pill px-2.5 py-1 bg-card"
-                  aria-label="Jump to page"
+                  aria-label={t("common.goToPage")}
                 />
-                <button type="submit" className="text-xs font-medium text-primary hover:underline">Jump</button>
+                <button type="submit" className="text-xs font-medium text-primary hover:underline">{t("common.jump")}</button>
               </form>
             )}
           </div>

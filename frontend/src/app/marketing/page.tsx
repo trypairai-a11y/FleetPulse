@@ -237,7 +237,7 @@ export default function MarketingPage() {
             ))}
           </div>
           <div className="flex items-center justify-between text-xs text-sand-600 pt-6 border-t border-sand-200">
-            <span>© {new Date().getFullYear()} Darb by KTech · Kuwait</span>
+            <span>© {new Date().getFullYear()} Darb by Pair · Kuwait</span>
             <span className="font-mono">v2.0</span>
           </div>
         </div>

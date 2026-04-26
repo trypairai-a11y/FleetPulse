@@ -14,9 +14,10 @@ import {
   TrendingUp,
   Info,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
+import { useI18n } from "@/i18n/I18nProvider";
+import { DirectionalIcon } from "@/i18n/directionalIcon";
+import { formatCurrency, formatTime, formatDateTime } from "@/i18n/format";
 
 type PaymentTab = "ALL" | "COD" | "CCOD" | "PAID";
 
@@ -46,14 +47,11 @@ const PAYMENT_STATUS_STYLES: Record<string, string> = {
   CANCELLED: "bg-red-50 text-red-600",
 };
 
-function formatKD(value: number): string {
-  return `${value.toFixed(3)} KD`;
-}
-
 export default function AmericanaOrdersPage() {
+  const { t, locale } = useI18n();
   const [paymentTab, setPaymentTab] = useState<PaymentTab>("ALL");
   const [filters, setFilters] = useState<Record<string, string>>({
-    date: new Date().toISOString().split("T")[0],
+    date: new Date().toLocaleDateString("en-CA"),
   });
   const [selected, setSelected] = useState<any>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -70,6 +68,16 @@ export default function AmericanaOrdersPage() {
   const { data: summary } = useApiGet<any>(`/api/orders/summary?platform=AMERICANA&date=${filters.date}`);
 
   const orders: any[] = ordersData?.data || [];
+
+  const statusLabel = (s: string): string => {
+    switch (s) {
+      case "DELIVERED": return t("status.completed");
+      case "PENDING": return t("status.pending");
+      case "CANCELLED": return t("status.cancelled");
+      case "IN_TRANSIT": return t("orderFlow.courierPickedUp");
+      default: return s || "-";
+    }
+  };
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -105,32 +113,30 @@ export default function AmericanaOrdersPage() {
   const columns = [
     {
       key: "orderId",
-      label: "Order ID",
+      label: t("americana.orderIdCol"),
       render: (v: string) => <span className="font-mono text-sm font-medium">{v || "-"}</span>,
     },
     {
       key: "amount",
-      label: "Amount (KD)",
-      render: (v: number) => <span className="text-sm font-semibold">{v != null ? formatKD(v) : "-"}</span>,
+      label: t("americana.amountCol"),
+      render: (v: number) => <span className="text-sm font-semibold">{v != null ? formatCurrency(v, locale) : "-"}</span>,
     },
-    { key: "posNumber", label: "POS", render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "-"}</span> },
-    { key: "storeName", label: "Store", render: (v: string) => <span className="text-sm text-secondary">{v || "-"}</span> },
-    { key: "driverName", label: "Driver", render: (v: string) => <span className="text-sm">{v || "-"}</span> },
+    { key: "posNumber", label: t("americana.posCol"), render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "-"}</span> },
+    { key: "storeName", label: t("americana.storeCol"), render: (v: string) => <span className="text-sm text-secondary">{v || "-"}</span> },
+    { key: "driverName", label: t("americana.driverCol"), render: (v: string) => <span className="text-sm">{v || "-"}</span> },
     {
       key: "timestamp",
-      label: "Time",
+      label: t("americana.timeCol"),
       render: (v: string) =>
         v ? (
-          <span className="text-sm text-secondary">
-            {new Date(v).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-          </span>
+          <span className="text-sm text-secondary">{formatTime(v, locale)}</span>
         ) : (
           <span className="text-secondary text-sm">-</span>
         ),
     },
     {
       key: "paymentType",
-      label: "Payment",
+      label: t("americana.paymentCol"),
       render: (v: string) => (
         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", PAYMENT_STATUS_STYLES[v] || "bg-gray-100 text-gray-600")}>
           {v || "-"}
@@ -139,7 +145,7 @@ export default function AmericanaOrdersPage() {
     },
     {
       key: "status",
-      label: "Status",
+      label: t("table.status"),
       render: (v: string) => (
         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
           "bg-green-50 text-green-600": v === "DELIVERED",
@@ -147,7 +153,7 @@ export default function AmericanaOrdersPage() {
           "bg-red-50 text-red-600": v === "CANCELLED",
           "bg-blue-50 text-blue-600": v === "IN_TRANSIT",
         })}>
-          {v || "-"}
+          {statusLabel(v)}
         </span>
       ),
     },
@@ -159,8 +165,8 @@ export default function AmericanaOrdersPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-americana" />
-          <h1 className="text-xl font-semibold">Americana - Orders</h1>
-          <span className="text-sm text-secondary">Al Hazm Express</span>
+          <h1 className="text-xl font-semibold">{t("americana.ordersTitle")}</h1>
+          <span className="text-sm text-secondary">{t("americana.alHazmExpress")}</span>
         </div>
         <div className="flex items-center gap-3">
           <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImport} />
@@ -174,7 +180,7 @@ export default function AmericanaOrdersPage() {
             ) : (
               <Upload size={16} />
             )}
-            Import Americana XLSX
+            {t("americana.importXlsx")}
           </button>
         </div>
       </div>
@@ -183,7 +189,7 @@ export default function AmericanaOrdersPage() {
       {importSuccess && (
         <div className="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 flex items-center gap-3">
           <CheckCircle2 size={16} className="text-green-600 shrink-0" />
-          <p className="text-sm text-green-800 font-medium">Orders imported successfully for {filters.date}.</p>
+          <p className="text-sm text-green-800 font-medium">{t("americana.importSuccess")} {filters.date}.</p>
         </div>
       )}
 
@@ -191,26 +197,26 @@ export default function AmericanaOrdersPage() {
       <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 flex items-start gap-3">
         <Info size={16} className="text-gray-500 mt-0.5 shrink-0" />
         <p className="text-sm text-gray-600">
-          <span className="font-semibold text-gray-700">Cash tracking not available here.</span>{" "}
-          Cash is deposited at the store at end of shift and is not tracked in this system.
+          <span className="font-semibold text-gray-700">{t("americana.cashNoteTitle")}</span>{" "}
+          {t("americana.cashNoteBody")}
         </p>
       </div>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-4 gap-4">
-        <StatCard title="Total Orders" value={summary?.totalOrders ?? orders.length} icon={ShoppingBag} />
+        <StatCard title={t("americana.totalOrders")} value={summary?.totalOrders ?? orders.length} icon={ShoppingBag} />
         <StatCard
-          title="Total Amount"
-          value={summary?.totalAmount != null ? formatKD(summary.totalAmount) : "-"}
+          title={t("americana.totalAmount")}
+          value={summary?.totalAmount != null ? formatCurrency(summary.totalAmount, locale) : "-"}
           icon={TrendingUp}
         />
         <StatCard
-          title="COD Orders"
+          title={t("americana.codOrders")}
           value={summary?.codCount ?? orders.filter((o: any) => o.paymentType === "COD").length}
           icon={Banknote}
         />
         <StatCard
-          title="Card / CCOD"
+          title={t("americana.cardCcod")}
           value={summary?.ccodCount ?? orders.filter((o: any) => o.paymentType === "CCOD" || o.paymentType === "PAID").length}
           icon={CreditCard}
         />
@@ -219,8 +225,8 @@ export default function AmericanaOrdersPage() {
       {/* Date Navigator */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 shadow-sm border border-gray-100">
-          <button onClick={prevDay} className="p-1 hover:bg-gray-50 rounded-lg transition-colors">
-            <ChevronLeft size={16} />
+          <button onClick={prevDay} className="p-1 hover:bg-gray-50 rounded-lg transition-colors" aria-label={t("actions.previous")}>
+            <DirectionalIcon kind="chevron-back" size={16} />
           </button>
           <input
             type="date"
@@ -228,15 +234,15 @@ export default function AmericanaOrdersPage() {
             onChange={(e) => { setFilters((prev) => ({ ...prev, date: e.target.value })); setImportSuccess(false); }}
             className="text-sm font-medium border-0 focus:outline-none bg-transparent"
           />
-          <button onClick={nextDay} className="p-1 hover:bg-gray-50 rounded-lg transition-colors">
-            <ChevronRight size={16} />
+          <button onClick={nextDay} className="p-1 hover:bg-gray-50 rounded-lg transition-colors" aria-label={t("actions.next")}>
+            <DirectionalIcon kind="chevron-forward" size={16} />
           </button>
         </div>
 
         <FilterBar
           filters={[
-            { key: "search", type: "search", label: "Search", placeholder: "Search KUW_ order ID..." },
-            { key: "store", type: "select", label: "All Stores", options: STORES.map((s) => ({ value: s, label: s })) },
+            { key: "search", type: "search", label: t("common.search"), placeholder: t("americana.searchPlaceholder") },
+            { key: "store", type: "select", label: t("americana.allStores"), options: STORES.map((s) => ({ value: s, label: s })) },
           ]}
           values={filters}
           onChange={(k, v) => {
@@ -248,19 +254,19 @@ export default function AmericanaOrdersPage() {
 
       {/* Payment Tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-        {(["ALL", "COD", "CCOD", "PAID"] as PaymentTab[]).map((t) => (
+        {(["ALL", "COD", "CCOD", "PAID"] as PaymentTab[]).map((tabKey) => (
           <button
-            key={t}
-            onClick={() => setPaymentTab(t)}
+            key={tabKey}
+            onClick={() => setPaymentTab(tabKey)}
             className={cn(
               "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
-              paymentTab === t ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
+              paymentTab === tabKey ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
             )}
           >
-            {t}
-            {t !== "ALL" && summary?.[`${t.toLowerCase()}Count`] != null && (
-              <span className={cn("ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-semibold", PAYMENT_TAB_STYLES[t])}>
-                {summary[`${t.toLowerCase()}Count`]}
+            {tabKey === "ALL" ? t("labels.all") : tabKey}
+            {tabKey !== "ALL" && summary?.[`${tabKey.toLowerCase()}Count`] != null && (
+              <span className={cn("ms-1.5 px-1.5 py-0.5 rounded text-[10px] font-semibold", PAYMENT_TAB_STYLES[tabKey])}>
+                {summary[`${tabKey.toLowerCase()}Count`]}
               </span>
             )}
           </button>
@@ -272,17 +278,17 @@ export default function AmericanaOrdersPage() {
         columns={columns}
         data={orders}
         onRowClick={setSelected}
-        emptyMessage={loading ? "Loading…" : "No orders found. Import an Americana XLSX or adjust filters."}
+        emptyMessage={loading ? t("common.loading") : t("americana.noOrdersFound")}
       />
 
       {/* Daily Comparison */}
       <div className="bg-white rounded-2xl shadow-sm p-6">
-        <h3 className="text-sm font-semibold mb-4">Daily Comparison</h3>
+        <h3 className="text-sm font-semibold mb-4">{t("americana.dailyComparison")}</h3>
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: "Today", value: summary?.todayOrders ?? "-", sub: summary?.todayAmount != null ? formatKD(summary.todayAmount) : "" },
-            { label: "Yesterday", value: summary?.yesterdayOrders ?? "-", sub: summary?.yesterdayAmount != null ? formatKD(summary.yesterdayAmount) : "" },
-            { label: "7-Day Avg", value: summary?.avgOrders ?? "-", sub: summary?.avgAmount != null ? formatKD(summary.avgAmount) : "" },
+            { label: t("labels.today"), value: summary?.todayOrders ?? "-", sub: summary?.todayAmount != null ? formatCurrency(summary.todayAmount, locale) : "" },
+            { label: t("americana.yesterday"), value: summary?.yesterdayOrders ?? "-", sub: summary?.yesterdayAmount != null ? formatCurrency(summary.yesterdayAmount, locale) : "" },
+            { label: t("americana.sevenDayAvg"), value: summary?.avgOrders ?? "-", sub: summary?.avgAmount != null ? formatCurrency(summary.avgAmount, locale) : "" },
           ].map(({ label, value, sub }) => (
             <div key={label} className="bg-gray-50 rounded-2xl p-4">
               <p className="text-xs text-secondary font-medium mb-1">{label}</p>
@@ -300,9 +306,9 @@ export default function AmericanaOrdersPage() {
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="text-base font-semibold">{selected.orderId}</h2>
-                <p className="text-xs text-secondary mt-0.5">Americana / Al Hazm Express</p>
+                <p className="text-xs text-secondary mt-0.5">Americana / {t("americana.alHazmExpress")}</p>
               </div>
-              <button onClick={() => setSelected(null)} className="p-1.5 hover:bg-gray-50 rounded-lg">
+              <button onClick={() => setSelected(null)} className="p-1.5 hover:bg-gray-50 rounded-lg" aria-label={t("common.close")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -310,14 +316,14 @@ export default function AmericanaOrdersPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               {[
-                ["Order ID", selected.orderId],
-                ["Amount", selected.amount != null ? formatKD(selected.amount) : "-"],
-                ["POS Number", selected.posNumber],
-                ["Store", selected.storeName],
-                ["Driver", selected.driverName],
-                ["Payment Type", selected.paymentType],
-                ["Status", selected.status],
-                ["Timestamp", selected.timestamp ? new Date(selected.timestamp).toLocaleString() : "-"],
+                [t("americana.orderIdCol"), selected.orderId],
+                [t("labels.total"), selected.amount != null ? formatCurrency(selected.amount, locale) : "-"],
+                [t("americana.posNumber"), selected.posNumber],
+                [t("americana.storeCol"), selected.storeName],
+                [t("americana.driverCol"), selected.driverName],
+                [t("americana.paymentType"), selected.paymentType],
+                [t("table.status"), statusLabel(selected.status)],
+                [t("americana.timestamp"), selected.timestamp ? formatDateTime(selected.timestamp, locale) : "-"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>

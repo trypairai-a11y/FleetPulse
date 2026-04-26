@@ -2,6 +2,7 @@
 
 import { getStatusColor, getPlatformColor } from "@/lib/formatters";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface StatusBadgeProps {
   status: string | null | undefined;
@@ -12,8 +13,9 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, label, size = "sm", showDot = true, className }: StatusBadgeProps) {
+  const { t } = useI18n();
   const colors = getStatusColor(status);
-  const displayLabel = label || (status || "Unknown").replace(/_/g, " ");
+  const displayLabel = label || (status ? status.replace(/_/g, " ") : t("common.unknown"));
 
   return (
     <span
@@ -37,6 +39,7 @@ interface PlatformBadgeProps {
 }
 
 export function PlatformBadge({ platform, className }: PlatformBadgeProps) {
+  const { t } = useI18n();
   const colors = getPlatformColor(platform);
 
   return (
@@ -48,7 +51,7 @@ export function PlatformBadge({ platform, className }: PlatformBadgeProps) {
         className
       )}
     >
-      {platform || "Unknown"}
+      {platform || t("common.unknown")}
     </span>
   );
 }

@@ -7,6 +7,8 @@ import StatCard from "@/components/shared/StatCard";
 import { PageSkeleton } from "@/components/shared/Skeleton";
 import { Banknote, Gift, Download } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/i18n/I18nProvider";
+import { formatDate, formatCurrency } from "@/i18n/format";
 
 type CashRow = {
   id: string;
@@ -23,6 +25,7 @@ type CashRow = {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function DeliverooCashPage() {
+  const { t, locale } = useI18n();
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [page, setPage] = useState(1);
   const limit = 50;
@@ -55,25 +58,25 @@ export default function DeliverooCashPage() {
           <span className="h-3 w-3 rounded-full bg-deliveroo" />
           <h1 className="text-xl font-semibold">Deliveroo</h1>
           <span className="text-secondary/30 text-lg font-light">/</span>
-          <span className="text-xl text-secondary font-medium">Cash</span>
+          <span className="text-xl text-secondary font-medium">{t("deliveroo.cashTitle")}</span>
         </div>
         <a
           href={exportHref}
           className="inline-flex items-center gap-2 rounded-lg bg-deliveroo/10 px-3 py-1.5 text-sm font-medium text-deliveroo hover:bg-deliveroo/20"
         >
-          <Download size={14} /> Export CSV
+          <Download size={14} /> {t("ordersPage.exportCsv")}
         </a>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatCard title="Cash collected" value={`${cashTotal.toFixed(3)} KD`} icon={Banknote} />
-        <StatCard title="Tips" value={`${tipsTotal.toFixed(3)} KD`} icon={Gift} />
-        <StatCard title="Total" value={`${grandTotal.toFixed(3)} KD`} />
+        <StatCard title={t("deliveroo.cashCollectedShort")} value={formatCurrency(cashTotal, locale)} icon={Banknote} />
+        <StatCard title={t("deliveroo.tipsShort")} value={formatCurrency(tipsTotal, locale)} icon={Gift} />
+        <StatCard title={t("deliveroo.totalShort")} value={formatCurrency(grandTotal, locale)} />
       </div>
 
       <FilterBar
         filters={[
-          { key: "from", type: "dateRange", label: "Date range", toKey: "to" },
+          { key: "from", type: "dateRange", label: t("deliveroo.dateRangeLabel"), toKey: "to" },
         ]}
         values={filters}
         onChange={(k, v) => {
@@ -94,20 +97,20 @@ export default function DeliverooCashPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-50">
-                <th className="px-5 py-3 text-left text-xs font-medium text-secondary">Date</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-secondary">Rider</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-secondary">Zone</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-secondary">Deliveries</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-secondary">COD (KD)</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-secondary">Tips (KD)</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-secondary">Total (KD)</th>
+                <th className="px-5 py-3 text-start text-xs font-medium text-secondary">{t("table.date")}</th>
+                <th className="px-5 py-3 text-start text-xs font-medium text-secondary">{t("deliveroo.riderCol")}</th>
+                <th className="px-5 py-3 text-start text-xs font-medium text-secondary">{t("table.zone")}</th>
+                <th className="px-5 py-3 text-end text-xs font-medium text-secondary">{t("platform.deliveries")}</th>
+                <th className="px-5 py-3 text-end text-xs font-medium text-secondary">{t("deliveroo.codKd")}</th>
+                <th className="px-5 py-3 text-end text-xs font-medium text-secondary">{t("deliveroo.tipsKd")}</th>
+                <th className="px-5 py-3 text-end text-xs font-medium text-secondary">{t("deliveroo.totalKd")}</th>
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-5 py-16 text-center text-xs text-gray-400">
-                    No cash-bearing uploads in this range yet.
+                    {t("deliveroo.noCashUploads")}
                   </td>
                 </tr>
               )}
@@ -117,7 +120,7 @@ export default function DeliverooCashPage() {
                   className="border-b border-gray-50 text-sm last:border-0 hover:bg-gray-50/40"
                 >
                   <td className="px-5 py-3 text-secondary">
-                    {new Date(r.shiftDate).toLocaleDateString()}
+                    {formatDate(r.shiftDate, locale)}
                   </td>
                   <td className="px-5 py-3">
                     <Link
@@ -128,10 +131,10 @@ export default function DeliverooCashPage() {
                     </Link>
                   </td>
                   <td className="px-5 py-3 text-secondary">{r.driver.zone ?? "—"}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">{r.deliveriesCount}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">{r.codCollectedKwd.toFixed(3)}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">{r.tipsKwd.toFixed(3)}</td>
-                  <td className="px-5 py-3 text-right font-medium tabular-nums">
+                  <td className="px-5 py-3 text-end tabular-nums">{r.deliveriesCount}</td>
+                  <td className="px-5 py-3 text-end tabular-nums">{r.codCollectedKwd.toFixed(3)}</td>
+                  <td className="px-5 py-3 text-end tabular-nums">{r.tipsKwd.toFixed(3)}</td>
+                  <td className="px-5 py-3 text-end font-medium tabular-nums">
                     {r.totalKwd.toFixed(3)}
                   </td>
                 </tr>
@@ -148,7 +151,7 @@ export default function DeliverooCashPage() {
             onClick={() => setPage((p) => p - 1)}
             className="rounded-lg border border-gray-200 px-3 py-1 text-xs text-secondary disabled:opacity-40"
           >
-            Previous
+            {t("actions.previous")}
           </button>
           <span className="text-xs text-secondary">
             {page} / {totalPages}
@@ -158,7 +161,7 @@ export default function DeliverooCashPage() {
             onClick={() => setPage((p) => p + 1)}
             className="rounded-lg border border-gray-200 px-3 py-1 text-xs text-secondary disabled:opacity-40"
           >
-            Next
+            {t("actions.next")}
           </button>
         </div>
       )}

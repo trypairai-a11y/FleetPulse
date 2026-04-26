@@ -13,9 +13,10 @@ import {
   Camera,
   MapPin,
   Calendar,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
+import { useI18n } from "@/i18n/I18nProvider";
+import { DirectionalIcon } from "@/i18n/directionalIcon";
+import { formatDate } from "@/i18n/format";
 
 type ShiftModel = "FREELANCE" | "CORE_FLEET";
 
@@ -65,6 +66,7 @@ function FreelanceView({
   date: string;
   onDateChange: (d: string) => void;
 }) {
+  const { t } = useI18n();
   const { data } = useApiGet<any>(
     `/api/shifts/freelance-timeline?platform=DELIVEROO&date=${date}`
   );
@@ -80,7 +82,7 @@ function FreelanceView({
           className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20"
         />
         <p className="text-xs text-secondary">
-          24-hour window · 12h daily target · green bars = online periods
+          {t("deliveroo.timelineHint")}
         </p>
       </div>
 
@@ -88,7 +90,7 @@ function FreelanceView({
         {/* Hour axis header */}
         <div className="flex border-b border-gray-50">
           <div className="w-44 shrink-0 px-5 py-2 text-[10px] text-secondary font-medium uppercase">
-            Driver
+            {t("table.driver")}
           </div>
           <div className="flex-1 relative">
             <div className="flex">
@@ -106,7 +108,7 @@ function FreelanceView({
 
         {drivers.length === 0 ? (
           <div className="px-5 py-12 text-center text-sm text-secondary">
-            No freelance shift data for this date
+            {t("deliveroo.noFreelanceData")}
           </div>
         ) : (
           drivers.map((driver: any) => {
@@ -136,13 +138,13 @@ function FreelanceView({
                 </div>
 
                 {/* Timeline */}
-                <div className="flex-1 relative py-3 pr-3">
+                <div className="flex-1 relative py-3 pe-3">
                   <div className="relative h-5 bg-gray-50 rounded-lg overflow-hidden">
                     {/* 12h target line at 50% */}
                     <div
                       className="absolute top-0 bottom-0 w-px bg-teal-400 z-10"
                       style={{ left: "50%" }}
-                      title="12h target"
+                      title={t("deliveroo.targetMarker")}
                     />
                     {segments.map((seg, i) => {
                       const left = (seg.start / 24) * 100;
@@ -171,13 +173,13 @@ function FreelanceView({
       {/* Legend */}
       <div className="flex items-center gap-4 text-xs text-secondary">
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-2 bg-green-400 rounded-sm inline-block" /> Online period
+          <span className="w-3 h-2 bg-green-400 rounded-sm inline-block" /> {t("deliveroo.onlinePeriod")}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-px h-3 bg-teal-400 inline-block" /> 12h target
+          <span className="w-px h-3 bg-teal-400 inline-block" /> {t("deliveroo.targetMarker")}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-2 bg-amber-100 rounded-sm inline-block border border-amber-200" /> Below 12h
+          <span className="w-3 h-2 bg-amber-100 rounded-sm inline-block border border-amber-200" /> {t("deliveroo.below12h2")}
         </span>
       </div>
     </div>
@@ -186,6 +188,7 @@ function FreelanceView({
 
 /* ─── Core Fleet Weekly Calendar View ─── */
 function CoreFleetView() {
+  const { t, locale } = useI18n();
   const [weekOffset, setWeekOffset] = useState(0);
   const [selected, setSelected] = useState<any>(null);
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -210,34 +213,36 @@ function CoreFleetView() {
         <button
           onClick={() => setWeekOffset((o) => o - 1)}
           className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+          aria-label={t("actions.previous")}
         >
-          <ChevronLeft size={16} />
+          <DirectionalIcon kind="chevron-back" size={16} />
         </button>
         <span className="text-sm font-medium">
-          {weekDates[0].toLocaleDateString("en-GB", { day: "numeric", month: "short" })} -{" "}
-          {weekDates[6].toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+          {formatDate(weekDates[0], locale, { day: "numeric", month: "short" })} -{" "}
+          {formatDate(weekDates[6], locale, { day: "numeric", month: "short", year: "numeric" })}
         </span>
         <button
           onClick={() => setWeekOffset((o) => o + 1)}
           className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+          aria-label={t("actions.next")}
         >
-          <ChevronRight size={16} />
+          <DirectionalIcon kind="chevron-forward" size={16} />
         </button>
         <button
           onClick={() => setWeekOffset(0)}
           className="px-3 py-1 text-xs text-secondary border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
         >
-          This week
+          {t("keetaPage.thisWeekBtn")}
         </button>
       </div>
 
       <FilterBar
         filters={[
-          { key: "search", type: "search", label: "Search", placeholder: "Search driver..." },
+          { key: "search", type: "search", label: t("common.search"), placeholder: t("talabatAttendance.searchDriver") },
           {
             key: "zone",
             type: "select",
-            label: "All Zones",
+            label: t("keetaPage.allZones"),
             options: ZONES.map((z) => ({ value: z, label: z })),
           },
         ]}
@@ -249,12 +254,12 @@ function CoreFleetView() {
         <table className="w-full min-w-[700px]">
           <thead>
             <tr className="border-b border-gray-50">
-              <th className="text-left text-xs font-medium text-secondary px-5 py-3 w-44">Driver</th>
+              <th className="text-start text-xs font-medium text-secondary px-5 py-3 w-44">{t("table.driver")}</th>
               {weekDates.map((d, i) => (
                 <th key={i} className="text-center text-xs font-medium text-secondary px-2 py-3 w-28">
                   <div>{DAYS[i]}</div>
                   <div className="text-[10px] font-normal text-gray-300">
-                    {d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                    {formatDate(d, locale, { day: "numeric", month: "short" })}
                   </div>
                 </th>
               ))}
@@ -264,7 +269,7 @@ function CoreFleetView() {
             {drivers.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-5 py-12 text-center text-sm text-secondary">
-                  No core fleet shifts this week
+                  {t("deliveroo.noCoreFleetData")}
                 </td>
               </tr>
             ) : (
@@ -279,7 +284,7 @@ function CoreFleetView() {
                         {shift ? (
                           <button
                             onClick={() => setSelected({ driver, shift, date: d })}
-                            className="w-full bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-lg px-1.5 py-1.5 transition-colors text-left"
+                            className="w-full bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-lg px-1.5 py-1.5 transition-colors text-start"
                           >
                             <p className="text-[10px] font-semibold truncate">{shift.zone || "-"}</p>
                             <p className="text-[10px] text-teal-600">
@@ -305,17 +310,17 @@ function CoreFleetView() {
         open={!!selected}
         onClose={() => setSelected(null)}
         title={selected?.driver?.name || ""}
-        subtitle={`Deliveroo Core Fleet · ${selected?.date?.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" })}`}
+        subtitle={`Deliveroo ${t("deliveroo.coreFleet")} · ${selected?.date ? formatDate(selected.date, locale, { weekday: "long", day: "numeric", month: "short" }) : ""}`}
       >
         {selected && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {[
-                ["Zone", selected.shift?.zone],
-                ["Duration", `${selected.shift?.duration}h`],
-                ["Start", selected.shift?.startTime],
-                ["End", selected.shift?.endTime],
-                ["Status", selected.shift?.status],
+                [t("table.zone"), selected.shift?.zone],
+                [t("deliveroo.duration"), `${selected.shift?.duration}h`],
+                [t("deliveroo.startCol"), selected.shift?.startTime],
+                [t("deliveroo.endCol"), selected.shift?.endTime],
+                [t("table.status"), selected.shift?.status],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
@@ -327,26 +332,26 @@ function CoreFleetView() {
             {/* Darb Verification Checks */}
             <div className="bg-teal-50 rounded-xl p-4 space-y-3">
               <p className="text-xs font-semibold text-teal-700 uppercase tracking-wide">
-                Darb Verification Checks
+                {t("deliveroo.darbVerifChecks")}
               </p>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-teal-800 flex items-center gap-1.5">
-                    <Camera size={12} /> Uniform Check
+                    <Camera size={12} /> {t("deliveroo.uniformCheck")}
                   </span>
-                  <VerifBadge label={selected.shift?.uniformOk ? "Pass" : "Fail"} ok={selected.shift?.uniformOk ?? null} />
+                  <VerifBadge label={selected.shift?.uniformOk ? t("deliveroo.pass") : t("deliveroo.fail")} ok={selected.shift?.uniformOk ?? null} />
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-teal-800 flex items-center gap-1.5">
-                    <MapPin size={12} /> Location Check
+                    <MapPin size={12} /> {t("deliveroo.locationCheck")}
                   </span>
-                  <VerifBadge label={selected.shift?.locationOk ? "Pass" : "Fail"} ok={selected.shift?.locationOk ?? null} />
+                  <VerifBadge label={selected.shift?.locationOk ? t("deliveroo.pass") : t("deliveroo.fail")} ok={selected.shift?.locationOk ?? null} />
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-teal-800 flex items-center gap-1.5">
-                    <Clock size={12} /> Time Check
+                    <Clock size={12} /> {t("deliveroo.timeCheck")}
                   </span>
-                  <VerifBadge label={selected.shift?.timeOk ? "Pass" : "Fail"} ok={selected.shift?.timeOk ?? null} />
+                  <VerifBadge label={selected.shift?.timeOk ? t("deliveroo.pass") : t("deliveroo.fail")} ok={selected.shift?.timeOk ?? null} />
                 </div>
               </div>
             </div>
@@ -359,8 +364,9 @@ function CoreFleetView() {
 
 /* ─── Page ─── */
 export default function DeliverooShiftsPage() {
+  const { t } = useI18n();
   const [model, setModel] = useState<ShiftModel>("FREELANCE");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(new Date().toLocaleDateString("en-CA"));
 
   const { data: summary } = useApiGet<any>("/api/shifts/summary?platform=DELIVEROO");
 
@@ -369,26 +375,26 @@ export default function DeliverooShiftsPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-teal-500" />
-        <h1 className="text-xl font-semibold">Deliveroo - Shifts</h1>
-        <span className="text-sm text-secondary">Al Hazm</span>
+        <h1 className="text-xl font-semibold">{t("deliveroo.shiftsTitle")}</h1>
+        <span className="text-sm text-secondary">{t("deliveroo.alHazm")}</span>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
-        <StatCard title="Active Shifts" value={summary?.active || 0} icon={Clock} />
-        <StatCard title="Freelance Online" value={summary?.freelanceOnline || 0} icon={Users} />
+        <StatCard title={t("deliveroo.activeShifts")} value={summary?.active || 0} icon={Clock} />
+        <StatCard title={t("deliveroo.freelanceOnline")} value={summary?.freelanceOnline || 0} icon={Users} />
         <StatCard
-          title="Below 12h Today"
+          title={t("deliveroo.below12hToday")}
           value={summary?.belowTarget || 0}
           icon={AlertTriangle}
           highlight={(summary?.belowTarget || 0) > 0}
         />
-        <StatCard title="Core Fleet Shifts" value={summary?.coreFleetShifts || 0} icon={Calendar} />
+        <StatCard title={t("deliveroo.coreFleetShifts")} value={summary?.coreFleetShifts || 0} icon={Calendar} />
       </div>
 
       {/* Model Toggle */}
       <div className="flex items-center gap-3">
-        <p className="text-sm text-secondary font-medium">View:</p>
+        <p className="text-sm text-secondary font-medium">{t("deliveroo.viewLabel")}</p>
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
           {(["FREELANCE", "CORE_FLEET"] as ShiftModel[]).map((m) => (
             <button
@@ -399,19 +405,19 @@ export default function DeliverooShiftsPage() {
                 model === m ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
               )}
             >
-              {m === "FREELANCE" ? "Freelance" : "Core Fleet"}
+              {m === "FREELANCE" ? t("deliveroo.freelance") : t("deliveroo.coreFleet")}
             </button>
           ))}
         </div>
 
         {model === "FREELANCE" && (
           <span className="text-xs text-secondary bg-white border border-gray-100 rounded-xl px-3 py-1.5 shadow-sm">
-            Daily 24h timeline · 12h target
+            {t("deliveroo.freelanceHintHeader")}
           </span>
         )}
         {model === "CORE_FLEET" && (
           <span className="text-xs text-secondary bg-white border border-gray-100 rounded-xl px-3 py-1.5 shadow-sm">
-            Weekly calendar · zone + time slot + duration
+            {t("deliveroo.coreFleetHintHeader")}
           </span>
         )}
       </div>

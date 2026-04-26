@@ -4,6 +4,8 @@ import { useApiGet } from "@/hooks/useApi";
 import { cn } from "@/lib/cn";
 import { Plus, X, GripVertical } from "lucide-react";
 import api from "@/lib/api";
+import { useI18n } from "@/i18n/I18nProvider";
+import { formatDate } from "@/i18n/format";
 
 const STAGES = [
   "AGENCY_REFERRAL", "CV_DOCS", "INTERVIEW", "VISA_PROCESSING",
@@ -11,25 +13,6 @@ const STAGES = [
   "CIVIL_ID", "RESIDENCY", "LICENSE_TEST", "PLATFORM_TRAINING",
   "ROAD_SAFETY_TRAINING", "FOOD_HANDLING_TRAINING", "COMPANY_SOP_TRAINING", "COMPLETED",
 ];
-
-const STAGE_LABELS: Record<string, string> = {
-  AGENCY_REFERRAL: "Agency Referral",
-  CV_DOCS: "CV / Docs",
-  INTERVIEW: "Interview",
-  VISA_PROCESSING: "Visa Processing",
-  FLIGHT_ARRANGEMENT: "Flight",
-  ARRIVAL: "Arrival",
-  MEDICAL_EXAM: "Medical Exam",
-  BANK_CARD: "Bank Card",
-  CIVIL_ID: "Civil ID",
-  RESIDENCY: "Residency",
-  LICENSE_TEST: "License Test",
-  PLATFORM_TRAINING: "Platform Training",
-  ROAD_SAFETY_TRAINING: "Road Safety",
-  FOOD_HANDLING_TRAINING: "Food Handling",
-  COMPANY_SOP_TRAINING: "Company SOPs",
-  COMPLETED: "Completed",
-};
 
 interface Candidate {
   id: string;
@@ -42,10 +25,33 @@ interface Candidate {
 }
 
 export default function RecruitmentPage() {
+  const { t, locale } = useI18n();
   const { data, refetch } = useApiGet<any>("/api/recruitment?limit=200");
   const [showAdd, setShowAdd] = useState(false);
   const [newCandidate, setNewCandidate] = useState({ candidateName: "", phone: "", stage: "AGENCY_REFERRAL" });
   const [dragItem, setDragItem] = useState<string | null>(null);
+
+  const stageLabel = (s: string): string => {
+    switch (s) {
+      case "AGENCY_REFERRAL": return t("recruitment.stageAgencyReferral");
+      case "CV_DOCS": return t("recruitment.stageCvDocs");
+      case "INTERVIEW": return t("recruitment.stageInterview");
+      case "VISA_PROCESSING": return t("recruitment.stageVisaProcessing");
+      case "FLIGHT_ARRANGEMENT": return t("recruitment.stageFlight");
+      case "ARRIVAL": return t("recruitment.stageArrival");
+      case "MEDICAL_EXAM": return t("recruitment.stageMedicalExam");
+      case "BANK_CARD": return t("recruitment.stageBankCard");
+      case "CIVIL_ID": return t("recruitment.stageCivilId");
+      case "RESIDENCY": return t("recruitment.stageResidency");
+      case "LICENSE_TEST": return t("recruitment.stageLicenseTest");
+      case "PLATFORM_TRAINING": return t("recruitment.stagePlatformTraining");
+      case "ROAD_SAFETY_TRAINING": return t("recruitment.stageRoadSafety");
+      case "FOOD_HANDLING_TRAINING": return t("recruitment.stageFoodHandling");
+      case "COMPANY_SOP_TRAINING": return t("recruitment.stageCompanySops");
+      case "COMPLETED": return t("recruitment.stageCompleted");
+      default: return s;
+    }
+  };
 
   const candidates: Candidate[] = data?.data || [];
 
@@ -76,12 +82,12 @@ export default function RecruitmentPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Recruitment Pipeline</h1>
+        <h1 className="text-xl font-semibold">{t("recruitment.pipeline")}</h1>
         <button
           onClick={() => setShowAdd(true)}
           className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors"
         >
-          <Plus size={16} /> Add Candidate
+          <Plus size={16} /> {t("recruitment.addCandidate")}
         </button>
       </div>
 
@@ -99,7 +105,7 @@ export default function RecruitmentPage() {
               >
                 <div className="bg-gray-50 rounded-2xl p-3 min-h-[200px]">
                   <div className="flex items-center justify-between mb-3 px-1">
-                    <span className="text-xs font-medium text-foreground">{STAGE_LABELS[stage]}</span>
+                    <span className="text-xs font-medium text-foreground">{stageLabel(stage)}</span>
                     <span className="text-[11px] text-secondary bg-white px-1.5 py-0.5 rounded-md">
                       {stageCards.length}
                     </span>
@@ -121,7 +127,7 @@ export default function RecruitmentPage() {
                             <p className="text-sm font-medium text-foreground truncate">{candidate.candidateName}</p>
                             {candidate.expectedDate && (
                               <p className="text-[11px] text-secondary mt-1">
-                                {new Date(candidate.expectedDate).toLocaleDateString()}
+                                {formatDate(candidate.expectedDate, locale)}
                               </p>
                             )}
                             {candidate.assignedCompany && (
@@ -144,29 +150,30 @@ export default function RecruitmentPage() {
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Add Candidate</h2>
-              <button onClick={() => setShowAdd(false)} className="p-1 hover:bg-gray-50 rounded-lg">
+              <h2 className="text-lg font-semibold">{t("recruitment.addCandidate")}</h2>
+              <button onClick={() => setShowAdd(false)} className="p-1 hover:bg-gray-50 rounded-lg" aria-label={t("common.close")}>
                 <X size={18} />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-secondary mb-1.5">Name</label>
+                <label className="block text-xs font-medium text-secondary mb-1.5">{t("settingsPage.name")}</label>
                 <input value={newCandidate.candidateName}
+                  dir="auto"
                   onChange={(e) => setNewCandidate({ ...newCandidate, candidateName: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="Candidate name" />
+                  placeholder={t("recruitment.namePlaceholder")} />
               </div>
               <div>
-                <label className="block text-xs font-medium text-secondary mb-1.5">Phone</label>
+                <label className="block text-xs font-medium text-secondary mb-1.5">{t("table.phone")}</label>
                 <input value={newCandidate.phone}
                   onChange={(e) => setNewCandidate({ ...newCandidate, phone: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="+965 XXXX XXXX" />
+                  placeholder={t("recruitment.phonePlaceholder")} />
               </div>
               <button onClick={handleAdd}
                 className="w-full py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors">
-                Add Candidate
+                {t("recruitment.addCandidate")}
               </button>
             </div>
           </div>

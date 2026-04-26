@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import { AlertTriangle, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface ConfirmModalProps {
   open: boolean;
@@ -19,13 +20,16 @@ export default function ConfirmModal({
   open,
   title,
   message,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   variant = "danger",
   onConfirm,
   onCancel,
   loading = false,
 }: ConfirmModalProps) {
+  const { t } = useI18n();
+  const resolvedConfirm = confirmLabel ?? t("actions.confirm");
+  const resolvedCancel = cancelLabel ?? t("common.cancel");
   const confirmRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -72,8 +76,8 @@ export default function ConfirmModal({
       <div className="relative bg-card rounded-2xl border border-sand-200 shadow-float w-full max-w-md p-6 animate-in fade-in slide-in-from-bottom-4 duration-250">
         <button
           onClick={onCancel}
-          className="absolute top-4 right-4 p-1.5 rounded-pill text-sand-500 hover:text-sand-900 hover:bg-sand-100 transition-colors duration-250 ease-sierra-out"
-          aria-label="Close dialog"
+          className="absolute top-4 end-4 p-1.5 rounded-pill text-sand-500 hover:text-sand-900 hover:bg-sand-100 transition-colors duration-250 ease-sierra-out"
+          aria-label={t("common.close")}
         >
           <X size={16} />
         </button>
@@ -99,7 +103,7 @@ export default function ConfirmModal({
             disabled={loading}
             className="px-5 h-10 text-sm font-medium text-sand-800 bg-sand-100 hover:bg-sand-200 rounded-pill transition-colors duration-250 ease-sierra-out disabled:opacity-50"
           >
-            {cancelLabel}
+            {resolvedCancel}
           </button>
           <button
             ref={confirmRef}
@@ -110,7 +114,7 @@ export default function ConfirmModal({
               confirmColors[variant]
             )}
           >
-            {loading ? "Processing..." : confirmLabel}
+            {loading ? t("common.processing") : resolvedConfirm}
           </button>
         </div>
       </div>

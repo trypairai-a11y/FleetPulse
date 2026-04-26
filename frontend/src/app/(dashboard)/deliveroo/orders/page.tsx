@@ -5,8 +5,10 @@ import { useApiGet } from "@/hooks/useApi";
 import FilterBar from "@/components/shared/FilterBar";
 import StatCard from "@/components/shared/StatCard";
 import { PageSkeleton } from "@/components/shared/Skeleton";
-import { Briefcase, Package, PackageX, Upload } from "lucide-react";
+import { Package, PackageX, Upload } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/i18n/I18nProvider";
+import { formatDate, formatCurrency } from "@/i18n/format";
 
 type MetricRow = {
   id: string;
@@ -21,6 +23,7 @@ type MetricRow = {
 };
 
 export default function DeliverooOrdersPage() {
+  const { t, locale } = useI18n();
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [page, setPage] = useState(1);
   const limit = 50;
@@ -48,27 +51,27 @@ export default function DeliverooOrdersPage() {
         <span className="h-3 w-3 rounded-full bg-deliveroo" />
         <h1 className="text-xl font-semibold">Deliveroo</h1>
         <span className="text-secondary/30 text-lg font-light">/</span>
-        <span className="text-xl text-secondary font-medium">Orders</span>
+        <span className="text-xl text-secondary font-medium">{t("deliveroo.ordersTitle")}</span>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatCard title="Deliveries (selected)" value={deliveriesTotal} icon={Package} />
-        <StatCard title="Unassigned (selected)" value={unassignedTotal} icon={PackageX} />
-        <StatCard title="Uploads" value={uploads} icon={Upload} />
+        <StatCard title={t("deliveroo.deliveriesSelected")} value={deliveriesTotal} icon={Package} />
+        <StatCard title={t("deliveroo.unassignedSelected")} value={unassignedTotal} icon={PackageX} />
+        <StatCard title={t("deliveroo.uploads")} value={uploads} icon={Upload} />
       </div>
 
       <FilterBar
         filters={[
-          { key: "from", type: "dateRange", label: "Date range", toKey: "to" },
+          { key: "from", type: "dateRange", label: t("deliveroo.dateRangeLabel"), toKey: "to" },
           {
             key: "status",
             type: "select",
-            label: "All statuses",
+            label: t("deliveroo.allStatuses"),
             options: [
-              { value: "PARSED", label: "Parsed" },
-              { value: "APPROVED", label: "Approved" },
-              { value: "PENDING_REVIEW", label: "Pending review" },
-              { value: "REJECTED", label: "Rejected" },
+              { value: "PARSED", label: t("deliveroo.statusParsed") },
+              { value: "APPROVED", label: t("deliveroo.statusApproved") },
+              { value: "PENDING_REVIEW", label: t("deliveroo.statusPendingReview") },
+              { value: "REJECTED", label: t("deliveroo.statusRejected") },
             ],
           },
         ]}
@@ -91,21 +94,21 @@ export default function DeliverooOrdersPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-50">
-                <th className="px-5 py-3 text-left text-xs font-medium text-secondary">Date</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-secondary">Rider</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-secondary">Zone</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-secondary">Deliveries</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-secondary">Unassigned</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-secondary">Cash (KD)</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-secondary">Tips (KD)</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-secondary">Status</th>
+                <th className="px-5 py-3 text-start text-xs font-medium text-secondary">{t("table.date")}</th>
+                <th className="px-5 py-3 text-start text-xs font-medium text-secondary">{t("deliveroo.riderCol")}</th>
+                <th className="px-5 py-3 text-start text-xs font-medium text-secondary">{t("table.zone")}</th>
+                <th className="px-5 py-3 text-end text-xs font-medium text-secondary">{t("platform.deliveries")}</th>
+                <th className="px-5 py-3 text-end text-xs font-medium text-secondary">{t("deliveroo.unassigned")}</th>
+                <th className="px-5 py-3 text-end text-xs font-medium text-secondary">{t("deliveroo.cashKd")}</th>
+                <th className="px-5 py-3 text-end text-xs font-medium text-secondary">{t("deliveroo.tipsKd")}</th>
+                <th className="px-5 py-3 text-end text-xs font-medium text-secondary">{t("table.status")}</th>
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 && (
                 <tr>
                   <td colSpan={8} className="px-5 py-16 text-center text-xs text-gray-400">
-                    No ingested metrics in this range yet.
+                    {t("deliveroo.noMetricsInRange")}
                   </td>
                 </tr>
               )}
@@ -115,7 +118,7 @@ export default function DeliverooOrdersPage() {
                   className="border-b border-gray-50 text-sm last:border-0 hover:bg-gray-50/40"
                 >
                   <td className="px-5 py-3 text-secondary">
-                    {new Date(r.shiftDate).toLocaleDateString()}
+                    {formatDate(r.shiftDate, locale)}
                   </td>
                   <td className="px-5 py-3">
                     <Link
@@ -126,8 +129,8 @@ export default function DeliverooOrdersPage() {
                     </Link>
                   </td>
                   <td className="px-5 py-3 text-secondary">{r.driver.zone ?? "—"}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">{r.deliveriesCount}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">
+                  <td className="px-5 py-3 text-end tabular-nums">{r.deliveriesCount}</td>
+                  <td className="px-5 py-3 text-end tabular-nums">
                     {r.unassignedCount > 0 ? (
                       <span className="rounded bg-red-50 px-2 py-0.5 text-red-600">
                         {r.unassignedCount}
@@ -136,13 +139,13 @@ export default function DeliverooOrdersPage() {
                       0
                     )}
                   </td>
-                  <td className="px-5 py-3 text-right tabular-nums">
+                  <td className="px-5 py-3 text-end tabular-nums">
                     {Number(r.codCollectedKwd).toFixed(3)}
                   </td>
-                  <td className="px-5 py-3 text-right tabular-nums">
+                  <td className="px-5 py-3 text-end tabular-nums">
                     {Number(r.tipsKwd).toFixed(3)}
                   </td>
-                  <td className="px-5 py-3 text-right">
+                  <td className="px-5 py-3 text-end">
                     <StatusPill status={r.status} />
                   </td>
                 </tr>
@@ -159,7 +162,7 @@ export default function DeliverooOrdersPage() {
             onClick={() => setPage((p) => p - 1)}
             className="rounded-lg border border-gray-200 px-3 py-1 text-xs text-secondary disabled:opacity-40"
           >
-            Previous
+            {t("actions.previous")}
           </button>
           <span className="text-xs text-secondary">
             {page} / {totalPages}
@@ -169,7 +172,7 @@ export default function DeliverooOrdersPage() {
             onClick={() => setPage((p) => p + 1)}
             className="rounded-lg border border-gray-200 px-3 py-1 text-xs text-secondary disabled:opacity-40"
           >
-            Next
+            {t("actions.next")}
           </button>
         </div>
       )}
@@ -178,15 +181,25 @@ export default function DeliverooOrdersPage() {
 }
 
 function StatusPill({ status }: { status: string }) {
+  const { t } = useI18n();
   const map: Record<string, string> = {
     PARSED: "bg-blue-50 text-blue-600",
     APPROVED: "bg-green-50 text-green-600",
     PENDING_REVIEW: "bg-amber-50 text-amber-600",
     REJECTED: "bg-gray-100 text-gray-500",
   };
+  const label = (() => {
+    switch (status) {
+      case "PARSED": return t("deliveroo.statusParsed");
+      case "APPROVED": return t("deliveroo.statusApproved");
+      case "PENDING_REVIEW": return t("deliveroo.statusPendingReview");
+      case "REJECTED": return t("deliveroo.statusRejected");
+      default: return status.replace(/_/g, " ");
+    }
+  })();
   return (
     <span className={`rounded px-2 py-0.5 text-xs font-medium ${map[status] ?? "bg-gray-100"}`}>
-      {status.replace(/_/g, " ")}
+      {label}
     </span>
   );
 }

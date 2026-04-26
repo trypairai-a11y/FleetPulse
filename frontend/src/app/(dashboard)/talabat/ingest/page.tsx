@@ -3,17 +3,19 @@ import { useState } from "react";
 import api from "@/lib/api";
 import { useApiGet } from "@/hooks/useApi";
 import { Upload, Loader2, CheckCircle2 } from "lucide-react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type DriverOption = { id: string; name: string; zone: string | null };
 
 export default function TalabatIngestUploadPage() {
+  const { t } = useI18n();
   const { data } = useApiGet<{ data: DriverOption[] }>(
     "/api/drivers?platform=TALABAT&status=ACTIVE&limit=500"
   );
   const drivers = data?.data ?? [];
 
   const [driverId, setDriverId] = useState("");
-  const [shiftDate, setShiftDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [shiftDate, setShiftDate] = useState(() => new Date().toLocaleDateString("en-CA"));
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -36,7 +38,7 @@ export default function TalabatIngestUploadPage() {
       setResult(data);
       setFile(null);
     } catch (err: any) {
-      setError(err.response?.data?.error ?? "Upload failed");
+      setError(err.response?.data?.error ?? t("talabat.uploadFailed"));
     } finally {
       setBusy(false);
     }
@@ -45,23 +47,23 @@ export default function TalabatIngestUploadPage() {
   return (
     <div className="mx-auto max-w-2xl p-6">
       <header className="mb-6">
-        <h1 className="text-lg font-semibold">Upload Talabat shift screenshot</h1>
+        <h1 className="text-lg font-semibold">{t("talabat.ingestUploadTitle")}</h1>
         <p className="text-sm text-gray-500">
-          Use this while mobile OCR is rolling out. High-confidence extractions post
-          directly; others queue in <span className="font-medium">Ingest review</span>.
+          {t("talabat.ingestUploadIntro")}{" "}
+          <span className="font-medium">{t("talabat.ingestUploadIntroLink")}</span>.
         </p>
       </header>
 
       <form onSubmit={submit} className="space-y-4 rounded-xl border border-gray-200 bg-white p-5">
         <label className="block">
-          <span className="text-xs uppercase tracking-wide text-gray-500">Driver</span>
+          <span className="text-xs uppercase tracking-wide text-gray-500">{t("talabat.driverSelectorPlaceholder")}</span>
           <select
             className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
             value={driverId}
             onChange={(e) => setDriverId(e.target.value)}
             required
           >
-            <option value="">Select driver…</option>
+            <option value="">{t("talabat.selectDriver")}</option>
             {drivers.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.name} {d.zone ? `· ${d.zone}` : ""}
@@ -71,7 +73,7 @@ export default function TalabatIngestUploadPage() {
         </label>
 
         <label className="block">
-          <span className="text-xs uppercase tracking-wide text-gray-500">Shift date</span>
+          <span className="text-xs uppercase tracking-wide text-gray-500">{t("talabat.shiftDate")}</span>
           <input
             type="date"
             className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
@@ -81,7 +83,7 @@ export default function TalabatIngestUploadPage() {
         </label>
 
         <label className="block">
-          <span className="text-xs uppercase tracking-wide text-gray-500">Screenshot</span>
+          <span className="text-xs uppercase tracking-wide text-gray-500">{t("talabat.screenshot")}</span>
           <div className="mt-1 flex items-center justify-center rounded-lg border border-dashed border-gray-300 p-6 text-sm text-gray-500">
             <input
               type="file"
@@ -100,7 +102,7 @@ export default function TalabatIngestUploadPage() {
           className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-          Upload & extract
+          {t("talabat.uploadAndExtract")}
         </button>
 
         {error && <div className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{error}</div>}

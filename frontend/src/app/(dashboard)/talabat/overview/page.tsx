@@ -7,28 +7,14 @@ import { cn } from "@/lib/cn";
 import { cleanDriverName } from "@/lib/formatters";
 import TalabatLiveOpsHeader from "@/components/platform/TalabatLiveOpsHeader";
 import {
-  ShoppingBag, DollarSign, AlertTriangle, Users, Clock, TrendingUp,
-  TrendingDown, Minus, ChevronRight, ShieldAlert, ArrowUpRight,
-  MapPin, Activity, Search, BarChart3, Eye,
-  CheckCircle2, XCircle, AlertCircle, Timer, ChevronDown, Target, Settings2, CalendarX, Umbrella,
+  ShoppingBag, DollarSign, AlertTriangle, Users, TrendingUp,
+  TrendingDown, Minus, ChevronRight, ShieldAlert,
+  MapPin, Activity, Search, BarChart3,
+  CheckCircle2, ChevronDown, CalendarX,
 } from "lucide-react";
-
-const GRADE_COLORS: Record<string, string> = {
-  excellent: "text-green-600 bg-green-50",
-  good: "text-blue-600 bg-blue-50",
-  average: "text-yellow-600 bg-yellow-50",
-  below: "text-orange-600 bg-orange-50",
-  failed: "text-red-600 bg-red-50",
-};
-
-function getGradeLabel(score: number | null): { label: string; colorClass: string } {
-  if (score === null) return { label: "-", colorClass: "text-gray-400 bg-gray-50" };
-  if (score >= 90) return { label: "Excellent", colorClass: GRADE_COLORS.excellent };
-  if (score >= 70) return { label: "Good", colorClass: GRADE_COLORS.good };
-  if (score >= 50) return { label: "Average", colorClass: GRADE_COLORS.average };
-  if (score >= 30) return { label: "Below Avg", colorClass: GRADE_COLORS.below };
-  return { label: "Failed", colorClass: GRADE_COLORS.failed };
-}
+import { useI18n } from "@/i18n/I18nProvider";
+import { useGradeLabel } from "@/components/platform/PlatformOverviewPage";
+import { formatCurrency } from "@/i18n/format";
 
 function TrendIcon({ trend }: { trend: string | null }) {
   if (trend === "UP") return <TrendingUp size={14} className="text-green-500" />;
@@ -54,6 +40,8 @@ function getViolationColor(type: string) {
 }
 
 export default function TalabatOverviewPage() {
+  const { t, locale } = useI18n();
+  const gradeFor = useGradeLabel();
   const router = useRouter();
   const [companyFilter, setCompanyFilter] = useState("");
   const [driverSearch, setDriverSearch] = useState("");
@@ -177,8 +165,8 @@ export default function TalabatOverviewPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold">Talabat Overview</h1>
-            <p className="text-sm text-secondary mt-1">Loading dashboard...</p>
+            <h1 className="text-xl font-semibold">Talabat {t("platform.overviewTitle")}</h1>
+            <p className="text-sm text-secondary mt-1">{t("talabat.loadingDashboard")}</p>
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -198,14 +186,14 @@ export default function TalabatOverviewPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Talabat Overview</h1>
+          <h1 className="text-xl font-semibold">Talabat {t("platform.overviewTitle")}</h1>
         </div>
         <select
           value={companyFilter}
           onChange={(e) => setCompanyFilter(e.target.value)}
           className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
         >
-          <option value="">All Companies</option>
+          <option value="">{t("companies.allCompanies")}</option>
           {companies.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
       </div>
@@ -225,11 +213,11 @@ export default function TalabatOverviewPage() {
         >
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-medium text-secondary mb-1">No Shift Booked</p>
+              <p className="text-xs font-medium text-secondary mb-1">{t("talabat.noShiftBooked")}</p>
               <p className={cn("text-2xl font-bold", unbookedNextWeek.length > 0 && "text-amber-500")}>
                 {unbookedNextWeek.length}
               </p>
-              <p className="text-[11px] text-secondary mt-1">next 7 days</p>
+              <p className="text-[11px] text-secondary mt-1">{t("talabat.next7Days")}</p>
             </div>
             <div className={cn("p-2 rounded-xl transition-colors",
               unbookedNextWeek.length > 0 ? "bg-amber-50 group-hover:bg-amber-100" : "bg-gray-50 group-hover:bg-gray-100"
@@ -243,9 +231,9 @@ export default function TalabatOverviewPage() {
         <div className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-medium text-secondary mb-1">UTR</p>
+              <p className="text-xs font-medium text-secondary mb-1">{t("overview.utr")}</p>
               <p className="text-2xl font-bold">{summary.utr != null ? Number(summary.utr).toFixed(2) : (summary.avgOrdersPerDriver != null ? Number(summary.avgOrdersPerDriver).toFixed(2) : "1.2")}</p>
-              <p className="text-[11px] text-secondary mt-1">today</p>
+              <p className="text-[11px] text-secondary mt-1">{t("labels.today")}</p>
             </div>
             <div className="p-2 bg-cyan-50 rounded-xl group-hover:bg-cyan-100 transition-colors">
               <BarChart3 size={18} className="text-cyan-500" />
@@ -262,16 +250,16 @@ export default function TalabatOverviewPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <DollarSign size={16} className="text-red-500" />
-              Overdue Cash
+              {t("talabat.overdueCash")}
               {overdueCash.driverCount > 0 && (
                 <span className="text-xs font-normal text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
-                  {overdueCash.totalAmount.toFixed(3)} KD
+                  {formatCurrency(overdueCash.totalAmount, locale)}
                 </span>
               )}
             </h2>
             <button onClick={() => router.push("/talabat/cash")}
               className="text-xs text-primary hover:underline flex items-center gap-1">
-              View All <ChevronRight size={12} />
+              {t("overview.viewAll")} <ChevronRight size={12} />
             </button>
           </div>
           {overdueCash.drivers.length > 0 ? (
@@ -280,9 +268,9 @@ export default function TalabatOverviewPage() {
                 <div key={d.driverId} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{d.name}</p>
-                    <p className="text-xs text-secondary">{d.zone || "—"} · {d.daysSince}d overdue</p>
+                    <p className="text-xs text-secondary">{d.zone || "—"} · {d.daysSince}{t("talabat.days")} {t("talabat.overdueCash")}</p>
                   </div>
-                  <span className="text-sm font-semibold text-red-500 flex-shrink-0">{d.totalPending.toFixed(3)} KD</span>
+                  <span className="text-sm font-semibold text-red-500 flex-shrink-0">{formatCurrency(d.totalPending, locale)}</span>
                 </div>
               ))}
             </div>
@@ -292,23 +280,23 @@ export default function TalabatOverviewPage() {
                 <CheckCircle2 size={28} className="text-green-500" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-semibold text-green-700">All Clear</p>
-                <p className="text-xs text-secondary mt-0.5">No pending cash from any driver</p>
+                <p className="text-sm font-semibold text-green-700">{t("overview.allClear")}</p>
+                <p className="text-xs text-secondary mt-0.5">{t("talabat.noPendingCash")}</p>
               </div>
               <div className="flex gap-4 pt-1">
                 <div className="text-center">
                   <p className="text-xl font-bold">0</p>
-                  <p className="text-[11px] text-secondary">drivers overdue</p>
+                  <p className="text-[11px] text-secondary">{t("talabat.driversOverdue")}</p>
                 </div>
                 <div className="w-px bg-gray-100" />
                 <div className="text-center">
                   <p className="text-xl font-bold">0.000</p>
-                  <p className="text-[11px] text-secondary">KD outstanding</p>
+                  <p className="text-[11px] text-secondary">{t("talabat.kdOutstanding")}</p>
                 </div>
                 <div className="w-px bg-gray-100" />
                 <div className="text-center">
                   <p className="text-xl font-bold">{totalAtt}</p>
-                  <p className="text-[11px] text-secondary">active drivers</p>
+                  <p className="text-[11px] text-secondary">{t("talabat.activeDrivers")}</p>
                 </div>
               </div>
             </div>
@@ -320,16 +308,16 @@ export default function TalabatOverviewPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <CalendarX size={16} className="text-amber-500" />
-              No Shift Booked
+              {t("talabat.noShiftBooked")}
               {unbookedNextWeek.length > 0 && (
                 <span className="text-xs font-normal text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-                  {unbookedNextWeek.length} drivers
+                  {unbookedNextWeek.length} {t("companies.driverPlural")}
                 </span>
               )}
             </h2>
             <button onClick={() => router.push("/talabat/shifts")}
               className="text-xs text-primary hover:underline flex items-center gap-1">
-              Shifts <ChevronRight size={12} />
+              {t("platform.shifts")} <ChevronRight size={12} />
             </button>
           </div>
           {unbookedNextWeek.length > 0 ? (
@@ -340,11 +328,11 @@ export default function TalabatOverviewPage() {
                     <p className="text-sm font-medium truncate">{d.name}</p>
                     <p className="text-xs text-secondary">{d.zone || "—"} · {d.company}</p>
                   </div>
-                  <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium">No booking</span>
+                  <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium">{t("talabat.noShiftBooked")}</span>
                 </div>
               ))}
               {unbookedNextWeek.length > 8 && (
-                <p className="text-xs text-secondary text-center pt-1">+{unbookedNextWeek.length - 8} more</p>
+                <p className="text-xs text-secondary text-center pt-1">+{unbookedNextWeek.length - 8} {t("talabat.moreSuffix")}</p>
               )}
             </div>
           ) : (
@@ -353,23 +341,23 @@ export default function TalabatOverviewPage() {
                 <CheckCircle2 size={28} className="text-green-500" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-semibold text-green-700">All Booked</p>
-                <p className="text-xs text-secondary mt-0.5">Every driver has a shift for next week</p>
+                <p className="text-sm font-semibold text-green-700">{t("talabat.allBooked")}</p>
+                <p className="text-xs text-secondary mt-0.5">{t("talabat.everyDriverHasShift")}</p>
               </div>
               <div className="flex gap-4 pt-1">
                 <div className="text-center">
                   <p className="text-xl font-bold">0</p>
-                  <p className="text-[11px] text-secondary">unbooked drivers</p>
+                  <p className="text-[11px] text-secondary">{t("talabat.unbookedDrivers")}</p>
                 </div>
                 <div className="w-px bg-gray-100" />
                 <div className="text-center">
                   <p className="text-xl font-bold">{totalAtt}</p>
-                  <p className="text-[11px] text-secondary">shifts confirmed</p>
+                  <p className="text-[11px] text-secondary">{t("talabat.shiftsConfirmed")}</p>
                 </div>
                 <div className="w-px bg-gray-100" />
                 <div className="text-center">
                   <p className="text-xl font-bold">{summary.driversOnLeave ?? 0}</p>
-                  <p className="text-[11px] text-secondary">on leave</p>
+                  <p className="text-[11px] text-secondary">{t("talabat.onLeave")}</p>
                 </div>
               </div>
             </div>
@@ -383,12 +371,12 @@ export default function TalabatOverviewPage() {
         <div className="bg-white rounded-2xl shadow-sm p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold">Shifts</h2>
+              <h2 className="text-sm font-semibold">{t("platform.shifts")}</h2>
               <button
                 onClick={() => router.push("/talabat/shifts")}
                 className="text-xs text-primary hover:underline flex items-center gap-1"
               >
-                Details <ChevronRight size={12} />
+                {t("platform.detailsLink")} <ChevronRight size={12} />
               </button>
             </div>
             <div className="flex items-center gap-6">
@@ -401,7 +389,7 @@ export default function TalabatOverviewPage() {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-[72px] h-[72px] bg-white rounded-full flex items-center justify-center flex-col">
                     <span className="text-lg font-bold">{totalAtt}</span>
-                    <span className="text-[10px] text-secondary -mt-0.5">total</span>
+                    <span className="text-[10px] text-secondary -mt-0.5">{t("platform.totalShort")}</span>
                   </div>
                 </div>
               </div>
@@ -410,7 +398,7 @@ export default function TalabatOverviewPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-green-600" />
-                    <span className="text-sm">Present</span>
+                    <span className="text-sm">{t("status.present")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">{summary.presentCount || 0}</span>
@@ -420,7 +408,7 @@ export default function TalabatOverviewPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                    <span className="text-sm">Late</span>
+                    <span className="text-sm">{t("status.late")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">{summary.lateCount || 0}</span>
@@ -430,7 +418,7 @@ export default function TalabatOverviewPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-red-600" />
-                    <span className="text-sm">Absent</span>
+                    <span className="text-sm">{t("status.absent")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">{summary.absentCount || 0}</span>
@@ -440,7 +428,7 @@ export default function TalabatOverviewPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-teal-500" />
-                    <span className="text-sm">Leave</span>
+                    <span className="text-sm">{t("attendancePage.leave")}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">{leaveCount}</span>
@@ -457,9 +445,9 @@ export default function TalabatOverviewPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <MapPin size={14} className="text-secondary" />
-              Zone UTR
+              {t("talabat.zoneUtr")}
             </h2>
-            <span className="text-xs text-secondary">{zoneBreakdown.length} zones</span>
+            <span className="text-xs text-secondary">{zoneBreakdown.length} {t("talabat.zones")}</span>
           </div>
           {zoneBreakdown.length > 0 ? (() => {
             const zonesWithUtr = zoneBreakdown
@@ -472,8 +460,8 @@ export default function TalabatOverviewPage() {
                   <div key={z.zone}>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm truncate flex-1">{z.zone}</span>
-                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                        <span className="text-xs text-secondary">{z.sessions} sess</span>
+                      <div className="flex items-center gap-2 flex-shrink-0 ms-2">
+                        <span className="text-xs text-secondary">{z.sessions} {t("talabat.sessShort")}</span>
                         <span className="text-sm font-semibold">{z.utr}</span>
                       </div>
                     </div>
@@ -489,7 +477,7 @@ export default function TalabatOverviewPage() {
             );
           })() : (
             <div className="flex items-center justify-center h-32 text-sm text-secondary">
-              No zone data for today
+              {t("talabat.noZoneData")}
             </div>
           )}
         </div>
@@ -499,13 +487,13 @@ export default function TalabatOverviewPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <ShieldAlert size={14} className="text-red-500" />
-              Violation Breakdown
+              {t("talabat.violationBreakdown")}
             </h2>
             <button
               onClick={() => router.push("/talabat/violations")}
               className="text-xs text-primary hover:underline flex items-center gap-1"
             >
-              View All <ChevronRight size={12} />
+              {t("overview.viewAll")} <ChevronRight size={12} />
             </button>
           </div>
           {violationsByType.length > 0 ? (
@@ -522,7 +510,7 @@ export default function TalabatOverviewPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-0.5">
                           <span className="text-xs truncate">{v.type.replace(/_/g, " ")}</span>
-                          <span className="text-xs font-semibold ml-2">{v.count}</span>
+                          <span className="text-xs font-semibold ms-2">{v.count}</span>
                         </div>
                         <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                           <div
@@ -538,7 +526,7 @@ export default function TalabatOverviewPage() {
           ) : (
             <div className="flex flex-col items-center justify-center h-32 text-sm text-secondary">
               <CheckCircle2 size={24} className="text-green-400 mb-2" />
-              No active violations
+              {t("talabat.noActiveViolations")}
             </div>
           )}
         </div>
@@ -551,9 +539,9 @@ export default function TalabatOverviewPage() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <Activity size={14} className="text-secondary" />
-              Deliveries per Hour
+              {t("talabat.deliveriesPerHour")}
             </h2>
-            <span className="text-xs text-secondary">Today</span>
+            <span className="text-xs text-secondary">{t("labels.today")}</span>
           </div>
           <div className="flex items-end gap-[3px]" style={{ height: 120 }}>
             {hourly.filter((h: any) => h.hour >= 6 && h.hour <= 23).map((h: any) => {
@@ -564,7 +552,7 @@ export default function TalabatOverviewPage() {
                     <div className="absolute bottom-0 w-full rounded-t transition-all duration-300 bg-gradient-to-t from-orange-500 to-orange-300 group-hover:from-orange-600 group-hover:to-orange-400" style={{ height: barH }} />
                     {h.orders > 0 && (
                       <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                        {h.orders} orders
+                        {h.orders} {t("talabat.ordersShort")}
                       </div>
                     )}
                   </div>
@@ -580,9 +568,9 @@ export default function TalabatOverviewPage() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <DollarSign size={14} className="text-secondary" />
-              Cash Collected per Hour
+              {t("talabat.cashPerHour")}
             </h2>
-            <span className="text-xs text-secondary">Today · KD</span>
+            <span className="text-xs text-secondary">{t("labels.today")} · {t("talabat.kdSuffix")}</span>
           </div>
           <div className="flex items-end gap-[3px]" style={{ height: 120 }}>
             {hourly.filter((h: any) => h.hour >= 6 && h.hour <= 23).map((h: any) => {
@@ -594,7 +582,7 @@ export default function TalabatOverviewPage() {
                     <div className="absolute bottom-0 w-full rounded-t transition-all duration-300 bg-gradient-to-t from-green-500 to-green-300 group-hover:from-green-600 group-hover:to-green-400" style={{ height: barH }} />
                     {cash > 0 && (
                       <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                        {cash.toFixed(3)} KD
+                        {formatCurrency(cash, locale)}
                       </div>
                     )}
                   </div>
@@ -610,9 +598,9 @@ export default function TalabatOverviewPage() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <Users size={14} className="text-secondary" />
-              Active Sessions per Hour
+              {t("talabat.activeSessionsPerHour")}
             </h2>
-            <span className="text-xs text-secondary">Today</span>
+            <span className="text-xs text-secondary">{t("labels.today")}</span>
           </div>
           <div className="flex items-end gap-[3px]" style={{ height: 120 }}>
             {hourly.filter((h: any) => h.hour >= 6 && h.hour <= 23).map((h: any) => {
@@ -624,7 +612,7 @@ export default function TalabatOverviewPage() {
                     <div className="absolute bottom-0 w-full rounded-t transition-all duration-300 bg-gradient-to-t from-blue-500 to-blue-300 group-hover:from-blue-600 group-hover:to-blue-400" style={{ height: barH }} />
                     {sess > 0 && (
                       <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                        {sess} sessions
+                        {sess} {t("talabat.sessionsShort")}
                       </div>
                     )}
                   </div>
@@ -641,7 +629,7 @@ export default function TalabatOverviewPage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold flex items-center gap-2">
             <ShoppingBag size={14} className="text-secondary" />
-            Top Restaurants
+            {t("talabat.topRestaurants")}
           </h2>
           <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
             {(["morning", "afternoon", "evening"] as const).map((p) => (
@@ -653,7 +641,7 @@ export default function TalabatOverviewPage() {
                   restaurantPeriod === p ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
                 )}
               >
-                {p === "morning" ? "Morning 6a–12p" : p === "afternoon" ? "Afternoon 12p–5p" : "Evening 5p–11p"}
+                {p === "morning" ? t("talabat.morningRange") : p === "afternoon" ? t("talabat.afternoonRange") : t("talabat.eveningRange")}
               </button>
             ))}
           </div>
@@ -664,7 +652,7 @@ export default function TalabatOverviewPage() {
           if (list.length === 0) return (
             <div className="flex flex-col items-center justify-center h-20 text-sm text-secondary">
               <CheckCircle2 size={18} className="text-gray-300 mb-1" />
-              No orders in this period yet
+              {t("talabat.noOrdersInPeriod")}
             </div>
           );
           return (
@@ -698,17 +686,18 @@ export default function TalabatOverviewPage() {
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
           <h2 className="text-sm font-semibold flex items-center gap-2">
-            Driver Rankings
+            {t("overview.driverRankings")}
             <span className="text-xs font-normal text-secondary bg-gray-100 px-2 py-0.5 rounded-full">{filteredDrivers.length}</span>
           </h2>
           <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search drivers..."
+              dir="auto"
+              placeholder={t("kpi.searchDrivers")}
               value={driverSearch}
               onChange={(e) => setDriverSearch(e.target.value)}
-              className="pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-48"
+              className="ps-8 pe-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-48"
             />
           </div>
         </div>
@@ -718,22 +707,22 @@ export default function TalabatOverviewPage() {
               <tr className="border-b border-gray-100 bg-gray-50/50">
                 {[
                   { key: "rank", label: "#", cls: "w-12" },
-                  { key: "driver", label: "Driver", sortable: false },
-                  { key: "utr", label: "UTR", title: "Utilization Time Rate" },
-                  { key: "batch", label: "Batch" },
-                  { key: "grade", label: "Darb Grade" },
-                  { key: "trend", label: "Trend", sortable: false },
-                  { key: "orders", label: "Orders" },
-                  { key: "cash", label: "Cash" },
-                  { key: "pending", label: "Pending" },
-                  { key: "attendance", label: "Attendance" },
-                  { key: "alerts", label: "Alerts" },
+                  { key: "driver", label: t("table.driver"), sortable: false },
+                  { key: "utr", label: t("overview.utr"), title: t("talabat.utilizationTimeRate") },
+                  { key: "batch", label: t("platform.batch") },
+                  { key: "grade", label: t("platform.darbGrade") },
+                  { key: "trend", label: t("kpi.trend"), sortable: false },
+                  { key: "orders", label: t("table.orders") },
+                  { key: "cash", label: t("talabat.cash") },
+                  { key: "pending", label: t("talabat.pending") },
+                  { key: "attendance", label: t("table.attendance") },
+                  { key: "alerts", label: t("talabat.alerts") },
                 ].map(({ key, label, cls, title, sortable = true }) => (
                   <th
                     key={key}
                     title={title}
                     className={cn(
-                      "text-left text-[11px] font-semibold text-secondary uppercase tracking-wider px-5 py-3 select-none",
+                      "text-start text-[11px] font-semibold text-secondary uppercase tracking-wider px-5 py-3 select-none",
                       sortable && "cursor-pointer hover:text-primary transition-colors",
                       cls
                     )}
@@ -751,7 +740,7 @@ export default function TalabatOverviewPage() {
             </thead>
             <tbody>
               {displayedDrivers.map((driver: any) => {
-                const grade = getGradeLabel(driver.darbGrade);
+                const grade = gradeFor(driver.darbGrade);
                 return (
                   <tr key={driver.id}
                     className="border-b border-gray-50 last:border-0 hover:bg-orange-50/30 cursor-pointer transition-colors"
@@ -785,12 +774,12 @@ export default function TalabatOverviewPage() {
                     </td>
                     <td className="px-5 py-3"><TrendIcon trend={driver.gradeTrend} /></td>
                     <td className="px-5 py-3 text-sm font-semibold">{driver.todayOrders}</td>
-                    <td className="px-5 py-3 text-sm">{driver.cashCollected.toFixed(3)} KD</td>
+                    <td className="px-5 py-3 text-sm">{formatCurrency(driver.cashCollected, locale)}</td>
                     <td className="px-5 py-3">
                       <span className={cn("text-sm font-medium",
                         driver.cashPending > 0 ? "text-red-500" : "text-green-600"
                       )}>
-                        {driver.cashPending.toFixed(3)} KD
+                        {formatCurrency(driver.cashPending, locale)}
                       </span>
                     </td>
                     <td className="px-5 py-3">
@@ -800,7 +789,10 @@ export default function TalabatOverviewPage() {
                         driver.attendance === "ABSENT" ? "bg-red-50 text-red-600" :
                         "bg-gray-100 text-gray-400"
                       )}>
-                        {driver.attendance || "No data"}
+                        {driver.attendance === "PRESENT" ? t("status.present")
+                          : driver.attendance === "LATE" ? t("status.late")
+                          : driver.attendance === "ABSENT" ? t("status.absent")
+                          : t("errors.noData")}
                       </span>
                     </td>
                     <td className="px-5 py-3">
@@ -823,7 +815,7 @@ export default function TalabatOverviewPage() {
               {filteredDrivers.length === 0 && (
                 <tr>
                   <td colSpan={11} className="px-5 py-8 text-center text-sm text-secondary">
-                    {driverSearch ? "No drivers match your search" : "No driver data for today"}
+                    {driverSearch ? t("overview.noDriversMatch") : t("overview.noDriverDataToday")}
                   </td>
                 </tr>
               )}
@@ -837,7 +829,7 @@ export default function TalabatOverviewPage() {
               onClick={() => setShowAllDrivers(!showAllDrivers)}
               className="text-sm text-primary hover:underline flex items-center gap-1 mx-auto"
             >
-              {showAllDrivers ? "Show Less" : `Show All ${filteredDrivers.length} Drivers`}
+              {showAllDrivers ? t("actions.showLess") : t("platform.showAllDrivers").replace("{n}", String(filteredDrivers.length))}
               <ChevronDown size={14} className={cn("transition-transform", showAllDrivers && "rotate-180")} />
             </button>
           </div>

@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown, Search, Check, X } from "lucide-react";
 import DateRangePicker from "./DateRangePicker";
+import { useI18n } from "@/i18n/I18nProvider";
 
 interface FilterOption {
   value: string;
@@ -35,6 +36,7 @@ function MultiSelectFilter({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const selected = value ? value.split(",") : [];
@@ -59,7 +61,7 @@ function MultiSelectFilter({
       ? filter.label
       : selected.length === 1
       ? filter.options?.find((o) => o.value === selected[0])?.label || selected[0]
-      : `${selected.length} selected`;
+      : `${selected.length} ${t("common.selected")}`;
 
   return (
     <div ref={ref} className="relative">
@@ -68,14 +70,14 @@ function MultiSelectFilter({
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-haspopup="listbox"
-        aria-label={`Filter by ${filter.label}: ${label}`}
-        className="flex items-center gap-1 pl-3 pr-8 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary hover:border-sand-400 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer whitespace-nowrap"
+        aria-label={`${t("common.filterBy")} ${filter.label}: ${label}`}
+        className="flex items-center gap-1 ps-3 pe-8 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary hover:border-sand-400 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer whitespace-nowrap"
       >
         {label}
       </button>
-      <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none" aria-hidden="true" />
+      <ChevronDown size={14} className="absolute end-2.5 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none" aria-hidden="true" />
       {open && (
-        <div role="listbox" aria-label={filter.label} aria-multiselectable="true" className="absolute top-full left-0 mt-1 bg-white border border-sand-300 rounded-pill shadow-lg z-50 min-w-[180px] py-1 max-h-60 overflow-y-auto">
+        <div role="listbox" aria-label={filter.label} aria-multiselectable="true" className="absolute top-full start-0 mt-1 bg-white border border-sand-300 rounded-pill shadow-lg z-50 min-w-[180px] py-1 max-h-60 overflow-y-auto">
           {filter.options?.map((opt) => {
             const isSelected = selected.includes(opt.value);
             return (
@@ -85,7 +87,7 @@ function MultiSelectFilter({
                 role="option"
                 aria-selected={isSelected}
                 onClick={() => toggle(opt.value)}
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-sand-100 transition-colors"
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-start hover:bg-sand-100 transition-colors"
               >
                 <span
                   aria-hidden="true"
@@ -105,9 +107,9 @@ function MultiSelectFilter({
               <button
                 type="button"
                 onClick={() => onChange("")}
-                className="w-full px-3 py-2 text-sm text-left text-secondary hover:bg-sand-100 transition-colors"
+                className="w-full px-3 py-2 text-sm text-start text-secondary hover:bg-sand-100 transition-colors"
               >
-                Clear all
+                {t("common.clearAll")}
               </button>
             </>
           )}
@@ -126,6 +128,7 @@ function DriverSearchFilter({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -159,31 +162,32 @@ function DriverSearchFilter({
 
   return (
     <div ref={ref} className="relative">
-      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none" />
+      <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none" />
       <input
         type="text"
+        dir="auto"
         value={query}
         onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(""); }}
         onFocus={() => setOpen(true)}
-        placeholder={filter.placeholder || "Search driver…"}
-        aria-label={`Search by ${filter.label}`}
+        placeholder={filter.placeholder || t("common.searchDriverPlaceholder")}
+        aria-label={`${t("common.searchBy")} ${filter.label}`}
         aria-autocomplete="list"
         aria-expanded={open && suggestions.length > 0}
-        className="pl-9 pr-7 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-w-[180px] placeholder:text-sand-500"
+        className="ps-9 pe-7 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-w-[180px] placeholder:text-sand-500"
       />
       {query && (
-        <button type="button" onClick={clear} aria-label="Clear search" className="absolute right-2 top-1/2 -translate-y-1/2 text-sand-500 hover:text-sand-800">
+        <button type="button" onClick={clear} aria-label={t("common.clearSearch")} className="absolute end-2 top-1/2 -translate-y-1/2 text-sand-500 hover:text-sand-800">
           <X size={13} aria-hidden="true" />
         </button>
       )}
       {open && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 mt-1 bg-white border border-sand-300 rounded-pill shadow-lg z-50 min-w-[220px] py-1 max-h-60 overflow-y-auto">
+        <div className="absolute top-full start-0 mt-1 bg-white border border-sand-300 rounded-pill shadow-lg z-50 min-w-[220px] py-1 max-h-60 overflow-y-auto">
           {suggestions.map((opt) => (
             <button
               key={opt.value}
               type="button"
               onClick={() => select(opt)}
-              className="w-full px-3 py-2 text-sm text-left hover:bg-sand-100 transition-colors"
+              className="w-full px-3 py-2 text-sm text-start hover:bg-sand-100 transition-colors"
             >
               {opt.label}
             </button>
@@ -195,25 +199,27 @@ function DriverSearchFilter({
 }
 
 export default function FilterBar({ filters, values, onChange, onClear, defaultValues }: FilterBarProps) {
+  const { t } = useI18n();
   const hasActiveFilters = onClear && Object.keys(values).some((k) => {
     const defaultVal = defaultValues?.[k] || "";
     return values[k] && values[k] !== defaultVal;
   });
 
   return (
-    <div className="flex gap-3 flex-wrap items-center" role="search" aria-label="Filter controls">
+    <div className="flex gap-3 flex-wrap items-center" role="search" aria-label={t("common.filterControls")}>
       {filters.map((filter) => {
         if (filter.type === "search") {
           return (
             <div key={filter.key} className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none" />
+              <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none" />
               <input
                 type="text"
+                dir="auto"
                 value={values[filter.key] || ""}
                 onChange={(e) => onChange(filter.key, e.target.value)}
-                placeholder={filter.placeholder || `Search...`}
-                aria-label={`Search by ${filter.label}`}
-                className="pl-9 pr-3 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-w-[220px] placeholder:text-sand-500"
+                placeholder={filter.placeholder || t("common.searchPlaceholder")}
+                aria-label={`${t("common.searchBy")} ${filter.label}`}
+                className="ps-9 pe-3 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 min-w-[220px] placeholder:text-sand-500"
               />
             </div>
           );
@@ -239,7 +245,7 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
               type="date"
               value={values[filter.key] || ""}
               onChange={(e) => onChange(filter.key, e.target.value)}
-              aria-label={`Filter by ${filter.label}`}
+              aria-label={`${t("common.filterBy")} ${filter.label}`}
               className="px-3 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           );
@@ -252,7 +258,7 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
               placeholder={filter.label || "HH:MM"}
               value={values[filter.key] || ""}
               onChange={(e) => onChange(filter.key, e.target.value)}
-              aria-label={`Filter by ${filter.label}`}
+              aria-label={`${t("common.filterBy")} ${filter.label}`}
               className="px-3 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 w-[120px] placeholder:text-sand-500 font-mono"
             />
           );
@@ -282,15 +288,15 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
             <select
               value={values[filter.key] || ""}
               onChange={(e) => onChange(filter.key, e.target.value)}
-              aria-label={`Filter by ${filter.label}`}
-              className="appearance-none pl-3 pr-8 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary hover:border-sand-400 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              aria-label={`${t("common.filterBy")} ${filter.label}`}
+              className="appearance-none ps-3 pe-8 py-2 rounded-pill border border-sand-300 bg-white text-sm text-primary hover:border-sand-400 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
             >
               <option value="">{filter.label}</option>
               {filter.options?.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
-            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none" aria-hidden="true" />
+            <ChevronDown size={14} className="absolute end-2.5 top-1/2 -translate-y-1/2 text-sand-500 pointer-events-none" aria-hidden="true" />
           </div>
         );
       })}
@@ -298,11 +304,11 @@ export default function FilterBar({ filters, values, onChange, onClear, defaultV
         <button
           type="button"
           onClick={onClear}
-          aria-label="Clear all filters"
+          aria-label={t("actions.clearFilters")}
           className="flex items-center gap-1.5 px-3 py-2 rounded-pill text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
         >
           <X size={14} aria-hidden="true" />
-          Clear Filters
+          {t("actions.clearFilters")}
         </button>
       )}
     </div>

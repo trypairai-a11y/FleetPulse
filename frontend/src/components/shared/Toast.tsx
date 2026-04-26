@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from "react";
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/i18n/I18nProvider";
 
 type ToastVariant = "success" | "error" | "warning" | "info";
 
@@ -51,10 +52,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div
         aria-live="polite"
         aria-atomic="false"
-        className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
+        className="fixed bottom-4 end-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
       >
-        {toasts.map((t) => (
-          <ToastItem key={t.id} toast={t} onDismiss={dismiss} />
+        {toasts.map((toastItem) => (
+          <ToastItem key={toastItem.id} toast={toastItem} onDismiss={dismiss} />
         ))}
       </div>
     </ToastContext.Provider>
@@ -62,6 +63,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 }
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
+  const { t } = useI18n();
   const icons = {
     success: <CheckCircle size={16} aria-hidden="true" />,
     error: <XCircle size={16} aria-hidden="true" />,
@@ -99,7 +101,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
       <button
         onClick={() => onDismiss(toast.id)}
         className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
-        aria-label="Dismiss notification"
+        aria-label={t("common.dismiss")}
       >
         <X size={14} />
       </button>

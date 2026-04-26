@@ -1,7 +1,15 @@
-import { redirect } from "next/navigation";
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-// R10 · Deprecated. Vehicles now live under Driver 360 → Assets.
-// Redirects during the 2-week deprecation window; will 404 after v0.2.
 export default function DeprecatedKeetaVehiclesPage() {
-  redirect("/keeta/drivers?deprecated=vehicles");
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/keeta/drivers?tab=assets");
+  }, [router]);
+  return (
+    <div className="flex items-center justify-center min-h-[60vh] text-sm text-gray-500">
+      Vehicles moved to Driver 360 → Assets. Redirecting…
+    </div>
+  );
 }

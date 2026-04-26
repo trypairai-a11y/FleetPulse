@@ -7,11 +7,12 @@ import { cleanDriverName } from "@/lib/formatters";
 import StatCard from "@/components/shared/StatCard";
 import {
   AlertTriangle, Users, TrendingUp,
-  TrendingDown, Minus, ChevronRight, ShieldAlert, ArrowUpRight, Search,
+  TrendingDown, Minus, ShieldAlert, ArrowUpRight, Search,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
-
-// ─── Config types ───────────────────────────────────────────────────────────
+import { useI18n } from "@/i18n/I18nProvider";
+import { DirectionalIcon } from "@/i18n/directionalIcon";
+import { formatCurrency } from "@/i18n/format";
 
 export interface KpiCardConfig {
   title: string;
@@ -35,23 +36,14 @@ export interface Props {
   platformKey: string;
   platformLabel: string;
   platformColor: string;
-  /** Override the API endpoint. Defaults to `/api/platform-overview/${platform}` */
   apiEndpoint?: string;
-  /** Extra KPI cards above the table. Defaults to UTR, Active Drivers, Active Violations. */
   kpiCards?: KpiCardConfig[];
-  /** Widgets rendered between KPI cards and the driver table */
   middleSlot?: (data: { drivers: any[]; summary: any; loading: boolean }) => ReactNode;
-  /** Custom column definitions for the driver table. Defaults shown if omitted. */
   columns?: ColumnConfig[];
-  /** Enable search bar above the driver table */
   searchable?: boolean;
-  /** Enable Show All / Show Less toggle (first 15) */
   paginated?: boolean;
-  /** Number of KPI card grid columns. Default 3. */
   kpiGridCols?: number;
 }
-
-// ─── Grade helpers ──────────────────────────────────────────────────────────
 
 const GRADE_COLORS: Record<string, string> = {
   excellent: "text-green-600 bg-green-50",
@@ -61,6 +53,19 @@ const GRADE_COLORS: Record<string, string> = {
   failed: "text-red-600 bg-red-50",
 };
 
+export function useGradeLabel() {
+  const { t } = useI18n();
+  return (score: number | null): { label: string; colorClass: string } => {
+    if (score === null) return { label: "-", colorClass: "text-gray-400 bg-gray-50" };
+    if (score >= 90) return { label: t("grades.excellent"), colorClass: GRADE_COLORS.excellent };
+    if (score >= 70) return { label: t("grades.good"), colorClass: GRADE_COLORS.good };
+    if (score >= 50) return { label: t("grades.average"), colorClass: GRADE_COLORS.average };
+    if (score >= 30) return { label: t("grades.belowAvg"), colorClass: GRADE_COLORS.below };
+    return { label: t("grades.failed"), colorClass: GRADE_COLORS.failed };
+  };
+}
+
+// Backwards-compatible static helper for external callers that can't use hooks.
 export function getGradeLabel(score: number | null): { label: string; colorClass: string } {
   if (score === null) return { label: "-", colorClass: "text-gray-400 bg-gray-50" };
   if (score >= 90) return { label: "Excellent", colorClass: GRADE_COLORS.excellent };
@@ -77,6 +82,11 @@ export function TrendIcon({ trend }: { trend: string | null }) {
 }
 
 export function AttendanceBadge({ status }: { status: string | null }) {
+  const { t } = useI18n();
+  const label = status === "PRESENT" ? t("status.present")
+    : status === "LATE" ? t("status.late")
+    : status === "ABSENT" ? t("status.absent")
+    : t("errors.noData");
   return (
     <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium",
       status === "PRESENT" ? "bg-green-50 text-green-600" :
@@ -84,7 +94,7 @@ export function AttendanceBadge({ status }: { status: string | null }) {
       status === "ABSENT" ? "bg-red-50 text-red-600" :
       "bg-gray-100 text-gray-400"
     )}>
-      {status || "No data"}
+      {label}
     </span>
   );
 }
@@ -93,22 +103,23 @@ function driverName(name: string) {
   return cleanDriverName(name);
 }
 
-// ─── Default column config ──────────────────────────────────────────────────
+function useDefaultColumns(platform: string): ColumnConfig[] {
+  const { t, locale } = useI18n();
+  const gradeFor = useGradeLabel();
 
-function defaultColumns(platform: string): ColumnConfig[] {
   const cols: ColumnConfig[] = [
     { key: "rank", label: "#", sortable: false, render: (d) => <span className="text-sm text-secondary font-medium">{d.rank}</span> },
-    { key: "driver", label: "Driver", sortable: false, render: (d) => (
+    { key: "driver", label: t("table.driver"), sortable: false, render: (d) => (
       <div>
         <p className="text-sm font-medium">{driverName(d.name)}</p>
         <p className="text-xs text-secondary">{d.company}</p>
       </div>
     )},
-    { key: "utr", label: "UTR", render: (d) => <span className="text-sm font-mono">{d.utr || "-"}</span> },
+    { key: "utr", label: t("overview.utr"), render: (d) => <span className="text-sm font-mono">{d.utr || "-"}</span> },
   ];
   if (platform === "TALABAT") {
     cols.push({
-      key: "batch", label: "Batch", render: (d) => (
+      key: "batch", label: t("platform.batch"), render: (d) => (
         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium",
           d.batchNumber === "1" ? "bg-green-50 text-green-600" :
           d.batchNumber === "2" ? "bg-blue-50 text-blue-600" :
@@ -121,8 +132,8 @@ function defaultColumns(platform: string): ColumnConfig[] {
     });
   }
   cols.push(
-    { key: "grade", label: "Darb Grade", render: (d) => {
-      const grade = getGradeLabel(d.darbGrade);
+    { key: "grade", label: t("platform.darbGrade"), render: (d) => {
+      const grade = gradeFor(d.darbGrade);
       return (
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">{d.darbGrade ?? "-"}</span>
@@ -130,43 +141,42 @@ function defaultColumns(platform: string): ColumnConfig[] {
         </div>
       );
     }},
-    { key: "trend", label: "Trend", sortable: false, render: (d) => <TrendIcon trend={d.gradeTrend} /> },
-    { key: "orders", label: "Orders Today",
+    { key: "trend", label: t("kpi.trend"), sortable: false, render: (d) => <TrendIcon trend={d.gradeTrend} /> },
+    { key: "orders", label: t("overview.ordersToday"),
       headerRender: (router, pk) => (
         <button onClick={() => router.push(`/${pk}/orders`)} className="flex items-center gap-1 hover:text-primary transition-colors">
-          Orders Today <ArrowUpRight size={12} />
+          {t("overview.ordersToday")} <ArrowUpRight size={12} />
         </button>
       ),
       render: (d) => <span className="text-sm font-semibold">{d.todayOrders}</span>,
     },
-    { key: "cashCollected", label: "Cash Collected",
+    { key: "cashCollected", label: t("overview.cashCollected"),
       headerRender: (router, pk) => (
         <button onClick={() => router.push(`/${pk}/cash`)} className="flex items-center gap-1 hover:text-primary transition-colors">
-          Cash Collected <ArrowUpRight size={12} />
+          {t("overview.cashCollected")} <ArrowUpRight size={12} />
         </button>
       ),
-      render: (d) => <span className="text-sm">{typeof d.cashCollected === "number" ? `${d.cashCollected.toFixed(3)} KD` : "-"}</span>,
+      render: (d) => <span className="text-sm">{typeof d.cashCollected === "number" ? formatCurrency(d.cashCollected, locale) : "-"}</span>,
     },
-    { key: "cashPending", label: "Cash Pending", render: (d) => (
+    { key: "cashPending", label: t("platform.cashPending"), render: (d) => (
       <span className={cn("text-sm font-medium", (d.cashPending || 0) > 0 ? "text-red-500" : "text-green-600")}>
-        {typeof d.cashPending === "number" ? `${d.cashPending.toFixed(3)} KD` : "-"}
+        {typeof d.cashPending === "number" ? formatCurrency(d.cashPending, locale) : "-"}
       </span>
     )},
-    { key: "attendance", label: "Attendance", render: (d) => <AttendanceBadge status={d.attendance} /> },
+    { key: "attendance", label: t("table.attendance"), render: (d) => <AttendanceBadge status={d.attendance} /> },
   );
   return cols;
 }
 
-function defaultKpiCards(platformKey: string): KpiCardConfig[] {
+function useDefaultKpiCards(platformKey: string): KpiCardConfig[] {
+  const { t } = useI18n();
   return [
-    { title: "UTR", icon: TrendingUp, value: (s) => s.utr != null ? s.utr.toFixed(2) : "-", trend: () => "Units per Trip Rate" },
-    { title: "Active Drivers", icon: Users, value: (s) => s.totalDrivers || 0, trend: (s) => `${s.presentCount || 0} present, ${s.lateCount || 0} late, ${s.absentCount || 0} absent` },
-    { title: "Active Violations", icon: AlertTriangle, value: (s) => s.activeViolations || 0, highlight: (s) => (s.activeViolations || 0) > 0,
+    { title: t("overview.utr"), icon: TrendingUp, value: (s) => s.utr != null ? s.utr.toFixed(2) : "-", trend: () => t("platform.unitsPerTripRate") },
+    { title: t("overview.activeDrivers"), icon: Users, value: (s) => s.totalDrivers || 0, trend: (s) => `${s.presentCount || 0} ${t("platform.presentCount")}, ${s.lateCount || 0} ${t("platform.lateCount")}, ${s.absentCount || 0} ${t("platform.absentCount")}` },
+    { title: t("overview.activeViolations"), icon: AlertTriangle, value: (s) => s.activeViolations || 0, highlight: (s) => (s.activeViolations || 0) > 0,
       onClick: platformKey === "talabat" ? (router) => router.push(`/${platformKey}/violations`) : undefined },
   ];
 }
-
-// ─── Main component ─────────────────────────────────────────────────────────
 
 export default function PlatformOverviewPage(props: Props) {
   const {
@@ -175,6 +185,7 @@ export default function PlatformOverviewPage(props: Props) {
     searchable = false, paginated = false, kpiGridCols = 3,
   } = props;
 
+  const { t } = useI18n();
   const router = useRouter();
   const [companyFilter, setCompanyFilter] = useState("");
   const [driverSearch, setDriverSearch] = useState("");
@@ -195,8 +206,10 @@ export default function PlatformOverviewPage(props: Props) {
   const violations = data?.violations || [];
   const alerts = data?.alerts || [];
 
-  const cards = kpiCards || defaultKpiCards(platformKey);
-  const cols = columns || defaultColumns(platform);
+  const defaultCards = useDefaultKpiCards(platformKey);
+  const defaultCols = useDefaultColumns(platform);
+  const cards = kpiCards || defaultCards;
+  const cols = columns || defaultCols;
 
   function toggleSort(col: string) {
     if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -237,15 +250,15 @@ export default function PlatformOverviewPage(props: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">{platformLabel} Overview</h1>
-          <p className="text-sm text-secondary mt-1">Today&apos;s performance snapshot</p>
+          <h1 className="text-xl font-semibold">{platformLabel} {t("platform.overviewTitle")}</h1>
+          <p className="text-sm text-secondary mt-1">{t("overview.todaysSnapshot")}</p>
         </div>
         <select
           value={companyFilter}
           onChange={(e) => setCompanyFilter(e.target.value)}
           className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
         >
-          <option value="">All Companies</option>
+          <option value="">{t("companies.allCompanies")}</option>
           {companies.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
       </div>
@@ -276,11 +289,11 @@ export default function PlatformOverviewPage(props: Props) {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-semibold flex items-center gap-2">
                   <ShieldAlert size={16} className="text-red-500" />
-                  Today&apos;s Violations
+                  {t("platform.todaysViolations")}
                 </h2>
                 <button onClick={() => router.push(`/${platformKey}/violations`)}
                   className="text-xs text-primary hover:underline flex items-center gap-1">
-                  View All <ChevronRight size={12} />
+                  {t("overview.viewAll")} <DirectionalIcon kind="chevron-forward" size={12} />
                 </button>
               </div>
               <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -301,7 +314,7 @@ export default function PlatformOverviewPage(props: Props) {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-semibold flex items-center gap-2">
                   <AlertTriangle size={16} className="text-yellow-500" />
-                  Active Alerts
+                  {t("platform.activeAlerts")}
                 </h2>
               </div>
               <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -328,18 +341,19 @@ export default function PlatformOverviewPage(props: Props) {
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
           <h2 className="text-sm font-semibold flex items-center gap-2">
-            Driver Rankings
+            {t("overview.driverRankings")}
             <span className="text-xs font-normal text-secondary bg-gray-100 px-2 py-0.5 rounded-full">{filteredDrivers.length}</span>
           </h2>
           {searchable && (
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search drivers..."
+                dir="auto"
+                placeholder={t("kpi.searchDrivers")}
                 value={driverSearch}
                 onChange={(e) => setDriverSearch(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-48"
+                className="ps-8 pe-3 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-48"
               />
             </div>
           )}
@@ -350,7 +364,7 @@ export default function PlatformOverviewPage(props: Props) {
               <tr className="border-b border-gray-100 bg-gray-50/50">
                 {cols.map(({ key, label, sortable = true, headerRender }) => (
                   <th key={key}
-                    className={cn("text-left text-xs font-medium text-secondary px-5 py-3 whitespace-nowrap", sortable && "cursor-pointer hover:text-foreground")}
+                    className={cn("text-start text-xs font-medium text-secondary px-5 py-3 whitespace-nowrap", sortable && "cursor-pointer hover:text-foreground")}
                     onClick={() => sortable && toggleSort(key)}
                   >
                     {headerRender ? headerRender(router, platformKey) : (
@@ -377,7 +391,7 @@ export default function PlatformOverviewPage(props: Props) {
               {filteredDrivers.length === 0 && (
                 <tr>
                   <td colSpan={cols.length} className="px-5 py-8 text-center text-sm text-secondary">
-                    {searchable && driverSearch ? "No drivers match your search" : "No driver data for today"}
+                    {searchable && driverSearch ? t("overview.noDriversMatch") : t("overview.noDriverDataToday")}
                   </td>
                 </tr>
               )}
@@ -388,8 +402,8 @@ export default function PlatformOverviewPage(props: Props) {
           <div className="px-5 py-3 border-t border-gray-100 text-center">
             <button onClick={() => setShowAll(!showAll)}
               className="text-sm text-primary hover:underline flex items-center gap-1 mx-auto">
-              {showAll ? "Show Less" : `Show All ${filteredDrivers.length} Drivers`}
-              <ChevronRight size={12} className={cn("transition-transform", showAll && "rotate-90")} />
+              {showAll ? t("actions.showLess") : t("platform.showAllDrivers").replace("{n}", String(filteredDrivers.length))}
+              <DirectionalIcon kind="chevron-forward" size={12} className={cn("transition-transform", showAll && "rotate-90")} />
             </button>
           </div>
         )}

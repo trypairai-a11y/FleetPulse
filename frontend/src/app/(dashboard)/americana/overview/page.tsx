@@ -6,6 +6,8 @@ import { DollarSign, ShoppingBag, Users, AlertTriangle } from "lucide-react";
 import RevenueByStoreTable from "@/components/americana/RevenueByStoreTable";
 import ChainMixPanel from "@/components/americana/ChainMixPanel";
 import HeadcountGapTable from "@/components/americana/HeadcountGapTable";
+import { useI18n } from "@/i18n/I18nProvider";
+import { formatCurrency, formatNumber } from "@/i18n/format";
 
 function currentMonth(): string {
   const d = new Date();
@@ -13,6 +15,7 @@ function currentMonth(): string {
 }
 
 export default function AmericanaOverviewPage() {
+  const { t, locale } = useI18n();
   const [month, setMonth] = useState(currentMonth());
   const { data, loading } = useApiGet<any>(`/api/americana/overview?month=${month}`);
 
@@ -32,7 +35,7 @@ export default function AmericanaOverviewPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-americana" />
-          <h1 className="text-xl font-semibold">Americana — Overview</h1>
+          <h1 className="text-xl font-semibold">{t("americana.overviewTitle")}</h1>
         </div>
         <div className="flex items-center gap-2">
           <input
@@ -46,7 +49,7 @@ export default function AmericanaOverviewPage() {
             className="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
             target="_blank" rel="noreferrer"
           >
-            Export for accounting
+            {t("americana.exportForAccounting")}
           </a>
         </div>
       </div>
@@ -54,16 +57,21 @@ export default function AmericanaOverviewPage() {
       {missingRate && (
         <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-sm text-amber-800">
           <AlertTriangle size={16} className="mt-0.5 shrink-0" />
-          <span>Some stores have orders but no applicable chain rate. Visit <a className="underline font-medium" href="/americana/settings/chain-rates">Settings → Chain rates</a> to add them.</span>
+          <span>
+            {t("americana.missingRateWarning")}{" "}
+            <a className="underline font-medium" href="/americana/settings/chain-rates">
+              {t("americana.settingsLink")} → {t("americana.chainRates")}
+            </a>
+          </span>
         </div>
       )}
 
       {/* KPI row */}
       <div className="grid grid-cols-4 gap-4">
-        <StatCard title="Revenue MTD" value={totalRevenue > 0 ? `${totalRevenue.toFixed(3)} KD` : "—"} icon={DollarSign} />
-        <StatCard title="Orders MTD" value={totalOrders.toLocaleString()} icon={ShoppingBag} />
-        <StatCard title="Active drivers" value={totalDrivers} icon={Users} />
-        <StatCard title="Stores needing drivers" value={criticalGap} icon={AlertTriangle} />
+        <StatCard title={t("americana.revenueMtd")} value={totalRevenue > 0 ? formatCurrency(totalRevenue, locale) : "—"} icon={DollarSign} />
+        <StatCard title={t("americana.ordersMtd")} value={formatNumber(totalOrders, locale)} icon={ShoppingBag} />
+        <StatCard title={t("americana.activeDrivers")} value={totalDrivers} icon={Users} />
+        <StatCard title={t("americana.storesNeedingDrivers")} value={criticalGap} icon={AlertTriangle} />
       </div>
 
       {/* Main grid: Revenue (60%) + Chain mix (40%) */}

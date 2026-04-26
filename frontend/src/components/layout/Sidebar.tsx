@@ -13,7 +13,7 @@ import {
   ChevronDown, PanelLeftClose, PanelLeft,
   ClipboardList, DollarSign, Briefcase,
   ShieldAlert, BarChart3, Target, Gauge, Building2, Lightbulb,
-  Activity, AlertTriangle, Ban, Calendar, Trophy, Wallet, PieChart, Compass,
+  Activity, AlertTriangle, Ban, Calendar, Trophy, Wallet, PieChart, Compass, Sparkles,
 } from "lucide-react";
 import { DirectionalIcon } from "@/i18n/directionalIcon";
 
@@ -92,6 +92,7 @@ const PLATFORMS = [
 
 const GLOBAL_NAV = [
   { i18n: "nav.overview", path: "/overview", icon: LayoutDashboard },
+  { i18n: "nav.darbAi", path: "/copilot", icon: Sparkles },
   { i18n: "nav.companies", path: "/companies", icon: Building2 },
   { i18n: "nav.kpis", path: "/kpis", icon: Target },
   { i18n: "nav.analytics", path: "/analytics", icon: BarChart3 },

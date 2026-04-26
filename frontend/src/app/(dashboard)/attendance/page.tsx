@@ -6,6 +6,8 @@ import PlatformBadge from "@/components/shared/PlatformBadge";
 import { cn } from "@/lib/cn";
 import { CalendarCheck, Clock, UserX, FileText } from "lucide-react";
 import InsightBanner from "@/components/shared/InsightBanner";
+import { useI18n } from "@/i18n/I18nProvider";
+import { formatDate, formatTime, formatNumber } from "@/i18n/format";
 
 type Tab = "daily" | "monthly" | "leaves";
 
@@ -18,8 +20,9 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function AttendancePage() {
+  const { t, locale } = useI18n();
   const [tab, setTab] = useState<Tab>("daily");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(new Date().toLocaleDateString("en-CA"));
   const [platform, setPlatform] = useState("");
 
   const { data: summary } = useApiGet<any>("/api/attendance/summary");
@@ -31,9 +34,30 @@ export default function AttendancePage() {
   const attendanceList = records?.data || [];
   const leaveList = leaves?.data || [];
 
+  const tabLabels: Record<Tab, string> = {
+    daily: t("attendancePage.dailyLog"),
+    monthly: t("attendancePage.monthlyLog"),
+    leaves: t("attendancePage.leaveRequests"),
+  };
+
+  const statusLabel = (status: string): string => {
+    const key = status?.toUpperCase();
+    switch (key) {
+      case "PRESENT": return t("status.present");
+      case "LATE": return t("status.late");
+      case "ABSENT": return t("status.absent");
+      case "EARLY_LEAVE": return t("attendancePage.leave");
+      case "EXCUSED": return t("labels.approved");
+      case "PENDING": return t("status.pending");
+      case "APPROVED": return t("labels.approved");
+      case "REJECTED": return t("labels.rejected");
+      default: return status;
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl">
-      <h1 className="text-xl font-semibold">Attendance</h1>
+      <h1 className="text-xl font-semibold">{t("table.attendance")}</h1>
 
       {/* AI Insights */}
       <InsightBanner context="attendance" maxInsights={2} />
@@ -41,27 +65,27 @@ export default function AttendancePage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-4">
         <StatCard
-          title="Present Today"
-          value={`${summary?.present || 0} (${summary?.presentPercentage || 0}%)`}
+          title={t("attendancePage.presentToday")}
+          value={`${formatNumber(summary?.present || 0, locale)} (${summary?.presentPercentage || 0}%)`}
           icon={CalendarCheck}
         />
-        <StatCard title="Late Today" value={summary?.late || 0} icon={Clock} />
-        <StatCard title="Absent Today" value={summary?.absent || 0} icon={UserX} highlight={(summary?.absent || 0) > 5} />
-        <StatCard title="Pending Leaves" value={summary?.pendingLeaves || 0} icon={FileText} />
+        <StatCard title={t("attendancePage.lateToday")} value={summary?.late || 0} icon={Clock} />
+        <StatCard title={t("attendancePage.absentToday")} value={summary?.absent || 0} icon={UserX} highlight={(summary?.absent || 0) > 5} />
+        <StatCard title={t("attendancePage.pendingLeaves")} value={summary?.pendingLeaves || 0} icon={FileText} />
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-        {(["daily", "monthly", "leaves"] as Tab[]).map((t) => (
+        {(["daily", "monthly", "leaves"] as Tab[]).map((tabKey) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
             className={cn(
-              "px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize",
-              tab === t ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              tab === tabKey ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
             )}
           >
-            {t === "leaves" ? "Leave Requests" : `${t} Log`}
+            {tabLabels[tabKey]}
           </button>
         ))}
       </div>
@@ -81,7 +105,7 @@ export default function AttendancePage() {
               onChange={(e) => setPlatform(e.target.value)}
               className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
-              <option value="">All Platforms</option>
+              <option value="">{t("attendancePage.allPlatforms")}</option>
               <option value="KEETA">Keeta</option>
               <option value="TALABAT">Talabat</option>
               <option value="DELIVEROO">Deliveroo</option>
@@ -94,19 +118,19 @@ export default function AttendancePage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-50">
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Platform</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Clock In</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Clock Out</th>
-                  <th className="text-left text-xs font-medium text-secondary px-5 py-3">Late (min)</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.driver")}</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.platform")}</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.status")}</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("attendancePage.clockIn")}</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("attendancePage.clockOut")}</th>
+                  <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("attendancePage.lateMin")}</th>
                 </tr>
               </thead>
               <tbody>
                 {attendanceList.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-5 py-12 text-center text-sm text-secondary">
-                      No attendance records for this date
+                      {t("attendancePage.noAttendanceRecords")}
                     </td>
                   </tr>
                 ) : (
@@ -118,17 +142,17 @@ export default function AttendancePage() {
                       </td>
                       <td className="px-5 py-3">
                         <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", STATUS_COLORS[record.status])}>
-                          {record.status}
+                          {statusLabel(record.status)}
                         </span>
                       </td>
                       <td className="px-5 py-3 text-sm text-secondary">
                         {record.shift?.actualStart
-                          ? new Date(record.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                          ? formatTime(record.shift.actualStart, locale)
                           : "-"}
                       </td>
                       <td className="px-5 py-3 text-sm text-secondary">
                         {record.shift?.actualEnd
-                          ? new Date(record.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                          ? formatTime(record.shift.actualEnd, locale)
                           : "-"}
                       </td>
                       <td className="px-5 py-3 text-sm text-secondary">{record.lateMinutes || "-"}</td>
@@ -143,7 +167,7 @@ export default function AttendancePage() {
 
       {tab === "monthly" && (
         <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-          <p className="text-sm text-secondary">Monthly calendar heatmap - populated with data in Prompt 5</p>
+          <p className="text-sm text-secondary">{t("attendancePage.monthlyHeatmapPlaceholder")}</p>
         </div>
       )}
 
@@ -152,19 +176,19 @@ export default function AttendancePage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-50">
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Type</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Start</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">End</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Actions</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.driver")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.type")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.start")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.end")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.status")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.actions")}</th>
               </tr>
             </thead>
             <tbody>
               {leaveList.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center text-sm text-secondary">
-                    No leave requests
+                    {t("attendancePage.noLeaveRequests")}
                   </td>
                 </tr>
               ) : (
@@ -173,10 +197,10 @@ export default function AttendancePage() {
                     <td className="px-5 py-3 text-sm font-medium">{leave.driver?.name}</td>
                     <td className="px-5 py-3 text-sm text-secondary">{leave.type}</td>
                     <td className="px-5 py-3 text-sm text-secondary">
-                      {new Date(leave.startDate).toLocaleDateString()}
+                      {formatDate(leave.startDate, locale)}
                     </td>
                     <td className="px-5 py-3 text-sm text-secondary">
-                      {new Date(leave.endDate).toLocaleDateString()}
+                      {formatDate(leave.endDate, locale)}
                     </td>
                     <td className="px-5 py-3">
                       <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
@@ -184,17 +208,17 @@ export default function AttendancePage() {
                         "bg-green-100 text-green-700": leave.status === "APPROVED",
                         "bg-red-100 text-red-700": leave.status === "REJECTED",
                       })}>
-                        {leave.status}
+                        {statusLabel(leave.status)}
                       </span>
                     </td>
                     <td className="px-5 py-3">
                       {leave.status === "PENDING" && (
                         <div className="flex gap-2">
                           <button className="px-3 py-1 text-xs font-medium bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors">
-                            Approve
+                            {t("actions.approve")}
                           </button>
                           <button className="px-3 py-1 text-xs font-medium bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors">
-                            Reject
+                            {t("actions.reject")}
                           </button>
                         </div>
                       )}

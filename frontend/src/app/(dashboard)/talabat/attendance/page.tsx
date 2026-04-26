@@ -7,19 +7,13 @@ import StatCard from "@/components/shared/StatCard";
 import TalabatOnShiftNow from "@/components/platform/TalabatOnShiftNow";
 import { cn } from "@/lib/cn";
 import {
-  CalendarCheck, Clock, UserX, FileText, ShieldAlert,
+  CalendarCheck, Clock, UserX, ShieldAlert,
   Camera, MapPin, CheckCircle2, XCircle, AlertTriangle,
 } from "lucide-react";
+import { useI18n } from "@/i18n/I18nProvider";
+import { formatDate, formatTime } from "@/i18n/format";
 
 type Tab = "daily" | "monthly" | "leaves";
-
-const FACE_FAIL_REASONS: Record<string, string> = {
-  HELMET: "Helmet covering face",
-  MASK: "Mask detected",
-  SUNGLASSES: "Sunglasses on",
-  WRONG_PERSON: "Identity mismatch",
-  LOW_QUALITY: "Image too dark / blurry",
-};
 
 function parseDriverDisplay(raw: string) {
   const m = raw.match(/^(.+?)\s+(\d+[A-Za-z]?)\s*[-–—]\s*(.+)$/);
@@ -32,22 +26,45 @@ const TALABAT_ZONES = [
 ];
 
 function YesNoBadge({ value, falseLabel }: { value: boolean; falseLabel?: string }) {
+  const { t } = useI18n();
   return value ? (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-600">
-      <CheckCircle2 size={11} /> Yes
+      <CheckCircle2 size={11} /> {t("talabatAttendance.yes")}
     </span>
   ) : (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-600">
-      <XCircle size={11} /> {falseLabel || "No"}
+      <XCircle size={11} /> {falseLabel || t("talabatAttendance.no")}
     </span>
   );
 }
 
 export default function TalabatAttendancePage() {
+  const { t, locale } = useI18n();
   const [tab, setTab] = useState<Tab>("daily");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(new Date().toLocaleDateString("en-CA"));
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
+
+  const FACE_FAIL_REASONS: Record<string, string> = {
+    HELMET: t("talabatAttendance.faceReasonHelmet"),
+    MASK: t("talabatAttendance.faceReasonMask"),
+    SUNGLASSES: t("talabatAttendance.faceReasonSunglasses"),
+    WRONG_PERSON: t("talabatAttendance.faceReasonWrongPerson"),
+    LOW_QUALITY: t("talabatAttendance.faceReasonLowQuality"),
+  };
+
+  const statusLabel = (s: string): string => {
+    switch (s) {
+      case "PRESENT": return t("status.present");
+      case "LATE": return t("status.late");
+      case "ABSENT": return t("status.absent");
+      case "EXCUSED": return t("keetaPage.excused");
+      case "PENDING": return t("status.pending");
+      case "APPROVED": return t("labels.approved");
+      case "REJECTED": return t("labels.rejected");
+      default: return s;
+    }
+  };
 
   const { data: companiesData } = useApiGet<any>("/api/companies?platform=TALABAT");
   const companies = companiesData?.data || [];
@@ -74,7 +91,6 @@ export default function TalabatAttendancePage() {
   const { data: leaves } = useApiGet<any>("/api/leave-requests?platform=TALABAT&limit=50");
 
   const rawAttendance = records?.data || [];
-  // Mock face verification + mismatch data for demo
   const attendanceList = rawAttendance.map((r: any, i: number) => ({
     ...r,
     faceVerified: r.faceVerified ?? (i % 7 !== 0),
@@ -85,7 +101,6 @@ export default function TalabatAttendancePage() {
   const leaveList = leaves?.data || [];
   const monthlyList = monthly?.data || [];
 
-  // Flag: clocked in from room (GPS zone mismatch with assigned zone)
   const flaggedCount = attendanceList.filter((r: any) => r.gpsZoneMismatch).length;
 
   return (
@@ -93,8 +108,8 @@ export default function TalabatAttendancePage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="w-3 h-3 rounded-full bg-talabat" />
-        <h1 className="text-xl font-semibold">Talabat - Attendance</h1>
-        <span className="text-sm text-secondary">Wahoo International</span>
+        <h1 className="text-xl font-semibold">{t("talabatAttendance.pageTitle")}</h1>
+        <span className="text-sm text-secondary">{t("talabat.wahooIntl")}</span>
       </div>
 
       {/* R7 · On shift now, grouped by zone */}
@@ -103,19 +118,19 @@ export default function TalabatAttendancePage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-4 gap-4">
         <StatCard
-          title="Present Today"
+          title={t("attendancePage.presentToday")}
           value={`${summary?.present || 0} (${summary?.presentPercentage || 0}%)`}
           icon={CalendarCheck}
         />
-        <StatCard title="Late Today" value={summary?.late || 0} icon={Clock} />
+        <StatCard title={t("attendancePage.lateToday")} value={summary?.late || 0} icon={Clock} />
         <StatCard
-          title="Absent Today"
+          title={t("attendancePage.absentToday")}
           value={summary?.absent || 0}
           icon={UserX}
           highlight={(summary?.absent || 0) > 5}
         />
         <StatCard
-          title="GPS Zone Flags"
+          title={t("talabatAttendance.gpsZoneFlags")}
           value={flaggedCount}
           icon={ShieldAlert}
           highlight={flaggedCount > 0}
@@ -124,16 +139,16 @@ export default function TalabatAttendancePage() {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-        {(["daily", "monthly", "leaves"] as Tab[]).map((t) => (
+        {(["daily", "monthly", "leaves"] as Tab[]).map((tabKey) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
             className={cn(
-              "px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize",
-              tab === t ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              tab === tabKey ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
             )}
           >
-            {t === "leaves" ? "Leave Requests" : `${t === "daily" ? "Daily Log" : "Monthly Summary"}`}
+            {tabKey === "daily" ? t("talabatAttendance.dailyLog") : tabKey === "monthly" ? t("talabatAttendance.monthlySummary") : t("talabatAttendance.leaveRequests")}
           </button>
         ))}
       </div>
@@ -150,17 +165,14 @@ export default function TalabatAttendancePage() {
             />
             <FilterBar
               filters={[
-                { key: "company", type: "select", label: "All Companies", options: companies.map((c: any) => ({ value: c.id, label: c.name })) },
-                { key: "search", type: "search", label: "Search", placeholder: "Search driver..." },
+                { key: "company", type: "select", label: t("talabatAttendance.allCompanies"), options: companies.map((c: any) => ({ value: c.id, label: c.name })) },
+                { key: "search", type: "search", label: t("common.search"), placeholder: t("talabatAttendance.searchDriver") },
+                { key: "zone", type: "select", label: t("talabatAttendance.allZones"), options: TALABAT_ZONES.map(z => ({ value: z, label: z })) },
                 {
-                  key: "zone", type: "select", label: "All Zones",
-                  options: TALABAT_ZONES.map(z => ({ value: z, label: z })),
-                },
-                {
-                  key: "status", type: "select", label: "All Statuses", options: [
-                    { value: "PRESENT", label: "Present" },
-                    { value: "LATE", label: "Late" },
-                    { value: "ABSENT", label: "Absent" },
+                  key: "status", type: "select", label: t("talabatAttendance.allStatuses"), options: [
+                    { value: "PRESENT", label: t("status.present") },
+                    { value: "LATE", label: t("status.late") },
+                    { value: "ABSENT", label: t("status.absent") },
                   ],
                 },
               ]}
@@ -170,7 +182,7 @@ export default function TalabatAttendancePage() {
             {flaggedCount > 0 && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
                 <AlertTriangle size={13} />
-                {flaggedCount} driver{flaggedCount > 1 ? "s" : ""} logged from wrong zone
+                {flaggedCount} {flaggedCount > 1 ? t("talabatAttendance.wrongZonePlural") : t("talabatAttendance.wrongZoneSingle")}
               </span>
             )}
           </div>
@@ -180,22 +192,22 @@ export default function TalabatAttendancePage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-50">
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Batch</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Company</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Clock In</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Clock-in Location</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Face</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Equipment Photo</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">GPS Zone Match</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.driver")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("platform.batch")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("talabat.companyHeader")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.status")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("attendancePage.clockIn")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("talabatAttendance.clockInLocation")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("keetaPage.face")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("talabatAttendance.equipmentPhoto")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("talabatAttendance.gpsZoneMatch")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {attendanceList.length === 0 ? (
                     <tr>
                       <td colSpan={9} className="px-5 py-12 text-center text-sm text-secondary">
-                        No attendance records for this date
+                        {t("attendancePage.noAttendanceRecords")}
                       </td>
                     </tr>
                   ) : (
@@ -225,13 +237,11 @@ export default function TalabatAttendancePage() {
                             "bg-red-100 text-red-700": record.status === "ABSENT",
                             "bg-gray-100 text-gray-600": record.status === "EXCUSED",
                           })}>
-                            {record.status}
+                            {statusLabel(record.status)}
                           </span>
                         </td>
                         <td className="px-5 py-3 text-sm text-secondary font-mono">
-                          {record.shift?.actualStart
-                            ? new Date(record.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                            : "-"}
+                          {record.shift?.actualStart ? formatTime(record.shift.actualStart, locale) : "-"}
                         </td>
                         <td className="px-5 py-3">
                           <div className="flex items-center gap-1.5 text-sm text-secondary">
@@ -244,7 +254,7 @@ export default function TalabatAttendancePage() {
                         <td className="px-5 py-3">
                           {record.faceVerified !== undefined ? (
                             <div>
-                              <YesNoBadge value={record.faceVerified} falseLabel="Fail" />
+                              <YesNoBadge value={record.faceVerified} falseLabel={t("talabatAttendance.fail")} />
                               {!record.faceVerified && record.faceFailReason && (
                                 <p className="text-[11px] text-red-500 mt-1">
                                   {FACE_FAIL_REASONS[record.faceFailReason] || record.faceFailReason}
@@ -276,7 +286,7 @@ export default function TalabatAttendancePage() {
                           )}
                         </td>
                         <td className="px-5 py-3">
-                          <YesNoBadge value={!record.gpsZoneMismatch} falseLabel="Fail" />
+                          <YesNoBadge value={!record.gpsZoneMismatch} falseLabel={t("talabatAttendance.fail")} />
                         </td>
                       </tr>
                     ))
@@ -304,28 +314,28 @@ export default function TalabatAttendancePage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-50">
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3 sticky left-0 bg-white">Driver</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Batch</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Company</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Days Present</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Days Absent</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Late Count</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Face Fails</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Zone Flags</th>
-                    <th className="text-left text-xs font-medium text-secondary px-5 py-3">Total Hours</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3 sticky start-0 bg-white">{t("table.driver")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("platform.batch")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("talabat.companyHeader")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("talabatAttendance.daysPresent")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("talabatAttendance.daysAbsent")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("talabatAttendance.lateCount")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("talabatAttendance.faceFails")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("talabatAttendance.zoneFlags")}</th>
+                    <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("talabatAttendance.totalHours")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {monthlyList.length === 0 ? (
                     <tr>
                       <td colSpan={9} className="px-5 py-12 text-center text-sm text-secondary">
-                        No monthly data available
+                        {t("talabatAttendance.noMonthlyData")}
                       </td>
                     </tr>
                   ) : (
                     monthlyList.map((row: any) => (
                       <tr key={row.driverId} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
-                        <td className="px-5 py-3 text-sm font-medium sticky left-0 bg-white">{parseDriverDisplay(row.driverName || "").name}</td>
+                        <td className="px-5 py-3 text-sm font-medium sticky start-0 bg-white">{parseDriverDisplay(row.driverName || "").name}</td>
                         <td className="px-5 py-3 text-sm text-secondary">{parseDriverDisplay(row.driverName || "").batch}</td>
                         <td className="px-5 py-3 text-sm text-secondary">{parseDriverDisplay(row.driverName || "").company}</td>
                         <td className="px-5 py-3 text-sm text-green-600 font-medium">{row.present}</td>
@@ -358,19 +368,19 @@ export default function TalabatAttendancePage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-50">
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Driver</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Type</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Start</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">End</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Status</th>
-                <th className="text-left text-xs font-medium text-secondary px-5 py-3">Actions</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.driver")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.type")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.start")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.end")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.status")}</th>
+                <th className="text-start text-xs font-medium text-secondary px-5 py-3">{t("table.actions")}</th>
               </tr>
             </thead>
             <tbody>
               {leaveList.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center text-sm text-secondary">
-                    No leave requests
+                    {t("attendancePage.noLeaveRequests")}
                   </td>
                 </tr>
               ) : (
@@ -378,25 +388,25 @@ export default function TalabatAttendancePage() {
                   <tr key={leave.id} className="border-b border-gray-50 last:border-0">
                     <td className="px-5 py-3 text-sm font-medium">{leave.driver?.name}</td>
                     <td className="px-5 py-3 text-sm text-secondary">{leave.type}</td>
-                    <td className="px-5 py-3 text-sm text-secondary">{new Date(leave.startDate).toLocaleDateString()}</td>
-                    <td className="px-5 py-3 text-sm text-secondary">{new Date(leave.endDate).toLocaleDateString()}</td>
+                    <td className="px-5 py-3 text-sm text-secondary">{formatDate(leave.startDate, locale)}</td>
+                    <td className="px-5 py-3 text-sm text-secondary">{formatDate(leave.endDate, locale)}</td>
                     <td className="px-5 py-3">
                       <span className={cn("px-2 py-0.5 rounded-md text-xs font-medium", {
                         "bg-yellow-100 text-yellow-700": leave.status === "PENDING",
                         "bg-green-100 text-green-700": leave.status === "APPROVED",
                         "bg-red-100 text-red-700": leave.status === "REJECTED",
                       })}>
-                        {leave.status}
+                        {statusLabel(leave.status)}
                       </span>
                     </td>
                     <td className="px-5 py-3">
                       {leave.status === "PENDING" && (
                         <div className="flex gap-2">
                           <button className="px-3 py-1 text-xs font-medium bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors">
-                            Approve
+                            {t("actions.approve")}
                           </button>
                           <button className="px-3 py-1 text-xs font-medium bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors">
-                            Reject
+                            {t("actions.reject")}
                           </button>
                         </div>
                       )}
@@ -413,17 +423,17 @@ export default function TalabatAttendancePage() {
       <SlidePanel
         open={!!selected}
         onClose={() => setSelected(null)}
-        title={selected?.driver?.name || "Attendance Detail"}
+        title={selected?.driver?.name || t("talabatAttendance.attendanceDetail")}
         subtitle={`Talabat / ${date}`}
       >
         {selected && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {[
-                ["Status", selected.status],
-                ["Clock In", selected.shift?.actualStart ? new Date(selected.shift.actualStart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
-                ["Clock Out", selected.shift?.actualEnd ? new Date(selected.shift.actualEnd).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-"],
-                ["Late (min)", selected.lateMinutes || "0"],
+                [t("table.status"), statusLabel(selected.status)],
+                [t("attendancePage.clockIn"), selected.shift?.actualStart ? formatTime(selected.shift.actualStart, locale) : "-"],
+                [t("attendancePage.clockOut"), selected.shift?.actualEnd ? formatTime(selected.shift.actualEnd, locale) : "-"],
+                [t("attendancePage.lateMin"), selected.lateMinutes || "0"],
               ].map(([label, val]) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] text-secondary uppercase font-medium">{label}</p>
@@ -433,14 +443,14 @@ export default function TalabatAttendancePage() {
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide">Verification Checks</h3>
+              <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide">{t("talabatAttendance.verificationChecks")}</h3>
 
               <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                  <ShieldAlert size={15} className="text-secondary" /> Face Verification
+                  <ShieldAlert size={15} className="text-secondary" /> {t("talabatAttendance.faceVerification")}
                 </div>
-                <div className="text-right">
-                  <YesNoBadge value={selected.faceVerified} falseLabel="Failed" />
+                <div className="text-end">
+                  <YesNoBadge value={selected.faceVerified} falseLabel={t("talabatAttendance.failed")} />
                   {!selected.faceVerified && selected.faceFailReason && (
                     <p className="text-[11px] text-red-500 mt-1">{FACE_FAIL_REASONS[selected.faceFailReason] || selected.faceFailReason}</p>
                   )}
@@ -449,20 +459,20 @@ export default function TalabatAttendancePage() {
 
               <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                  <Camera size={15} className="text-secondary" /> Equipment Photo
+                  <Camera size={15} className="text-secondary" /> {t("talabatAttendance.equipmentPhoto")}
                 </div>
                 <YesNoBadge value={selected.equipmentPhotoUploaded} />
               </div>
 
               <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                  <MapPin size={15} className="text-secondary" /> GPS Zone Match
+                  <MapPin size={15} className="text-secondary" /> {t("talabatAttendance.gpsZoneMatch")}
                 </div>
-                <div className="text-right">
-                  <YesNoBadge value={!selected.gpsZoneMismatch} falseLabel="Fail" />
+                <div className="text-end">
+                  <YesNoBadge value={!selected.gpsZoneMismatch} falseLabel={t("talabatAttendance.fail")} />
                   {selected.gpsZoneMismatch && (
                     <p className="text-[11px] text-amber-600 mt-1">
-                      Logged from: {selected.clockInLocation || "Unknown"} - Assigned: {selected.assignedZone || "-"}
+                      {t("talabatAttendance.loggedFrom")}: {selected.clockInLocation || t("talabatAttendance.unknown")} — {t("talabatAttendance.assigned")}: {selected.assignedZone || "-"}
                     </p>
                   )}
                 </div>
@@ -471,10 +481,10 @@ export default function TalabatAttendancePage() {
 
             {selected.equipmentPhotoUrl && (
               <div>
-                <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide mb-2">Equipment Photo</h3>
+                <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide mb-2">{t("talabatAttendance.equipmentPhoto")}</h3>
                 <img
                   src={selected.equipmentPhotoUrl}
-                  alt="Equipment check"
+                  alt={t("talabatAttendance.equipmentPhoto")}
                   className="w-full rounded-xl object-cover max-h-48"
                 />
               </div>
