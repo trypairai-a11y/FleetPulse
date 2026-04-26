@@ -1,12 +1,18 @@
 "use client";
+import Link from "next/link";
 import { useApiGet } from "@/hooks/useApi";
 import StatCard from "@/components/shared/StatCard";
 import PlatformBadge from "@/components/shared/PlatformBadge";
-import { Users, Activity, DollarSign, AlertTriangle, CheckCircle, Sparkles, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import {
+  Users, CheckCircle2, DollarSign, AlertTriangle, CheckCircle,
+  Sparkles, ChevronDown, ChevronUp, RefreshCw, ArrowRight, TrendingUp, TrendingDown, Minus,
+} from "lucide-react";
 import InsightBanner from "@/components/shared/InsightBanner";
 import { cn } from "@/lib/cn";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import api from "@/lib/api";
+import { useI18n } from "@/i18n/I18nProvider";
+import { formatCurrency, formatDate, formatTime } from "@/i18n/format";
 
 interface Alert {
   id: string;
@@ -25,15 +31,34 @@ const SEVERITY_DOT: Record<string, string> = {
   MEDIUM: "bg-yellow-500",
   LOW: "bg-gray-400",
 };
+const SEVERITY_RANK: Record<string, number> = { CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
+
+function todayISO() {
+  return new Date().toLocaleDateString("en-CA");
+}
 
 export default function OverviewPage() {
+  const { t, locale } = useI18n();
   const [briefingOpen, setBriefingOpen] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const { data: alertsData } = useApiGet<{ data: Alert[]; pagination: any }>("/api/alerts?status=ACTIVE&limit=20");
+  const [showAllAlerts, setShowAllAlerts] = useState(false);
+
+  const todayStr = todayISO();
+  const ydayStr = useMemo(() => {
+    const d = new Date(); d.setDate(d.getDate() - 1);
+    return d.toLocaleDateString("en-CA");
+  }, []);
+
+  const { data: alertsData } = useApiGet<{ data: Alert[]; pagination: any }>("/api/alerts?status=ACTIVE&limit=50");
   const { data: driversData } = useApiGet<{ pagination: { total: number } }>("/api/drivers?limit=1");
-  const { data: summaryData } = useApiGet<any>("/api/attendance/summary");
   const { data: digest, refetch: refetchDigest } = useApiGet<any>("/api/ai/digest");
-  const { data: cashData } = useApiGet<any>("/api/cash/ledger?month=" + new Date().toISOString().slice(0, 7) + "&limit=100");
+  const { data: cashData } = useApiGet<any>("/api/cash?status=PENDING&limit=500");
+  const { data: shiftsCompleted } = useApiGet<{ pagination: { total: number } }>(
+    `/api/shifts?status=COMPLETED&dateFrom=${todayStr}&dateTo=${todayStr}&limit=1`,
+  );
+  const { data: ordersToday } = useApiGet<any>(`/api/orders/summary?dateFrom=${todayStr}&dateTo=${todayStr}`);
+  const { data: ordersYesterday } = useApiGet<any>(`/api/orders/summary?dateFrom=${ydayStr}&dateTo=${ydayStr}`);
+  const { data: attendanceSummary } = useApiGet<any>("/api/attendance/summary");
 
   const handleRefreshDigest = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -50,10 +75,34 @@ export default function OverviewPage() {
 
   const alerts = alertsData?.data || [];
   const totalDrivers = driversData?.pagination?.total || 0;
-  const pendingCash = (cashData?.data || []).reduce((s: number, r: any) => s + Number(r.closingBalance || 0), 0);
+  const completedToday = shiftsCompleted?.pagination?.total || 0;
+  const pendingCash = (cashData?.data || []).reduce((s: number, r: any) => s + Number(r.pendingDues || 0), 0);
+
+  const todayOrderCount = Number(ordersToday?.totalOrders ?? ordersToday?.total ?? 0);
+  const ydayOrderCount = Number(ordersYesterday?.totalOrders ?? ordersYesterday?.total ?? 0);
+  const dodPct = ydayOrderCount > 0 ? Math.round(((todayOrderCount - ydayOrderCount) / ydayOrderCount) * 100) : null;
+
+  const presentRate = useMemo(() => {
+    const present = attendanceSummary?.present ?? 0;
+    const total = (attendanceSummary?.present ?? 0) + (attendanceSummary?.late ?? 0) + (attendanceSummary?.absent ?? 0);
+    return total > 0 ? Math.round((present / total) * 100) : null;
+  }, [attendanceSummary]);
+
+  const sortedAlerts = useMemo(() => {
+    return [...alerts].sort((a, b) => (SEVERITY_RANK[b.severity] ?? 0) - (SEVERITY_RANK[a.severity] ?? 0));
+  }, [alerts]);
+  const visibleAlerts = showAllAlerts ? sortedAlerts : sortedAlerts.slice(0, 5);
+
+  const headline = useMemo(() => {
+    if (alerts.length === 0) return "Quiet morning. All systems green.";
+    const critical = alerts.filter((a) => a.severity === "CRITICAL").length;
+    if (critical > 0) return `${critical} critical alert${critical > 1 ? "s" : ""} need your attention.`;
+    if (alerts.length >= 10) return `Active morning — ${alerts.length} alerts to triage.`;
+    return `Steady morning. ${alerts.length} alert${alerts.length > 1 ? "s" : ""} open.`;
+  }, [alerts]);
 
   return (
-    <div className="space-y-8 max-w-6xl">
+    <div className="space-y-6 max-w-6xl">
       {/* Morning Briefing */}
       {digest && (
         <div className="bg-gradient-to-r from-primary/5 to-blue-50 rounded-2xl p-5 border border-primary/10">
@@ -63,40 +112,54 @@ export default function OverviewPage() {
           >
             <div className="flex items-center gap-2">
               <Sparkles size={18} className="text-primary" />
-              <span className="text-sm font-semibold text-foreground">Morning Briefing</span>
+              <span className="text-sm font-semibold text-foreground">{t("overview.morningBriefing")}</span>
               <span className="text-[10px] text-secondary">
-                {digest.date ? new Date(digest.date).toLocaleDateString() : "Today"}
+                {digest.date ? formatDate(digest.date, locale) : t("labels.today")}
               </span>
               <button
                 onClick={handleRefreshDigest}
                 disabled={refreshing}
-                className="ml-1 p-1 rounded-lg hover:bg-primary/10 transition-colors disabled:opacity-50"
-                title="Regenerate digest"
+                className="ms-1 p-1 rounded-lg hover:bg-primary/10 transition-colors disabled:opacity-50"
+                title={t("overview.regenerateDigest")}
+                aria-label={t("overview.regenerateDigest")}
               >
                 <RefreshCw size={13} className={cn("text-secondary", refreshing && "animate-spin")} />
               </button>
             </div>
             {briefingOpen ? <ChevronUp size={16} className="text-secondary" /> : <ChevronDown size={16} className="text-secondary" />}
           </button>
-          {briefingOpen && digest.content && (
-            <div className="mt-3 space-y-2">
-              <p className="text-sm text-foreground">{digest.content.summary}</p>
-              {digest.content.alerts?.length > 0 && (
-                <ul className="space-y-1">
-                  {digest.content.alerts.map((a: string, i: number) => (
-                    <li key={i} className="text-xs text-secondary flex items-start gap-1.5">
-                      <span className="w-1 h-1 rounded-full bg-orange-400 mt-1.5 flex-shrink-0" />
-                      {a}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {digest.content.recommendations?.length > 0 && (
-                <div className="pt-2 border-t border-primary/10">
-                  <p className="text-[10px] font-medium text-secondary uppercase mb-1">Recommendations</p>
-                  {digest.content.recommendations.map((r: string, i: number) => (
-                    <p key={i} className="text-xs text-primary">{r}</p>
-                  ))}
+
+          {briefingOpen && (
+            <div className="mt-3 space-y-3">
+              <p className="text-base font-semibold text-foreground leading-snug">{headline}</p>
+
+              <div className="flex flex-wrap gap-2">
+                <Chip
+                  label="Orders today"
+                  value={todayOrderCount.toLocaleString()}
+                  trendPct={dodPct}
+                />
+                <Chip
+                  label="Shifts completed"
+                  value={`${completedToday}`}
+                />
+                <Chip
+                  label="Attendance"
+                  value={presentRate != null ? `${presentRate}%` : "—"}
+                />
+              </div>
+
+              {digest.content?.recommendations?.length > 0 && (
+                <div className="pt-3 border-t border-primary/10">
+                  <p className="text-[10px] font-medium text-secondary uppercase mb-1.5">{t("overview.recommendations")}</p>
+                  <ul className="space-y-1">
+                    {digest.content.recommendations.map((r: string, i: number) => (
+                      <li key={i} className="text-xs text-primary flex items-start gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
             </div>
@@ -107,31 +170,50 @@ export default function OverviewPage() {
       {/* AI Insights */}
       <InsightBanner context="dashboard" maxInsights={3} />
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-4 gap-4">
-        <StatCard title="Total Drivers" value={totalDrivers} icon={Users} />
-        <StatCard title="Active Now" value={summaryData?.present || 0} icon={Activity} />
-        <StatCard title="Pending Cash" value={`KD ${pendingCash.toFixed(0)}`} icon={DollarSign} highlight={pendingCash > 0} />
-        <StatCard
-          title="Open Alerts"
-          value={alerts.length}
-          icon={AlertTriangle}
-          highlight={alerts.length > 0}
-        />
+      {/* Stat Cards — clickable */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Link href="/companies" className="contents">
+          <StatCard title={t("overview.totalDrivers")} value={totalDrivers} icon={Users} />
+        </Link>
+        <Link href={`/attendance`} className="contents">
+          <StatCard title="Shifts Completed Today" value={completedToday} icon={CheckCircle2} />
+        </Link>
+        <Link href="/talabat/cash" className="contents">
+          <StatCard title="Overdue Cash" value={formatCurrency(pendingCash, locale)} icon={DollarSign} highlight={pendingCash > 0} />
+        </Link>
+        <Link href="/tickets" className="contents">
+          <StatCard
+            title={t("overview.openAlerts")}
+            value={alerts.length}
+            icon={AlertTriangle}
+            highlight={alerts.length > 0}
+          />
+        </Link>
       </div>
 
       {/* Alerts */}
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Today&apos;s Alerts</h2>
-        {alerts.length === 0 ? (
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-foreground">{t("overview.todaysAlerts")}</h2>
+          {sortedAlerts.length > 5 && (
+            <button
+              onClick={() => setShowAllAlerts((v) => !v)}
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+            >
+              {showAllAlerts ? "Show top 5" : `View all (${sortedAlerts.length})`}
+              <ArrowRight size={12} />
+            </button>
+          )}
+        </div>
+        {sortedAlerts.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
             <CheckCircle size={40} className="mx-auto text-green-400 mb-3" />
-            <p className="text-sm font-medium text-foreground">All clear</p>
-            <p className="text-xs text-secondary mt-1">No active alerts right now</p>
+            <p className="text-sm font-medium text-foreground">{t("overview.allClear")}</p>
+            <p className="text-xs text-secondary mt-1">{t("overview.noActiveAlerts")}</p>
           </div>
         ) : (
           <div className="space-y-2">
-            {alerts.map((alert) => (
+            {visibleAlerts.map((alert) => (
               <div
                 key={alert.id}
                 className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-4 hover:shadow-md transition-all duration-200"
@@ -143,7 +225,7 @@ export default function OverviewPage() {
                 </div>
                 {alert.driver && <PlatformBadge platform={alert.driver.platform} />}
                 <span className="text-xs text-secondary whitespace-nowrap">
-                  {new Date(alert.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  {formatTime(alert.createdAt, locale)}
                 </span>
               </div>
             ))}
@@ -151,5 +233,22 @@ export default function OverviewPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function Chip({ label, value, trendPct }: { label: string; value: string; trendPct?: number | null }) {
+  const TrendIcon = trendPct == null ? null : trendPct > 0 ? TrendingUp : trendPct < 0 ? TrendingDown : Minus;
+  const trendColor = trendPct == null ? "" : trendPct > 0 ? "text-green-600" : trendPct < 0 ? "text-red-600" : "text-gray-500";
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full bg-white/80 backdrop-blur ring-1 ring-primary/10 px-3 py-1.5">
+      <span className="text-[10px] uppercase tracking-wider text-secondary">{label}</span>
+      <span className="text-sm font-semibold text-foreground">{value}</span>
+      {TrendIcon && (
+        <span className={cn("inline-flex items-center gap-0.5 text-[11px]", trendColor)}>
+          <TrendIcon size={11} />
+          {Math.abs(trendPct!)}%
+        </span>
+      )}
+    </span>
   );
 }
