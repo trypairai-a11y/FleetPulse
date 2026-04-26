@@ -285,7 +285,7 @@ export default function OverviewPage() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Link href="/companies" className="contents">
+        <Link href="/talabat/drivers" className="contents">
           <StatCard title={t("overview.totalDrivers")} value={totalDrivers} icon={Users} />
         </Link>
         <Link href="/attendance" className="contents">

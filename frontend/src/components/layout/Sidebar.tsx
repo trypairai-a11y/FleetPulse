@@ -93,7 +93,6 @@ const PLATFORMS = [
 const GLOBAL_NAV = [
   { i18n: "nav.overview", path: "/overview", icon: LayoutDashboard },
   { i18n: "nav.darbAi", path: "/copilot", icon: Sparkles },
-  { i18n: "nav.companies", path: "/companies", icon: Building2 },
   { i18n: "nav.kpis", path: "/kpis", icon: Target },
   { i18n: "nav.analytics", path: "/analytics", icon: BarChart3 },
   { i18n: "nav.insights", path: "/insights", icon: Lightbulb },
