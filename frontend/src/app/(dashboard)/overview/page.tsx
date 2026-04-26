@@ -8,6 +8,7 @@ import {
   Sparkles, ChevronDown, ChevronUp, RefreshCw, ArrowRight, TrendingUp, TrendingDown, Minus, X,
 } from "lucide-react";
 import InsightBanner from "@/components/shared/InsightBanner";
+import InlineChat from "@/components/ai/InlineChat";
 import { cn } from "@/lib/cn";
 import { useState, useMemo, useEffect } from "react";
 import api from "@/lib/api";
@@ -280,6 +281,9 @@ export default function OverviewPage() {
         </div>
       )}
 
+      {/* Inline Darb AI chat — directly under Morning Briefing */}
+      <InlineChat />
+
       {/* AI Insights */}
       <InsightBanner context="dashboard" maxInsights={3} />
 
@@ -307,6 +311,18 @@ export default function OverviewPage() {
             highlight={inactiveDrivers.length > 0}
           />
         </button>
+      </div>
+
+      {/* Per-platform charts — positioned above alerts */}
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-3">
+          Orders · this month vs last
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {platformCharts.map((p) => (
+            <PlatformChartCard key={p.platform} {...p} />
+          ))}
+        </div>
       </div>
 
       {/* Alerts */}
@@ -354,18 +370,6 @@ export default function OverviewPage() {
             ))}
           </div>
         )}
-      </div>
-
-      {/* Per-platform charts */}
-      <div>
-        <h2 className="text-lg font-semibold text-foreground mb-3">
-          Orders · this month vs last
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {platformCharts.map((p) => (
-            <PlatformChartCard key={p.platform} {...p} />
-          ))}
-        </div>
       </div>
 
       {/* Inactive drivers modal */}
