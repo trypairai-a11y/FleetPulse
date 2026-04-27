@@ -53,6 +53,23 @@ const MUTATION_OPS = new Set([
 
 const AUDIT_MODEL = "AuditLog";
 
+const TRANSIENT_DB_ERROR_CODES = new Set(["P1001", "P1002", "P1008", "P1017"]);
+const MAX_DB_RETRIES = 3;
+const BASE_DB_RETRY_DELAY_MS = 250;
+
+function isTransientDbError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const e = err as { code?: string; name?: string; message?: string };
+  if (e.code && TRANSIENT_DB_ERROR_CODES.has(e.code)) return true;
+  if (e.name === "PrismaClientInitializationError") return true;
+  if (typeof e.message === "string" && /can't reach database server|connection terminated|ECONNRESET|ETIMEDOUT/i.test(e.message)) return true;
+  return false;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function hasTenantFilter(args: any): boolean {
   const where = args?.where;
   if (!where) return false;
@@ -105,7 +122,23 @@ export const prismaExtensions = Prisma.defineExtension((client) => {
             }
           }
 
-          const result = await query(args);
+          let result: unknown;
+          let attempt = 0;
+          // Retry transient connection errors (Neon cold-start, brief network blips).
+          // Why: Neon serverless suspends idle branches; the first request after wake
+          // can fail with P1001 before the compute is ready.
+          while (true) {
+            try {
+              result = await query(args);
+              break;
+            } catch (err) {
+              if (attempt >= MAX_DB_RETRIES - 1 || !isTransientDbError(err)) throw err;
+              const delay = BASE_DB_RETRY_DELAY_MS * Math.pow(2, attempt);
+              console.warn(`[db-retry] ${model}.${operation} transient error, retrying in ${delay}ms`);
+              await sleep(delay);
+              attempt++;
+            }
+          }
 
           // ── Audit log ───────────────────────────────────────────────────
           if (isTenantScoped && isMutation && model !== AUDIT_MODEL) {
