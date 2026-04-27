@@ -5,8 +5,16 @@ import { useApiGet } from "@/hooks/useApi";
 import FilterBar from "@/components/shared/FilterBar";
 import StatCard from "@/components/shared/StatCard";
 import { PageSkeleton } from "@/components/shared/Skeleton";
+import PlatformPerformanceTab from "@/components/platform/PlatformPerformanceTab";
+import { cn } from "@/lib/cn";
 import { Briefcase, Package, PackageX, Upload } from "lucide-react";
 import Link from "next/link";
+
+type PageTab = "orders" | "performance";
+
+const DELIVEROO_ZONES = [
+  "Hawally", "Salmiya", "Jabriya", "Mishref", "Bayan", "Salwa", "Mahboula", "Fahaheel", "Ardiya",
+];
 
 type MetricRow = {
   id: string;
@@ -21,6 +29,7 @@ type MetricRow = {
 };
 
 export default function DeliverooOrdersPage() {
+  const [pageTab, setPageTab] = useState<PageTab>("orders");
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [page, setPage] = useState(1);
   const limit = 50;
@@ -51,6 +60,30 @@ export default function DeliverooOrdersPage() {
         <span className="text-xl text-secondary font-medium">Orders</span>
       </div>
 
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+        {(["orders", "performance"] as PageTab[]).map((tabKey) => (
+          <button
+            key={tabKey}
+            onClick={() => setPageTab(tabKey)}
+            className={cn(
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              pageTab === tabKey ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
+            )}
+          >
+            {tabKey === "orders" ? "Orders List" : "Performance"}
+          </button>
+        ))}
+      </div>
+
+      {pageTab === "performance" ? (
+        <PlatformPerformanceTab
+          platform="DELIVEROO"
+          zones={DELIVEROO_ZONES}
+          filters={filters}
+          setFilters={setFilters}
+        />
+      ) : (
+        <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard title="Deliveries (selected)" value={deliveriesTotal} icon={Package} />
         <StatCard title="Unassigned (selected)" value={unassignedTotal} icon={PackageX} />
@@ -172,6 +205,8 @@ export default function DeliverooOrdersPage() {
             Next
           </button>
         </div>
+      )}
+        </>
       )}
     </div>
   );

@@ -146,6 +146,79 @@ router.get("/", async (req: Request, res: Response) => {
  *       200:
  *         description: Order summary with totals, averages, and per-driver breakdown
  */
+/**
+ * @swagger
+ * /api/orders/daily-by-platform:
+ *   get:
+ *     tags: [Orders]
+ *     summary: Daily order counts grouped by platform and date for sparkline charts
+ *     parameters:
+ *       - in: query
+ *         name: dateFrom
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: dateTo
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: companyId
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Array of { platform, date, orderCount } rows
+ */
+router.get("/daily-by-platform", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { dateFrom, dateTo, companyId } = req.query;
+    const where: any = { tenantId };
+    if (companyId) where.driver = { companyId: companyId as string };
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
+      if (dateTo) where.date.lte = parseLocalDateEnd(dateTo as string);
+    }
+    const rows = await prisma.orderLog.groupBy({
+      by: ["platform", "date"],
+      where,
+      _sum: { orderCount: true },
+    });
+    res.json({
+      data: rows.map((r) => ({
+        platform: r.platform,
+        date: r.date,
+        orderCount: r._sum.orderCount || 0,
+      })),
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/orders/active-drivers:
+ *   get:
+ *     tags: [Orders]
+ *     summary: Distinct driver IDs that logged orders in a date range
+ */
+router.get("/active-drivers", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { dateFrom, dateTo, companyId } = req.query;
+    const where: any = { tenantId };
+    if (companyId) where.driver = { companyId: companyId as string };
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = parseLocalDate(dateFrom as string);
+      if (dateTo) where.date.lte = parseLocalDateEnd(dateTo as string);
+    }
+    const rows = await prisma.orderLog.groupBy({ by: ["driverId"], where });
+    res.json({ driverIds: rows.map((r) => r.driverId) });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/summary", async (req: Request, res: Response) => {
   try {
     const tenantId = req.user!.tenantId;
@@ -256,6 +329,49 @@ router.get("/summary", async (req: Request, res: Response) => {
     // Top zone
     const topZone = zones.length > 0 ? zones[0].zone : null;
 
+    // ── Top earners list (every driver with stats, sorted desc by orders) ──
+    const topEarners = driverBreakdown
+      .map((row) => {
+        const d = driverMap[row.driverId];
+        return {
+          driverId: row.driverId,
+          driverName: d?.name || "Unknown",
+          deliveries: row._sum.orderCount || 0,
+          cashKd: Number(row._sum.cashCollected || 0),
+          tipsKd: 0,
+          utr: null as number | null,
+        };
+      });
+
+    // ── Week-over-week comparison block ──
+    // currentRange = the requested window (or last 7 days). prevRange = same length immediately before.
+    const currentEnd = dateTo ? parseLocalDateEnd(dateTo as string) : new Date();
+    const currentStart = dateFrom
+      ? parseLocalDate(dateFrom as string)
+      : new Date(currentEnd.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const rangeMs = currentEnd.getTime() - currentStart.getTime();
+    const prevEnd = new Date(currentStart.getTime() - 1);
+    const prevStart = new Date(prevEnd.getTime() - rangeMs);
+    const prevWhere: any = { tenantId, date: { gte: prevStart, lte: prevEnd } };
+    if (platform) prevWhere.platform = platform;
+    if (companyId) prevWhere.driver = { companyId: companyId as string };
+    const prevAgg = await prisma.orderLog.aggregate({
+      where: prevWhere,
+      _sum: { orderCount: true, cashCollected: true, tips: true, distanceKm: true },
+    });
+    const thisWeek = {
+      deliveries: totalDeliveries,
+      cashKd: totalCashKd,
+      tipsKd: Number(agg._sum.tips || 0),
+      distanceKm: Number(agg._sum.distanceKm || 0),
+    };
+    const lastWeek = {
+      deliveries: prevAgg._sum.orderCount || 0,
+      cashKd: Number(prevAgg._sum.cashCollected || 0),
+      tipsKd: Number(prevAgg._sum.tips || 0),
+      distanceKm: Number(prevAgg._sum.distanceKm || 0),
+    };
+
     res.json({
       totalDeliveries,
       totalDistanceKm: Number(agg._sum.distanceKm || 0),
@@ -267,6 +383,9 @@ router.get("/summary", async (req: Request, res: Response) => {
       topDriverName,
       topZone,
       zones,
+      topEarners,
+      thisWeek,
+      lastWeek,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
