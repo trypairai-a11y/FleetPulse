@@ -59,7 +59,7 @@ const PLATFORMS = [
     ],
   },
   {
-    name: "Deliveroo",
+    name: "Deliveroo Equipment",
     key: "deliveroo",
     color: "text-deliveroo",
     bg: "bg-deliveroo/10",
