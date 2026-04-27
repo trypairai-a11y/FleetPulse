@@ -5,6 +5,7 @@ import { useApiGet } from "@/hooks/useApi";
 import FilterBar from "@/components/shared/FilterBar";
 import SlidePanel from "@/components/shared/SlidePanel";
 import StatCard from "@/components/shared/StatCard";
+import PlatformPerformanceTab from "@/components/platform/PlatformPerformanceTab";
 import { type TimelineStep } from "@/components/shared/OrderTimeline";
 import { cn } from "@/lib/cn";
 import { cleanDriverName } from "@/lib/formatters";
@@ -457,22 +458,6 @@ export default function KeetaOrdersPage() {
 
       {pageTab === "performance" && (
         <div className="space-y-6">
-          <div className="flex gap-3 items-center">
-            <input
-              type="date"
-              value={filters.dateFrom || ""}
-              onChange={(e) => setFilters((prev) => ({ ...prev, dateFrom: e.target.value }))}
-              className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-keeta/30"
-            />
-            <span className="text-sm text-secondary">to</span>
-            <input
-              type="date"
-              value={filters.dateTo || ""}
-              onChange={(e) => setFilters((prev) => ({ ...prev, dateTo: e.target.value }))}
-              className="px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-keeta/30"
-            />
-          </div>
-
           <div className="grid grid-cols-4 gap-4">
             <StatCard title="Total Orders" value={totalOrders} icon={Package} />
             <StatCard title="Active Drivers" value={activeDrivers} icon={TrendingUp} />
@@ -480,30 +465,12 @@ export default function KeetaOrdersPage() {
             <StatCard title="Total Distance" value={`${Number(totalDistance).toFixed(0)} km`} icon={Route} />
           </div>
 
-          {zones.length > 0 && (
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <h3 className="text-xs font-semibold text-secondary uppercase tracking-wide mb-4">
-                Zone Breakdown
-              </h3>
-              <div className="space-y-2">
-                {zones.map((z: any) => {
-                  const max = Math.max(...zones.map((x: any) => x.deliveries), 1);
-                  return (
-                    <div key={z.zone} className="flex items-center gap-3">
-                      <span className="text-sm font-medium w-32 truncate">{z.zone}</span>
-                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-keeta rounded-full"
-                          style={{ width: `${(z.deliveries / max) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-xs font-mono text-secondary w-16 text-right">{z.deliveries} orders</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <PlatformPerformanceTab
+            platform="KEETA"
+            zones={ZONES}
+            filters={filters}
+            setFilters={setFilters}
+          />
         </div>
       )}
 

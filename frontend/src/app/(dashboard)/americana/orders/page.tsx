@@ -5,6 +5,7 @@ import api from "@/lib/api";
 import DataTable from "@/components/shared/DataTable";
 import FilterBar from "@/components/shared/FilterBar";
 import StatCard from "@/components/shared/StatCard";
+import PlatformPerformanceTab from "@/components/platform/PlatformPerformanceTab";
 import { cn } from "@/lib/cn";
 import {
   Upload,
@@ -19,6 +20,11 @@ import {
 } from "lucide-react";
 
 type PaymentTab = "ALL" | "COD" | "CCOD" | "PAID";
+type PageTab = "orders" | "performance";
+
+const AMERICANA_ZONES = [
+  "Hawally", "Salmiya", "Jabriya", "Salwa", "Rumaithiya", "Fahaheel", "Mahboula",
+];
 
 const STORES = [
   "KFC Audiliya",
@@ -51,10 +57,12 @@ function formatKD(value: number): string {
 }
 
 export default function AmericanaOrdersPage() {
+  const [pageTab, setPageTab] = useState<PageTab>("orders");
   const [paymentTab, setPaymentTab] = useState<PaymentTab>("ALL");
   const [filters, setFilters] = useState<Record<string, string>>({
     date: new Date().toISOString().split("T")[0],
   });
+  const [perfFilters, setPerfFilters] = useState<Record<string, string>>({});
   const [selected, setSelected] = useState<any>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
@@ -179,6 +187,32 @@ export default function AmericanaOrdersPage() {
         </div>
       </div>
 
+      {/* Tab Bar */}
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+        {(["orders", "performance"] as PageTab[]).map((tabKey) => (
+          <button
+            key={tabKey}
+            onClick={() => setPageTab(tabKey)}
+            className={cn(
+              "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
+              pageTab === tabKey ? "bg-white text-foreground shadow-sm" : "text-secondary hover:text-foreground"
+            )}
+          >
+            {tabKey === "orders" ? "Orders List" : "Performance"}
+          </button>
+        ))}
+      </div>
+
+      {pageTab === "performance" ? (
+        <PlatformPerformanceTab
+          platform="AMERICANA"
+          zones={AMERICANA_ZONES}
+          filters={perfFilters}
+          setFilters={setPerfFilters}
+        />
+      ) : (
+        <>
+
       {/* Import Success */}
       {importSuccess && (
         <div className="bg-green-50 border border-green-200 rounded-2xl px-4 py-3 flex items-center gap-3">
@@ -292,6 +326,9 @@ export default function AmericanaOrdersPage() {
           ))}
         </div>
       </div>
+
+        </>
+      )}
 
       {/* Order Detail Slide Panel */}
       {selected && (
