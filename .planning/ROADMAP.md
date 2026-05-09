@@ -53,7 +53,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. The 9 Phase-1 read tools are callable end-to-end and return tenant-scoped results: `revenueByDay`, `revenueByPlatform`, `revenueByZone`, `courierLeaderboard`, `courierProfile`, `violationsList`, `cashOutstanding`, `attendanceForPeriod`, `liveFleetStatus`, `gpsTrack`, `searchOrders`. (`forecastDemand` and `forecastSupplyGap` are deferred to Phase 11/12.)
   3. The five new Prisma models (`AgentAction`, `AgentMemory`, `PinnedView`, `PerformanceSnapshot`, `MetricEvent`) are migrated to the database, indexed for tenant-scoped reads, and exposed via Prisma client without breaking existing migrations.
   4. Every new agent route passes through the existing `tenantScope` middleware; an automated check (lint or test) catches any new agent-touching route that omits tenant scoping.
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 01-00-PLAN.md — Wave 0: ESLint custom rule + Wave 0 RED test scaffolding (safety net)
+- [ ] 01-01-PLAN.md — Wave 1: Add 5 new Prisma models + relocate services/agents/ → agent/
+- [ ] 01-02-PLAN.md — Wave 2: Implement 5 data primitives (ledger, memory, pinnedView, metricEvent, performanceSnapshot writer + worker)
+- [ ] 01-03-PLAN.md — Wave 3: 11 read tools registered + tools/strict + tools/tenantIsolation tests green
+- [ ] 01-04-PLAN.md — Wave 4: [BLOCKING] prisma migrate dev + delete legacy services + walking-skeleton green
 
 ### Phase 2: Decisions Surface + Propose-and-Confirm + Design Partner #1
 **Goal**: Ship the owner's primary daily surface and onboard the first paying fleet. Decisions is the proposal inbox — a stack of agent-generated cards the owner approves, modifies, or dismisses. The continuous-monitoring loop fills the inbox every minute. Pricing and white-glove onboarding go live so design partner #1 can be charged KD 100/month as a co-design discount against the public KD 200/month floor.
@@ -197,7 +203,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Backend Agent Spine + Data Architecture | 0/TBD | Not started | - |
+| 1. Backend Agent Spine + Data Architecture | 0/5   | Planned     | - |
 | 2. Decisions Surface + Propose-and-Confirm + Design Partner #1 | 0/TBD | Not started | - |
 | 3. Driver File | 0/TBD | Not started | - |
 | 4. Chat / Generative UI + WebSocket | 0/TBD | Not started | - |
