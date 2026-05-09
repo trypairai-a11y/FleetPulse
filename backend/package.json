@@ -11,7 +11,7 @@
     "start": "node dist/server.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:agent": "jest --testPathPattern=agent",
+    "test:agent": "jest --testPathPatterns=agent",
     "test:lint-rules": "node --test eslint-rules/__tests__/",
     "lint": "eslint src/ --ext .ts",
     "lint:tenant": "eslint src/agent/ src/__tests__/agent/ --ext .ts --no-eslintrc --resolve-plugins-relative-to . --rulesdir eslint-rules --rule \"{\\\"no-prisma-without-tenant\\\":\\\"error\\\"}\" --no-error-on-unmatched-pattern",

@@ -1,5 +1,20 @@
 // Mock Prisma and Redis for unit tests
+import { makeAgentMocks } from "./agentMocks";
+
+// Spread agent-model mocks into the prisma stub. The 5 NEW Phase 1 models
+// covered by makeAgentMocks() are:
+//   - agentAction         (REQ-data-agent-action — audit ledger)
+//   - agentMemory         (REQ-data-agent-memory — append-only key/value)
+//   - pinnedView          (REQ-data-pinned-view — per-user saved views)
+//   - performanceSnapshot (REQ-data-performance-snapshot — daily score snapshot)
+//   - metricEvent         (REQ-data-metric-event — in-product analytics)
+// Plus the existing agentRunLog (used by ledger.test.ts FK assertions).
+// Exported separately so tests can grab the same instances:
+//   import { agentMocks, prisma } from "../mocks/config";
+export const agentMocks = makeAgentMocks();
+
 export const prisma = {
+  ...agentMocks,
   alert: {
     findFirst: jest.fn(),
     create: jest.fn(),
