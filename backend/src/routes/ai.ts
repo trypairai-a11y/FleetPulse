@@ -3,27 +3,40 @@ import { prisma } from "../config";
 import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { upload } from "../utils/upload";
+import { runAgent } from "../agent";
 import fs from "fs";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
 
-// AI Chat
+// AI Chat — Phase 1 Wave 4: refactored from AiChatService to runAgent("chat").
+// The runtime gracefully returns status: "disabled" when ANTHROPIC_API_KEY
+// is not configured; no need for a dynamic-import fallback.
 router.post("/chat", async (req: Request, res: Response) => {
   try {
     const { message, conversationHistory } = req.body;
     const tenantId = req.user!.tenantId;
 
-    // Dynamic import to handle missing API key gracefully
-    try {
-      const { AiChatService } = await import("../services/aiChatService");
-      const result = await AiChatService.chat(tenantId, message, conversationHistory || []);
-      res.json(result);
-    } catch {
+    const result = await runAgent("chat", {
+      tenantId,
+      triggerEvent: "route:ai:chat",
+      userMessage: message ?? "",
+      history: (conversationHistory ?? []) as Array<{ role: "user" | "assistant"; content: string }>,
+    });
+
+    if (result.status === "disabled") {
       res.json({
         response: "AI chat requires ANTHROPIC_API_KEY to be configured. Please set it in your .env file.",
       });
+      return;
     }
+
+    res.json({
+      response: result.text ?? "",
+      runId: result.runId,
+      actionsProposed: result.actionsProposed,
+      pendingActionIds: result.pendingActionIds,
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
