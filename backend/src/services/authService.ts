@@ -165,11 +165,17 @@ export class AuthService {
   }
 
   static async getMe(userId: string) {
+    // Phase 2 Wave 5 — surface isSuperAdmin so the frontend SidebarV2 can
+    // conditionally render the Admin footer section + the admin route
+    // pages can graceful-degrade for non-super-admins. The backend gate
+    // for /api/admin/* routes lives in middleware/superAdmin.ts which
+    // re-reads the User row from DB on every request (T-02-06 — never
+    // trust the JWT for the flag).
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true, email: true, name: true, phone: true, role: true,
-        tenantId: true, isActive: true, lastLoginAt: true,
+        tenantId: true, isActive: true, isSuperAdmin: true, lastLoginAt: true,
         tenant: { select: { id: true, name: true, subscriptionPlan: true } },
       },
     });

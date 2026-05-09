@@ -8,6 +8,10 @@ interface User {
   name: string;
   role: string;
   tenantId: string;
+  // Phase 2 Wave 5 — /api/auth/me now surfaces isSuperAdmin so the
+  // frontend SidebarV2 + /admin routes can conditionally render. Optional
+  // on the type (older sessions / mock users may not include it).
+  isSuperAdmin?: boolean;
   tenant?: { id: string; name: string };
 }
 
