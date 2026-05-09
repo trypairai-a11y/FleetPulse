@@ -11,6 +11,12 @@
 // strict-mode hygiene.
 // REQ-agent-read-tools.
 
+// Import order matters: the registry must see all tools registered before
+// the test runs. Wave 3 surfaces the 11 read tools via a side-effect import
+// of `agent/tools/read/`; the legacy tools register on agent/index.ts load.
+// Importing both here triggers the full registration graph.
+import "../../../agent";
+import "../../../agent/tools/read";
 import { toolRegistry } from "../../../agent/registry";
 
 describe("Tool registry — Phase 1 strict-mode hygiene", () => {

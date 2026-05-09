@@ -2,6 +2,7 @@ import { registerAgent } from "./runtime";
 import { registerTriageTools } from "./tools/_legacy/triage";
 import { registerReconciliationTools } from "./tools/_legacy/reconciliation";
 import { registerNarratorTools } from "./tools/_legacy/narrator";
+import { registerAllReadTools } from "./tools/read";
 
 /**
  * Register the three v2 agents. Each agent is a prompt + trigger set +
@@ -65,6 +66,12 @@ registerAgent({
 registerTriageTools();
 registerReconciliationTools();
 registerNarratorTools();
+
+// Phase 1 Wave 3 — register the 11 PRD read tools (REQ-agent-read-tools).
+// The `tools/read/` index module side-effect-imports every tool file, each of
+// which self-registers; calling registerAllReadTools is a no-op shim today
+// but kept as the explicit registration surface for future waves.
+registerAllReadTools();
 
 // Re-export the common entry points.
 export { runAgent, registerAgent, getAgent, listAgents } from "./runtime";

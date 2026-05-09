@@ -78,9 +78,23 @@ export const prisma = {
   },
   attendanceRecord: {
     findFirst: jest.fn(),
+    findMany: jest.fn(),
     create: jest.fn(),
     createMany: jest.fn(),
     deleteMany: jest.fn(),
+  },
+  // AgentToolCall is written by the registry's invoke() on every tool call —
+  // mock it so toolRegistry.invoke doesn't crash on undefined.create. The
+  // tenantIsolation test asserts where-clause shape on the read-side
+  // delegates, not on agentToolCall.
+  agentToolCall: {
+    create: jest.fn(),
+  },
+  // PendingAgentAction is written by the registry when a tool requires
+  // approval. Phase 1 read tools don't, but mock it so future write-tool
+  // tests don't crash either.
+  pendingAgentAction: {
+    create: jest.fn(),
   },
   platformSettings: {
     findMany: jest.fn(),
