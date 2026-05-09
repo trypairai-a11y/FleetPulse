@@ -199,6 +199,12 @@ These two ingest WARNINGs and the eight founder questions from PRD section 13 mu
 
 - **GPS-stale threshold** — Floor pill counter is `>10 min` (CON-floor-counters) while example standing rule is `>15 min` (PRD section 6.5). Recommendation: keep them deliberately separate (UI counter vs. tunable standing rule). **Roadmap models this as: 10 min is hard-coded for Floor pills (CON-floor-counters); 15 min is the default for the standing-rule template in Phase 12 but is owner-tunable.**
 
+### Phase-2 Scope Deferral (RESOLVED via plan-checker BLOCKER 2)
+
+- **Onboarding ingestion in Phase 2 is scaffolding-only.** Phase 2 ships the BullMQ queue, the chunked 5-day-window iterator, per-platform progress tracking, and audit-row writes per chunk. **Real scraper invocation is deferred to Phase 6 (Ingest Adapter Layer).**
+- For the design-partner-1 dry-run inside Phase 2, the wizard runs against pre-seeded fixture data created by `backend/prisma/seed-design-partner-fixture.ts` (8 drivers × 30 days of Shifts/Attendance/LocationLogs/OrderLogs + 1–2 cash mismatches + 2–3 violations + 5–10 PendingAgentAction rows). Plan 04 Task 5 ships the seed script; Plan 05's checkpoint runs it BEFORE the wizard.
+- **ROADMAP success criterion 6 ("ingest customer's last 30 days of data")** is satisfied by either (a) the Phase 6 scrapers when ready, or (b) the seed-design-partner-fixture script as a one-time interim. The dry-run uses (b); the real first paying customer onboards via (a) once Phase 6 ships.
+
 ## Key Decisions
 
 <!-- Decisions that constrain future work. Currently empty until founder week-1 gates clear. Migrate from "Proposed Decisions" table above as each is approved. -->
