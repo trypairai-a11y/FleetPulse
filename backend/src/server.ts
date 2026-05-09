@@ -2,7 +2,8 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
-import rateLimit from "express-rate-limit";
+import rateLimit, { Store } from "express-rate-limit";
+import RedisStore from "rate-limit-redis";
 import pinoHttp from "pino-http";
 import swaggerUi from "swagger-ui-express";
 import { env } from "./config/env";
@@ -11,6 +12,7 @@ import { initSentry } from "./config/sentry";
 import { errorHandler } from "./middleware/errorHandler";
 import { requestId } from "./middleware/requestId";
 import { swaggerSpec } from "./config/swagger";
+import redis from "./config/redis";
 
 initSentry();
 
@@ -22,8 +24,8 @@ import shiftRoutes from "./routes/shifts";
 import orderRoutes from "./routes/orders";
 import cashRoutes from "./routes/cash";
 import deviceRoutes from "./routes/devices";
+import simRoutes from "./routes/sims";
 import alertRoutes from "./routes/alerts";
-import recruitmentRoutes from "./routes/recruitment";
 import ticketRoutes from "./routes/tickets";
 import attendanceRoutes from "./routes/attendance";
 import leaveRequestRoutes from "./routes/leaveRequests";
@@ -33,7 +35,6 @@ import talabatRoutes from "./routes/talabat";
 import americanaRoutes from "./routes/americana";
 import americanaChainsRoutes from "./routes/americanaChains";
 import americanaStoresRoutes from "./routes/americanaStores";
-import americanaContractsRoutes from "./routes/americanaContracts";
 import americanaRatesRoutes from "./routes/americanaRates";
 import americanaAssignmentsRoutes from "./routes/americanaAssignments";
 import americanaIngestRoutes from "./routes/americanaIngest";
@@ -49,7 +50,6 @@ import platformOverviewRoutes from "./routes/platformOverview";
 import notificationRoutes from "./routes/notifications";
 import driverRestrictionRoutes from "./routes/driverRestrictions";
 import insightsRoutes from "./routes/insights";
-import supervisorRoutes from "./routes/supervisors";
 import dashboardRoutes from "./routes/dashboard";
 import eventRoutes from "./routes/events";
 import violationRoutes from "./routes/violations";
@@ -66,6 +66,9 @@ import incentivesRoutes from "./routes/incentives";
 import financialRoutes from "./routes/financial";
 import queueRoutes from "./routes/queue";
 import v2Routes from "./routes/v2";
+import aiCosRoutes from "./routes/aiChiefOfStaff";
+import decisionsRouter from "./routes/decisions";
+import auditRouter from "./routes/audit";
 import { startAnomalyScheduler } from "./services/anomalyScheduler";
 import { startGpsMonitorScheduler } from "./services/gpsMonitorService";
 import { startKeetaPortalScraperScheduler } from "./queues/keetaPortalScraperWorker";
@@ -77,7 +80,7 @@ import { startAgentScheduler } from "./agent/scheduler";
 
 const app = express();
 
-const allowedOrigins = [
+const staticAllowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:3003",
@@ -85,8 +88,23 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean) as string[];
 
+// Allow Vercel preview/production deployments under our team scope only,
+// plus a curated list of stable aliases. We deliberately do NOT accept any
+// *.vercel.app — combined with credentials:true that would let any third-party
+// Vercel deployment hit the API on behalf of a logged-in user.
+const vercelOriginPattern = /^https:\/\/[a-z0-9-]+-trypairai-6527s-projects\.vercel\.app$/i;
+const vercelAliasAllowlist = new Set<string>([
+  "https://frontend-ebon-nine-34.vercel.app",
+]);
+
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (staticAllowedOrigins.includes(origin)) return callback(null, true);
+    if (vercelOriginPattern.test(origin)) return callback(null, true);
+    if (vercelAliasAllowlist.has(origin)) return callback(null, true);
+    return callback(new Error(`Origin not allowed: ${origin}`));
+  },
   credentials: true,
 }));
 app.use(requestId);
@@ -106,10 +124,17 @@ app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// Rate limiting
-// NOTE: uses in-memory store — broken across Vercel cold starts. Install
-// `rate-limit-redis` and pass `store: new RedisStore({ sendCommand: ... })`
-// to make this durable. /auth/demo and /auth/refresh are included (were skipped).
+// Rate limiting — backed by Redis when REDIS_URL is configured (durable across
+// Vercel cold starts and multi-instance deploys). Falls back to in-memory when
+// Redis is unavailable.
+function makeStore(prefix: string): Store | undefined {
+  if (!redis) return undefined;
+  return new RedisStore({
+    prefix: `rl:${prefix}:`,
+    sendCommand: (...args: string[]) => (redis as any).call(...args),
+  });
+}
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: process.env.NODE_ENV === "production" ? 20 : 500,
@@ -117,6 +142,7 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => req.path === "/me",
+  store: makeStore("auth"),
 });
 
 const apiLimiter = rateLimit({
@@ -126,6 +152,7 @@ const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => req.path === "/api/health",
+  store: makeStore("api"),
 });
 
 app.use("/api/auth", authLimiter);
@@ -140,8 +167,8 @@ app.use("/api/shifts", shiftRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cash", cashRoutes);
 app.use("/api/devices", deviceRoutes);
+app.use("/api/sims", simRoutes);
 app.use("/api/alerts", alertRoutes);
-app.use("/api/recruitment", recruitmentRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/leave-requests", leaveRequestRoutes);
@@ -150,12 +177,19 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/talabat", talabatRoutes);
 app.use("/api/americana/chains", americanaChainsRoutes);
 app.use("/api/americana/stores", americanaStoresRoutes);
-app.use("/api/americana/contracts", americanaContractsRoutes);
 app.use("/api/americana/rates", americanaRatesRoutes);
 app.use("/api/americana/assignments", americanaAssignmentsRoutes);
 app.use("/api/americana/ingest", americanaIngestRoutes);
 app.use("/api/americana/export", americanaExportRoutes);
 app.use("/api/americana", americanaRoutes);
+// Keeta sub-routers must be registered BEFORE the umbrella `/api/keeta` mount,
+// otherwise any prefix-matching route in keetaRoutes would intercept first.
+app.use("/api/keeta/monitor", keetaMonitorRoutes);
+app.use("/api/keeta/operation-centre", keetaOperationCentreRoutes);
+app.use("/api/keeta/courier-details", keetaCourierDetailsRoutes);
+app.use("/api/keeta/shift-monitor", keetaShiftMonitorRoutes);
+app.use("/api/keeta/available-shifts", keetaAvailableShiftsRoutes);
+app.use("/api/keeta/reports", keetaReportsRoutes);
 app.use("/api/keeta", keetaRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/users", userRoutes);
@@ -166,24 +200,22 @@ app.use("/api/platform-overview", platformOverviewRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/driver-restrictions", driverRestrictionRoutes);
 app.use("/api/insights", insightsRoutes);
-app.use("/api/supervisors", supervisorRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/violations", violationRoutes);
 app.use("/api/penalties", penaltyRoutes);
-app.use("/api/keeta/monitor", keetaMonitorRoutes);
 app.use("/api/order-flow", orderFlowRoutes);
 app.use("/api/ai-insights", aiInsightsRoutes);
-app.use("/api/keeta/operation-centre", keetaOperationCentreRoutes);
-app.use("/api/keeta/courier-details", keetaCourierDetailsRoutes);
-app.use("/api/keeta/shift-monitor", keetaShiftMonitorRoutes);
-app.use("/api/keeta/available-shifts", keetaAvailableShiftsRoutes);
 app.use("/api/talabat/available-shifts", createAvailableShiftsRouter("TALABAT"));
-app.use("/api/keeta/reports", keetaReportsRoutes);
 app.use("/api/incentives", incentivesRoutes);
 app.use("/api/financial", financialRoutes);
 app.use("/api/queue", queueRoutes);
 app.use("/api/v2", v2Routes);
+app.use("/api/ai/cos", aiCosRoutes);
+// Phase 2 Wave 2 — Decisions Surface (REQ-decisions-proposal-inbox,
+// REQ-agent-propose-confirm) and audit log (CON-audit-row-shape reads).
+app.use("/api/decisions", decisionsRouter);
+app.use("/api/audit", auditRouter);
 
 // API Documentation (Swagger UI — available at /api-docs)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
