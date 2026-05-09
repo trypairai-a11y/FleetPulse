@@ -71,3 +71,38 @@ export { runAgent, registerAgent, getAgent, listAgents } from "./runtime";
 export { toolRegistry } from "./registry";
 export type { AgentDefinition, AgentId, RunAgentInput, RunAgentResult } from "./runtime";
 export type { ToolDefinition, ToolContext, ToolSideEffect, InvokeResult } from "./registry";
+
+// ─── Phase 1 Wave 2 — Data primitives ─────────────────────────────────────
+// REQ-data-agent-action: writeAgentAction (CON-audit-row-shape ledger writer)
+// REQ-data-agent-memory: upsertAgentMemory + latestMemoryByKey + listMemoriesByPrefix
+// REQ-data-pinned-view:  createPinnedView + listPinsForUser + removePinnedView
+// REQ-data-metric-event: recordMetricEvent
+// REQ-data-performance-snapshot: writePerformanceSnapshot + listSnapshotsForDriver
+export { writeAgentAction } from "./ledger";
+export type { AuditRow } from "./ledger";
+export {
+  upsertAgentMemory,
+  latestMemoryByKey,
+  listMemoriesByPrefix,
+} from "./memory";
+export type { MemoryEntry, MemoryRecord, MemorySource } from "./memory";
+export {
+  createPinnedView,
+  listPinsForUser,
+  removePinnedView,
+} from "./pinnedView";
+export type {
+  PinnedViewSpec,
+  PinnedViewRecord,
+  PinnedViewType,
+} from "./pinnedView";
+export { recordMetricEvent } from "./metricEvent";
+export type { MetricEventInput } from "./metricEvent";
+export {
+  writePerformanceSnapshot,
+  listSnapshotsForDriver,
+} from "./performanceSnapshot";
+export type {
+  PerformanceSnapshotInput,
+  ScoreTrend,
+} from "./performanceSnapshot";

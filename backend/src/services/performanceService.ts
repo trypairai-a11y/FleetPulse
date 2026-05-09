@@ -147,3 +147,82 @@ export async function computeAllTenantTiers(): Promise<void> {
     }
   }
 }
+
+// ─── Phase 1 Wave 2 — Daily PerformanceSnapshot writer ──────────────────────
+//
+// Mirrors today's AiScore rows (already computed by the existing scoreAllDrivers
+// job) into the new PerformanceSnapshot table. Phase 3's 90-day trend chart
+// reads from PerformanceSnapshot; running this from Phase 1 ensures the table
+// is non-empty by the time Phase 3 ships.
+//
+// Idempotent: writePerformanceSnapshot() upserts on
+// (tenantId, driverId, snapshotDate). Calling twice on the same day yields the
+// same single row.
+//
+// T-01-W2-06 / T-01-W2-07 mitigation: cross-tenant iteration runs in BullMQ
+// worker context only (no HTTP request); each per-driver write is
+// tenant-scoped at the source AiScore row.
+
+import { writePerformanceSnapshot } from "../agent/performanceSnapshot";
+
+export async function snapshotAllDriversForTenant(
+  tenantId: string,
+): Promise<{ written: number; failed: number }> {
+  // Today's AiScore rows are written by existing scoring jobs; we read them
+  // back and mirror into PerformanceSnapshot.
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const tomorrow = new Date(today.getTime() + 86_400_000);
+
+  const scores = await prisma.aiScore.findMany({
+    where: { tenantId, date: { gte: today, lt: tomorrow } },
+  });
+
+  let written = 0;
+  let failed = 0;
+  for (const s of scores) {
+    try {
+      await writePerformanceSnapshot({
+        tenantId: s.tenantId,
+        driverId: s.driverId,
+        snapshotDate: s.date,
+        compositeScore: s.compositeScore,
+        attendanceScore: s.attendanceScore,
+        deliveryScore: s.deliveryScore,
+        financialScore: s.financialScore,
+        equipmentScore: s.equipmentScore,
+        platformScore: s.platformScore,
+        trend: s.trend as "UP" | "DOWN" | "STABLE",
+        breakdown: (s.breakdown as object) ?? undefined,
+      });
+      written++;
+    } catch (err: any) {
+      logger.error(
+        { err, tenantId, driverId: s.driverId },
+        "[performanceService] snapshot write failed",
+      );
+      failed++;
+    }
+  }
+  return { written, failed };
+}
+
+export async function snapshotAllTenants(): Promise<{
+  tenants: number;
+  written: number;
+  failed: number;
+}> {
+  const tenants = await prisma.tenant.findMany({ select: { id: true } });
+  let totalWritten = 0;
+  let totalFailed = 0;
+  for (const t of tenants) {
+    const r = await snapshotAllDriversForTenant(t.id);
+    totalWritten += r.written;
+    totalFailed += r.failed;
+  }
+  return {
+    tenants: tenants.length,
+    written: totalWritten,
+    failed: totalFailed,
+  };
+}
