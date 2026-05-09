@@ -72,8 +72,8 @@ import { startKeetaPortalScraperScheduler } from "./queues/keetaPortalScraperWor
 import { startPerformanceTierScheduler } from "./queues/performanceTierWorker";
 import { startInsightsScheduler } from "./services/insightsScheduler";
 import { startShiftComplianceScheduler } from "./queues/shiftComplianceWorker";
-import "./services/agents"; // registers agents as a side-effect
-import { startAgentScheduler } from "./services/agents/agentScheduler";
+import "./agent"; // registers agents as a side-effect
+import { startAgentScheduler } from "./agent/scheduler";
 
 const app = express();
 

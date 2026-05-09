@@ -4,8 +4,8 @@ import { authMiddleware } from "../middleware/auth";
 import { tenantScope } from "../middleware/tenantScope";
 import { rbac } from "../middleware/rbac";
 import { getPagination, paginatedResponse } from "../utils/pagination";
-import { toolRegistry } from "../services/agents/toolRegistry";
-import type { ToolContext } from "../services/agents/toolRegistry";
+import { toolRegistry } from "../agent/registry";
+import type { ToolContext } from "../agent/registry";
 import { publishEvent } from "../services/eventBus";
 
 /**
