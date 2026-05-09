@@ -111,6 +111,46 @@ async function narratorHourlyTick() {
   }
 }
 
+// ─── Cron: Monitor agent tiered cadence (REQ-agent-continuous-monitoring) ────
+//
+// The monitor agent is invoked by setInterval at three tiers:
+//   - hot   1m     real-time anomalies (GPS stale, order rejection clusters)
+//   - warm  15m    trend signals (late clock-ins, offline-during-shift)
+//   - cold  1h     reconciliation + weekly trends (cash mismatches, perf regression)
+//
+// hot/warm tiers are gated by isOperatingHourKuwait so we don't ping operators
+// at 03:00 Kuwait time with non-urgent signal. cold tier runs around the clock —
+// cash gaps and weekly performance work fine overnight.
+//
+// Each tick walks every active tenant and calls runAgent("monitor"); per-tenant
+// failures are caught and logged so one failing tenant doesn't take down the rest.
+// The per-tenant 50-proposals/day rate limit is enforced by the monitor itself
+// (see monitor.md Step 2) to keep this scheduler simple and uniform across tiers.
+
+export async function monitorTick(tier: "hot" | "warm" | "cold"): Promise<void> {
+  // hot/warm only run during Kuwait operating hours (07:00–23:00). cold runs
+  // around the clock so overnight cash + weekly perf still get processed.
+  if ((tier === "hot" || tier === "warm") && !isOperatingHourKuwait()) return;
+  try {
+    const tenants = await listActiveTenants();
+    const kuwaitHour = (new Date().getUTCHours() + 3) % 24;
+    for (const tenantId of tenants) {
+      await runAgent("monitor", {
+        tenantId,
+        triggerEvent: `cron:${tier}`,
+        payload: { tier, kuwaitHour },
+      }).catch((err) =>
+        logger.error(
+          { err, tenantId, tier },
+          "agentScheduler: monitor tick failed",
+        ),
+      );
+    }
+  } catch (err) {
+    logger.error({ err, tier }, "agentScheduler: monitorTick failed");
+  }
+}
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 let running = false;
@@ -137,6 +177,13 @@ export async function startAgentScheduler() {
 
   // Narrator hourly briefing (top of hour)
   intervals.push(setInterval(() => void narratorHourlyTick(), 60 * 60 * 1000));
+
+  // Phase 2 Wave 1 — Monitor agent tiered cadence (REQ-agent-continuous-monitoring).
+  // hot=1m, warm=15m, cold=1h. The monitor reads dismissed:* memory before
+  // proposing and stops at 50 proposals/tenant/day per orchestrator decision #3.
+  intervals.push(setInterval(() => void monitorTick("hot"), 60_000));
+  intervals.push(setInterval(() => void monitorTick("warm"), 900_000));
+  intervals.push(setInterval(() => void monitorTick("cold"), 3_600_000));
 
   logger.info({ tenants: subscribedTenants.size }, "agentScheduler: started");
 }
