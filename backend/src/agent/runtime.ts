@@ -10,7 +10,7 @@ import { toolRegistry, type ToolContext } from "./registry";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export type AgentId = "triage" | "reconciliation" | "narrator" | "chat";
+export type AgentId = "triage" | "reconciliation" | "narrator" | "chat" | "monitor";
 
 export interface AgentDefinition {
   id: AgentId;
@@ -140,6 +140,18 @@ export async function runAgent(
     runId: runLog.id,
     actorRole: agent.actorRole,
   };
+
+  // Threat T-02-01 — monitor must never carry a userId in its ToolContext.
+  // The monitor agent runs unattended on cron and only PROPOSES write actions
+  // through the registry's approval gate (which fires when ctx.userId is
+  // unset and tool.requiresApproval is true). If a misguided test or a future
+  // refactor injects a userId here, write tools would skip the approval gate
+  // and execute their side effects unattended, breaking propose-and-confirm.
+  // We construct ctx without userId above; this assertion makes the
+  // invariant explicit so the failure mode (if any) is loud and immediate.
+  if (agent.id === "monitor" && (ctx as { userId?: string }).userId !== undefined) {
+    throw new Error("monitor agent must never carry a userId in ToolContext");
+  }
 
   const systemPrompt = loadPrompt(agent.promptFile);
   const tools = toolRegistry.getAnthropicSchema(agent.id, agent.actorRole);

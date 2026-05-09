@@ -62,6 +62,27 @@ registerAgent({
   promptFile: "chat.md",
 });
 
+// Phase 2 Wave 1 — REQ-agent-continuous-monitoring + REQ-agent-action-drafting +
+// REQ-agent-propose-confirm. The monitor agent runs on a tiered cron cadence
+// (1m hot, 15m warm, 1h cold; see scheduler.ts). It scans tenant data via the
+// 12 read tools, consults dismissed:* AgentMemory rows for 7-day suppression,
+// applies a per-tenant rate limit (50 proposals/day per orchestrator decision
+// #3), and PROPOSES — never executes — write actions through the registry's
+// approval gate. Every write-tool invocation enqueues a PendingAgentAction
+// row that the design partner reviews and confirms. T-02-01 is enforced in
+// runtime.ts: the monitor's ToolContext never carries a userId.
+registerAgent({
+  id: "monitor",
+  description:
+    "Continuous monitoring loop for the Decisions Surface. Tier-aware (hot 1m, warm 15m, cold 1h) — scans live fleet status, recent rejections, attendance, cash gaps, and weekly performance trends. Drafts WhatsApp/SMS/IN_APP courier messages and review flags via the propose-and-confirm contract; never executes side effects autonomously. Consults dismissed:* AgentMemory rows for 7-day suppression and stops at 50 proposals/tenant/day.",
+  triggers: ["cron"],
+  actorRole: "OPS_MANAGER",
+  model: "claude-sonnet-4-6",
+  maxTokens: 4096,
+  maxIterations: 10,
+  promptFile: "monitor.md",
+});
+
 // Register tools for each agent.
 registerTriageTools();
 registerReconciliationTools();

@@ -36,6 +36,18 @@ export interface ToolDefinition<I = unknown, O = unknown> {
    * audited for strict-mode compatibility).
    */
   strict?: boolean;
+  /**
+   * Phase 2 — UI hint for the Decisions Edit Drawer (UI-SPEC §3.1.3).
+   * Lists the input parameter names a human approver may edit before
+   * confirming the proposal. An empty array (or undefined) means audit-only
+   * review (the approver can only approve / dismiss as-is, with no field
+   * tweaks). Used by the front-end to render the right form controls and by
+   * the backend approve route to clamp incoming edits to this allow-list —
+   * any param outside `editableParams` is silently dropped from the user's
+   * patch so a malicious approver can't twist a proposal into something the
+   * monitor never drafted.
+   */
+  editableParams?: string[];
   execute: (ctx: ToolContext, input: I) => Promise<O>;
 }
 
