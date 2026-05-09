@@ -14,16 +14,24 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  demoLogin: () => Promise<void>;
+  // Returns the freshly-authenticated user so callers (notably the login
+  // page) can route by role without waiting for the next render. Phase 2
+  // Wave 3 — login page reads `result.role` to decide between /decisions,
+  // /v2/triage, /v2/money.
+  login: (email: string, password: string) => Promise<User>;
+  demoLogin: () => Promise<User>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  login: async () => {},
-  demoLogin: async () => {},
+  login: async () => {
+    throw new Error("AuthContext not initialised");
+  },
+  demoLogin: async () => {
+    throw new Error("AuthContext not initialised");
+  },
   logout: async () => {},
 });
 
@@ -49,16 +57,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function login(email: string, password: string) {
+  async function login(email: string, password: string): Promise<User> {
     const { data } = await api.post("/api/auth/login", { email, password });
     setAccessToken(data.accessToken);
     setUser(data.user);
+    return data.user as User;
   }
 
-  async function demoLogin() {
+  async function demoLogin(): Promise<User> {
     const { data } = await api.post("/api/auth/demo");
     setAccessToken(data.accessToken);
     setUser(data.user);
+    return data.user as User;
   }
 
   async function logout() {

@@ -4,6 +4,30 @@ import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 
+/**
+ * Per UI-SPEC §2.2 + orchestrator decision: post-auth landing depends on the
+ * authenticated User's role.
+ *   ADMIN / OPS_MANAGER / VIEWER → /decisions    (Phase 2 wedge surface)
+ *   SUPERVISOR                   → /v2/triage    (unchanged from Phase 1)
+ *   ACCOUNTANT                   → /v2/money     (unchanged; ships /finance/cash in Phase 8)
+ *
+ * SUPER_ADMIN is a separate flag (User.isSuperAdmin), not a UserRole — the
+ * standard role-landing applies, with /admin/* surfaces gated by the
+ * isSuperAdmin flag.
+ */
+const ROLE_LANDING: Record<string, string> = {
+  ADMIN: "/decisions",
+  OPS_MANAGER: "/decisions",
+  SUPERVISOR: "/v2/triage",
+  ACCOUNTANT: "/v2/money",
+  VIEWER: "/decisions",
+};
+
+function landingForRole(role: string | undefined): string {
+  if (!role) return "/decisions";
+  return ROLE_LANDING[role] ?? "/decisions";
+}
+
 export default function LoginPage() {
   const { login, demoLogin } = useAuth();
   const router = useRouter();
@@ -19,8 +43,8 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      await login(email, password);
-      router.push("/");
+      const result = await login(email, password);
+      router.push(landingForRole(result?.role));
     } catch (err: any) {
       setError(err?.response?.data?.error || err?.message || "Invalid email or password");
     } finally {
@@ -171,8 +195,8 @@ export default function LoginPage() {
               setError("");
               setLoading(true);
               try {
-                await demoLogin();
-                router.push("/");
+                const result = await demoLogin();
+                router.push(landingForRole(result?.role));
               } catch (err: any) {
                 setError(err?.response?.data?.error || err?.message || "Demo login failed");
               } finally {
