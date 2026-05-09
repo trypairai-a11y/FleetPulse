@@ -104,16 +104,10 @@ export async function runAgent(
     };
   }
 
-  if (!env.ANTHROPIC_API_KEY) {
-    return {
-      runId: "",
-      status: "disabled",
-      text: "Agent runtime disabled: ANTHROPIC_API_KEY not configured.",
-      actionsProposed: 0,
-      pendingActionIds: [],
-    };
-  }
-
+  // Persist the AgentRunLog row FIRST — even when ANTHROPIC_API_KEY is
+  // absent, the spine-integrity contract (walkingSkeleton.test.ts) requires
+  // a row to exist so callers can correlate the request with a runId.
+  // The disabled-path then returns immediately after stamping the row.
   const runLog = await prisma.agentRunLog.create({
     data: {
       tenantId: input.tenantId,
@@ -122,6 +116,23 @@ export async function runAgent(
       model: agent.model,
     },
   });
+
+  if (!env.ANTHROPIC_API_KEY) {
+    await prisma.agentRunLog.update({
+      where: { id: runLog.id },
+      data: {
+        finishedAt: new Date(),
+        status: "disabled",
+      },
+    });
+    return {
+      runId: runLog.id,
+      status: "disabled",
+      text: "Agent runtime disabled: ANTHROPIC_API_KEY not configured.",
+      actionsProposed: 0,
+      pendingActionIds: [],
+    };
+  }
 
   const ctx: ToolContext = {
     tenantId: input.tenantId,

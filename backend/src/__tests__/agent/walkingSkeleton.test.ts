@@ -1,6 +1,7 @@
 // Wave 0 RED test — turns GREEN after Wave 1 (runtime relocation to
 // backend/src/agent/runtime.ts) AND Wave 3 (the 11 read tools, including
-// liveFleetStatus, are registered). Do not skip.
+// liveFleetStatus, are registered) AND Wave 4 (legacy services deleted +
+// agent registry side-effect-imported here). Do not skip.
 //
 // "Walking skeleton" — the thinnest end-to-end proof that the agent
 // spine works:
@@ -19,6 +20,12 @@
 // REQ-agent-read-tools (registers liveFleetStatus),
 // REQ-tenant-scoped-everything (runtime persists with tenantId).
 
+// Side-effect import: registers all 4 agents (chat/triage/reconciliation/
+// narrator) and the 11 Phase-1 read tools. Without this, the agents Map
+// in runtime.ts is empty and runAgent("chat") returns
+// {status: "failed", error: "Unknown agent: chat"}. Same pattern Wave 3
+// used for strict.test.ts (agent registry needs side-effect registration).
+import "../../agent";
 import { runAgent } from "../../agent/runtime";
 import { prisma } from "../mocks/config";
 
