@@ -425,6 +425,19 @@ exports.Prisma.DeviceScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.SimScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  phoneNumber: 'phoneNumber',
+  carrier: 'carrier',
+  status: 'status',
+  driverId: 'driverId',
+  deviceId: 'deviceId',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.CapturedOrderScalarFieldEnum = {
   id: 'id',
   deviceId: 'deviceId',
@@ -729,7 +742,6 @@ exports.Prisma.PlatformSettingsScalarFieldEnum = {
   bookingRules: 'bookingRules',
   documentRules: 'documentRules',
   notificationConfig: 'notificationConfig',
-  supervisorTargets: 'supervisorTargets',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -757,7 +769,6 @@ exports.Prisma.AmericanaDailyOrdersScalarFieldEnum = {
   empId: 'empId',
   storeName: 'storeName',
   storeId: 'storeId',
-  costCenter: 'costCenter',
   company: 'company',
   position: 'position',
   dailyOrders: 'dailyOrders',
@@ -784,13 +795,16 @@ exports.Prisma.AmericanaStoreScalarFieldEnum = {
   chainId: 'chainId',
   name: 'name',
   area: 'area',
-  costCenter: 'costCenter',
   managerName: 'managerName',
   managerPhone: 'managerPhone',
   backupContactName: 'backupContactName',
   backupContactPhone: 'backupContactPhone',
   notes: 'notes',
   active: 'active',
+  carDailyTarget: 'carDailyTarget',
+  bikeDailyTarget: 'bikeDailyTarget',
+  carMonthlyTarget: 'carMonthlyTarget',
+  bikeMonthlyTarget: 'bikeMonthlyTarget',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -1537,6 +1551,16 @@ exports.Prisma.DeviceOrderByRelevanceFieldEnum = {
   agentVersion: 'agentVersion'
 };
 
+exports.Prisma.SimOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  phoneNumber: 'phoneNumber',
+  carrier: 'carrier',
+  driverId: 'driverId',
+  deviceId: 'deviceId',
+  notes: 'notes'
+};
+
 exports.Prisma.CapturedOrderOrderByRelevanceFieldEnum = {
   id: 'id',
   deviceId: 'deviceId',
@@ -1708,7 +1732,6 @@ exports.Prisma.AmericanaDailyOrdersOrderByRelevanceFieldEnum = {
   empId: 'empId',
   storeName: 'storeName',
   storeId: 'storeId',
-  costCenter: 'costCenter',
   company: 'company',
   position: 'position',
   source: 'source'
@@ -1728,7 +1751,6 @@ exports.Prisma.AmericanaStoreOrderByRelevanceFieldEnum = {
   chainId: 'chainId',
   name: 'name',
   area: 'area',
-  costCenter: 'costCenter',
   managerName: 'managerName',
   managerPhone: 'managerPhone',
   backupContactName: 'backupContactName',
@@ -2245,6 +2267,12 @@ exports.DeviceStatus = exports.$Enums.DeviceStatus = {
   DECOMMISSIONED: 'DECOMMISSIONED'
 };
 
+exports.SimStatus = exports.$Enums.SimStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  SUSPENDED: 'SUSPENDED'
+};
+
 exports.DeviceCommandType = exports.$Enums.DeviceCommandType = {
   LOCK: 'LOCK',
   WIPE: 'WIPE',
@@ -2286,7 +2314,10 @@ exports.TicketCategory = exports.$Enums.TicketCategory = {
   VEHICLE_REPAIR: 'VEHICLE_REPAIR',
   EQUIPMENT_REQUEST: 'EQUIPMENT_REQUEST',
   LEAVE_REQUEST: 'LEAVE_REQUEST',
+  SALARY_ISSUE: 'SALARY_ISSUE',
+  TRANSFER_REQUEST: 'TRANSFER_REQUEST',
   COMPLAINT: 'COMPLAINT',
+  ACCIDENT_REPORT: 'ACCIDENT_REPORT',
   OTHER: 'OTHER'
 };
 
@@ -2444,6 +2475,7 @@ exports.Prisma.ModelName = {
   VehicleInspection: 'VehicleInspection',
   MaintenanceRecord: 'MaintenanceRecord',
   Device: 'Device',
+  Sim: 'Sim',
   CapturedOrder: 'CapturedOrder',
   LocationLog: 'LocationLog',
   AppUsageLog: 'AppUsageLog',

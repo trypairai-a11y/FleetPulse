@@ -123,6 +123,12 @@ enum DeviceStatus {
   DECOMMISSIONED
 }
 
+enum SimStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
 enum DeviceCommandType {
   LOCK
   WIPE
@@ -219,7 +225,10 @@ enum TicketCategory {
   VEHICLE_REPAIR
   EQUIPMENT_REQUEST
   LEAVE_REQUEST
+  SALARY_ISSUE
+  TRANSFER_REQUEST
   COMPLAINT
+  ACCIDENT_REPORT
   OTHER
 }
 
@@ -405,6 +414,7 @@ model Tenant {
   americanaChainRates       AmericanaChainRate[]
   americanaStoreAssignments AmericanaStoreAssignment[]
   americanaDailyIngestions  AmericanaDailyIngestion[]
+  sims                      Sim[]
 }
 
 // 2. Company
@@ -442,17 +452,18 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  tenant               Tenant          @relation(fields: [tenantId], references: [id])
-  supervisedDrivers    Driver[]        @relation("DriverSupervisor")
-  issuedCommands       DeviceCommand[] @relation("CommandIssuer")
-  acknowledgedAlerts   Alert[]         @relation("AlertAcknowledger")
-  reviewedLeaves       LeaveRequest[]  @relation("LeaveReviewer")
-  assignedTickets      Ticket[]        @relation("TicketAssignee")
-  submittedTickets     Ticket[]        @relation("TicketSubmitterUser")
-  notifications        Notification[]
-  approvedAgentActions AgentAction[]   @relation("AgentActionApprover")
-  pinnedViews          PinnedView[]    @relation("PinnedViewOwner")
-  metricEvents         MetricEvent[]   @relation("MetricEventActor")
+  tenant                Tenant               @relation(fields: [tenantId], references: [id])
+  supervisedDrivers     Driver[]             @relation("DriverSupervisor")
+  issuedCommands        DeviceCommand[]      @relation("CommandIssuer")
+  acknowledgedAlerts    Alert[]              @relation("AlertAcknowledger")
+  reviewedLeaves        LeaveRequest[]       @relation("LeaveReviewer")
+  assignedTickets       Ticket[]             @relation("TicketAssignee")
+  submittedTickets      Ticket[]             @relation("TicketSubmitterUser")
+  notifications         Notification[]
+  createdAmericanaRates AmericanaChainRate[] @relation("AmericanaChainRateCreator")
+  approvedAgentActions  AgentAction[]        @relation("AgentActionApprover")
+  pinnedViews           PinnedView[]         @relation("PinnedViewOwner")
+  metricEvents          MetricEvent[]        @relation("MetricEventActor")
 
   @@index([tenantId])
 }
@@ -537,6 +548,7 @@ model Driver {
   courierAttendanceSlots    CourierAttendanceSlot[]
   courierIncentivePayouts   CourierIncentivePayout[]
   americanaStoreAssignments AmericanaStoreAssignment[]
+  sims                      Sim[]
   performanceSnapshots      PerformanceSnapshot[]
 
   @@index([tenantId])
@@ -894,8 +906,31 @@ model Device {
   locationLogs   LocationLog[]
   appUsageLogs   AppUsageLog[]
   commands       DeviceCommand[]
+  sims           Sim[]
 
   @@index([driverId])
+}
+
+model Sim {
+  id          String    @id @default(uuid())
+  tenantId    String
+  phoneNumber String
+  carrier     String?
+  status      SimStatus @default(ACTIVE)
+  driverId    String?
+  deviceId    String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id])
+  driver Driver? @relation(fields: [driverId], references: [id])
+  device Device? @relation(fields: [deviceId], references: [id])
+
+  @@unique([tenantId, phoneNumber])
+  @@index([tenantId, status])
+  @@index([driverId])
+  @@index([deviceId])
 }
 
 // 16. CapturedOrder
@@ -1350,7 +1385,6 @@ model PlatformSettings {
   bookingRules       Json? // shift booking windows, reminders, limits
   documentRules      Json? // required docs, expiry warning days
   notificationConfig Json? // notification preferences per event type
-  supervisorTargets  Json? // bonus tiers, metric config
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -1390,7 +1424,6 @@ model AmericanaDailyOrders {
   empId       String?
   storeName   String? // legacy free-text, kept 3 months then drop
   storeId     String?
-  costCenter  String?
   company     String?
   position    String? // Car or Bike
   dailyOrders Json // { "01": 19, "02": 20, ... "28": 30 }
@@ -1439,13 +1472,16 @@ model AmericanaStore {
   chainId            String
   name               String
   area               String?
-  costCenter         String?
   managerName        String?
   managerPhone       String?
   backupContactName  String?
   backupContactPhone String?
   notes              String?
   active             Boolean  @default(true)
+  carDailyTarget     Int?
+  bikeDailyTarget    Int?
+  carMonthlyTarget   Int?
+  bikeMonthlyTarget  Int?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -1495,11 +1531,13 @@ model AmericanaChainRate {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  tenant   Tenant             @relation(fields: [tenantId], references: [id])
-  chain    AmericanaChain     @relation(fields: [chainId], references: [id])
-  contract AmericanaContract? @relation(fields: [contractId], references: [id])
+  tenant        Tenant             @relation(fields: [tenantId], references: [id])
+  chain         AmericanaChain     @relation(fields: [chainId], references: [id])
+  contract      AmericanaContract? @relation(fields: [contractId], references: [id])
+  createdByUser User               @relation("AmericanaChainRateCreator", fields: [createdBy], references: [id])
 
   @@index([tenantId, chainId, vehicleType, effectiveFrom])
+  @@index([createdBy])
 }
 
 model AmericanaStoreAssignment {
