@@ -72,7 +72,14 @@ Plans:
   4. Clicking Dismiss closes the proposal AND writes a "trained-against" signal to `AgentMemory` so the agent proposes differently next time.
   5. A working pricing model (KD 2/active-courier/month, KD 200/month minimum) is wired into the billing pipeline and produces a correct invoice for design partner #1 at the KD 100/month co-design rate.
   6. A 14-day free-trial flow exists, and the white-glove onboarding script (ingest 30 days of data → produce "Darb's read on your fleet" report → present as the close) has been run end-to-end for design partner #1.
-**Plans**: TBD
+**Plans**: 6 plans
+Plans:
+- [ ] 02-00-PLAN.md — Wave 0: RED test scaffolding (17 backend tests + 10 gold-set fixtures + 2 frontend component tests + lint:tenant scope extension)
+- [ ] 02-01-PLAN.md — Wave 1: Schema additions (Tenant + User) + super-admin middleware + monitor agent + 3 propose tools + listAgentMemory + monitor.md prompt + tiered cron
+- [ ] 02-02-PLAN.md — Wave 2: /api/decisions/* + /api/audit/* routes + cardProjector + evidenceCollector + approve/dismiss/undo handlers
+- [ ] 02-03-PLAN.md — Wave 3: /decisions page + /decisions/audit + /decisions/[id] + 12 components + sidebar update + 30s polling
+- [ ] 02-04-PLAN.md — Wave 4: /api/admin/onboarding/* + /api/admin/billing/* + billingService + onboardingBackwashWorker + onboardingReport service
+- [ ] 02-05-PLAN.md — Wave 5: /admin/onboarding 5-step wizard + /admin/billing UI + DarbsReadReport + [BLOCKING] prisma migrate dev + design partner #1 dry-run
 **UI hint**: yes
 
 ### Phase 3: Driver File
@@ -204,7 +211,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Backend Agent Spine + Data Architecture | 0/5   | Planned     | - |
-| 2. Decisions Surface + Propose-and-Confirm + Design Partner #1 | 0/TBD | Not started | - |
+| 2. Decisions Surface + Propose-and-Confirm + Design Partner #1 | 0/6 | Planned | - |
 | 3. Driver File | 0/TBD | Not started | - |
 | 4. Chat / Generative UI + WebSocket | 0/TBD | Not started | - |
 | 5. Mobile GPS Beacon | 0/TBD | Not started | - |
