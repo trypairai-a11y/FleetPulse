@@ -109,4 +109,33 @@ export const prisma = {
 };
 
 export const redis = null;
-export const env = { PORT: 3001, JWT_SECRET: "test", JWT_REFRESH_SECRET: "test", REDIS_URL: "" };
+
+// `env` is a Proxy so per-test overrides via process.env (e.g. setting
+// ANTHROPIC_API_KEY in the agentScheduler test) flow through. Static fields
+// stay constant; everything else falls back to process.env at read time.
+const envBase: Record<string, unknown> = {
+  PORT: 3001,
+  JWT_SECRET: "test",
+  JWT_REFRESH_SECRET: "test",
+  REDIS_URL: "",
+};
+export const env = new Proxy(envBase, {
+  get(target, prop: string) {
+    if (prop in target) return target[prop];
+    return process.env[prop];
+  },
+});
+
+// `logger` mock — pino-style API. Defensively no-ops so tests that
+// indirectly invoke logger.<level> don't crash. The agent/registry +
+// agent/scheduler import it via `from "../config/logger"` which the
+// jest moduleNameMapper folds into this same mocks/config file.
+export const logger = {
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  debug: jest.fn(),
+  fatal: jest.fn(),
+  trace: jest.fn(),
+  child: () => logger,
+};

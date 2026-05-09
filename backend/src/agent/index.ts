@@ -92,7 +92,17 @@ registerNarratorTools();
 // The `tools/read/` index module side-effect-imports every tool file, each of
 // which self-registers; calling registerAllReadTools is a no-op shim today
 // but kept as the explicit registration surface for future waves.
+//
+// Phase 2 Wave 1 — adds the 12th read tool (listAgentMemory) via the same
+// side-effect import in tools/read/index.ts.
 registerAllReadTools();
+
+// Phase 2 Wave 1 — register the 3 propose tools (REQ-agent-action-drafting).
+// The tools/action/index.ts module side-effect-imports each tool file:
+//   draftCourierMessage  (LIVE — sends Notification after Confirm)
+//   flagForReview        (audit-only — Wave 2 approve route writes AgentAction)
+//   proposeCashReminder  (audit-only — Phase 8 wires to live Cash Workbench)
+import "./tools/action";
 
 // Re-export the common entry points.
 export { runAgent, registerAgent, getAgent, listAgents } from "./runtime";

@@ -65,7 +65,11 @@ class ToolRegistryImpl {
 
   register<I, O>(def: ToolDefinition<I, O>): void {
     if (this.tools.has(def.name)) {
-      logger.warn({ tool: def.name }, "toolRegistry: replacing existing tool");
+      // Logger may be undefined in test environments where mocks/config.ts
+      // doesn't export it. Defensive optional-chain prevents the duplicate
+      // warning from crashing the test suite while still surfacing the
+      // signal in production logs.
+      logger?.warn?.({ tool: def.name }, "toolRegistry: replacing existing tool");
     }
     this.tools.set(def.name, def as ToolDefinition);
   }
@@ -188,7 +192,8 @@ class ToolRegistryImpl {
           approvedBy: ctx.userId,
         },
       });
-      logger.error({ err, tool: name, runId: ctx.runId }, "toolRegistry: tool execution failed");
+      // Defensive optional-chain on logger — see register() above for context.
+      logger?.error?.({ err, tool: name, runId: ctx.runId }, "toolRegistry: tool execution failed");
       return { status: "error", error: message };
     }
   }

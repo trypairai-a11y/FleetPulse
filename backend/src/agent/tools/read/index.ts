@@ -28,6 +28,9 @@ import "./attendanceForPeriod";
 import "./liveFleetStatus";
 import "./gpsTrack";
 import "./searchOrders";
+// Phase 2 Wave 1 — 12th read tool: prefix-scan AgentMemory (used by the
+// monitor agent for the dismissed:* 7-day suppression contract).
+import "./listAgentMemory";
 
 // Re-exports for callers that want the tool definitions directly.
 export { revenueByDay } from "./revenueByDay";
@@ -41,6 +44,7 @@ export { attendanceForPeriod } from "./attendanceForPeriod";
 export { liveFleetStatus } from "./liveFleetStatus";
 export { gpsTrack } from "./gpsTrack";
 export { searchOrders } from "./searchOrders";
+export { listAgentMemory } from "./listAgentMemory";
 
 /**
  * No-op shim — the side-effect imports above already registered all 11
