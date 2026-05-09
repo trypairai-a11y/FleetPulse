@@ -393,6 +393,11 @@ model Tenant {
   paymentWithdrawals        PaymentWithdrawal[]
   agentRunLogs              AgentRunLog[]
   pendingAgentActions       PendingAgentAction[]
+  agentActions              AgentAction[]
+  agentMemories             AgentMemory[]
+  pinnedViews               PinnedView[]
+  performanceSnapshots      PerformanceSnapshot[]
+  metricEvents              MetricEvent[]
   ingestRuns                IngestRun[]
   americanaChains           AmericanaChain[]
   americanaStores           AmericanaStore[]
@@ -445,6 +450,9 @@ model User {
   assignedTickets    Ticket[]        @relation("TicketAssignee")
   submittedTickets   Ticket[]        @relation("TicketSubmitterUser")
   notifications      Notification[]
+  approvedAgentActions  AgentAction[]   @relation("AgentActionApprover")
+  pinnedViews           PinnedView[]    @relation("PinnedViewOwner")
+  metricEvents          MetricEvent[]   @relation("MetricEventActor")
 
   @@index([tenantId])
 }
@@ -529,6 +537,7 @@ model Driver {
   courierAttendanceSlots    CourierAttendanceSlot[]
   courierIncentivePayouts   CourierIncentivePayout[]
   americanaStoreAssignments AmericanaStoreAssignment[]
+  performanceSnapshots      PerformanceSnapshot[]
 
   @@index([tenantId])
   @@index([companyId])
@@ -2131,9 +2140,11 @@ model AgentRunLog {
   actionsRejected  Int       @default(0)
   feedback         Json?
 
-  tenant    Tenant               @relation(fields: [tenantId], references: [id])
-  toolCalls AgentToolCall[]
-  pending   PendingAgentAction[]
+  tenant        Tenant               @relation(fields: [tenantId], references: [id])
+  toolCalls     AgentToolCall[]
+  pending       PendingAgentAction[]
+  agentActions  AgentAction[]
+  agentMemories AgentMemory[]
 
   @@index([tenantId, agentId, startedAt])
   @@index([tenantId, status])
@@ -2181,4 +2192,138 @@ model PendingAgentAction {
   @@index([tenantId, resolvedAt, priorityScore])
   @@index([tenantId, agentId, resolvedAt])
   @@index([subjectType, subjectId])
+}
+
+// ─── Agent Spine v2 — Phase 1 (audit ledger, memory, pinned views, snapshots, analytics) ───
+// CON-audit-row-shape: AgentAction is the canonical record of every fired agent action.
+// Distinct from AgentRunLog (one row per LLM invocation) and PendingAgentAction
+// (one row per un-resolved write proposal). This is the row the founder sees
+// when answering "what did Darb do for me last week?".
+
+model AgentAction {
+  id                          String       @id @default(cuid())
+  tenantId                    String
+  proposer                    String       @default("Darb")
+  approverId                  String
+  toolName                    String
+  originalProposal            Json
+  modificationsBeforeApproval Json?
+  outcome                     String // "success" | "failure" | "rolled_back"
+  reasoning                   String       @db.Text
+  agentRunId                  String?
+  modelName                   String?
+  promptTokens                Int          @default(0)
+  completionTokens            Int          @default(0)
+  latencyMs                   Int          @default(0)
+  errorMessage                String?
+  subjectType                 String? // "Driver" | "Shift" | "CashRecord" | ...
+  subjectId                   String?
+  rolledBackAt                DateTime?
+  rolledBackById              String?
+  rollbackReason              String?
+  createdAt                   DateTime     @default(now())
+
+  tenant   Tenant       @relation(fields: [tenantId], references: [id])
+  approver User         @relation("AgentActionApprover", fields: [approverId], references: [id])
+  agentRun AgentRunLog? @relation(fields: [agentRunId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, toolName, createdAt])
+  @@index([tenantId, subjectType, subjectId])
+  @@index([approverId])
+}
+
+// Append-only per-tenant key/value notes. Latest-by-key reads use orderBy createdAt desc.
+// Source values: "agent_observation" | "user_correction" | "explicit_set".
+
+model AgentMemory {
+  id         String   @id @default(cuid())
+  tenantId   String
+  key        String
+  value      Json
+  confidence Float    @default(0.5)
+  source     String?
+  agentRunId String?
+  createdAt  DateTime @default(now())
+
+  tenant   Tenant       @relation(fields: [tenantId], references: [id])
+  agentRun AgentRunLog? @relation(fields: [agentRunId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, key, createdAt(sort: Desc)])
+  @@index([tenantId, createdAt])
+}
+
+// Saved generated views per user. Phase 4 (chat) consumes; Phase 1 only ships the schema.
+// viewType: "table" | "chart" | "kpi_strip" | "map" | "comparison".
+
+model PinnedView {
+  id           String   @id @default(cuid())
+  tenantId     String
+  userId       String
+  title        String
+  description  String?  @db.Text
+  viewType     String
+  spec         Json
+  sortOrder    Int      @default(0)
+  pinnedAt     DateTime @default(now())
+  lastViewedAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User   @relation("PinnedViewOwner", fields: [userId], references: [id])
+
+  @@index([tenantId, userId, sortOrder])
+  @@index([userId, pinnedAt])
+}
+
+// Daily snapshot of the composite score and contributing components.
+// Backs the Driver File 90-day trend (Phase 3 consumer).
+// Computed once per day by a worker (Wave 2 ships the writer); tools READ from this table.
+
+model PerformanceSnapshot {
+  id                String     @id @default(cuid())
+  tenantId          String
+  driverId          String
+  snapshotDate      DateTime // truncated to UTC midnight
+  compositeScore    Int
+  attendanceScore   Int
+  deliveryScore     Int
+  financialScore    Int
+  equipmentScore    Int
+  platformScore     Int
+  trend             ScoreTrend @default(STABLE)
+  ordersCount       Int        @default(0)
+  shiftsCount       Int        @default(0)
+  violationsCount   Int        @default(0)
+  cashOutstandingKd Decimal?   @db.Decimal(10, 3)
+  breakdown         Json?
+  computedAt        DateTime   @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  @@unique([tenantId, driverId, snapshotDate])
+  @@index([tenantId, snapshotDate])
+  @@index([driverId, snapshotDate])
+}
+
+// Lightweight in-product analytics. The agent uses this to "see itself" (DEC-add-metric-events).
+// Phase 1 ships the table + a recordMetricEvent helper; querying is Phase 11+.
+
+model MetricEvent {
+  id         String   @id @default(cuid())
+  tenantId   String
+  userId     String?
+  event      String
+  properties Json?
+  sessionId  String?
+  createdAt  DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User?  @relation("MetricEventActor", fields: [userId], references: [id])
+
+  @@index([tenantId, event, createdAt])
+  @@index([tenantId, createdAt])
+  @@index([userId, createdAt])
 }

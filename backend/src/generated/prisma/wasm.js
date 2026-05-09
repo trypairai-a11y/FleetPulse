@@ -1264,6 +1264,86 @@ exports.Prisma.PendingAgentActionScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.AgentActionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  proposer: 'proposer',
+  approverId: 'approverId',
+  toolName: 'toolName',
+  originalProposal: 'originalProposal',
+  modificationsBeforeApproval: 'modificationsBeforeApproval',
+  outcome: 'outcome',
+  reasoning: 'reasoning',
+  agentRunId: 'agentRunId',
+  modelName: 'modelName',
+  promptTokens: 'promptTokens',
+  completionTokens: 'completionTokens',
+  latencyMs: 'latencyMs',
+  errorMessage: 'errorMessage',
+  subjectType: 'subjectType',
+  subjectId: 'subjectId',
+  rolledBackAt: 'rolledBackAt',
+  rolledBackById: 'rolledBackById',
+  rollbackReason: 'rollbackReason',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AgentMemoryScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  key: 'key',
+  value: 'value',
+  confidence: 'confidence',
+  source: 'source',
+  agentRunId: 'agentRunId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PinnedViewScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  title: 'title',
+  description: 'description',
+  viewType: 'viewType',
+  spec: 'spec',
+  sortOrder: 'sortOrder',
+  pinnedAt: 'pinnedAt',
+  lastViewedAt: 'lastViewedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PerformanceSnapshotScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId',
+  snapshotDate: 'snapshotDate',
+  compositeScore: 'compositeScore',
+  attendanceScore: 'attendanceScore',
+  deliveryScore: 'deliveryScore',
+  financialScore: 'financialScore',
+  equipmentScore: 'equipmentScore',
+  platformScore: 'platformScore',
+  trend: 'trend',
+  ordersCount: 'ordersCount',
+  shiftsCount: 'shiftsCount',
+  violationsCount: 'violationsCount',
+  cashOutstandingKd: 'cashOutstandingKd',
+  breakdown: 'breakdown',
+  computedAt: 'computedAt'
+};
+
+exports.Prisma.MetricEventScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  event: 'event',
+  properties: 'properties',
+  sessionId: 'sessionId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1959,6 +2039,54 @@ exports.Prisma.PendingAgentActionOrderByRelevanceFieldEnum = {
   overrideReason: 'overrideReason',
   resolvedBy: 'resolvedBy'
 };
+
+exports.Prisma.AgentActionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  proposer: 'proposer',
+  approverId: 'approverId',
+  toolName: 'toolName',
+  outcome: 'outcome',
+  reasoning: 'reasoning',
+  agentRunId: 'agentRunId',
+  modelName: 'modelName',
+  errorMessage: 'errorMessage',
+  subjectType: 'subjectType',
+  subjectId: 'subjectId',
+  rolledBackById: 'rolledBackById',
+  rollbackReason: 'rollbackReason'
+};
+
+exports.Prisma.AgentMemoryOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  key: 'key',
+  source: 'source',
+  agentRunId: 'agentRunId'
+};
+
+exports.Prisma.PinnedViewOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  title: 'title',
+  description: 'description',
+  viewType: 'viewType'
+};
+
+exports.Prisma.PerformanceSnapshotOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  driverId: 'driverId'
+};
+
+exports.Prisma.MetricEventOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  event: 'event',
+  sessionId: 'sessionId'
+};
 exports.SubscriptionPlan = exports.$Enums.SubscriptionPlan = {
   FREE: 'FREE',
   PRO: 'PRO',
@@ -2369,7 +2497,12 @@ exports.Prisma.ModelName = {
   PaymentWithdrawal: 'PaymentWithdrawal',
   AgentRunLog: 'AgentRunLog',
   AgentToolCall: 'AgentToolCall',
-  PendingAgentAction: 'PendingAgentAction'
+  PendingAgentAction: 'PendingAgentAction',
+  AgentAction: 'AgentAction',
+  AgentMemory: 'AgentMemory',
+  PinnedView: 'PinnedView',
+  PerformanceSnapshot: 'PerformanceSnapshot',
+  MetricEvent: 'MetricEvent'
 };
 
 /**
