@@ -19,6 +19,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts",
     "prisma:seed:prod": "vercel env pull .env.production.local --environment=production --yes && env $(grep -v '^#' .env.production.local | xargs) tsx prisma/seed.ts",
+    "seed:design-partner-fixture": "tsx prisma/seed-design-partner-fixture.ts",
     "prisma:studio": "prisma studio",
     "postinstall": "prisma generate && (prisma migrate deploy || echo 'migrate deploy skipped')"
   },
