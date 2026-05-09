@@ -15,13 +15,14 @@ import { defineTool, toolRegistry } from "../../registry";
 const queryOpenAppeals = defineTool({
   name: "queryOpenAppeals",
   description:
-    "List appeals with status PENDING. Returns appeal ID, violation ID, driver name + platform, appeal level, channel, reason (truncated), and appealedAt timestamp.",
+    "List appeals with status PENDING that need a triage decision. Returns appeal ID, violation ID, driver name + platform, appeal level (1=first, 2=second), channel (APP/PHONE/EMAIL), reason text (truncated to 300 chars), and appealedAt timestamp ordered ascending. Use for the Triage Agent's morning queue or 'show me open appeals' from chat. Tenant-scoped.",
   inputSchema: {
     type: "object" as const,
     properties: {
       limit: { type: "number", description: "Max results (default 20, max 50)" },
     },
     required: [],
+    additionalProperties: false,
   },
   inputValidator: z.object({ limit: z.number().int().min(1).max(50).optional() }),
   sideEffect: "read",
@@ -65,7 +66,7 @@ const queryOpenAppeals = defineTool({
 const queryOpenViolations = defineTool({
   name: "queryOpenViolations",
   description:
-    "List violations with status ESTABLISHED. Returns violation ID, type, platform, driver, time, and a short details snippet.",
+    "List violations with status ESTABLISHED (not yet appealed/overturned). Returns violation ID, type, platform, driver, violationTime, a short details snippet, and current appealStatus. Use for triage ranking by recency, the 'open violations today' chat answer, or as input to ranking heuristics. Optional platform and violationType filters narrow the result set. Tenant-scoped, default limit 20, max 50.",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -74,6 +75,7 @@ const queryOpenViolations = defineTool({
       limit: { type: "number" },
     },
     required: [],
+    additionalProperties: false,
   },
   inputValidator: z.object({
     platform: z.enum(["KEETA", "TALABAT", "DELIVEROO", "AMERICANA"]).optional(),
@@ -113,7 +115,7 @@ const queryOpenViolations = defineTool({
 const queryCashMismatches = defineTool({
   name: "queryCashMismatches",
   description:
-    "List CashRecord rows where salesAmount != collectionAmount + pendingDues. Each row includes driver, date, amounts in KD (3 decimals), and the gap.",
+    "List CashRecord rows where salesAmount != collectionAmount + pendingDues (the bookkeeping invariant). Each returned row includes driver name + ID, date, the three amounts in KD (3 decimals), the computed gap, and CashRecord status. Use for the Reconciliation Agent's daily cash-gap sweep or chat 'why is the cash off?' answers. Default lookback 7 days, max 30. Tenant-scoped.",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -121,6 +123,7 @@ const queryCashMismatches = defineTool({
       limit: { type: "number" },
     },
     required: [],
+    additionalProperties: false,
   },
   inputValidator: z.object({
     daysBack: z.number().int().min(1).max(30).optional(),
@@ -170,7 +173,7 @@ const queryCashMismatches = defineTool({
 const getDriverHistory = defineTool({
   name: "getDriverHistory",
   description:
-    "Get a driver's recent performance: violation count by type, appeal outcomes, latest score + trend. Use when ranking an item that depends on whether the driver is a repeat offender.",
+    "Get a driver's recent performance summary: violation breakdown by type and status, appeal outcomes by status, and latest AiScore composite + trend. Use when ranking decisions that depend on whether a driver is a repeat offender, or when an agent needs aggregated context that revenueByDay/searchOrders won't surface (counts, not row-by-row data). Default window 30 days, max 90. Tenant-scoped.",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -178,6 +181,7 @@ const getDriverHistory = defineTool({
       windowDays: { type: "number", description: "Days of history (default 30, max 90)" },
     },
     required: ["driverId"],
+    additionalProperties: false,
   },
   inputValidator: z.object({
     driverId: z.string(),
@@ -238,7 +242,7 @@ const getDriverHistory = defineTool({
 const queryStaleAlerts = defineTool({
   name: "queryStaleAlerts",
   description:
-    "List active alerts older than N hours. Useful for ranking issues that have been festering.",
+    "List active alerts older than N hours, ordered ascending by createdAt (oldest first). Returns alert ID, type, severity, title, truncated message, optional driver context, and ageHours. Use for ranking issues that have been festering — older alerts often need triage attention even if their original severity was low. Default cutoff 24h, max lookback 168h (7 days). Default limit 20, max 50. Tenant-scoped.",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -246,6 +250,7 @@ const queryStaleAlerts = defineTool({
       limit: { type: "number" },
     },
     required: [],
+    additionalProperties: false,
   },
   inputValidator: z.object({
     olderThanHours: z.number().int().min(1).max(168).optional(),
@@ -284,7 +289,7 @@ const queryStaleAlerts = defineTool({
 const proposeAppealDecision = defineTool({
   name: "proposeAppealDecision",
   description:
-    "Recommend a decision on an appeal. Defaults to human approval. Include a data-grounded reasoning sentence and confidence 0.0–1.0.",
+    "Recommend a decision on an open appeal: approve, reject, or escalate. Always defaults to human approval — the registry stages a PendingAgentAction row that the Triage Agent UI surfaces for the founder/manager to confirm. Include a data-grounded reasoning sentence (citing specific evidence from queryOpenAppeals or getDriverHistory), a confidence score 0.0–1.0, and an optional priorityScore 0.0–1.0 for queue ordering. WRITE tool, requiresApproval=true.",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -295,6 +300,7 @@ const proposeAppealDecision = defineTool({
       priorityScore: { type: "number", description: "0.0–1.0 urgency" },
     },
     required: ["appealId", "decision", "reasoning", "confidence"],
+    additionalProperties: false,
   },
   inputValidator: z.object({
     appealId: z.string(),
@@ -348,7 +354,7 @@ const proposeAppealDecision = defineTool({
 const snoozeAlert = defineTool({
   name: "snoozeAlert",
   description:
-    "Acknowledge an alert and mark it handled. Use for low-value stale alerts the Triage Agent judges safe to clear (e.g. a self-resolved GPS gap). Auto-execute allowed for LOW severity.",
+    "Acknowledge an alert and mark it ACKNOWLEDGED so it no longer appears in the active alert list. Use only for low-value stale alerts the Triage Agent judges safe to clear (e.g. a self-resolved GPS gap, a duplicate of a more recent alert, or a known-false-positive pattern). Auto-execute is allowed for LOW severity alerts; HIGH/CRITICAL severity always requires human approval. Tenant-scoped, write-side tool.",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -356,6 +362,7 @@ const snoozeAlert = defineTool({
       notes: { type: "string" },
     },
     required: ["alertId"],
+    additionalProperties: false,
   },
   inputValidator: z.object({ alertId: z.string(), notes: z.string().optional() }),
   sideEffect: "write",
@@ -382,7 +389,7 @@ const snoozeAlert = defineTool({
 const proposeCoachingMessage = defineTool({
   name: "proposeCoachingMessage",
   description:
-    "Propose a coaching message for a driver (e.g. 'You have 3 late-delivery violations this week; most are in Salmiya 18:00-20:00 — consider leaving earlier'). Sends as Notification after human approval.",
+    "Propose a coaching message for a driver — for example, 'You have 3 late-delivery violations this week; most are in Salmiya 18:00-20:00 — consider leaving earlier'. The body should be specific, data-grounded, and actionable. Sends as a Notification (category=OPS_TODO, severity=MEDIUM) after human approval. Tenant-scoped, requiresApproval=true. Title 3-120 chars, body 10-1000 chars.",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -391,6 +398,7 @@ const proposeCoachingMessage = defineTool({
       body: { type: "string" },
     },
     required: ["driverId", "title", "body"],
+    additionalProperties: false,
   },
   inputValidator: z.object({
     driverId: z.string(),

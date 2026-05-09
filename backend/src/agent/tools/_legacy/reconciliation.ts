@@ -14,7 +14,7 @@ import { defineTool, toolRegistry } from "../../registry";
 const getDriverDayLedger = defineTool({
   name: "getDriverDayLedger",
   description:
-    "Get a driver's cash ledger for a specific date: the CashRecord, all CashTransaction rows, and any pending-dues ledger entries.",
+    "Get a driver's complete cash ledger for a specific date: the CashRecord (sales, collected, pending, gap), all CashTransaction rows for that day in chronological order, and the monthly PendingDuesLedger row whose month covers the given date. Use for the Reconciliation Agent's drill-down on a flagged cash gap or chat 'show me driver X's cash on May 9' answers. Returns 3-decimal KD precision. Tenant-scoped.",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -22,6 +22,7 @@ const getDriverDayLedger = defineTool({
       date: { type: "string", description: "ISO date (YYYY-MM-DD or full ISO)" },
     },
     required: ["driverId", "date"],
+    additionalProperties: false,
   },
   inputValidator: z.object({ driverId: z.string(), date: z.string() }),
   sideEffect: "read",
@@ -87,7 +88,7 @@ const getDriverDayLedger = defineTool({
 const getOrderFlowForDriver = defineTool({
   name: "getOrderFlowForDriver",
   description:
-    "Get raw OrderEvent rows for a driver on a given date, ordered chronologically — useful for matching refunds/cancellations to cash gaps.",
+    "Get raw OrderEvent rows for a driver on a given date, ordered chronologically by timestamp. Returns the per-order lifecycle (placed, accepted, picked-up, delivered, cancelled, refunded) joined with the day's OrderLog rows for context. Use for matching refunds/cancellations to cash gaps in the Reconciliation Agent's drill-down. Tenant-scoped, max 500 events + 200 order log rows.",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -95,6 +96,7 @@ const getOrderFlowForDriver = defineTool({
       date: { type: "string" },
     },
     required: ["driverId", "date"],
+    additionalProperties: false,
   },
   inputValidator: z.object({ driverId: z.string(), date: z.string() }),
   sideEffect: "read",
@@ -136,7 +138,7 @@ const getOrderFlowForDriver = defineTool({
 const createReconciliationNote = defineTool({
   name: "createReconciliationNote",
   description:
-    "Write a one-sentence reconciliation note on the CashRecord's notes field. Auto-executes (descriptive, reversible).",
+    "Write a one-sentence reconciliation note onto a CashRecord's notes field. Auto-executes because it is descriptive and reversible — no financial state changes. The note is stamped with [agent:reconciliation run:<id>] for audit traceability and appended (newline-separated) to any existing notes. Use to record the Reconciliation Agent's interpretation of a cash gap (e.g. 'gap explained by refund #1234'). Tenant-scoped, write tool (auto-execute).",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -144,6 +146,7 @@ const createReconciliationNote = defineTool({
       note: { type: "string" },
     },
     required: ["cashRecordId", "note"],
+    additionalProperties: false,
   },
   inputValidator: z.object({ cashRecordId: z.string(), note: z.string().min(5).max(500) }),
   sideEffect: "write",
@@ -168,7 +171,7 @@ const createReconciliationNote = defineTool({
 const flagForReview = defineTool({
   name: "flagForReview",
   description:
-    "Create a CASH_DISCREPANCY violation for a driver when a fraud pattern is detected (3+ consecutive days of unexplained gaps above threshold). REQUIRES HUMAN APPROVAL.",
+    "Create a CASH_DISCREPANCY violation for a driver when a fraud pattern is detected — typically 3+ consecutive days of unexplained gaps above a threshold KD amount. REQUIRES HUMAN APPROVAL. The violation surfaces in the Triage Agent queue with full metadata (totalGapKd, days, flaggedBy, runId) so a manager can see exactly what the Reconciliation Agent observed before approving the formal violation. Tenant-scoped, requiresApproval=true.",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -179,6 +182,7 @@ const flagForReview = defineTool({
       details: { type: "string" },
     },
     required: ["driverId", "platform", "totalGapKd", "days", "details"],
+    additionalProperties: false,
   },
   inputValidator: z.object({
     driverId: z.string(),

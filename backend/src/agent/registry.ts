@@ -29,6 +29,13 @@ export interface ToolDefinition<I = unknown, O = unknown> {
   requiresApproval: boolean;
   /** Which agents may call this tool. Use ["*"] to allow all. */
   allowedAgents: string[];
+  /**
+   * When true (default for Phase 1 read tools), Anthropic grammar-constrained
+   * sampling enforces inputSchema. Requires `additionalProperties: false`.
+   * Set explicitly false to opt out (e.g. legacy tools that haven't been
+   * audited for strict-mode compatibility).
+   */
+  strict?: boolean;
   execute: (ctx: ToolContext, input: I) => Promise<O>;
 }
 
@@ -66,11 +73,27 @@ class ToolRegistryImpl {
 
   /** Emit Anthropic-compatible tool schemas for the model. */
   getAnthropicSchema(agentId: string, role: UserRole): Anthropic.Tool[] {
-    return this.list(agentId, role).map((t) => ({
-      name: t.name,
-      description: t.description,
-      input_schema: t.inputSchema,
-    }));
+    return this.list(agentId, role).map((t) => {
+      const schema: Anthropic.Tool = {
+        name: t.name,
+        description: t.description,
+        input_schema: t.inputSchema,
+      };
+      // Strict mode opt-in: emit `strict: true` only when the tool sets it
+      // AND the inputSchema has `additionalProperties: false`. The Anthropic
+      // SDK type may not yet declare `strict` on Tool — the wire-protocol
+      // field is documented at platform.claude.com.
+      const inputSchemaWithGuards = t.inputSchema as Anthropic.Tool["input_schema"] & {
+        additionalProperties?: boolean;
+      };
+      if (
+        t.strict !== false &&
+        inputSchemaWithGuards.additionalProperties === false
+      ) {
+        (schema as Anthropic.Tool & { strict?: boolean }).strict = true;
+      }
+      return schema;
+    });
   }
 
   /**
