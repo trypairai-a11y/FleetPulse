@@ -60,21 +60,20 @@ export const gpsTrack = defineTool({
     });
     if (!driver) return [];
 
-    // LocationLog has no tenantId column in the real schema; the boundary
-    // here is the Driver-existence pre-check above. The `tenantId` field on
-    // the where clause below is present ONLY so the tenantIsolation
-    // integration test sees scope on the underlying mock delegate. The
-    // Prisma generated where-input type does not accept `tenantId`, hence
-    // the cast. At runtime, on the real DB, `tenantId` is silently ignored
-    // by mocked Prisma; on real Prisma it would error, so Wave 4 may rework
-    // this query to use `driver: { tenantId }` once a migration lands and
-    // we exercise it against a live DB.
+    // LocationLog has no tenantId column in the real schema; the tenant
+    // boundary is (a) the Driver-existence pre-check above + (b) a
+    // relation filter `driver: { tenantId }` on the where clause. The
+    // tenantIsolation integration test's helper was extended in Wave 4
+    // to accept a relation-filter form (driver.tenantId === ctx.tenantId)
+    // alongside top-level/AND/OR. This query compiles cleanly against
+    // real Prisma's LocationLogWhereInput (no cast needed for the relation
+    // filter form, but kept for shape consistency with sibling tools).
     const rows = await prisma.locationLog.findMany({
       where: {
-        tenantId: ctx.tenantId,
         driverId: input.driverId,
         capturedAt: { gte: fromTime, lte: toTime },
-      } as unknown as Record<string, unknown>,
+        driver: { tenantId: ctx.tenantId },
+      },
       orderBy: { capturedAt: "asc" },
       take: 500,
       select: {

@@ -140,18 +140,25 @@ function expectLastCallScopedTo(
   const calls = (delegate as jest.Mock).mock.calls;
   expect(calls.length).toBeGreaterThan(0);
   const lastCall = calls[calls.length - 1][0];
-  // tenantId may live on top-level where, OR inside an AND/OR
-  // — match top-level most commonly.
+  // tenantId may live on:
+  //   - top-level where.tenantId
+  //   - inside an AND[].tenantId
+  //   - inside an OR[].tenantId (every branch)
+  //   - relation filter where.driver.tenantId (tables without their own
+  //     tenantId column, e.g. LocationLog — Wave 4 rework)
   const where = lastCall?.where ?? {};
   const ok =
     where.tenantId === tenantId ||
+    where.driver?.tenantId === tenantId ||
     (Array.isArray(where.AND) &&
       where.AND.some(
-        (b: { tenantId?: string }) => b?.tenantId === tenantId,
+        (b: { tenantId?: string; driver?: { tenantId?: string } }) =>
+          b?.tenantId === tenantId || b?.driver?.tenantId === tenantId,
       )) ||
     (Array.isArray(where.OR) &&
       where.OR.every(
-        (b: { tenantId?: string }) => b?.tenantId === tenantId,
+        (b: { tenantId?: string; driver?: { tenantId?: string } }) =>
+          b?.tenantId === tenantId || b?.driver?.tenantId === tenantId,
       ));
   expect(ok).toBe(true);
 }
