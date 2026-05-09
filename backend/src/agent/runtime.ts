@@ -84,9 +84,10 @@ function loadPrompt(file: string): string {
 // ─── Runtime ─────────────────────────────────────────────────────────────────
 
 /**
- * Run an agent. Generalised tool-loop lifted from AiChatService.chat —
- * difference: tools come from the shared ToolRegistry (with RBAC, approval
- * gates, and audit), and every run is persisted in AgentRunLog.
+ * Run an agent. Generalised tool-loop — tools come from the shared
+ * ToolRegistry (with RBAC, approval gates, and audit), every run is
+ * persisted in AgentRunLog, and missing ANTHROPIC_API_KEY returns
+ * status: "disabled" instead of throwing.
  */
 export async function runAgent(
   agentId: AgentId,

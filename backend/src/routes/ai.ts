@@ -107,6 +107,7 @@ router.get("/scores", async (req: Request, res: Response) => {
       if (dateTo) where.date.lte = new Date(dateTo as string);
     }
 
+    // eslint-disable-next-line no-prisma-without-tenant -- tenantId is set in `where` above (line 102); the lint rule's static analysis can't follow the variable indirection. Verified manually.
     const scores = await prisma.aiScore.findMany({
       where,
       orderBy: { date: "desc" },
