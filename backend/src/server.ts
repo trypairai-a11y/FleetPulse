@@ -69,6 +69,7 @@ import v2Routes from "./routes/v2";
 import aiCosRoutes from "./routes/aiChiefOfStaff";
 import decisionsRouter from "./routes/decisions";
 import auditRouter from "./routes/audit";
+import adminRouter from "./routes/admin";
 import { startAnomalyScheduler } from "./services/anomalyScheduler";
 import { startGpsMonitorScheduler } from "./services/gpsMonitorService";
 import { startKeetaPortalScraperScheduler } from "./queues/keetaPortalScraperWorker";
@@ -216,6 +217,10 @@ app.use("/api/ai/cos", aiCosRoutes);
 // REQ-agent-propose-confirm) and audit log (CON-audit-row-shape reads).
 app.use("/api/decisions", decisionsRouter);
 app.use("/api/audit", auditRouter);
+// Phase 2 Wave 4 — Founder/super-admin onboarding wizard + billing
+// (REQ-pricing-model + REQ-gtm-onboarding). All routes super-admin gated;
+// NOT tenantScope (admin operates across tenants by design).
+app.use("/api/admin", adminRouter);
 
 // API Documentation (Swagger UI — available at /api-docs)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {

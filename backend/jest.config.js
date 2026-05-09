@@ -18,6 +18,13 @@ module.exports = {
     "^../middleware/auth$": "<rootDir>/src/__tests__/mocks/auth.ts",
     "^../middleware/tenantScope$": "<rootDir>/src/__tests__/mocks/tenantScope.ts",
     "^../services/driverService$": "<rootDir>/src/__tests__/mocks/driverService.ts",
+    // Phase 2 Wave 4: routes nested 2 levels deep
+    // (e.g. src/routes/admin/*) import "../../middleware/auth" and
+    // "../../middleware/tenantScope". Mirror the Wave 2 config mapper
+    // pattern so the admin route tests hit the same auth mock as the
+    // routes/* tests.
+    "^\\.\\./\\.\\./middleware/auth$": "<rootDir>/src/__tests__/mocks/auth.ts",
+    "^\\.\\./\\.\\./middleware/tenantScope$": "<rootDir>/src/__tests__/mocks/tenantScope.ts",
   },
   transform: {
     "^.+\\.tsx?$": ["ts-jest", { tsconfig: { strict: false } }],
