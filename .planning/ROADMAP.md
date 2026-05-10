@@ -127,7 +127,13 @@ Plans:
   1. All four platforms (Keeta, Talabat, Deliveroo, Americana) have their ingest paths sitting behind a single `IngestAdapter` interface; replacing a scraper requires zero changes outside the adapter module.
   2. Every platform has a working XLSX-import fallback route shaped like Keeta's existing `POST /import`.
   3. For metrics where both mobile-GPS data and scraped data exist (e.g., online hours, location), the system reads from mobile-GPS by default and falls back to scraped data only when mobile is unavailable.
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 06-00-PLAN.md — Wave 0: 11 RED test files + 4 XLSX fixture builders + lint:tenant scope extension to services/ingest/
+- [ ] 06-01-PLAN.md — Wave 1: Core scaffolding (types/composite/registry/audit/normalize/index/xlsxRouteFactory) + OrderSource.MOBILE_GPS schema edit
+- [ ] 06-02-PLAN.md — Wave 2: 19 per-platform adapter files (Keeta×3 + Talabat×6 + Deliveroo×6 + Americana×3 + registry update)
+- [ ] 06-03-PLAN.md — Wave 3: POST /api/talabat/import + POST /api/deliveroo/import via makeXlsxImportRoute factory
+- [ ] 06-04-PLAN.md — Wave 4: pullChunkPhase6 wired into onboardingBackwashWorker + [BLOCKING] prisma migrate dev for MOBILE_GPS + final close-out
 
 ### Phase 7: Live Floor (Map + Pills + Courier Panel)
 **Goal**: Ship the dispatcher's primary daily surface. Live map of Kuwait at `/floor`, all platforms, real-time, glanceable, stays open all shift. Driver dots colour-coded per CON-floor-dot-colors and platform-tagged. Three pill counters at top per CON-floor-counters. Click a dot → right panel slides out with full driver context. One action: "Ping (WhatsApp)" — agent drafts message, dispatcher one-clicks send. Live updates ride the WebSocket transport from Phase 4.
@@ -215,7 +221,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 3. Driver File | 0/TBD | Not started | - |
 | 4. Chat / Generative UI + WebSocket | 0/TBD | Not started | - |
 | 5. Mobile GPS Beacon | 0/TBD | Not started | - |
-| 6. Ingest Adapter Layer | 0/TBD | Not started | - |
+| 6. Ingest Adapter Layer | 0/5   | Planned     | - |
 | 7. Live Floor (Map + Pills + Courier Panel) | 0/TBD | Not started | - |
 | 8. Finance Workbench + Action Tool Surface | 0/TBD | Not started | - |
 | 9. Mobile Agent Inbox + Bilingual Outbound | 0/TBD | Not started | - |
