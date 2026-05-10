@@ -46,7 +46,7 @@ Progress: [██░░░░░░░░░░] 17% (2 of 12 phases complete)
 ### Pending Todos
 
 - **8-step design-partner-1 manual dry-run:** documented in `.planning/phases/02-decisions-surface-propose-and-confirm-design-partner-1/02-05-SUMMARY.md` — user must promote a User row to `isSuperAdmin=true`, sign in, run `npm run seed:design-partner-fixture -- --tenantId=<dp1>`, walk through `/admin/onboarding` wizard, verify report.
-- **Frontend Sierra-palette test cleanup:** 16 pre-existing frontend tests reference legacy `bg-gray-100` palette; implementation moved to Sierra (`bg-sand-200`) before Phase 2. Not a Phase 2 regression. Worth a Phase 11 cleanup pass.
+- ~~**Frontend Sierra-palette test cleanup:** 16 pre-existing frontend tests~~ — Resolved 2026-05-10 as part of "finalize all" sweep. `formatters.test.ts` + `StatusBadge.test.tsx` updated to match Sierra palette (`bg-primary/10`, `bg-talabat/10`, `bg-sand-200`, etc.). All 36 frontend tests now GREEN.
 - **Phase 11 deferred-items.md:** 184 pre-existing tenant-scope violations across 35 legacy non-agent files (DI-01-01).
 - **Phase 11 deferred-items.md:** Pre-existing migration-history defect that forced both Phase 1 + Phase 2 hand-crafted migrations (DI-01-02). Resolve by rebuilding shadow DB cleanly during Phase 11.
 
@@ -66,10 +66,10 @@ Progress: [██░░░░░░░░░░] 17% (2 of 12 phases complete)
 | Phase 2 cost ceiling | Configurable max-proposals-per-tenant-per-day | Deferred to Phase 8 | Phase 2 plan-checker (2026-05-09) |
 | Phase 2 Suspend/Penalty live wiring | Visible-with-disabled-Approve in v1; Phase 8 wires those tools live | Deferred to Phase 8 | Phase 2 plan-checker (2026-05-09) |
 | Phase 2 design-partner-1 dry-run | 8-step manual onboarding via wizard with seed fixture | User post-deploy | Phase 2 Wave 5 (2026-05-09) |
-| Frontend Sierra palette tests | 16 pre-existing test failures referencing legacy palette | Out-of-scope cleanup | Phase 2 verification (2026-05-09) |
+| Frontend Sierra palette tests | ~~16 pre-existing test failures referencing legacy palette~~ | ✓ Resolved 2026-05-10 | Phase 2 finalize sweep |
 
 ## Session Continuity
 
-Last session: 2026-05-09
-Stopped at: Phase 2 complete, deployed. ROADMAP.md and STATE.md updated. Next action: `/gsd-plan-phase 3` (Driver File) when ready.
+Last session: 2026-05-10
+Stopped at: Phase 2 complete + deployed + finalize sweep done (Sierra palette test cleanup resolved; 36/36 frontend tests + 188/188 backend tests green; both deploys healthy). Next action: `/gsd-plan-phase 3` (Driver File) when ready.
 Resume file: None

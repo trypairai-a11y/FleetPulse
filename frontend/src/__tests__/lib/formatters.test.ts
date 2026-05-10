@@ -24,11 +24,11 @@ describe("cleanDriverName", () => {
 });
 
 describe("getStatusColor", () => {
-  it("returns green colors for ACTIVE status", () => {
+  it("returns primary colors for ACTIVE status", () => {
     const colors = getStatusColor("ACTIVE");
-    expect(colors.bg).toBe("bg-green-50");
-    expect(colors.text).toBe("text-green-700");
-    expect(colors.dot).toBe("bg-green-500");
+    expect(colors.bg).toBe("bg-primary/10");
+    expect(colors.text).toBe("text-primary");
+    expect(colors.dot).toBe("bg-primary");
   });
 
   it("returns red colors for SUSPENDED status", () => {
@@ -40,65 +40,65 @@ describe("getStatusColor", () => {
 
   it("is case-insensitive", () => {
     const colors = getStatusColor("active");
-    expect(colors.bg).toBe("bg-green-50");
+    expect(colors.bg).toBe("bg-primary/10");
   });
 
-  it("returns default gray for unknown status", () => {
+  it("returns default sand for unknown status", () => {
     const colors = getStatusColor("UNKNOWN_STATUS");
-    expect(colors.bg).toBe("bg-gray-100");
-    expect(colors.text).toBe("text-gray-600");
-    expect(colors.dot).toBe("bg-gray-400");
+    expect(colors.bg).toBe("bg-sand-200");
+    expect(colors.text).toBe("text-sand-800");
+    expect(colors.dot).toBe("bg-sand-500");
   });
 
-  it("returns default gray for null input", () => {
+  it("returns default sand for null input", () => {
     const colors = getStatusColor(null);
-    expect(colors.bg).toBe("bg-gray-100");
+    expect(colors.bg).toBe("bg-sand-200");
   });
 
-  it("returns default gray for undefined input", () => {
+  it("returns default sand for undefined input", () => {
     const colors = getStatusColor(undefined);
-    expect(colors.bg).toBe("bg-gray-100");
+    expect(colors.bg).toBe("bg-sand-200");
   });
 });
 
 describe("getPlatformColor", () => {
-  it("returns orange for TALABAT", () => {
+  it("returns talabat brand color for TALABAT", () => {
     const colors = getPlatformColor("TALABAT");
-    expect(colors.bg).toBe("bg-orange-50");
-    expect(colors.text).toBe("text-orange-700");
+    expect(colors.bg).toBe("bg-talabat/10");
+    expect(colors.text).toBe("text-talabat");
   });
 
-  it("returns yellow for KEETA", () => {
+  it("returns keeta brand color for KEETA", () => {
     const colors = getPlatformColor("KEETA");
-    expect(colors.bg).toBe("bg-yellow-50");
-    expect(colors.text).toBe("text-yellow-700");
+    expect(colors.bg).toBe("bg-keeta/10");
+    expect(colors.text).toBe("text-keeta");
   });
 
-  it("returns teal for DELIVEROO", () => {
+  it("returns deliveroo brand color for DELIVEROO", () => {
     const colors = getPlatformColor("DELIVEROO");
-    expect(colors.bg).toBe("bg-teal-50");
-    expect(colors.text).toBe("text-teal-700");
+    expect(colors.bg).toBe("bg-deliveroo/10");
+    expect(colors.text).toBe("text-deliveroo");
   });
 
-  it("returns blue for AMERICANA", () => {
+  it("returns americana brand color for AMERICANA", () => {
     const colors = getPlatformColor("AMERICANA");
-    expect(colors.bg).toBe("bg-blue-50");
-    expect(colors.text).toBe("text-blue-700");
+    expect(colors.bg).toBe("bg-americana/10");
+    expect(colors.text).toBe("text-americana");
   });
 
   it("is case-insensitive", () => {
     const colors = getPlatformColor("talabat");
-    expect(colors.bg).toBe("bg-orange-50");
+    expect(colors.bg).toBe("bg-talabat/10");
   });
 
-  it("returns default gray for unknown platform", () => {
+  it("returns default sand for unknown platform", () => {
     const colors = getPlatformColor("UNKNOWN");
-    expect(colors.bg).toBe("bg-gray-100");
-    expect(colors.text).toBe("text-gray-600");
+    expect(colors.bg).toBe("bg-sand-200");
+    expect(colors.text).toBe("text-sand-800");
   });
 
-  it("returns default gray for null input", () => {
+  it("returns default sand for null input", () => {
     const colors = getPlatformColor(null);
-    expect(colors.bg).toBe("bg-gray-100");
+    expect(colors.bg).toBe("bg-sand-200");
   });
 });
