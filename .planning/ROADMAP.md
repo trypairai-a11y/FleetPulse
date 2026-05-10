@@ -91,7 +91,13 @@ Plans:
   2. The Driver File renders all eight sections: Profile (name/photo/vehicle/platform/contract terms); Live status + today's orders; 90-day Performance score trend; Violations history; Cash history; Attendance + shifts; Agent's running notes; Decision audit log filtered to this driver.
   3. The Performance score is read from `PerformanceSnapshot` (daily snapshot, not recomputed per request); the 90-day trend chart renders in <300ms.
   4. Asking the agent "why is this driver scored at X?" returns a plain-English explanation derived from the score's contributing factors.
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 03-00-PLAN.md — Wave 0: 14 RED test files (8 backend + 6 frontend) + 5 gold-set fixtures + lint:tenant scope extension to services/driverFile/
+- [ ] 03-01-PLAN.md — Wave 1: score-explainer agent + scoreExplainer service (1h AgentMemory cache, compositeScore-keyed) + performanceTrend (13th read tool) + GET /api/drivers/:id/file aggregate route + decisionAuditFilter + agentNoteWriter
+- [ ] 03-02-PLAN.md — Wave 2: <DriverLink> global primitive + 14-site cross-app retrofit sweep + /drivers/[id] page shell + DriverFileShell + DriverFileSkeleton + DriverFileScrollSpy + DriverFileHeader + PerformanceScoreCard + ScoreGauge + SubScoreBar
+- [ ] 03-03-PLAN.md — Wave 3: 6 remaining sections — NinetyDayTrendChart (Recharts) + CustomScoreTooltip + RecentShiftsTable + RecentOrdersTable + ViolationsList + CashSnapshot + AgentNotes (reusing Phase 2 AuditEntryDetail SlidePanel)
+- [ ] 03-04-PLAN.md — Wave 4: Legacy redirects (4 platform-prefixed [id]/page.tsx → redirect stubs) + AskDarbWhyDrawer with /api/drivers/:id/score-explanation Refresh path + Driver360 retirement to _legacy/ + smoke integration test + human-verify checkpoint
 **UI hint**: yes
 
 ### Phase 4: Chat / Generative UI + WebSocket
@@ -104,7 +110,14 @@ Plans:
   3. Asking the agent to do something ("apply a 10 KD penalty to drivers who missed shift today") returns a list, the proposed payroll deduction, the WhatsApp draft, and a confirm card; the action does not fire until Approve is clicked.
   4. Clicking "Pin to Home" on a generated view writes a row to `PinnedView` and the next time the user lands on Home (Decisions or `/home`), the pinned tile renders.
   5. Tokens stream into the chat via WebSocket; existing SSE notifications still work; both transports coexist without breaking the existing `notifications` route.
-**Plans**: TBD
+**Plans**: 6 plans
+Plans:
+- [ ] 04-00-PLAN.md — Wave 0: 17 RED test files (11 backend + 6 frontend) + 13 gold-set fixtures + cmdk@^1.1.1 install + lint:tenant glob extension to 7 new Phase 4 backend files
+- [ ] 04-01-PLAN.md — Wave 1: schema additions (3 models — ChatThread/ChatMessage/ScheduledBriefing + 6 columns on PinnedView/AgentAction) + describeView tool (Zod discriminated union, 9 viewTypes) + chatHistoryService + chat.md prompt + runAgent stream:{onTextDelta/onView/onPendingAction/onCancel} + frontend types
+- [ ] 04-02-PLAN.md — Wave 2: SSE chat route (/api/ai/chat/stream) + chat threads/messages CRUD (/api/chat/*) + per-thread Redis lock + 15s heartbeat + cancel via Redis flag + extended /api/decisions/:id/approve to accept source/threadId/msgId
+- [ ] 04-03-PLAN.md — Wave 3: cmdk-based ⌘K palette rewrite + /chat 3-column shell + 9 viewBlock renderers (Recharts/React-Leaflet/StatCard/DataTable) + ChatActionCard reusing /api/decisions/:id/approve + useStreamingChat (SSE) + useChatThreads hooks
+- [ ] 04-04-PLAN.md — Wave 4: /api/pinned-views CRUD + refresh + PinnedViewsRail/PinnedViewTile/UnpinConfirm on /decisions + sidebar Chat nav + ⌘K trigger pill + /copilot 308 redirect to /chat
+- [ ] 04-05-PLAN.md — Wave 5: scheduledBriefingsService + BullMQ JobScheduler worker (standing-rule type=no-op) + /api/scheduled-briefings CRUD + ScheduledBriefingsList UI at /chat/scheduled + [BLOCKING] prisma migrate dev + tsvector GIN index for FTS + final phase verification
 **UI hint**: yes
 
 ### Phase 5: Mobile GPS Beacon
@@ -218,10 +231,10 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Backend Agent Spine + Data Architecture | 0/5   | Planned     | - |
 | 2. Decisions Surface + Propose-and-Confirm + Design Partner #1 | 0/6 | Planned | - |
-| 3. Driver File | 0/TBD | Not started | - |
+| 3. Driver File | 0/5 | Planned | - |
 | 4. Chat / Generative UI + WebSocket | 0/TBD | Not started | - |
 | 5. Mobile GPS Beacon | 0/TBD | Not started | - |
-| 6. Ingest Adapter Layer | 0/5   | Planned     | - |
+| 6. Ingest Adapter Layer | 0/TBD | Not started | - |
 | 7. Live Floor (Map + Pills + Courier Panel) | 0/TBD | Not started | - |
 | 8. Finance Workbench + Action Tool Surface | 0/TBD | Not started | - |
 | 9. Mobile Agent Inbox + Bilingual Outbound | 0/TBD | Not started | - |
