@@ -129,7 +129,13 @@ Plans:
   2. The mobile app reports which delivery app is currently foregrounded so per-platform attribution is captured without scraping.
   3. The battery and location-permission UX is treated as a deliberate deliverable: explicit pre-permission screens, fallback prompts for OS-denied permission, battery impact disclosed and within a stated budget.
   4. A courier can capture a delivery photo from inside the Darb app and the photo is associated with the correct order.
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 05-00-PLAN.md — Wave 0: jest-expo bootstrap + RED test scaffolding (10 mobile tests + 5 backend tests) + lint:tenant scope extension to Phase 5 backend files
+- [ ] 05-01-PLAN.md — Wave 1: Mobile foundation — expo-sqlite outbox replaces AsyncStorage (Pitfall 1); iOS activityType + Android 14 FOREGROUND_SERVICE_LOCATION (Pitfalls 2/3); expo-battery telemetry; platformGuess hint module; locationService rewrite
+- [ ] 05-02-PLAN.md — Wave 2: Backend additions — activePlatformAttribution service (tiered evidence chain over OrderEvent → Shift → Driver default → mobile hint); R2 presigned URL service; agentRateLimit middleware; agent.ts extended with idempotency + upload-url + delivery-photo routes
+- [ ] 05-03-PLAN.md — Wave 3: Mobile UX — photoService capture pipeline (compress → presigned PUT → metadata POST); PermissionRationale two-stage modal; BatteryStatusBadge; dashboard Start Shift wired to rationale; orders Mark Delivered button; tab focus → setLastTab
+- [ ] 05-04-PLAN.md — Wave 4: [BLOCKING] EAS native rebuild (iOS + Android) + R2 bucket creation + Vercel prod env vars + 4-hour battery test (target ≤6%/hr) + 1km walking smoke + delivery-photo round-trip + VERIFICATION.md
 **UI hint**: yes
 
 ### Phase 6: Ingest Adapter Layer
@@ -140,13 +146,14 @@ Plans:
   1. All four platforms (Keeta, Talabat, Deliveroo, Americana) have their ingest paths sitting behind a single `IngestAdapter` interface; replacing a scraper requires zero changes outside the adapter module.
   2. Every platform has a working XLSX-import fallback route shaped like Keeta's existing `POST /import`.
   3. For metrics where both mobile-GPS data and scraped data exist (e.g., online hours, location), the system reads from mobile-GPS by default and falls back to scraped data only when mobile is unavailable.
-**Plans**: 5 plans
+**Plans**: 6 plans
 Plans:
-- [ ] 06-00-PLAN.md — Wave 0: 11 RED test files + 4 XLSX fixture builders + lint:tenant scope extension to services/ingest/
-- [ ] 06-01-PLAN.md — Wave 1: Core scaffolding (types/composite/registry/audit/normalize/index/xlsxRouteFactory) + OrderSource.MOBILE_GPS schema edit
-- [ ] 06-02-PLAN.md — Wave 2: 19 per-platform adapter files (Keeta×3 + Talabat×6 + Deliveroo×6 + Americana×3 + registry update)
+- [ ] 06-00-PLAN.md — Wave 0: 13 RED test files + 4 XLSX fixture builders + lint negative fixture + lint:tenant scope extension to services/ingest/
+- [ ] 06-01-PLAN.md — Wave 1: Core scaffolding (types/composite/registry/audit/normalize/index/xlsxRouteFactory) + OrderSource.MOBILE_GPS schema edit + migration
+- [ ] 06-02a-PLAN.md — Wave 2a (parallel with 02b): Keeta×4 + Americana×3 adapter files + registry update (consumes 02b's barrels)
+- [ ] 06-02b-PLAN.md — Wave 2b (parallel with 02a): Talabat×6 + Deliveroo×6 adapter files
 - [ ] 06-03-PLAN.md — Wave 3: POST /api/talabat/import + POST /api/deliveroo/import via makeXlsxImportRoute factory
-- [ ] 06-04-PLAN.md — Wave 4: pullChunkPhase6 wired into onboardingBackwashWorker + [BLOCKING] prisma migrate dev for MOBILE_GPS + final close-out
+- [ ] 06-04-PLAN.md — Wave 4: pullChunkPhase6 + Keeta /import refactor + keetaPortalScraperWorker refactor + Phase 6 close-out (migration applied in Wave 1)
 
 ### Phase 7: Live Floor (Map + Pills + Courier Panel)
 **Goal**: Ship the dispatcher's primary daily surface. Live map of Kuwait at `/floor`, all platforms, real-time, glanceable, stays open all shift. Driver dots colour-coded per CON-floor-dot-colors and platform-tagged. Three pill counters at top per CON-floor-counters. Click a dot → right panel slides out with full driver context. One action: "Ping (WhatsApp)" — agent drafts message, dispatcher one-clicks send. Live updates ride the WebSocket transport from Phase 4.
@@ -233,7 +240,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 2. Decisions Surface + Propose-and-Confirm + Design Partner #1 | 0/6 | Planned | - |
 | 3. Driver File | 0/5 | Planned | - |
 | 4. Chat / Generative UI + WebSocket | 0/TBD | Not started | - |
-| 5. Mobile GPS Beacon | 0/TBD | Not started | - |
+| 5. Mobile GPS Beacon | 0/5 | Planned | - |
 | 6. Ingest Adapter Layer | 0/TBD | Not started | - |
 | 7. Live Floor (Map + Pills + Courier Panel) | 0/TBD | Not started | - |
 | 8. Finance Workbench + Action Tool Surface | 0/TBD | Not started | - |
