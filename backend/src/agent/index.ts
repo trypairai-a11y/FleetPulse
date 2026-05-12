@@ -83,6 +83,24 @@ registerAgent({
   promptFile: "monitor.md",
 });
 
+// Phase 3 Wave 1 — REQ-agent-scoring. Single-shot explainer producing 2-4
+// sentences of plain-English score commentary. No tool-loop (maxIterations=3
+// gives the model 1 generation + 1 retry budget if it violates the format),
+// tight maxTokens to cap cost. Wave 1 wires explainScore() to invoke this
+// agent on cache miss. The prompt at prompts/scoreExplainer.md forbids action
+// verbs (warn/suspend/etc.) to keep the explainer a read-only narrative.
+registerAgent({
+  id: "score-explainer",
+  description:
+    "Generates 2-4 sentence plain-English explanations of a courier's composite performance score. Read-only narrative — never proposes actions. Cost-capped: single-shot, maxTokens=512.",
+  triggers: [],
+  actorRole: "OPS_MANAGER",
+  model: "claude-sonnet-4-6",
+  maxTokens: 512,
+  maxIterations: 3,
+  promptFile: "scoreExplainer.md",
+});
+
 // Register tools for each agent.
 registerTriageTools();
 registerReconciliationTools();

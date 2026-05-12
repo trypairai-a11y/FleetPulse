@@ -31,6 +31,9 @@ import "./searchOrders";
 // Phase 2 Wave 1 — 12th read tool: prefix-scan AgentMemory (used by the
 // monitor agent for the dismissed:* 7-day suppression contract).
 import "./listAgentMemory";
+// Phase 3 Wave 1 — 13th read tool: 90-day PerformanceSnapshot trend used by
+// the Driver File trend chart + score-explainer reasoning.
+import "./performanceTrend";
 
 // Re-exports for callers that want the tool definitions directly.
 export { revenueByDay } from "./revenueByDay";

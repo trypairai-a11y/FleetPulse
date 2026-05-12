@@ -10,7 +10,7 @@ import { toolRegistry, type ToolContext } from "./registry";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export type AgentId = "triage" | "reconciliation" | "narrator" | "chat" | "monitor";
+export type AgentId = "triage" | "reconciliation" | "narrator" | "chat" | "monitor" | "score-explainer";
 
 export interface AgentDefinition {
   id: AgentId;

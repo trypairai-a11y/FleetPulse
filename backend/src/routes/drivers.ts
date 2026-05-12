@@ -7,6 +7,9 @@ import { sendXlsx } from "../utils/xlsxExport";
 import { validateBody, createDriverSchema } from "../utils/validate";
 import { rbac } from "../middleware/rbac";
 import { resolveDriverDateRange, batchLoadDriverStats, resolveTalabatStatus } from "../services/driverService";
+import { listSnapshotsForDriver, listMemoriesByPrefix } from "../agent";
+import { explainScore } from "../services/driverFile/scoreExplainer";
+import { loadDriverAuditLog } from "../services/driverFile/decisionAuditFilter";
 
 const router = Router();
 router.use(authMiddleware, tenantScope);
@@ -111,9 +114,37 @@ router.get("/", async (req: Request, res: Response) => {
     const driverIds = data.map((d) => d.id);
     const statsMap = await batchLoadDriverStats(tenantId, driverIds, dateRange);
 
+    // Batch-load current Americana store assignments (one row per driver for the current month
+    // or the latest open assignment) so the drivers list can show chain + branch.
+    const americanaIds = data.filter((d) => d.platform === "AMERICANA").map((d) => d.id);
+    const americanaAssignmentMap = new Map<string, { chain: string | null; storeName: string | null }>();
+    if (americanaIds.length > 0) {
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+      const assignments = await prisma.americanaStoreAssignment.findMany({
+        where: {
+          tenantId,
+          driverId: { in: americanaIds },
+          OR: [{ endDate: null }, { endDate: { gte: monthStart } }],
+        },
+        orderBy: { startDate: "desc" },
+        include: { store: { include: { chain: true } } },
+      });
+      for (const a of assignments) {
+        if (!americanaAssignmentMap.has(a.driverId)) {
+          americanaAssignmentMap.set(a.driverId, {
+            chain: a.store?.chain?.name ?? null,
+            storeName: a.store?.name ?? null,
+          });
+        }
+      }
+    }
+
     const enriched = data.map((d) => {
       const stats = statsMap.get(d.id);
       const talabatStatus = resolveTalabatStatus(d.status, d.platform, stats?.talabatStatus);
+      const americanaAssignment = americanaAssignmentMap.get(d.id);
       return {
         ...d,
         dailyOrders: stats?.dailyOrders ?? 0,
@@ -123,6 +154,9 @@ router.get("/", async (req: Request, res: Response) => {
         uti: stats?.uti ?? 0,
         workingHours: stats?.workingHours ?? null,
         talabatStatus,
+        employeeId: d.platform === "AMERICANA" ? d.platformDriverId : (d as any).employeeId,
+        chain: americanaAssignment?.chain ?? null,
+        storeName: americanaAssignment?.storeName ?? null,
       };
     });
 
@@ -357,6 +391,7 @@ router.get("/:id/profile", async (req: Request, res: Response) => {
       talabatMetrics,
       keetaMetrics,
       deliverooMetrics,
+      americanaMonthly,
       activeSession,
     ] = await Promise.all([
       prisma.orderLog.aggregate({
@@ -401,20 +436,29 @@ router.get("/:id/profile", async (req: Request, res: Response) => {
       }),
       driver.platform === "TALABAT"
         ? prisma.talabatDailyMetrics.findMany({
-            where: { tenantId, driverId: id, shiftDate: { gte: weekStart } },
+            where: { tenantId, driverId: id },
             orderBy: { shiftDate: "desc" },
           })
         : Promise.resolve([]),
       driver.platform === "KEETA"
         ? prisma.keetaDailyMetrics.findMany({
-            where: { tenantId, driverId: id, date: { gte: weekStart } },
+            where: { tenantId, driverId: id },
             orderBy: { date: "desc" },
           })
         : Promise.resolve([]),
       driver.platform === "DELIVEROO"
         ? prisma.deliverooDailyMetrics.findMany({
-            where: { tenantId, driverId: id, shiftDate: { gte: weekStart } },
+            where: { tenantId, driverId: id },
             orderBy: { shiftDate: "desc" },
+          })
+        : Promise.resolve([]),
+      driver.platform === "AMERICANA"
+        ? prisma.americanaDailyOrders.findMany({
+            where: { tenantId, driverId: id },
+            orderBy: { month: "desc" },
+            include: {
+              storeRef: { select: { id: true, name: true, chain: { select: { name: true } } } },
+            },
           })
         : Promise.resolve([]),
       prisma.courierOnlineSession.findFirst({
@@ -423,15 +467,59 @@ router.get("/:id/profile", async (req: Request, res: Response) => {
       }),
     ]);
 
-    // Overview tab
+    // Overview tab — UTR (last 7 days) computed from in-memory metrics
+    const talabatWeekly = talabatMetrics.filter((m: any) => new Date(m.shiftDate) >= weekStart);
+    const keetaWeekly = keetaMetrics.filter((m: any) => new Date(m.date) >= weekStart);
+    const deliverooWeekly = deliverooMetrics.filter((m: any) => new Date(m.shiftDate) >= weekStart);
+
+    // Americana — flatten monthly daily order JSON into per-day rows.
+    const americanaDaily: Array<{
+      id: string;
+      date: string;
+      orders: number;
+      chainName: string | null;
+      storeName: string | null;
+      position: string | null;
+    }> = [];
+    let americanaTodayOrders = 0;
+    let americanaWeekOrders = 0;
+    if (driver.platform === "AMERICANA") {
+      const todayKey = todayStart.toISOString().slice(0, 10);
+      for (const m of americanaMonthly as any[]) {
+        const monthDate: Date = m.month;
+        const y = monthDate.getUTCFullYear();
+        const mo = monthDate.getUTCMonth();
+        const days = m.dailyOrders as Record<string, number> | null;
+        if (!days || typeof days !== "object") continue;
+        for (const [dayKey, val] of Object.entries(days)) {
+          const d = parseInt(dayKey, 10);
+          if (!Number.isFinite(d) || d < 1 || d > 31) continue;
+          const orders = Number(val) || 0;
+          if (orders === 0) continue;
+          const dateObj = new Date(Date.UTC(y, mo, d));
+          const iso = dateObj.toISOString().slice(0, 10);
+          americanaDaily.push({
+            id: `${m.id}-${dayKey}`,
+            date: iso,
+            orders,
+            chainName: m.storeRef?.chain?.name ?? m.chain ?? null,
+            storeName: m.storeRef?.name ?? m.storeName ?? null,
+            position: m.position ?? null,
+          });
+          if (iso === todayKey) americanaTodayOrders += orders;
+          if (dateObj >= weekStart) americanaWeekOrders += orders;
+        }
+      }
+      americanaDaily.sort((a, b) => (a.date < b.date ? 1 : -1));
+    }
     const utrThisWeek =
-      driver.platform === "TALABAT" && talabatMetrics.length > 0
-        ? (talabatMetrics.reduce((s, m) => s + (m.utr ?? 0), 0) / talabatMetrics.length)
-        : driver.platform === "KEETA" && keetaMetrics.length > 0
-          ? keetaMetrics.reduce((s, m) => s + Number(m.completionRate ?? 0), 0) / keetaMetrics.length
-          : driver.platform === "DELIVEROO" && deliverooMetrics.length > 0
+      driver.platform === "TALABAT" && talabatWeekly.length > 0
+        ? (talabatWeekly.reduce((s, m) => s + (m.utr ?? 0), 0) / talabatWeekly.length)
+        : driver.platform === "KEETA" && keetaWeekly.length > 0
+          ? keetaWeekly.reduce((s, m) => s + Number(m.completionRate ?? 0), 0) / keetaWeekly.length
+          : driver.platform === "DELIVEROO" && deliverooWeekly.length > 0
             ? (() => {
-                const totals = deliverooMetrics.reduce(
+                const totals = deliverooWeekly.reduce(
                   (acc: { d: number; h: number }, m: any) => {
                     const buckets = Array.isArray(m.hourlyBuckets)
                       ? (m.hourlyBuckets as number[])
@@ -464,10 +552,16 @@ router.get("/:id/profile", async (req: Request, res: Response) => {
         performanceTier: (driver as any).performanceTier ?? null,
         photoUrl: driver.photoUrl,
       },
-      todayOrders: todayOrders._sum.orderCount ?? 0,
+      todayOrders:
+        driver.platform === "AMERICANA"
+          ? americanaTodayOrders
+          : todayOrders._sum.orderCount ?? 0,
       todayCash: Number(todayOrders._sum.cashCollected ?? 0),
       todayTips: Number(todayOrders._sum.tips ?? 0),
-      weekOrders: weekOrders._sum.orderCount ?? 0,
+      weekOrders:
+        driver.platform === "AMERICANA"
+          ? americanaWeekOrders
+          : weekOrders._sum.orderCount ?? 0,
       weekCash: Number(weekOrders._sum.cashCollected ?? 0),
       utrThisWeek: utrThisWeek != null ? Math.round(utrThisWeek * 100) / 100 : null,
       activeSession,
@@ -498,6 +592,7 @@ router.get("/:id/profile", async (req: Request, res: Response) => {
         talabatMetrics,
         keetaMetrics,
         deliverooMetrics,
+        americanaDaily,
       },
       cash: {
         pendingDues: Number(pendingCash._sum.pendingDues ?? 0),
@@ -512,6 +607,174 @@ router.get("/:id/profile", async (req: Request, res: Response) => {
         vehicle: driver.assignedVehicle,
       },
       documents,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * Phase 3 Wave 1 — REQ-driver-file.
+ *
+ * GET /api/drivers/:id/file
+ *
+ * Single round-trip bulk endpoint for the canonical Driver File page. Returns
+ * a 10-key body the frontend renders across the 8 required sections. Tenant-
+ * scoped; cross-tenant requests return 404 (Pitfall 4 / T-03-01).
+ *
+ * Performance budget: server-time p50 < 300ms on the 8-driver design-partner-1
+ * fixture (asserted by driversFile.perf.test.ts). The 8 reads run in parallel.
+ */
+router.get("/:id/file", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { id } = req.params;
+
+    const driver = await prisma.driver.findFirst({
+      where: { id, tenantId },
+      select: {
+        id: true,
+        name: true,
+        photoUrl: true,
+        status: true,
+        platform: true,
+        platformDriverId: true,
+        phone: true,
+        vehicleType: true,
+        civilIdStatus: true,
+      },
+    });
+    if (!driver) return res.status(404).json({ error: "Driver not found" });
+
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const twoWeeksAgo = new Date(now.getTime() - 14 * 86_400_000);
+
+    const [
+      latestScore,
+      snapshots90d,
+      attendance,
+      cashRecords,
+      pendingCash,
+      recentViolations,
+      activeSession,
+      agentNotes,
+      decisionAuditLog,
+    ] = await Promise.all([
+      prisma.aiScore.findFirst({
+        where: { tenantId, driverId: id },
+        orderBy: { date: "desc" },
+        select: {
+          compositeScore: true,
+          attendanceScore: true,
+          deliveryScore: true,
+          financialScore: true,
+          equipmentScore: true,
+          platformScore: true,
+          trend: true,
+          date: true,
+        },
+      }),
+      listSnapshotsForDriver(tenantId, id, 90),
+      prisma.attendanceRecord.findMany({
+        where: { tenantId, driverId: id, date: { gte: twoWeeksAgo } },
+        select: { id: true, date: true, status: true, lateMinutes: true },
+        orderBy: { date: "desc" },
+        take: 14,
+      }),
+      prisma.cashRecord.findMany({
+        where: { tenantId, driverId: id, date: { gte: monthStart } },
+        select: { id: true, date: true, salesAmount: true, collectionAmount: true, pendingDues: true, status: true },
+        orderBy: { date: "desc" },
+        take: 30,
+      }),
+      prisma.cashRecord.aggregate({
+        where: { tenantId, driverId: id, status: "PENDING" },
+        _sum: { pendingDues: true },
+      }),
+      prisma.violation.findMany({
+        where: { tenantId, driverId: id },
+        select: { id: true, violationType: true, violationStatus: true, appealStatus: true, violationTime: true, details: true },
+        orderBy: { violationTime: "desc" },
+        take: 20,
+      }),
+      prisma.courierOnlineSession.findFirst({
+        where: { tenantId, driverId: id, isOnline: true },
+        orderBy: { startTime: "desc" },
+        select: { id: true, startTime: true, lastGpsAt: true, area: true },
+      }).catch(() => null),
+      listMemoriesByPrefix(tenantId, `note:driver:${id}:`, 50),
+      loadDriverAuditLog(tenantId, id),
+    ]);
+
+    // Score explanation — only call the explainer when we have a score.
+    let scoreExplanation: { text: string; cached: boolean };
+    if (!latestScore) {
+      scoreExplanation = { text: "Score not yet available.", cached: false };
+    } else {
+      scoreExplanation = await explainScore({
+        tenantId,
+        driverId: id,
+        scoreDate: latestScore.date.toISOString().slice(0, 10),
+        score: {
+          compositeScore: Number(latestScore.compositeScore ?? 0),
+          attendanceScore: Number(latestScore.attendanceScore ?? 0),
+          deliveryScore: Number(latestScore.deliveryScore ?? 0),
+          financialScore: Number(latestScore.financialScore ?? 0),
+          equipmentScore: Number(latestScore.equipmentScore ?? 0),
+          platformScore: Number(latestScore.platformScore ?? 0),
+          trend: (latestScore.trend as "UP" | "DOWN" | "STABLE") ?? "STABLE",
+        },
+        recentShifts: [],
+        recentViolations: recentViolations.slice(0, 10).map((v) => ({
+          id: v.id,
+          type: String(v.violationType),
+          time: v.violationTime?.toISOString() ?? "",
+        })),
+      });
+    }
+
+    res.json({
+      profile: {
+        id: driver.id,
+        name: driver.name,
+        civilIdMasked: null, // civil ID number is not stored; only expiry + status
+        civilIdStatus: driver.civilIdStatus,
+        photoUrl: driver.photoUrl,
+        status: driver.status,
+        platform: driver.platform,
+        platformDriverId: driver.platformDriverId,
+        phone: driver.phone,
+        vehicleType: driver.vehicleType,
+      },
+      liveStatus: {
+        onlineNow: !!activeSession,
+        lastSeenAt: activeSession?.lastGpsAt ?? null,
+        activeShift: activeSession
+          ? { id: activeSession.id, startsAt: activeSession.startTime, area: activeSession.area }
+          : null,
+      },
+      score: latestScore ?? null,
+      scoreExplanation,
+      snapshots90d: snapshots90d ?? [],
+      attendance: {
+        last14Days: attendance,
+        lateCount: attendance.filter((a) => a.status === "LATE").length,
+        absentCount: attendance.filter((a) => a.status === "ABSENT").length,
+      },
+      cash: {
+        outstanding: Number(pendingCash._sum.pendingDues ?? 0),
+        records: cashRecords,
+      },
+      violations: {
+        items: recentViolations,
+      },
+      agentNotes: {
+        proposals: decisionAuditLog.pending,
+        observations: agentNotes,
+        audit: decisionAuditLog.approved,
+      },
+      decisionAuditLog,
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -571,9 +834,25 @@ router.post("/", rbac(...MUTATORS), validateBody(createDriverSchema.passthrough(
 
 router.put("/:id", rbac(...MUTATORS), async (req: Request, res: Response) => {
   try {
+    const allowed = [
+      "companyId", "name", "phone", "platform", "platformDriverId", "utr",
+      "vehicleType", "zone", "batchNumber", "status", "hireDate", "photoUrl",
+      "supervisorId", "monthlySalary",
+      "healthCertExpiry", "healthCertStatus",
+      "workPermitExpiry", "workPermitStatus",
+      "foodHandlingCertExpiry", "foodHandlingCertStatus",
+      "vehicleRegExpiry", "vehicleRegStatus",
+      "vehicleInsuranceExpiry", "vehicleInsuranceStatus",
+      "drivingLicenseExpiry", "drivingLicenseStatus",
+      "civilIdExpiry", "civilIdStatus",
+    ] as const;
+    const data: Record<string, unknown> = {};
+    for (const k of allowed) {
+      if (k in (req.body ?? {})) data[k] = (req.body as any)[k];
+    }
     const driver = await prisma.driver.updateMany({
       where: { id: req.params.id, tenantId: req.user!.tenantId },
-      data: req.body,
+      data,
     });
     if (driver.count === 0) { res.status(404).json({ error: "Driver not found" }); return; }
     const updated = await prisma.driver.findUnique({ where: { id: req.params.id } });
