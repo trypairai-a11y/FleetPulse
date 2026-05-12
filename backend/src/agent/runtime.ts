@@ -37,14 +37,31 @@ export interface RunAgentInput {
   userMessage?: string;
   /** Conversation history (chat mode). */
   history?: Array<{ role: "user" | "assistant"; content: string }>;
+  /**
+   * Phase 4 Wave 1 — optional streaming hooks. When set, runAgent uses
+   * Anthropic `client.messages.stream()` instead of `messages.create()` so
+   * partial text + describeView results + pending-action ids can be pushed
+   * down an SSE channel as they arrive. Non-streaming callers (Phase 1+2+3)
+   * leave this undefined and behaviour is unchanged.
+   */
+  stream?: {
+    onTextDelta?(delta: string): void;
+    /** Type-erased to keep runtime free of frontend type deps. */
+    onView?(view: unknown): void;
+    onPendingAction?(pendingActionId: string): void;
+    /** Polled at the top of each tool-loop iteration. Truthy return aborts. */
+    onCancel?(): boolean;
+  };
 }
 
 export interface RunAgentResult {
   runId: string;
-  status: "completed" | "failed" | "disabled";
+  status: "completed" | "failed" | "disabled" | "cancelled";
   text?: string;
   actionsProposed: number;
   pendingActionIds: string[];
+  /** Phase 4 Wave 1 — collected describeView outputs in tool-call order. */
+  views?: unknown[];
   error?: string;
 }
 
@@ -176,16 +193,42 @@ export async function runAgent(
   let actionsProposed = 0;
   const pendingActionIds: string[] = [];
   let finalText = "";
+  // Phase 4 Wave 1 — collected describeView outputs.
+  const views: unknown[] = [];
+  let cancelled = false;
 
   try {
     for (let i = 0; i < agent.maxIterations; i++) {
-      const response = await client.messages.create({
-        model: agent.model,
-        max_tokens: agent.maxTokens,
-        system: systemPrompt,
-        tools,
-        messages,
-      });
+      // Cancel poll at the top of each iteration (Phase 4 Wave 1).
+      if (input.stream?.onCancel?.()) {
+        cancelled = true;
+        break;
+      }
+
+      let response: Anthropic.Message;
+      if (input.stream) {
+        // Streaming path — push text deltas through onTextDelta as they arrive
+        // and resolve to the final assembled Message via .finalMessage().
+        const streamCtl = client.messages.stream({
+          model: agent.model,
+          max_tokens: agent.maxTokens,
+          system: systemPrompt,
+          tools,
+          messages,
+        });
+        streamCtl.on("text", (delta: string) => {
+          if (delta) input.stream?.onTextDelta?.(delta);
+        });
+        response = await streamCtl.finalMessage();
+      } else {
+        response = await client.messages.create({
+          model: agent.model,
+          max_tokens: agent.maxTokens,
+          system: systemPrompt,
+          tools,
+          messages,
+        });
+      }
 
       promptTokens += response.usage.input_tokens;
       completionTokens += response.usage.output_tokens;
@@ -224,6 +267,22 @@ export async function runAgent(
             timestamp: new Date().toISOString(),
             payload: { pendingActionId: result.pendingActionId, agentId: agent.id, toolName: toolUse.name },
           } as DarbEvent);
+          // Phase 4 Wave 1 — surface the staged proposal id to the chat UI
+          // so it can render the confirm card next to the assistant turn.
+          input.stream?.onPendingAction?.(result.pendingActionId);
+        }
+
+        // Phase 4 Wave 1 — capture describeView outputs and stream them.
+        if (
+          toolUse.name === "describeView" &&
+          result.status === "executed" &&
+          result.output &&
+          typeof result.output === "object"
+        ) {
+          const out = result.output as { view?: unknown };
+          const v = out.view ?? result.output;
+          views.push(v);
+          input.stream?.onView?.(v);
         }
 
         toolResultBlocks.push({
@@ -235,6 +294,27 @@ export async function runAgent(
       }
 
       messages.push({ role: "user", content: toolResultBlocks });
+    }
+
+    if (cancelled) {
+      await prisma.agentRunLog.update({
+        where: { id: runLog.id },
+        data: {
+          finishedAt: new Date(),
+          status: "cancelled",
+          promptTokens,
+          completionTokens,
+          actionsProposed,
+        },
+      });
+      return {
+        runId: runLog.id,
+        status: "cancelled",
+        text: finalText,
+        actionsProposed,
+        pendingActionIds,
+        views,
+      };
     }
 
     await prisma.agentRunLog.update({
@@ -254,6 +334,7 @@ export async function runAgent(
       text: finalText,
       actionsProposed,
       pendingActionIds,
+      views,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
