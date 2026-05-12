@@ -6,7 +6,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const FRONTEND_SRC = join(process.cwd(), "src");
-const LEGACY_HREF_PATTERN = /\/(keeta|talabat|deliveroo|americana)\/drivers\/[`$\{a-zA-Z0-9_]/;
+// Match frontend route patterns only — exclude /api/ paths (those are backend routes, not page hrefs).
+const LEGACY_HREF_PATTERN = /(?<!\/api)\/(keeta|talabat|deliveroo|americana)\/drivers\/(\$\{|`|[a-zA-Z0-9_]+\?\?|\[)/;
 const ALLOWLIST: RegExp[] = [
   /^app\/\(dashboard\)\/(keeta|talabat|deliveroo|americana)\/drivers\/\[id\]\/page\.tsx$/,
   /^__tests__\//,

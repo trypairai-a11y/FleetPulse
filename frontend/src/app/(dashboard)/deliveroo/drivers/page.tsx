@@ -263,7 +263,7 @@ export default function DeliverooDriversPage() {
       <DataTable
         columns={columns}
         data={drivers}
-        onRowClick={(row) => router.push(`/deliveroo/drivers/${row.id}`)}
+        onRowClick={(row) => router.push(`/drivers/${row.id}?from=deliveroo`)}
         emptyMessage={t("deliveroo.noDriversFound")}
       />
 

@@ -1,16 +1,8 @@
 "use client";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useApiQuery } from "@/hooks/useApi";
-import {
-  ArrowUpRight,
-  ArrowDownRight,
-  Minus,
-  Phone,
-  UserX,
-  Clock,
-  MapPinOff,
-  AlertTriangle,
-} from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, ChevronDown, ChevronRight } from "lucide-react";
 
 type Zone = {
   name: string;
@@ -39,20 +31,26 @@ type LivePayload = {
   };
 };
 
-const SEVERITY_STYLES: Record<AttentionItem["severity"], string> = {
-  CRITICAL: "bg-red-50 text-red-700 border-red-200",
-  HIGH: "bg-orange-50 text-orange-700 border-orange-200",
-  MEDIUM: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  LOW: "bg-gray-50 text-gray-700 border-gray-200",
-};
+const ATTENTION_KINDS: Array<{ key: string; match: (id: string) => boolean; label: string }> = [
+  { key: "absent", match: (id) => id.startsWith("absent-"), label: "Absent" },
+  { key: "late", match: (id) => id.startsWith("late-"), label: "Late" },
+  { key: "gps", match: (id) => id.startsWith("gps-"), label: "GPS stale" },
+  { key: "rejections", match: (id) => id.startsWith("rejections-"), label: "Order activity" },
+  { key: "other", match: () => true, label: "Other" },
+];
+
+function categorize(item: AttentionItem) {
+  return ATTENTION_KINDS.find((k) => k.match(item.id))!;
+}
 
 function Dod({ pct }: { pct: number | null }) {
   if (pct == null) return <span className="text-xs text-gray-400">—</span>;
-  const Icon = pct > 0 ? ArrowUpRight : pct < 0 ? ArrowDownRight : Minus;
-  const color = pct > 0 ? "text-green-600" : pct < 0 ? "text-red-600" : "text-gray-500";
+  if (pct === 0) return <span className="text-xs text-gray-500">0%</span>;
+  const Icon = pct > 0 ? ArrowUpRight : ArrowDownRight;
+  const color = pct > 0 ? "text-emerald-600" : "text-rose-600";
   return (
     <span className={`inline-flex items-center gap-0.5 text-xs ${color}`}>
-      <Icon size={12} />
+      <Icon size={12} strokeWidth={2.5} />
       {Math.abs(pct)}%
     </span>
   );
@@ -65,141 +63,156 @@ export default function TalabatLiveOpsHeader() {
     "/api/platform-overview/talabat/live",
     { refetchInterval: 60_000 }
   );
+  const [expandedKind, setExpandedKind] = useState<string | null>(null);
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, AttentionItem[]>();
+    for (const item of data?.attention ?? []) {
+      const kind = categorize(item);
+      if (!map.has(kind.key)) map.set(kind.key, []);
+      map.get(kind.key)!.push(item);
+    }
+    return ATTENTION_KINDS
+      .map((k) => ({ kind: k, items: map.get(k.key) ?? [] }))
+      .filter((g) => g.items.length > 0);
+  }, [data?.attention]);
+
+  const zones = data?.zones ?? [];
+  const totalAttention = (data?.attention ?? []).length;
+
+  const kpis = [
+    {
+      label: "Orders today",
+      today: data?.kpis.today.ordersCompleted ?? 0,
+      dod: data?.kpis.dodPct.ordersCompleted ?? null,
+      fmt: (v: number | null) => (v == null ? "—" : String(v)),
+    },
+    {
+      label: "On-time rate",
+      today: data?.kpis.today.onTimeRate ?? null,
+      dod: data?.kpis.dodPct.onTimeRate ?? null,
+      fmt: (v: number | null) => (v == null ? "—" : `${(v * 100).toFixed(1)}%`),
+    },
+    {
+      label: "UTR (orders/hr)",
+      today: data?.kpis.today.utr ?? null,
+      dod: data?.kpis.dodPct.utr ?? null,
+      fmt: (v: number | null) => (v == null ? "—" : v.toFixed(2)),
+    },
+  ];
 
   return (
-    <div className="space-y-4 pb-4">
-      {/* Live Ops zone strip */}
-      <section>
-        <div className="mb-2 flex items-end justify-between">
-          <h2 className="text-sm font-semibold text-gray-800">Live Ops · by zone</h2>
-          <span className="text-xs text-gray-500">Refreshes every 60s</span>
-        </div>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-          {(data?.zones ?? []).length === 0 && (
-            <div className="col-span-full rounded-lg border border-dashed border-gray-200 p-6 text-center text-xs text-gray-400">
-              No zones have scheduled drivers right now.
+    <div className="space-y-5">
+      {/* KPI strip */}
+      <div className="grid grid-cols-1 divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-100 bg-white md:grid-cols-3 md:divide-x md:divide-y-0">
+        {kpis.map((k) => (
+          <div key={k.label} className="px-5 py-4">
+            <div className="text-[11px] uppercase tracking-wider text-gray-500">{k.label}</div>
+            <div className="mt-1 flex items-baseline justify-between">
+              <span className="text-2xl font-semibold text-gray-900 tabular-nums">{k.fmt(k.today as number | null)}</span>
+              <Dod pct={k.dod} />
             </div>
-          )}
-          {(data?.zones ?? []).map((z) => (
-            <button
-              key={z.name}
-              onClick={() =>
-                router.push(`/talabat/drivers?zone=${encodeURIComponent(z.name)}`)
-              }
-              className="rounded-xl border border-gray-200 bg-white p-3 text-left hover:border-blue-300 hover:shadow-sm"
-            >
-              <div className="mb-1 text-xs font-semibold text-gray-800">{z.name}</div>
-              <div className="grid grid-cols-2 gap-1 text-[11px]">
-                <span className="text-gray-500">Scheduled</span>
-                <span className="text-right font-medium">{z.scheduled}</span>
-                <span className="text-gray-500">Online</span>
-                <span className="text-right font-medium text-green-600">{z.online}</span>
-                <span className="text-gray-500">Late</span>
-                <span className="text-right font-medium text-orange-600">{z.late}</span>
-                <span className="text-gray-500">No-show</span>
-                <span className="text-right font-medium text-red-600">{z.noShow}</span>
-                <span className="text-gray-500">GPS stale</span>
-                <span className="text-right font-medium text-rose-600">{z.gpsStale}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
+          </div>
+        ))}
+      </div>
 
-      {/* Attention list */}
-      <section>
-        <div className="mb-2 flex items-end justify-between">
-          <h2 className="text-sm font-semibold text-gray-800">Attention</h2>
-          <span className="text-xs text-gray-500">
-            {(data?.attention ?? []).length} item(s)
-          </span>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-white">
-          {(data?.attention ?? []).length === 0 && (
-            <div className="p-6 text-center text-xs text-gray-400">
-              Nothing requires attention. Quiet moment.
-            </div>
-          )}
-          <ul className="divide-y divide-gray-100">
-            {(data?.attention ?? []).slice(0, 10).map((item) => {
-              const Icon =
-                item.action.type === "CALL"
-                  ? Phone
-                  : item.action.type === "OPEN_DRIVER"
-                    ? UserX
-                    : item.action.type === "OPEN_ORDER"
-                      ? Clock
-                      : AlertTriangle;
-              const primaryAction = () => {
-                if (item.action.type === "CALL" && item.action.payload?.phone) {
-                  window.location.href = `tel:${item.action.payload.phone}`;
-                } else if (item.action.payload?.driverId) {
-                  router.push(`/talabat/drivers/${item.action.payload.driverId}`);
-                }
-              };
-              return (
-                <li key={item.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`inline-flex h-6 w-6 items-center justify-center rounded-full border ${SEVERITY_STYLES[item.severity]}`}
-                    >
-                      <Icon size={12} />
-                    </span>
-                    <span className="text-sm text-gray-800">{item.title}</span>
-                  </div>
-                  <button
-                    onClick={primaryAction}
-                    className="text-xs font-medium text-blue-600 hover:text-blue-800"
+      {/* Zones + Attention, side by side on desktop */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+        {/* Zones */}
+        <section className="overflow-hidden rounded-xl border border-gray-100 bg-white lg:col-span-3">
+          <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+            <h2 className="text-[13px] font-medium text-gray-900">Live ops · by zone</h2>
+            <span className="text-xs text-gray-500">Refreshes every 60s</span>
+          </header>
+          {zones.length === 0 ? (
+            <div className="p-6 text-center text-xs text-gray-400">No zones have scheduled drivers right now.</div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="text-[11px] uppercase tracking-wider text-gray-500">
+                  <th className="px-4 py-2 text-left font-medium">Zone</th>
+                  <th className="px-3 py-2 text-right font-medium">Sched</th>
+                  <th className="px-3 py-2 text-right font-medium">Online</th>
+                  <th className="px-3 py-2 text-right font-medium">Late</th>
+                  <th className="px-3 py-2 text-right font-medium">No-show</th>
+                  <th className="px-3 py-2 text-right font-medium">GPS</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {zones.map((z) => (
+                  <tr
+                    key={z.name}
+                    onClick={() => router.push(`/talabat/drivers?zone=${encodeURIComponent(z.name)}`)}
+                    className="cursor-pointer text-sm hover:bg-gray-50"
                   >
-                    {item.action.type === "CALL"
-                      ? "Call"
-                      : item.action.type === "OPEN_DRIVER"
-                        ? "Open driver"
-                        : "Open"}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </section>
+                    <td className="px-4 py-2 font-medium text-gray-900">{z.name}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-gray-700">{z.scheduled}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-emerald-600">{z.online}</td>
+                    <td className={`px-3 py-2 text-right tabular-nums ${z.late > 0 ? "text-orange-600" : "text-gray-300"}`}>{z.late}</td>
+                    <td className={`px-3 py-2 text-right tabular-nums ${z.noShow > 0 ? "text-rose-600" : "text-gray-300"}`}>{z.noShow}</td>
+                    <td className={`px-3 py-2 text-right tabular-nums ${z.gpsStale > 0 ? "text-rose-600" : "text-gray-300"}`}>{z.gpsStale}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
 
-      {/* Daily KPI strip */}
-      <section>
-        <div className="mb-2 flex items-end justify-between">
-          <h2 className="text-sm font-semibold text-gray-800">Today vs. yesterday</h2>
-        </div>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          {[
-            {
-              label: "Orders completed",
-              today: data?.kpis.today.ordersCompleted ?? 0,
-              dod: data?.kpis.dodPct.ordersCompleted ?? null,
-              fmt: (v: number | null) => (v == null ? "—" : String(v)),
-            },
-            {
-              label: "On-time rate",
-              today: data?.kpis.today.onTimeRate ?? null,
-              dod: data?.kpis.dodPct.onTimeRate ?? null,
-              fmt: (v: number | null) => (v == null ? "—" : `${(v * 100).toFixed(1)}%`),
-            },
-            {
-              label: "UTR (orders/hour)",
-              today: data?.kpis.today.utr ?? null,
-              dod: data?.kpis.dodPct.utr ?? null,
-              fmt: (v: number | null) => (v == null ? "—" : v.toFixed(2)),
-            },
-          ].map((k) => (
-            <div key={k.label} className="rounded-xl border border-gray-200 bg-white p-4">
-              <div className="text-xs uppercase tracking-wide text-gray-500">{k.label}</div>
-              <div className="mt-1 flex items-baseline justify-between">
-                <span className="text-2xl font-semibold">{k.fmt(k.today as number | null)}</span>
-                <Dod pct={k.dod} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+        {/* Attention */}
+        <section className="overflow-hidden rounded-xl border border-gray-100 bg-white lg:col-span-2">
+          <header className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+            <h2 className="text-[13px] font-medium text-gray-900">Attention</h2>
+            <span className="text-xs text-gray-500">{totalAttention}</span>
+          </header>
+          {grouped.length === 0 ? (
+            <div className="p-6 text-center text-xs text-gray-400">Nothing requires attention.</div>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {grouped.map(({ kind, items }) => {
+                const isOpen = expandedKind === kind.key;
+                return (
+                  <li key={kind.key}>
+                    <button
+                      onClick={() => setExpandedKind(isOpen ? null : kind.key)}
+                      className="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left hover:bg-gray-50"
+                    >
+                      <span className="flex items-center gap-3">
+                        <span className="text-sm text-gray-900">{kind.label}</span>
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">{items.length}</span>
+                      </span>
+                      {isOpen ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronRight size={14} className="text-gray-400" />}
+                    </button>
+                    {isOpen && (
+                      <ul className="divide-y divide-gray-100 bg-gray-50/50 px-4 pb-1">
+                        {items.slice(0, 12).map((item) => {
+                          const primaryAction = () => {
+                            if (item.action.type === "CALL" && item.action.payload?.phone) {
+                              window.location.href = `tel:${item.action.payload.phone}`;
+                            } else if (item.action.payload?.driverId) {
+                              router.push(`/drivers/${item.action.payload.driverId}?from=talabat`);
+                            }
+                          };
+                          return (
+                            <li key={item.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                              <span className="truncate text-gray-700">{item.title}</span>
+                              <button onClick={primaryAction} className="shrink-0 text-xs font-medium text-blue-600 hover:underline">
+                                {item.action.type === "CALL" ? "Call" : "Open"}
+                              </button>
+                            </li>
+                          );
+                        })}
+                        {items.length > 12 && (
+                          <li className="py-2 text-xs text-gray-500">+{items.length - 12} more</li>
+                        )}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

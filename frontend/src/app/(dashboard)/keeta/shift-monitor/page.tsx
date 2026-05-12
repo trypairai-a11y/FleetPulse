@@ -76,7 +76,7 @@ export default function ShiftMonitorPage() {
             <ul className="divide-y divide-gray-100">
               {data.underShift.map((d) => (
                 <li key={d.driverId} className="px-4 py-2 flex items-center">
-                  <a href={`/keeta/drivers/${d.driverId}`} className="text-sm font-medium hover:underline">{d.name}</a>
+                  <a href={`/drivers/${d.driverId}?from=keeta`} className="text-sm font-medium hover:underline">{d.name}</a>
                   <span className="ms-3 text-xs text-secondary">{d.branch}</span>
                   <span className="ms-auto text-sm font-mono">{d.hours.toFixed(1)} h</span>
                 </li>

@@ -119,7 +119,7 @@ export default function KeetaDriversPage() {
         onChange={(k, v) => setFilters({ ...filters, [k]: v })}
       />
 
-      <DataTable columns={columns} data={drivers} onRowClick={(row) => router.push(`/keeta/drivers/${row.id}`)} />
+      <DataTable columns={columns} data={drivers} onRowClick={(row) => router.push(`/drivers/${row.id}?from=keeta`)} />
 
       <SlidePanel open={!!selected} onClose={() => setSelected(null)} title={selected?.name || ""} subtitle={`Keeta / ${t("keetaPage.sidra")}`}>
         {selected && (

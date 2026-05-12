@@ -263,7 +263,7 @@ export default function TalabatDriversPage() {
         onChange={(k, v) => setFilters({ ...filters, [k]: v })}
       />
 
-      <DataTable columns={columns} data={drivers} onRowClick={(row) => router.push(`/talabat/drivers/${row.id}`)} emptyMessage={t("talabat.noTalabatDriversFound")} />
+      <DataTable columns={columns} data={drivers} onRowClick={(row) => router.push(`/drivers/${row.id}?from=talabat`)} emptyMessage={t("talabat.noTalabatDriversFound")} />
 
       {/* Driver Detail Panel */}
       <SlidePanel
@@ -300,7 +300,6 @@ export default function TalabatDriversPage() {
               <div className="space-y-2">
                 {[
                   { label: t("talabat.healthCertificate"), key: "healthCertExpiry", status: selected.healthCertStatus },
-                  { label: t("talabat.workPermit"), key: "workPermitExpiry", status: selected.workPermitStatus },
                   { label: t("talabat.foodHandlingCertificate"), key: "foodHandlingCertExpiry", status: selected.foodHandlingCertStatus },
                   { label: t("talabat.vehicleRegistration"), key: "vehicleRegExpiry", status: selected.vehicleRegStatus },
                   { label: t("talabat.vehicleInsurance"), key: "vehicleInsuranceExpiry", status: selected.vehicleInsuranceStatus },

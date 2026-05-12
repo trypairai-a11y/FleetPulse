@@ -175,7 +175,7 @@ export default function TalabatCodLedger() {
                       className="text-blue-600 hover:underline"
                       onClick={() =>
                         router.push(
-                          `/talabat/drivers/${r.driver.id}?tab=cash-violations`
+                          `/drivers/${r.driver.id}?from=talabat?tab=cash-violations`
                         )
                       }
                     >

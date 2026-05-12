@@ -17,16 +17,9 @@ const AddDriverModal = dynamic(() => import("@/components/shared/AddDriverModal"
   loading: () => null,
 });
 
-const CHAINS = ["12", "13", "14", "15"];
-const STORES = [
-  "KFC Audiliya",
-  "KFC Salwa",
-  "KFC Salmiya",
-  "KFC Jabriya",
-  "KFC Rumaithiya",
-  "Pizza Hut Hawally",
-  "Pizza Hut Salmiya",
-  "Hardees Fahaheel",
+const RESTAURANTS = ["KFC", "Hardees"];
+const AMERICANA_AREAS = [
+  "Audiliya", "Hawally", "Salmiya", "Jabriya", "Salwa", "Rumaithiya", "Fahaheel", "Mahboula",
 ];
 const POSITIONS = ["Car", "Bike"];
 
@@ -53,8 +46,8 @@ export default function AmericanaDriversPage() {
 
   const params = new URLSearchParams({ platform: "AMERICANA", limit: "100" });
   if (filters.search) params.set("search", filters.search);
-  if (filters.store) params.set("store", filters.store);
-  if (filters.chain) params.set("chain", filters.chain);
+  if (filters.area) params.set("zone", filters.area);
+  if (filters.restaurant) params.set("chain", filters.restaurant);
   if (filters.position) params.set("vehicleType", filters.position === "Bike" ? "MOTORCYCLE" : "CAR");
   if (filters.status) params.set("status", filters.status);
 
@@ -76,14 +69,14 @@ export default function AmericanaDriversPage() {
     { key: "employeeId", label: t("americana.empId"), render: (v: string) => <span className="font-mono text-sm text-secondary">{v || "-"}</span> },
     {
       key: "chain",
-      label: t("americana.chain"),
+      label: t("americana.restaurant"),
       render: (v: string) => (
         <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700">
           {v || "-"}
         </span>
       ),
     },
-    { key: "storeName", label: t("americana.storeCol"), render: (v: string) => <span className="text-sm text-secondary">{v || "-"}</span> },
+    { key: "storeName", label: t("americana.branchCol"), render: (v: string) => <span className="text-sm text-secondary">{v || "-"}</span> },
     {
       key: "vehicleType",
       label: t("americana.position"),
@@ -95,7 +88,6 @@ export default function AmericanaDriversPage() {
         </span>
       ),
     },
-    { key: "costCenter", label: t("americana.cc"), render: (v: string) => <span className="font-mono text-xs text-secondary">{v || "-"}</span> },
     {
       key: "faceVerified",
       label: t("keetaPage.face"),
@@ -136,7 +128,6 @@ export default function AmericanaDriversPage() {
         <div className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-americana" />
           <h1 className="text-xl font-semibold">{t("americana.driversTitle")}</h1>
-          <span className="text-sm text-secondary">{t("americana.alHazmExpress")}</span>
         </div>
         <button
           onClick={() => setShowAdd(true)}
@@ -166,8 +157,8 @@ export default function AmericanaDriversPage() {
       <FilterBar
         filters={[
           { key: "search", type: "search", label: t("common.search"), placeholder: t("americana.searchNameEmp") },
-          { key: "store", type: "select", label: t("americana.allStores"), options: STORES.map((s) => ({ value: s, label: s })) },
-          { key: "chain", type: "select", label: t("americana.allChains"), options: CHAINS.map((c) => ({ value: c, label: `${t("americana.chainPrefix")} ${c}` })) },
+          { key: "area", type: "select", label: t("americana.allBranches"), options: AMERICANA_AREAS.map((a) => ({ value: a, label: a })) },
+          { key: "restaurant", type: "select", label: t("americana.allRestaurants"), options: RESTAURANTS.map((r) => ({ value: r, label: r })) },
           { key: "position", type: "select", label: t("americana.allPositions"), options: POSITIONS.map((p) => ({ value: p, label: p === "Car" ? t("companies.carVehicle") : t("companies.bike") })) },
           {
             key: "status",
@@ -189,24 +180,23 @@ export default function AmericanaDriversPage() {
         onChange={(k, v) => setFilters({ ...filters, [k]: v })}
       />
 
-      <DataTable columns={columns} data={drivers} onRowClick={(row) => router.push(`/americana/drivers/${row.id}`)} emptyMessage={t("americana.noDriversFound")} />
+      <DataTable columns={columns} data={drivers} onRowClick={(row) => router.push(`/drivers/${row.id}?from=americana`)} emptyMessage={t("americana.noDriversFound")} />
 
       {/* Driver Detail Panel */}
       <SlidePanel
         open={!!selected}
         onClose={() => setSelected(null)}
         title={selected?.name || ""}
-        subtitle={`Americana / ${t("americana.alHazmExpress")}`}
+        subtitle="Americana"
       >
         {selected && (
           <div className="space-y-5">
             <div className="grid grid-cols-2 gap-3">
               {[
                 [t("americana.empId"), selected.employeeId],
-                [t("americana.chain"), selected.chain],
-                [t("americana.storeCol"), selected.storeName],
+                [t("americana.restaurant"), selected.chain],
+                [t("americana.branchCol"), selected.storeName],
                 [t("americana.position"), selected.vehicleType === "MOTORCYCLE" ? t("companies.bike") : t("companies.carVehicle")],
-                [t("americana.costCenter"), selected.costCenter],
                 [t("table.status"), statusLabel(selected.status)],
                 [t("americana.companyPhoneDetail"), selected.phone],
                 [t("americana.personalPhoneDetail"), selected.personalPhone],

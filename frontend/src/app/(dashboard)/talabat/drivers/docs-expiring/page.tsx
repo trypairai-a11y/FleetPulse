@@ -8,7 +8,6 @@ import { ArrowLeft, AlertTriangle } from "lucide-react";
 
 const DOC_FIELDS = [
   { label: "Health Certificate", expiryKey: "healthCertExpiry", statusKey: "healthCertStatus" },
-  { label: "Work Permit", expiryKey: "workPermitExpiry", statusKey: "workPermitStatus" },
   { label: "Food Handling Cert", expiryKey: "foodHandlingCertExpiry", statusKey: "foodHandlingCertStatus" },
   { label: "Vehicle Registration", expiryKey: "vehicleRegExpiry", statusKey: "vehicleRegStatus" },
   { label: "Vehicle Insurance", expiryKey: "vehicleInsuranceExpiry", statusKey: "vehicleInsuranceStatus" },
@@ -154,7 +153,7 @@ export default function DocsExpiringPage() {
       <DataTable
         columns={columns}
         data={rows}
-        onRowClick={(row) => router.push(`/talabat/drivers/${row.driverId}`)}
+        onRowClick={(row) => router.push(`/drivers/${row.driverId}?from=talabat`)}
         emptyMessage={
           <div className="flex flex-col items-center gap-2 py-8 text-secondary">
             <AlertTriangle size={32} className="text-gray-300" />

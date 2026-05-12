@@ -107,12 +107,6 @@ export default function DeliverooOverviewPage() {
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-semibold">{t("deliveroo.unassignedByZone")}</h2>
-          <Link
-            href="/deliveroo/violations?violationType=DELIVEROO_UNASSIGNED_ORDER"
-            className="text-xs text-deliveroo hover:underline"
-          >
-            {t("deliveroo.viewAllText")}
-          </Link>
         </div>
 
         {unassignedByZone.length === 0 ? (
@@ -122,11 +116,10 @@ export default function DeliverooOverviewPage() {
         ) : (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
             {unassignedByZone.map((z) => (
-              <Link
+              <div
                 key={z.zone}
-                href={`/deliveroo/violations?violationType=DELIVEROO_UNASSIGNED_ORDER&zone=${encodeURIComponent(z.zone)}`}
                 className={cn(
-                  "block rounded-xl p-4 ring-1 transition-transform hover:-translate-y-0.5",
+                  "block rounded-xl p-4 ring-1",
                   SEVERITY[z.severity]
                 )}
               >
@@ -135,7 +128,7 @@ export default function DeliverooOverviewPage() {
                 </div>
                 <div className="mt-2 text-3xl font-semibold tabular-nums">{z.today}</div>
                 <div className="mt-1 text-xs opacity-70">{t("deliveroo.sevenDayAvg")} {z.avg7}</div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
@@ -218,7 +211,7 @@ function RiderList({
           {rows.map((r) => (
             <li key={r.driverId} className="flex items-center justify-between px-4 py-3">
               <Link
-                href={`/deliveroo/drivers/${r.driverId}`}
+                href={`/drivers/${r.driverId}?from=deliveroo`}
                 className="text-sm font-medium hover:underline"
               >
                 {r.name}

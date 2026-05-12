@@ -109,7 +109,7 @@ export default function OperationCentrePage() {
             const dotColor = c.status === "working" ? "#22c55e" : c.status === "idle" ? "#f59e0b" : "#64748b";
             return (
               <button key={c.id}
-                onClick={() => router.push(`/keeta/drivers/${c.id}`)}
+                onClick={() => router.push(`/drivers/${c.id}?from=keeta`)}
                 className="text-left rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5 hover:shadow-md hover:ring-blue-200 transition-all">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="relative inline-flex w-2.5 h-2.5">
