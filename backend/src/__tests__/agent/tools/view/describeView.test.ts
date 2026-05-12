@@ -18,7 +18,6 @@ describe("describeView Zod schema (Wave 0 RED)", () => {
 
   beforeAll(() => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const mod = require("../../../../agent/tools/view/describeView");
       validator = mod.describeViewTool?.inputValidator ?? mod.describeViewInputSchema ?? null;
     } catch {
