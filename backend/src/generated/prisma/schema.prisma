@@ -343,12 +343,18 @@ enum KpiUnit {
 
 // 1. Tenant
 model Tenant {
-  id               String           @id @default(uuid())
-  name             String
-  subscriptionPlan SubscriptionPlan @default(FREE)
-  settings         Json?
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  id                String           @id @default(uuid())
+  name              String
+  subscriptionPlan  SubscriptionPlan @default(FREE)
+  // Phase 2 Wave 1 — additive design-partner / billing fields. Wave 5 runs the
+  // migration. designPartner=true unlocks the per-tenant override; trialEndsAt
+  // is the 14-day onboarding grace cutoff (NULL = not on trial).
+  designPartner     Boolean          @default(false)
+  monthlyOverrideKd Decimal?         @db.Decimal(10, 3)
+  trialEndsAt       DateTime?
+  settings          Json?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   companies                 Company[]
   users                     User[]
@@ -407,6 +413,10 @@ model Tenant {
   pinnedViews               PinnedView[]
   performanceSnapshots      PerformanceSnapshot[]
   metricEvents              MetricEvent[]
+  // Phase 4 Wave 1 — chat + scheduled briefings.
+  chatThreads               ChatThread[]
+  chatMessages              ChatMessage[]
+  scheduledBriefings        ScheduledBriefing[]
   ingestRuns                IngestRun[]
   americanaChains           AmericanaChain[]
   americanaStores           AmericanaStore[]
@@ -446,6 +456,10 @@ model User {
   passwordHash String
   name         String
   role         UserRole  @default(VIEWER)
+  // Phase 2 Wave 1 — super-admin flag. Read on every request from the DB
+  // (NOT from JWT) by the requireSuperAdmin middleware to prevent stale-flag
+  // attacks (T-02-06).
+  isSuperAdmin Boolean   @default(false)
   jobGrade     String? // e.g. "Team Leader", "Supervisor", "Senior Supervisor", "Area Manager"
   isActive     Boolean   @default(true)
   lastLoginAt  DateTime?
@@ -464,6 +478,9 @@ model User {
   approvedAgentActions  AgentAction[]        @relation("AgentActionApprover")
   pinnedViews           PinnedView[]         @relation("PinnedViewOwner")
   metricEvents          MetricEvent[]        @relation("MetricEventActor")
+  // Phase 4 Wave 1 — chat ownership + briefing authorship.
+  chatThreads           ChatThread[]         @relation("ChatThreadOwner")
+  scheduledBriefings    ScheduledBriefing[]  @relation("ScheduledBriefingCreator")
 
   @@index([tenantId])
 }
@@ -2259,16 +2276,25 @@ model AgentAction {
   rolledBackAt                DateTime?
   rolledBackById              String?
   rollbackReason              String?
+  // Phase 4 Wave 1 — chat-origin audit trail (T-04-W1-05 Repudiation mitigation).
+  // `source` defaults to "decisions" so all existing /decisions writers continue
+  // to write rows tagged "decisions" with zero code change; Wave 2's chat route
+  // is the first writer of `source: "chat"` (+ chatThreadId + chatMessageId).
+  source                      String    @default("decisions") // "decisions" | "chat" | "briefing" | "auto"
+  chatThreadId                String?
+  chatMessageId               String?
   createdAt                   DateTime  @default(now())
 
-  tenant   Tenant       @relation(fields: [tenantId], references: [id])
-  approver User         @relation("AgentActionApprover", fields: [approverId], references: [id])
-  agentRun AgentRunLog? @relation(fields: [agentRunId], references: [id], onDelete: SetNull)
+  tenant       Tenant        @relation(fields: [tenantId], references: [id])
+  approver     User          @relation("AgentActionApprover", fields: [approverId], references: [id])
+  agentRun     AgentRunLog?  @relation(fields: [agentRunId], references: [id], onDelete: SetNull)
+  chatMessages ChatMessage[] @relation("ChatMessageProposal")
 
   @@index([tenantId, createdAt])
   @@index([tenantId, toolName, createdAt])
   @@index([tenantId, subjectType, subjectId])
   @@index([approverId])
+  @@index([tenantId, source, createdAt])
 }
 
 // Append-only per-tenant key/value notes. Latest-by-key reads use orderBy createdAt desc.
@@ -2295,18 +2321,24 @@ model AgentMemory {
 // viewType: "table" | "chart" | "kpi_strip" | "map" | "comparison".
 
 model PinnedView {
-  id           String   @id @default(cuid())
-  tenantId     String
-  userId       String
-  title        String
-  description  String?  @db.Text
-  viewType     String
-  spec         Json
-  sortOrder    Int      @default(0)
-  pinnedAt     DateTime @default(now())
-  lastViewedAt DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String   @id @default(cuid())
+  tenantId         String
+  userId           String
+  title            String
+  description      String?  @db.Text
+  viewType         String
+  spec             Json
+  sortOrder        Int      @default(0)
+  pinnedAt         DateTime @default(now())
+  lastViewedAt     DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  // Phase 4 Wave 1 — refresh behaviour + chat-origin link.
+  // refreshFrequency: "on_open" (re-fetch on open), "live" (poll), "static" (snapshot).
+  // UI-SPEC §3.2.7 — default is "on_open".
+  refreshFrequency String   @default("on_open")
+  sourceThreadId   String?
+  sourceMessageId  String?
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
   user   User   @relation("PinnedViewOwner", fields: [userId], references: [id])
@@ -2364,4 +2396,83 @@ model MetricEvent {
   @@index([tenantId, event, createdAt])
   @@index([tenantId, createdAt])
   @@index([userId, createdAt])
+}
+
+// ─── Phase 4 Wave 1 — Chat surface + scheduled briefings ───
+// REQ-chat-global-access + REQ-chat-generated-dashboards + REQ-chat-scheduled-jobs.
+// Tenant-scoped + user-scoped (defense in depth — see RESEARCH §"Per-User
+// Searchable Chat History"). 90-day retention via archivedAt; chatHistoryService
+// runs the cleanup. Standing-rule type kept on ScheduledBriefing for forward
+// compatibility — Phase 12 (REQ-data-agent-rule) wires the firing engine.
+
+model ChatThread {
+  id            String    @id @default(cuid())
+  tenantId      String
+  userId        String
+  title         String    @default("New chat")
+  pinned        Boolean   @default(false)
+  source        String    @default("user") // "user" | "briefing"
+  briefingId    String?
+  lastMessageAt DateTime  @default(now())
+  archivedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  tenant   Tenant             @relation(fields: [tenantId], references: [id])
+  user     User               @relation("ChatThreadOwner", fields: [userId], references: [id])
+  briefing ScheduledBriefing? @relation(fields: [briefingId], references: [id], onDelete: SetNull)
+  messages ChatMessage[]
+
+  @@index([tenantId, userId, lastMessageAt(sort: Desc)])
+  @@index([userId, pinned, lastMessageAt(sort: Desc)])
+  @@index([tenantId, archivedAt])
+}
+
+model ChatMessage {
+  id               String   @id @default(cuid())
+  tenantId         String
+  threadId         String
+  role             String // "user" | "assistant" | "system"
+  content          String   @db.Text
+  views            Json     @default("[]")
+  toolCalls        Json     @default("[]")
+  proposalId       String?
+  state            String   @default("complete") // queued|tool_running|streaming|complete|error|cancelled
+  promptTokens     Int      @default(0)
+  completionTokens Int      @default(0)
+  latencyMs        Int      @default(0)
+  modelName        String?
+  errorMessage     String?
+  createdAt        DateTime @default(now())
+
+  tenant   Tenant       @relation(fields: [tenantId], references: [id])
+  thread   ChatThread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  proposal AgentAction? @relation("ChatMessageProposal", fields: [proposalId], references: [id], onDelete: SetNull)
+
+  @@index([threadId, createdAt])
+  @@index([tenantId, createdAt])
+}
+
+model ScheduledBriefing {
+  id         String    @id @default(cuid())
+  tenantId   String
+  userId     String
+  name       String
+  cron       String
+  prompt     String    @db.Text
+  recipients Json      @default("[]")
+  channels   Json      @default("[\"in_chat\"]")
+  type       String    @default("briefing") // "briefing" | "standing_rule_v3"
+  active     Boolean   @default(true)
+  nextFireAt DateTime?
+  lastFireAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  tenant  Tenant       @relation(fields: [tenantId], references: [id])
+  creator User         @relation("ScheduledBriefingCreator", fields: [userId], references: [id])
+  threads ChatThread[]
+
+  @@index([tenantId, active, nextFireAt])
+  @@index([userId, active])
 }

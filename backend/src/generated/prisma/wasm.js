@@ -126,6 +126,9 @@ exports.Prisma.TenantScalarFieldEnum = {
   id: 'id',
   name: 'name',
   subscriptionPlan: 'subscriptionPlan',
+  designPartner: 'designPartner',
+  monthlyOverrideKd: 'monthlyOverrideKd',
+  trialEndsAt: 'trialEndsAt',
   settings: 'settings',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -150,6 +153,7 @@ exports.Prisma.UserScalarFieldEnum = {
   passwordHash: 'passwordHash',
   name: 'name',
   role: 'role',
+  isSuperAdmin: 'isSuperAdmin',
   jobGrade: 'jobGrade',
   isActive: 'isActive',
   lastLoginAt: 'lastLoginAt',
@@ -1299,6 +1303,9 @@ exports.Prisma.AgentActionScalarFieldEnum = {
   rolledBackAt: 'rolledBackAt',
   rolledBackById: 'rolledBackById',
   rollbackReason: 'rollbackReason',
+  source: 'source',
+  chatThreadId: 'chatThreadId',
+  chatMessageId: 'chatMessageId',
   createdAt: 'createdAt'
 };
 
@@ -1325,7 +1332,10 @@ exports.Prisma.PinnedViewScalarFieldEnum = {
   pinnedAt: 'pinnedAt',
   lastViewedAt: 'lastViewedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  refreshFrequency: 'refreshFrequency',
+  sourceThreadId: 'sourceThreadId',
+  sourceMessageId: 'sourceMessageId'
 };
 
 exports.Prisma.PerformanceSnapshotScalarFieldEnum = {
@@ -1356,6 +1366,55 @@ exports.Prisma.MetricEventScalarFieldEnum = {
   properties: 'properties',
   sessionId: 'sessionId',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.ChatThreadScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  title: 'title',
+  pinned: 'pinned',
+  source: 'source',
+  briefingId: 'briefingId',
+  lastMessageAt: 'lastMessageAt',
+  archivedAt: 'archivedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ChatMessageScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  threadId: 'threadId',
+  role: 'role',
+  content: 'content',
+  views: 'views',
+  toolCalls: 'toolCalls',
+  proposalId: 'proposalId',
+  state: 'state',
+  promptTokens: 'promptTokens',
+  completionTokens: 'completionTokens',
+  latencyMs: 'latencyMs',
+  modelName: 'modelName',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ScheduledBriefingScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  name: 'name',
+  cron: 'cron',
+  prompt: 'prompt',
+  recipients: 'recipients',
+  channels: 'channels',
+  type: 'type',
+  active: 'active',
+  nextFireAt: 'nextFireAt',
+  lastFireAt: 'lastFireAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -2076,7 +2135,10 @@ exports.Prisma.AgentActionOrderByRelevanceFieldEnum = {
   subjectType: 'subjectType',
   subjectId: 'subjectId',
   rolledBackById: 'rolledBackById',
-  rollbackReason: 'rollbackReason'
+  rollbackReason: 'rollbackReason',
+  source: 'source',
+  chatThreadId: 'chatThreadId',
+  chatMessageId: 'chatMessageId'
 };
 
 exports.Prisma.AgentMemoryOrderByRelevanceFieldEnum = {
@@ -2093,7 +2155,10 @@ exports.Prisma.PinnedViewOrderByRelevanceFieldEnum = {
   userId: 'userId',
   title: 'title',
   description: 'description',
-  viewType: 'viewType'
+  viewType: 'viewType',
+  refreshFrequency: 'refreshFrequency',
+  sourceThreadId: 'sourceThreadId',
+  sourceMessageId: 'sourceMessageId'
 };
 
 exports.Prisma.PerformanceSnapshotOrderByRelevanceFieldEnum = {
@@ -2108,6 +2173,37 @@ exports.Prisma.MetricEventOrderByRelevanceFieldEnum = {
   userId: 'userId',
   event: 'event',
   sessionId: 'sessionId'
+};
+
+exports.Prisma.ChatThreadOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  title: 'title',
+  source: 'source',
+  briefingId: 'briefingId'
+};
+
+exports.Prisma.ChatMessageOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  threadId: 'threadId',
+  role: 'role',
+  content: 'content',
+  proposalId: 'proposalId',
+  state: 'state',
+  modelName: 'modelName',
+  errorMessage: 'errorMessage'
+};
+
+exports.Prisma.ScheduledBriefingOrderByRelevanceFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  name: 'name',
+  cron: 'cron',
+  prompt: 'prompt',
+  type: 'type'
 };
 exports.SubscriptionPlan = exports.$Enums.SubscriptionPlan = {
   FREE: 'FREE',
@@ -2534,7 +2630,10 @@ exports.Prisma.ModelName = {
   AgentMemory: 'AgentMemory',
   PinnedView: 'PinnedView',
   PerformanceSnapshot: 'PerformanceSnapshot',
-  MetricEvent: 'MetricEvent'
+  MetricEvent: 'MetricEvent',
+  ChatThread: 'ChatThread',
+  ChatMessage: 'ChatMessage',
+  ScheduledBriefing: 'ScheduledBriefing'
 };
 
 /**
