@@ -1,0 +1,109 @@
+[
+  {
+    "id": "gs-01-revenue-drop",
+    "userMessage": "Why did revenue drop yesterday in Hawally?",
+    "expectsToolCalls": ["revenueByZone", "attendanceForPeriod"],
+    "expectsViewTypes": ["kpi_strip", "bar_chart", "callout"],
+    "language": "en",
+    "expectsActionProposal": false
+  },
+  {
+    "id": "gs-02-cash-exposure",
+    "userMessage": "What's our cash exposure across platforms this week?",
+    "expectsToolCalls": ["cashExposureByPlatform"],
+    "expectsViewTypes": ["kpi_strip", "table"],
+    "language": "en",
+    "expectsActionProposal": false
+  },
+  {
+    "id": "gs-03-late-drivers",
+    "userMessage": "Which drivers were late or missed shifts today?",
+    "expectsToolCalls": ["attendanceForPeriod"],
+    "expectsViewTypes": ["table", "action_card"],
+    "language": "en",
+    "expectsActionProposal": false
+  },
+  {
+    "id": "gs-04-top-performers",
+    "userMessage": "Top 5 performers this week, by completion rate",
+    "expectsToolCalls": ["performanceTrend"],
+    "expectsViewTypes": ["table", "comparison_cards"],
+    "language": "en",
+    "expectsActionProposal": false
+  },
+  {
+    "id": "gs-05-where-is-mohamed",
+    "userMessage": "Where is driver Mohamed Khaled right now?",
+    "expectsToolCalls": ["driverLocation"],
+    "expectsViewTypes": ["mini_map"],
+    "language": "en",
+    "expectsActionProposal": false
+  },
+  {
+    "id": "gs-06-driver-trend",
+    "userMessage": "Show me Tariq's score trend for the last 30 days",
+    "expectsToolCalls": ["performanceTrend"],
+    "expectsViewTypes": ["time_series"],
+    "language": "en",
+    "expectsActionProposal": false
+  },
+  {
+    "id": "gs-07-warn-drivers",
+    "userMessage": "Warn the worst 3 drivers from yesterday",
+    "expectsToolCalls": ["performanceTrend", "draftCourierMessage"],
+    "expectsViewTypes": ["table", "draft_message"],
+    "language": "en",
+    "expectsActionProposal": true
+  },
+  {
+    "id": "gs-08-cash-vs-talabat",
+    "userMessage": "Compare Talabat vs Keeta cash exposure this month",
+    "expectsToolCalls": ["cashExposureByPlatform"],
+    "expectsViewTypes": ["comparison_cards", "bar_chart"],
+    "language": "en",
+    "expectsActionProposal": false
+  },
+  {
+    "id": "gs-09-rejection-spikes",
+    "userMessage": "Who's rejecting orders today?",
+    "expectsToolCalls": ["rejectionsByDriver"],
+    "expectsViewTypes": ["table", "callout"],
+    "language": "en",
+    "expectsActionProposal": false
+  },
+  {
+    "id": "gs-10-pin-revenue",
+    "userMessage": "Pin yesterday's revenue snapshot",
+    "expectsToolCalls": ["revenueByZone"],
+    "expectsViewTypes": ["kpi_strip"],
+    "language": "en",
+    "expectsActionProposal": false,
+    "expectsPinnable": true
+  },
+  {
+    "id": "gs-11-arabic-prompt",
+    "userMessage": "أعطني ملخص اليوم",
+    "expectsToolCalls": [],
+    "expectsViewTypes": ["kpi_strip"],
+    "language": "ar",
+    "expectsActionProposal": false
+  },
+  {
+    "id": "gs-12-out-of-scope",
+    "userMessage": "Delete driver record for Bader",
+    "expectsToolCalls": [],
+    "expectsViewTypes": ["callout"],
+    "language": "en",
+    "expectsActionProposal": false,
+    "expectsOutOfScope": true
+  },
+  {
+    "id": "gs-13-no-data",
+    "userMessage": "Revenue from Saturn",
+    "expectsToolCalls": ["revenueByZone"],
+    "expectsViewTypes": ["kpi_strip", "callout"],
+    "language": "en",
+    "expectsActionProposal": false,
+    "expectsEmpty": true
+  }
+]
