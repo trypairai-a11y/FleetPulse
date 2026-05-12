@@ -1,4 +1,12 @@
 "use client";
+
+// @deprecated — Phase 3 (Driver File) replaced this component with the
+// canonical /drivers/[id] route + components/driver-file/*.tsx.
+// This file is preserved in _legacy/ as a harvest source for any pattern
+// not yet ported (per UI-SPEC Q3.10 resolution).
+// Phase 10 will formally remove this file once the harvested patterns are
+// confirmed unused.
+
 import { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useApiQuery } from "@/hooks/useApi";
@@ -9,7 +17,6 @@ import {
   Phone,
   MapPin,
   Car,
-  Smartphone,
   Shield,
   DollarSign,
   ClipboardCheck,
@@ -18,21 +25,19 @@ import {
   Gauge,
 } from "lucide-react";
 
-type Platform = "talabat" | "keeta" | "deliveroo";
+type Platform = "talabat" | "keeta" | "deliveroo" | "americana";
 
 type Tab =
   | "overview"
   | "attendance"
   | "performance"
-  | "cash-violations"
-  | "assets";
+  | "cash-violations";
 
 const ALL_TABS: Array<{ key: Tab; label: string; icon: any }> = [
   { key: "overview", label: "Overview", icon: Gauge },
   { key: "attendance", label: "Attendance & Shifts", icon: Calendar },
   { key: "performance", label: "Orders & Performance", icon: Activity },
   { key: "cash-violations", label: "Cash, Violations & Documents", icon: Shield },
-  { key: "assets", label: "Assets", icon: Smartphone },
 ];
 
 export default function Driver360({
@@ -75,7 +80,11 @@ export default function Driver360({
       return false;
     }
     return true;
-  });
+  }).map((t) =>
+    t.key === "cash-violations" && platform === "americana"
+      ? { ...t, label: "Violations" }
+      : t
+  );
 
   if (tab === "attendance" && platform === "deliveroo" && !showAttendanceForDeliveroo) {
     // Active tab was hidden by settings — bounce back to overview.
@@ -159,7 +168,6 @@ export default function Driver360({
       {tab === "attendance" && <AttendanceTab data={data} />}
       {tab === "performance" && <PerformanceTab data={data} platform={platform} />}
       {tab === "cash-violations" && <CashViolationsTab data={data} platform={platform} />}
-      {tab === "assets" && <AssetsTab data={data} />}
     </div>
   );
 }
@@ -262,6 +270,45 @@ function AttendanceTab({ data }: { data: any }) {
 }
 
 function PerformanceTab({ data, platform }: { data: any; platform: Platform }) {
+  if (platform === "americana") {
+    const rows: any[] = data.performance?.americanaDaily ?? [];
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white">
+        <header className="border-b border-gray-100 px-4 py-2 text-sm font-semibold">
+          Daily performance ({rows.length} {rows.length === 1 ? "day" : "days"})
+        </header>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs uppercase text-gray-500">
+              <th className="px-4 py-2">Date</th>
+              <th className="px-4 py-2">Orders</th>
+              <th className="px-4 py-2">Chain</th>
+              <th className="px-4 py-2">Store</th>
+              <th className="px-4 py-2">Position</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r: any) => (
+              <tr key={r.id} className="border-t border-gray-100">
+                <td className="px-4 py-2">{new Date(r.date).toLocaleDateString()}</td>
+                <td className="px-4 py-2">{r.orders ?? "—"}</td>
+                <td className="px-4 py-2">{r.chainName ?? "—"}</td>
+                <td className="px-4 py-2">{r.storeName ?? "—"}</td>
+                <td className="px-4 py-2">{r.position ?? "—"}</td>
+              </tr>
+            ))}
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-4 py-6 text-center text-xs text-gray-400">
+                  No Americana orders yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
   const metrics =
     platform === "talabat"
       ? data.performance?.talabatMetrics ?? []
@@ -271,7 +318,7 @@ function PerformanceTab({ data, platform }: { data: any; platform: Platform }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
       <header className="border-b border-gray-100 px-4 py-2 text-sm font-semibold">
-        Daily performance (last 7 days)
+        Daily performance ({metrics.length} {metrics.length === 1 ? "day" : "days"})
       </header>
       <table className="w-full text-sm">
         <thead>
@@ -353,8 +400,41 @@ function PerformanceTab({ data, platform }: { data: any; platform: Platform }) {
 }
 
 function CashViolationsTab({ data, platform }: { data: any; platform: Platform }) {
-  const cash = data.cash ?? {};
   const v = data.violations ?? {};
+
+  if (platform === "americana") {
+    return (
+      <div className="max-w-2xl">
+        <div className="rounded-xl border border-gray-200 bg-white">
+          <header className="border-b border-gray-100 px-4 py-2 text-sm font-semibold">
+            <span className="inline-flex items-center gap-1">
+              <Shield size={14} /> Violations
+            </span>
+          </header>
+          <ul className="divide-y divide-gray-100">
+            {(v.items ?? []).length === 0 && (
+              <li className="px-4 py-4 text-center text-xs text-gray-400">
+                No violations on record.
+              </li>
+            )}
+            {(v.items ?? []).map((vio: any) => (
+              <li key={vio.id} className="px-4 py-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span>{vio.violationType.replace(/_/g, " ")}</span>
+                  <span className="text-xs text-gray-500">{vio.violationStatus}</span>
+                </div>
+                <div className="text-xs text-gray-500">
+                  {new Date(vio.violationTime).toLocaleDateString()} · Appeal: {vio.appealStatus}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    );
+  }
+
+  const cash = data.cash ?? {};
   const docs = data.documents ?? {};
   const docRows = Object.entries(docs);
   const deliverooMetrics: any[] =
@@ -482,51 +562,3 @@ function CashViolationsTab({ data, platform }: { data: any; platform: Platform }
   );
 }
 
-function AssetsTab({ data }: { data: any }) {
-  const device = data.assets?.device;
-  const vehicle = data.assets?.vehicle;
-  return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <div className="rounded-xl border border-gray-200 bg-white p-4">
-        <header className="mb-2 inline-flex items-center gap-2 text-sm font-semibold">
-          <Smartphone size={14} /> Phone
-        </header>
-        {device ? (
-          <dl className="grid grid-cols-2 gap-2 text-sm">
-            <dt className="text-gray-500">IMEI</dt>
-            <dd>{device.imei}</dd>
-            <dt className="text-gray-500">Model</dt>
-            <dd>{device.model}</dd>
-            <dt className="text-gray-500">Online</dt>
-            <dd>
-              <span className={device.isOnline ? "text-green-600" : "text-gray-500"}>
-                {device.isOnline ? "Yes" : "No"}
-              </span>
-            </dd>
-            <dt className="text-gray-500">Last seen</dt>
-            <dd>{device.lastSeen ? new Date(device.lastSeen).toLocaleString() : "—"}</dd>
-          </dl>
-        ) : (
-          <p className="text-xs text-gray-400">No phone assigned.</p>
-        )}
-      </div>
-      <div className="rounded-xl border border-gray-200 bg-white p-4">
-        <header className="mb-2 inline-flex items-center gap-2 text-sm font-semibold">
-          <Car size={14} /> Vehicle
-        </header>
-        {vehicle ? (
-          <dl className="grid grid-cols-2 gap-2 text-sm">
-            <dt className="text-gray-500">Plate</dt>
-            <dd>{vehicle.plateNumber}</dd>
-            <dt className="text-gray-500">Type</dt>
-            <dd>{vehicle.vehicleType}</dd>
-            <dt className="text-gray-500">Status</dt>
-            <dd>{vehicle.status}</dd>
-          </dl>
-        ) : (
-          <p className="text-xs text-gray-400">No vehicle assigned.</p>
-        )}
-      </div>
-    </div>
-  );
-}

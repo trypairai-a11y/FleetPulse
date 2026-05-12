@@ -7,6 +7,7 @@
 import { useParams } from "next/navigation";
 import { useApiQuery } from "@/hooks/useApi";
 import type { DriverFileData } from "@/types/driver-file";
+import AskDarbWhyDrawer from "@/components/driver-file/AskDarbWhyDrawer";
 
 const SECTION_IDS = [
   { id: "profile", label: "Profile" },
@@ -105,6 +106,12 @@ function renderSection(id: string, d: DriverFileData) {
         <div>
           <div className="text-3xl font-semibold">{d.score.compositeScore} / 100</div>
           <p className="mt-2 text-sand-800">{d.scoreExplanation?.text ?? ""}</p>
+          <div className="mt-3 pt-3 border-t border-sand-200">
+            <AskDarbWhyDrawer
+              driverId={d.profile.id}
+              preWarmed={d.scoreExplanation ?? { text: "", cached: false }}
+            />
+          </div>
         </div>
       );
     case "trend": {

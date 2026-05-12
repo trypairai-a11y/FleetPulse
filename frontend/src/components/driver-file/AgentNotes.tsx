@@ -76,7 +76,15 @@ export default function AgentNotes({ notes }: AgentNotesProps) {
           {(notes.audit ?? []).map((a) => (
             <li key={a.id} className="text-sm">
               <button
-                onClick={() => setOpenEntry(a)}
+                onClick={() =>
+                  setOpenEntry({
+                    id: a.id,
+                    toolName: a.toolName,
+                    proposer: "agent",
+                    reasoning: a.reasoning,
+                    createdAt: a.createdAt,
+                  })
+                }
                 className="text-left hover:underline w-full"
               >
                 <span className="font-medium">{a.toolName}</span> — {a.reasoning}

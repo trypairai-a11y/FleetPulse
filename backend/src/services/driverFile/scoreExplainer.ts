@@ -37,6 +37,8 @@ export interface ExplainScoreInput {
   score: ScorePayload;
   recentShifts: Array<{ shiftId: string; date: string; status: string }>;
   recentViolations: Array<{ id: string; type: string; time: string }>;
+  /** Wave 4: when true, skip the 1h cache read and force a fresh agent run. */
+  forceRefresh?: boolean;
 }
 
 export interface ExplainScoreResult {
@@ -55,13 +57,15 @@ function buildCacheKey(driverId: string, scoreDate: string, compositeScore: numb
 export async function explainScore(input: ExplainScoreInput): Promise<ExplainScoreResult> {
   const key = buildCacheKey(input.driverId, input.scoreDate, input.score.compositeScore);
 
-  const hit = await latestMemoryByKey(input.tenantId, key);
-  if (hit) {
-    const ageMs = Date.now() - new Date(hit.createdAt).getTime();
-    if (ageMs < CACHE_TTL_MS) {
-      const value = hit.value as { text?: string } | null;
-      if (value?.text) {
-        return { text: value.text, cached: true };
+  if (!input.forceRefresh) {
+    const hit = await latestMemoryByKey(input.tenantId, key);
+    if (hit) {
+      const ageMs = Date.now() - new Date(hit.createdAt).getTime();
+      if (ageMs < CACHE_TTL_MS) {
+        const value = hit.value as { text?: string } | null;
+        if (value?.text) {
+          return { text: value.text, cached: true };
+        }
       }
     }
   }

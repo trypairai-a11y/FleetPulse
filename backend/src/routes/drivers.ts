@@ -781,6 +781,76 @@ router.get("/:id/file", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/drivers/:id/score-explanation?refresh=0|1
+ *
+ * Phase 3 Wave 4 — standalone endpoint for the AskDarbWhyDrawer Refresh
+ * button. Reuses Wave 1's explainScore service. ?refresh=1 forces a cache
+ * miss; ?refresh=0 (default) honors the 1h AgentMemory cache.
+ *
+ * Tenant-scoped via the existing router-level middleware. 404 on cross-tenant
+ * — same Pitfall 4 mitigation as /file.
+ */
+router.get("/:id/score-explanation", async (req: Request, res: Response) => {
+  try {
+    const tenantId = req.user!.tenantId;
+    const { id } = req.params;
+    const refresh = req.query.refresh === "1";
+
+    const driver = await prisma.driver.findFirst({
+      where: { id, tenantId },
+      select: { id: true, name: true },
+    });
+    if (!driver) return res.status(404).json({ error: "Driver not found" });
+
+    const latestScore = await prisma.aiScore.findFirst({
+      where: { tenantId, driverId: id },
+      orderBy: { date: "desc" },
+    });
+    if (!latestScore) {
+      return res.json({
+        text: "Score not yet available — the daily snapshot worker has not yet run for this driver.",
+        cached: false,
+      });
+    }
+
+    const recentViolations = await prisma.violation.findMany({
+      where: { tenantId, driverId: id },
+      orderBy: { violationTime: "desc" },
+      take: 10,
+      select: { id: true, violationType: true, violationTime: true },
+    });
+
+    const explained = await explainScore({
+      tenantId,
+      driverId: id,
+      scoreDate: latestScore.date.toISOString().slice(0, 10),
+      score: {
+        compositeScore: Number(latestScore.compositeScore ?? 0),
+        attendanceScore: Number(latestScore.attendanceScore ?? 0),
+        deliveryScore: Number(latestScore.deliveryScore ?? 0),
+        financialScore: Number(latestScore.financialScore ?? 0),
+        equipmentScore: Number(latestScore.equipmentScore ?? 0),
+        platformScore: Number(latestScore.platformScore ?? 0),
+        trend: (latestScore.trend as "UP" | "DOWN" | "STABLE") ?? "STABLE",
+      },
+      recentShifts: [],
+      recentViolations: recentViolations.map((v) => ({
+        id: v.id,
+        type: String(v.violationType),
+        time: v.violationTime?.toISOString() ?? "",
+      })),
+      forceRefresh: refresh,
+    });
+
+    return res.json(explained);
+  } catch (err: unknown) {
+    const message = (err as Error)?.message ?? "Internal error";
+    console.error("[driverFile] /:id/score-explanation failed:", message);
+    res.status(500).json({ error: message });
+  }
+});
+
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const driver = await prisma.driver.findFirst({

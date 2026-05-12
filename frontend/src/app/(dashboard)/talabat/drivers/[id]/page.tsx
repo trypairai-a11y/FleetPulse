@@ -1,8 +1,23 @@
 "use client";
-import { useParams } from "next/navigation";
-import Driver360 from "@/components/shared/Driver360";
 
-export default function TalabatDriverDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  return <Driver360 driverId={id} platform="talabat" />;
+// Phase 3 Wave 4 — legacy redirect to canonical /drivers/[id].
+// UI-SPEC §2.1 Q3.10 resolution. Old bookmarks survive.
+
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+
+export default function TalabatDriverDetailRedirect() {
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const search = useSearchParams();
+
+  useEffect(() => {
+    const id = params?.id;
+    if (!id) return;
+    const fromQuery = search?.get("from");
+    const target = `/drivers/${id}?from=${fromQuery ?? "talabat"}`;
+    router.replace(target);
+  }, [params, router, search]);
+
+  return null;
 }
