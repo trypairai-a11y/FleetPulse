@@ -122,6 +122,11 @@ registerAllReadTools();
 //   proposeCashReminder  (audit-only — Phase 8 wires to live Cash Workbench)
 import "./tools/action";
 
+// Phase 4 Wave 1 — register describeView for the chat agent (allowedAgents=["chat"]).
+// The chat agent emits structured UI envelopes through this tool; the runtime's
+// streaming wrapper collects them on RunAgentResult.views.
+import "./tools/view";
+
 // Re-export the common entry points.
 export { runAgent, registerAgent, getAgent, listAgents } from "./runtime";
 export { toolRegistry } from "./registry";

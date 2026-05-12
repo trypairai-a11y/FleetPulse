@@ -10,11 +10,20 @@
 import { prisma } from "../config";
 
 export type PinnedViewType =
+  // Phase 1 originals
   | "table"
   | "chart"
   | "kpi_strip"
   | "map"
-  | "comparison";
+  | "comparison"
+  // Phase 4 Wave 1 — 5 new variants matching describeView's discriminated union
+  | "bar_chart"
+  | "time_series"
+  | "callout"
+  | "action_card"
+  | "draft_message";
+
+export type RefreshFrequency = "on_open" | "live" | "static";
 
 export interface PinnedViewSpec {
   tenantId: string;
@@ -24,6 +33,10 @@ export interface PinnedViewSpec {
   viewType: PinnedViewType;
   spec: object; // generated-view spec (chart config, query, format)
   sortOrder?: number;
+  // Phase 4 Wave 1 — refresh behaviour + chat-origin link (UI-SPEC §3.2.7).
+  refreshFrequency?: RefreshFrequency;
+  sourceThreadId?: string;
+  sourceMessageId?: string;
 }
 
 export interface PinnedViewRecord extends PinnedViewSpec {
@@ -40,6 +53,18 @@ const VALID_TYPES: ReadonlySet<string> = new Set([
   "kpi_strip",
   "map",
   "comparison",
+  // Phase 4 Wave 1
+  "bar_chart",
+  "time_series",
+  "callout",
+  "action_card",
+  "draft_message",
+]);
+
+const VALID_REFRESH: ReadonlySet<string> = new Set([
+  "on_open",
+  "live",
+  "static",
 ]);
 
 export async function createPinnedView(
@@ -52,6 +77,15 @@ export async function createPinnedView(
     throw new Error(`createPinnedView: invalid viewType "${view.viewType}"`);
   }
 
+  if (
+    view.refreshFrequency !== undefined &&
+    !VALID_REFRESH.has(view.refreshFrequency)
+  ) {
+    throw new Error(
+      `createPinnedView: invalid refreshFrequency "${view.refreshFrequency}"`,
+    );
+  }
+
   const created = await prisma.pinnedView.create({
     data: {
       tenantId: view.tenantId,
@@ -61,6 +95,9 @@ export async function createPinnedView(
       viewType: view.viewType,
       spec: view.spec as any,
       sortOrder: view.sortOrder ?? 0,
+      refreshFrequency: view.refreshFrequency ?? "on_open",
+      sourceThreadId: view.sourceThreadId ?? null,
+      sourceMessageId: view.sourceMessageId ?? null,
     },
   });
   return { id: created.id };
