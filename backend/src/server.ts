@@ -72,6 +72,8 @@ import auditRouter from "./routes/audit";
 import adminRouter from "./routes/admin";
 import chatRouter from "./routes/chat";
 import pinnedViewsRouter from "./routes/pinnedViews";
+import scheduledBriefingsRouter from "./routes/scheduledBriefings";
+import { startScheduledBriefingsWorker } from "./queues/scheduledBriefingsWorker";
 import { startAnomalyScheduler } from "./services/anomalyScheduler";
 import { startGpsMonitorScheduler } from "./services/gpsMonitorService";
 import { startKeetaPortalScraperScheduler } from "./queues/keetaPortalScraperWorker";
@@ -232,6 +234,9 @@ app.use("/api/ai/chat", chatRouter);
 app.use("/api/chat", chatRouter);
 // Phase 4 Wave 4 — Pinned views CRUD + /:id/refresh.
 app.use("/api/pinned-views", pinnedViewsRouter);
+// Phase 4 Wave 5 — Scheduled briefings CRUD + BullMQ JobScheduler worker.
+app.use("/api/scheduled-briefings", scheduledBriefingsRouter);
+startScheduledBriefingsWorker();
 
 // API Documentation (Swagger UI — available at /api-docs)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
