@@ -13,6 +13,6 @@ export {
   parseMoneyKwd,
   normaliseDriverName,
 } from "./normalize";
-// registry + xlsxRouteFactory exports are added in Task 2 once those
-// modules exist; keeping the barrel additive avoids transient build
-// failures between Task 1 and Task 2 commits.
+export { getAdapter } from "./registry";
+export type { AdapterContext } from "./registry";
+export { makeXlsxImportRoute } from "./xlsxRouteFactory";
