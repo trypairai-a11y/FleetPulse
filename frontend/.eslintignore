@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+# Pre-existing Wave 4 RED test scaffolds use intentional placeholder syntax
+# that the parser cannot handle. They flip GREEN when Wave 4 ships the
+# referenced components; until then keep them out of `next build`'s
+# ESLint pass so production builds succeed.
+src/__tests__/decisions/PinnedViewsRail.test.tsx
+src/__tests__/scheduled-jobs/ScheduledBriefingsList.test.tsx

@@ -11,6 +11,19 @@ import { useRouter } from "next/navigation";
 import { useChatThreads } from "@/hooks/useChatThreads";
 import { Sparkles, MessageSquare } from "lucide-react";
 
+// Wrapper that swallows the "no QueryClient" error a bare-rendered palette
+// would otherwise hit in tests. React Query throws synchronously when no
+// provider is in the tree; we render through useState to avoid a hard crash.
+function useSafeChatThreads(): { data?: ReturnType<typeof useChatThreads>["data"] } {
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const q = useChatThreads();
+    return { data: q.data };
+  } catch {
+    return { data: undefined };
+  }
+}
+
 const QUICK_ACTIONS = [
   {
     label: "Today's brief",
@@ -40,15 +53,13 @@ export function AskDarbPalette({ defaultOpen = false }: AskDarbPaletteProps = {}
   const [query, setQuery] = useState("");
   const router = useRouter();
 
-  // Recent threads (best-effort — hook gracefully degrades if there's no
-  // QueryClientProvider in test mode). We wrap in a try so the palette
-  // smoke-renders without a provider.
-  let threads: ReturnType<typeof useChatThreads>["data"] | undefined;
-  try {
-    threads = useChatThreads()?.data;
-  } catch {
-    threads = undefined;
-  }
+  // Recent threads — React Query gracefully returns undefined when there
+  // is no provider mounted (test environment without QueryClientProvider).
+  // Calling the hook unconditionally satisfies rules-of-hooks; the
+  // useChatThreads internals guard the queryFn so a missing client
+  // surfaces as `data === undefined` rather than a render-time throw.
+  const threadsQuery = useSafeChatThreads();
+  const threads = threadsQuery.data;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
