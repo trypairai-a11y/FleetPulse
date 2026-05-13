@@ -13,13 +13,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 
-let useStreamingChat: any | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  useStreamingChat = require("@/hooks/useStreamingChat").useStreamingChat;
-} catch {
-  useStreamingChat = null;
-}
+// Wave 3 ships the hook; static import resolves the @/ alias via Vitest's
+// Vite resolver. (require() does not honor the alias.)
+import { useStreamingChat } from "@/hooks/useStreamingChat";
 
 // EventSource mock — capture the URL the hook opens.
 class FakeEventSource {
@@ -50,7 +46,7 @@ class FakeEventSource {
 
 describe("useStreamingChat (Wave 0 RED — flips GREEN in Wave 3)", () => {
   it("hook is exported from @/hooks/useStreamingChat", () => {
-    expect(useStreamingChat).not.toBeNull();
+    expect(typeof useStreamingChat).toBe("function");
   });
 
   it("opens an EventSource with credentials when sendMessage is called", async () => {

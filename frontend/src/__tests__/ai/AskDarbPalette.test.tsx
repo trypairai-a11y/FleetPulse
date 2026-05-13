@@ -23,10 +23,9 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/keeta/overview",
 }));
 
-// Wave 3 will replace the current AskDarbPalette with a cmdk-based one.
-// Import points at the existing path; Wave 3 swaps the implementation.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { AskDarbPalette } = require("@/components/ai/AskDarbPalette");
+// Wave 3 ships the cmdk-based palette; static import resolves the @/
+// alias via Vitest's Vite resolver. (require() does not honor the alias.)
+import { AskDarbPalette } from "@/components/ai/AskDarbPalette";
 
 describe("AskDarbPalette (Wave 0 RED — flips GREEN in Wave 3)", () => {
   it("renders without crashing (smoke)", () => {

@@ -14,13 +14,10 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
-let ChatActionCard: React.ComponentType<any> | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  ChatActionCard = require("@/components/chat/ChatActionCard").ChatActionCard;
-} catch {
-  ChatActionCard = null;
-}
+// Wave 3 ships the component; static import resolves the @/ alias via
+// Vitest's Vite resolver.
+import { ChatActionCard as _ChatActionCard } from "@/components/chat/ChatActionCard";
+const ChatActionCard: React.ComponentType<any> = _ChatActionCard as never;
 
 const baseProposal = {
   pendingActionId: "pa-1",
@@ -34,18 +31,18 @@ const baseProposal = {
 
 describe("ChatActionCard (Wave 0 RED — flips GREEN in Wave 3)", () => {
   it("component is exported from @/components/chat/ChatActionCard", () => {
-    expect(ChatActionCard).not.toBeNull();
+    expect(ChatActionCard).toBeDefined();
   });
 
   it("renders proposal subject and body", () => {
-    render(<ChatActionCard! proposal={baseProposal} />);
+    render(<ChatActionCard proposal={baseProposal} />);
     expect(screen.getByText(/Mohamed Khaled/)).toBeTruthy();
     expect(screen.getByText(/clock in on time/)).toBeTruthy();
   });
 
   it("Approve calls onApprove(pendingActionId) with source='chat'", async () => {
     const onApprove = vi.fn();
-    render(<ChatActionCard! proposal={baseProposal} onApprove={onApprove} />);
+    render(<ChatActionCard proposal={baseProposal} onApprove={onApprove} />);
     fireEvent.click(screen.getByRole("button", { name: /approve/i }));
     await waitFor(() => expect(onApprove).toHaveBeenCalled());
     expect(onApprove.mock.calls[0][0]).toBe("pa-1");
@@ -53,28 +50,28 @@ describe("ChatActionCard (Wave 0 RED — flips GREEN in Wave 3)", () => {
 
   it("Edit opens the edit drawer (onEdit fired)", () => {
     const onEdit = vi.fn();
-    render(<ChatActionCard! proposal={baseProposal} onEdit={onEdit} />);
+    render(<ChatActionCard proposal={baseProposal} onEdit={onEdit} />);
     fireEvent.click(screen.getByRole("button", { name: /edit/i }));
     expect(onEdit).toHaveBeenCalled();
   });
 
   it("Dismiss calls onDismiss(pendingActionId)", () => {
     const onDismiss = vi.fn();
-    render(<ChatActionCard! proposal={baseProposal} onDismiss={onDismiss} />);
+    render(<ChatActionCard proposal={baseProposal} onDismiss={onDismiss} />);
     fireEvent.click(screen.getByRole("button", { name: /dismiss/i }));
     expect(onDismiss).toHaveBeenCalledWith("pa-1");
   });
 
   it("optimistic UI flips to 'approved' state with 5s undo affordance", async () => {
     const onApprove = vi.fn().mockResolvedValue({ ok: true });
-    render(<ChatActionCard! proposal={baseProposal} onApprove={onApprove} />);
+    render(<ChatActionCard proposal={baseProposal} onApprove={onApprove} />);
     fireEvent.click(screen.getByRole("button", { name: /approve/i }));
     await waitFor(() => expect(screen.getByText(/undo/i)).toBeTruthy());
   });
 
   it("server 409 reverts the card to pending state with an error toast", async () => {
     const onApprove = vi.fn().mockRejectedValue({ status: 409 });
-    render(<ChatActionCard! proposal={baseProposal} onApprove={onApprove} />);
+    render(<ChatActionCard proposal={baseProposal} onApprove={onApprove} />);
     fireEvent.click(screen.getByRole("button", { name: /approve/i }));
     await waitFor(() =>
       expect(screen.getByRole("button", { name: /approve/i })).toBeTruthy(),
