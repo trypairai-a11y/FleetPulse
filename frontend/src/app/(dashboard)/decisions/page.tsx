@@ -18,6 +18,7 @@ import DecisionsList from "@/components/decisions/DecisionsList";
 import FilterChipStrip from "@/components/decisions/FilterChipStrip";
 import EditDrawer from "@/components/decisions/EditDrawer";
 import KeyboardShortcutsHelp from "@/components/decisions/KeyboardShortcutsHelp";
+import { PinnedViewsRailContainer } from "@/components/decisions/PinnedViewsRail";
 import ErrorState from "@/components/shared/ErrorState";
 import { useToast } from "@/components/shared/Toast";
 import type { DecisionCardData } from "@/types/decisions";
@@ -310,6 +311,12 @@ export default function DecisionsPage() {
       <p className="text-sm text-sand-600 tabular-nums">
         {pendingCount} pending
       </p>
+
+      {/* Phase 4 Wave 4 — PinnedViewsRail sits between the title row and the
+          filter strip. It self-hides when the user has no pins. */}
+      <div className="mt-5">
+        <PinnedViewsRailContainer />
+      </div>
 
       <div className="mt-5 mb-5">
         <FilterChipStrip

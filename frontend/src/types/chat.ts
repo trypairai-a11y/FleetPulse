@@ -117,3 +117,23 @@ export interface SlashCommand {
   description: string;
   example?: string;
 }
+
+// Phase 4 Wave 4 — pinned generated views, mirror of backend PinnedView model.
+// `refreshFrequency` controls how the tile re-fetches: "on_open" rebuilds
+// from runAgent when first viewed, "live" polls every 30s via React Query,
+// "static" is frozen at pin time.
+export interface PinnedView {
+  id: string;
+  tenantId: string;
+  userId: string;
+  title: string;
+  description?: string;
+  viewType: ViewType;
+  spec: ViewSpec | Record<string, unknown>;
+  sortOrder: number;
+  refreshFrequency: "on_open" | "live" | "static";
+  sourceThreadId?: string;
+  sourceMessageId?: string;
+  pinnedAt: string;
+  lastViewedAt: string;
+}

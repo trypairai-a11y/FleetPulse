@@ -22,6 +22,7 @@ import {
   History,
   GraduationCap,
   CreditCard,
+  MessageSquare,
   type LucideIcon,
 } from "lucide-react";
 import api from "@/lib/api";
@@ -59,6 +60,8 @@ const NAV: NavItem[] = [
     liveBadge: "decisions-pending",
     subItems: [{ label: "Audit", path: "/decisions/audit", icon: History }],
   },
+  // Phase 4 Wave 4 — Chat surface (UI-SPEC §2.2 position 2).
+  { label: "Chat", path: "/chat", icon: MessageSquare },
   { label: "Command Centre", path: "/v2", icon: Sparkles },
   { label: "Drivers", path: "/v2/drivers", icon: Users },
   { label: "Dispatch", path: "/v2/dispatch", icon: CalendarClock },
@@ -74,21 +77,22 @@ const ROLE_VISIBILITY: Record<string, string[]> = {
     n.path,
     ...(n.subItems?.map((s) => s.path) ?? []),
   ]),
-  // Supervisors retain pre-existing access set + see Decisions inbox + Audit.
+  // Supervisors retain pre-existing access set + see Decisions inbox + Audit + Chat.
   SUPERVISOR: [
     "/decisions",
     "/decisions/audit",
+    "/chat",
     "/v2",
     "/v2/drivers",
     "/v2/dispatch",
     "/v2/triage",
   ],
   // Accountants retain pre-existing access set + see Audit log (UI-SPEC §11 Q3
-  // default — audit log visible to all roles read-only).
-  ACCOUNTANT: ["/decisions/audit", "/v2", "/v2/money", "/v2/intelligence", "/v2/triage"],
+  // default — audit log visible to all roles read-only). Chat for ad-hoc Q&A.
+  ACCOUNTANT: ["/decisions/audit", "/chat", "/v2", "/v2/money", "/v2/intelligence", "/v2/triage"],
   // Viewers per UI-SPEC §2.2 also land on /decisions, so they can read
-  // their own inbox + the audit log.
-  VIEWER: ["/decisions", "/decisions/audit", "/v2", "/v2/intelligence"],
+  // their own inbox + the audit log + chat (read-only Q&A).
+  VIEWER: ["/decisions", "/decisions/audit", "/chat", "/v2", "/v2/intelligence"],
 };
 
 interface AuthUserShape {
@@ -151,7 +155,22 @@ export default function SidebarV2() {
   const isActive = (path: string) => {
     if (path === "/v2") return pathname === "/v2";
     if (path === "/decisions") return pathname === "/decisions";
+    if (path === "/chat") return pathname === "/chat" || (pathname?.startsWith("/chat/") ?? false);
     return pathname === path || pathname?.startsWith(path + "/");
+  };
+
+  // Phase 4 Wave 4 — sidebar Ask Darb pill triggers the global cmdk palette
+  // (already bound to ⌘K by AskDarbPalette). Dispatching a synthetic keyboard
+  // event keeps the wiring stateless — no new context plumbing.
+  const openAskDarb = () => {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "k",
+        metaKey: true,
+        bubbles: true,
+      }),
+    );
   };
 
   return (
@@ -304,16 +323,23 @@ export default function SidebarV2() {
         </div>
       )}
 
-      {/* Cmd+K hint */}
+      {/* Phase 4 Wave 4 — Ask Darb pill (sidebar footer). Click triggers the
+          global cmdk palette via a synthetic ⌘K keydown event so we keep
+          one source of truth for the palette open-state. */}
       {!collapsed && (
         <div className="border-t border-gray-50 p-3">
-          <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-secondary">
+          <button
+            type="button"
+            onClick={openAskDarb}
+            className="flex w-full items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-secondary hover:bg-gray-100 hover:text-foreground transition-colors"
+            aria-label="Open Ask Darb (Cmd K)"
+          >
             <Command size={13} />
-            <span className="flex-1">Ask Darb</span>
+            <span className="flex-1 text-left">Ask Darb</span>
             <kbd className="rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] text-gray-500">
               ⌘K
             </kbd>
-          </div>
+          </button>
         </div>
       )}
 
