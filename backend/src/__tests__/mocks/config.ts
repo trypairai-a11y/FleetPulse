@@ -128,6 +128,17 @@ export const prisma = {
     findFirst: jest.fn(),
     update: jest.fn(),
   },
+  // Phase 6 Wave 1 — ingest audit trail (writeIngestRun). Wave 0 audit.test.ts
+  // and compositeFetchCash.test.ts both reach for prisma.ingestRun.create
+  // (the latter via the inline jest.mock factory; the former via the
+  // moduleNameMapper-routed mocks/config). Surfacing it here keeps both
+  // paths reachable.
+  ingestRun: {
+    create: jest.fn(),
+    findFirst: jest.fn(),
+    findMany: jest.fn(),
+    update: jest.fn(),
+  },
   $transaction: jest.fn(),
 };
 

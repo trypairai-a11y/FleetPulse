@@ -3,14 +3,19 @@
 //
 // REQ-ingest-adapter-layer: writeIngestRun({tenantId, platform, source, status, ...})
 // must create a tenant-scoped IngestRun row.
+//
+// Wave 1 deviation note (Rule 3 — blocking jest infra mismatch): the
+// inline `jest.mock("../../../config", () => ({prisma: {...}}))` pattern
+// originally authored here resolves at a different module path than the
+// production code's `from "../../config"` (which the moduleNameMapper
+// rewrites to src/__tests__/mocks/config.ts). The two sides ended up with
+// separate prisma instances, so assertions on the inline mock never saw
+// the production-side call. Switching to `() => require("../../mocks/config")`
+// matches the existing test idiom (scoreExplainer.test.ts +
+// performanceTrend.test.ts use the same pattern) and converges both
+// import paths on a single mocks/config.ts prisma stub.
 
-jest.mock("../../../config", () => ({
-  prisma: {
-    ingestRun: {
-      create: jest.fn(),
-    },
-  },
-}));
+jest.mock("../../../config", () => require("../../mocks/config"));
 
 import { prisma } from "../../../config";
 import { writeIngestRun } from "../../../services/ingest/audit";
