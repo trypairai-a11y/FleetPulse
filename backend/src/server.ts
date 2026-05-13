@@ -70,6 +70,7 @@ import aiCosRoutes from "./routes/aiChiefOfStaff";
 import decisionsRouter from "./routes/decisions";
 import auditRouter from "./routes/audit";
 import adminRouter from "./routes/admin";
+import chatRouter from "./routes/chat";
 import { startAnomalyScheduler } from "./services/anomalyScheduler";
 import { startGpsMonitorScheduler } from "./services/gpsMonitorService";
 import { startKeetaPortalScraperScheduler } from "./queues/keetaPortalScraperWorker";
@@ -221,6 +222,13 @@ app.use("/api/audit", auditRouter);
 // (REQ-pricing-model + REQ-gtm-onboarding). All routes super-admin gated;
 // NOT tenantScope (admin operates across tenants by design).
 app.use("/api/admin", adminRouter);
+// Phase 4 Wave 2 — Chat surface.
+//   /api/ai/chat/stream    — SSE chat agent stream
+//   /api/chat/threads/*    — thread + message CRUD
+// Both mounts share the same router; the route paths inside chatRouter
+// are disjoint so this is a clean dual-mount.
+app.use("/api/ai/chat", chatRouter);
+app.use("/api/chat", chatRouter);
 
 // API Documentation (Swagger UI — available at /api-docs)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
