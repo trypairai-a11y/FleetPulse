@@ -105,6 +105,29 @@ export const prisma = {
     update: jest.fn(),
     count: jest.fn(),
   },
+  // Phase 5 (mobile GPS beacon) — Wave 0 RED tests reference these delegates.
+  locationLog: {
+    create: jest.fn(),
+    createMany: jest.fn(),
+    findMany: jest.fn(),
+    findFirst: jest.fn(),
+    count: jest.fn(),
+  },
+  courierOnlineSession: {
+    upsert: jest.fn(),
+    findFirst: jest.fn(),
+    update: jest.fn(),
+  },
+  orderEvent: {
+    create: jest.fn(),
+    findFirst: jest.fn(),
+    findMany: jest.fn(),
+  },
+  device: {
+    findUnique: jest.fn(),
+    findFirst: jest.fn(),
+    update: jest.fn(),
+  },
   $transaction: jest.fn(),
 };
 
