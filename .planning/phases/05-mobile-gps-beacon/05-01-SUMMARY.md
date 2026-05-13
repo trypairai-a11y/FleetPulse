@@ -346,8 +346,15 @@ No new threat surface introduced beyond what the plan's threat model already cap
 
 | Hash | Subject | Files | Note |
 |---|---|---|---|
-| `06279e7` | `chore(05-01): install Expo SDK 52 packages + fix app.json for Android 14 + fix jest setup typo` | 4 (app.json, package.json, package-lock.json, jest.config.js) | Task 1 — clean attribution |
-| `f35ceed` | `feat(06-01): registry.ts + xlsxRouteFactory.ts (empty composites)` | 14 (3 Phase 6 + 11 **Phase 5 Wave 1 Task 2**) | Task 2 — misattributed by concurrent agent; documented above |
+| `06279e7` | `chore(05-01): install Expo SDK 52 packages + fix app.json for Android 14 + fix jest setup typo` | 4 (app.json, package.json, package-lock.json, jest.config.js) | Task 1 |
+| `579e0d0` | `docs(05-01): complete Wave 1 mobile GPS foundation plan summary` | 1 (this SUMMARY.md) | Documentation |
+| `a37e916` | `feat(05-01): implement expo-sqlite outbox + locationService rewrite + heartbeat + photoService` | 11 (5 new services, locationService rewrite, api/client, 4 test mocks, jest.config) | Task 2 |
+
+Note: the SUMMARY commit (`579e0d0`) landed before the implementation commit (`a37e916`)
+because the initial `git add` of Task 2 files silently failed (a concurrent agent had
+modified the index — see "Concurrent commit attribution drift" deviation). The Wave 1
+implementation is fully captured in `a37e916`; the SUMMARY was written first based on the
+working-tree state and committed in the wrong order. Content is correct in both commits.
 
 ## Self-Check
 
