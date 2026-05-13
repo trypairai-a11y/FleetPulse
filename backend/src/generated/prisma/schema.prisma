@@ -79,6 +79,7 @@ enum OrderSource {
   EXCEL_IMPORT
   AGENT_CAPTURE
   WHATSAPP
+  MOBILE_GPS
 }
 
 enum DepositMethod {

@@ -1,0 +1,25 @@
+-- Phase 6 Wave 1 — Add MOBILE_GPS value to OrderSource enum.
+--
+-- REQ-ingest-adapter-layer / Pitfall 8: OrderSource lacked a value for
+-- mobile-app GPS-stamped order captures (Phase 5 walking-skeleton flow).
+-- Wave 1 ships the enum value here so the IngestAdapter contract
+-- (services/ingest/types.ts AdapterSource union) and the Prisma column
+-- agree on the same value vocabulary.
+--
+-- PURELY ADDITIVE. ZERO destructive operations:
+--   - Existing rows with values MANUAL | SCREENSHOT_OCR | EXCEL_IMPORT |
+--     AGENT_CAPTURE | WHATSAPP are untouched.
+--   - PostgreSQL ALTER TYPE ... ADD VALUE is a metadata-only operation
+--     (no row rewrite, no table lock).
+--
+-- Hand-crafted because the prior `20260407010000_add_platform_settings_fields`
+-- baseline trips Prisma's shadow-DB rebuild (DI-01-02 defect; documented in
+-- Phase 1+2+3+4 SUMMARYs). Path used: `prisma db push` to apply the
+-- schema change, hand-craft this migration.sql with an IF NOT EXISTS
+-- guard, then `prisma migrate resolve --applied` to mark it as applied.
+--
+-- Note: `ALTER TYPE ... ADD VALUE IF NOT EXISTS` is supported on PG 12+.
+-- Darb's dev + prod databases run PG 15 (per docker-compose:postgres:15-alpine),
+-- so the guard is safe and makes re-runs idempotent.
+
+ALTER TYPE "OrderSource" ADD VALUE IF NOT EXISTS 'MOBILE_GPS';

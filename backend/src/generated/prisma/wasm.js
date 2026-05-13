@@ -2312,7 +2312,8 @@ exports.OrderSource = exports.$Enums.OrderSource = {
   SCREENSHOT_OCR: 'SCREENSHOT_OCR',
   EXCEL_IMPORT: 'EXCEL_IMPORT',
   AGENT_CAPTURE: 'AGENT_CAPTURE',
-  WHATSAPP: 'WHATSAPP'
+  WHATSAPP: 'WHATSAPP',
+  MOBILE_GPS: 'MOBILE_GPS'
 };
 
 exports.DepositMethod = exports.$Enums.DepositMethod = {
