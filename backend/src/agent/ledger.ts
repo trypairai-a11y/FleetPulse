@@ -25,6 +25,13 @@ export interface AuditRow {
   latencyMs?: number;
   subjectType?: string; // "Driver" | "CashRecord" | "Shift" | ...
   subjectId?: string;
+  // Phase 4 Wave 2 — chat-origin attribution. Defaults to "decisions" so
+  // existing Phase 2 callers leave these fields unset and the schema default
+  // applies. Chat-origin writers populate source="chat" + chatThreadId +
+  // chatMessageId.
+  source?: "decisions" | "chat" | "briefing" | "auto";
+  chatThreadId?: string | null;
+  chatMessageId?: string | null;
 }
 
 const VALID_OUTCOMES: ReadonlySet<string> = new Set([
@@ -65,6 +72,13 @@ export async function writeAgentAction(
       errorMessage: row.errorMessage ?? null,
       subjectType: row.subjectType ?? null,
       subjectId: row.subjectId ?? null,
+      // Phase 4 Wave 2 — leave undefined to inherit the schema default
+      // ("decisions"); only set when an explicit non-default origin is
+      // passed by the caller. The schema has @default("decisions") so
+      // passing `undefined` is safe.
+      ...(row.source ? { source: row.source } : {}),
+      ...(row.chatThreadId ? { chatThreadId: row.chatThreadId } : {}),
+      ...(row.chatMessageId ? { chatMessageId: row.chatMessageId } : {}),
     },
   });
   return { id: created.id };

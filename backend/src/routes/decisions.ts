@@ -300,9 +300,35 @@ router.post(
       const userId = req.user!.userId;
       const role = req.user!.role as UserRole;
 
-      const { modifications } = (req.body ?? {}) as {
+      const {
+        modifications,
+        source: rawSource,
+        threadId: rawThreadId,
+        msgId: rawMsgId,
+      } = (req.body ?? {}) as {
         modifications?: Record<string, unknown>;
+        source?: string;
+        threadId?: string;
+        msgId?: string;
       };
+
+      // Allow-list source values — never trust caller input verbatim
+      // (T-04-W2-05 — AgentAction.source becomes part of the audit log).
+      const allowedSources = new Set([
+        "decisions",
+        "chat",
+        "briefing",
+        "auto",
+      ]);
+      const source: "decisions" | "chat" | "briefing" | "auto" = allowedSources.has(
+        String(rawSource ?? ""),
+      )
+        ? (rawSource as "decisions" | "chat" | "briefing" | "auto")
+        : "decisions";
+      const chatThreadId =
+        source === "chat" && typeof rawThreadId === "string" ? rawThreadId : null;
+      const chatMessageId =
+        source === "chat" && typeof rawMsgId === "string" ? rawMsgId : null;
 
       const pa = await prisma.pendingAgentAction.findFirst({
         where: { id: req.params.id, tenantId } as any,
@@ -388,6 +414,9 @@ router.post(
         errorMessage,
         subjectType: pa.subjectType ?? undefined,
         subjectId: pa.subjectId ?? undefined,
+        source,
+        chatThreadId,
+        chatMessageId,
       });
 
       await publishEvent({
