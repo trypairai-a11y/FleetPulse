@@ -11,10 +11,14 @@
       "bundleIdentifier": "com.ktech.darb.agent",
       "supportsTablet": false,
       "infoPlist": {
-        "NSCameraUsageDescription": "Darb needs the camera for selfie clock-in verification",
+        "NSCameraUsageDescription": "Darb captures delivery photos and clock-in selfies",
         "NSLocationWhenInUseUsageDescription": "Darb tracks your location during active shifts",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Darb tracks your location during active shifts for delivery assignment",
-        "UIBackgroundModes": ["location", "fetch", "remote-notification"]
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Darb tracks your location during active shifts so the office can see your live position even when your phone is in your pocket. We never track you off-shift.",
+        "UIBackgroundModes": [
+          "location",
+          "fetch",
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -25,16 +29,28 @@
         "ACCESS_BACKGROUND_LOCATION",
         "CAMERA",
         "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
         "POST_NOTIFICATIONS",
         "RECEIVE_BOOT_COMPLETED"
       ]
     },
     "plugins": [
-      "expo-camera",
-      "expo-location",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Darb tracks your location during active shifts so the office can see your live position even when your phone is in your pocket. We never track you off-shift."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Darb captures delivery photos and clock-in selfies"
+        }
+      ],
       "expo-notifications",
       "expo-secure-store",
-      "expo-router"
+      "expo-router",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true
