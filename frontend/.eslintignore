@@ -3,8 +3,3 @@ node_modules/
 out/
 build/
 dist/
-# Wave 4 PinnedViewsRail RED test was replaced with a real GREEN test.
-# Wave 5 will replace src/__tests__/scheduled-jobs/ScheduledBriefingsList.test.tsx
-# when the referenced component ships; until then keep it out of `next build`'s
-# ESLint pass so production builds succeed.
-src/__tests__/scheduled-jobs/ScheduledBriefingsList.test.tsx
