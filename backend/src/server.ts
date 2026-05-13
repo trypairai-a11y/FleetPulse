@@ -71,6 +71,7 @@ import decisionsRouter from "./routes/decisions";
 import auditRouter from "./routes/audit";
 import adminRouter from "./routes/admin";
 import chatRouter from "./routes/chat";
+import pinnedViewsRouter from "./routes/pinnedViews";
 import { startAnomalyScheduler } from "./services/anomalyScheduler";
 import { startGpsMonitorScheduler } from "./services/gpsMonitorService";
 import { startKeetaPortalScraperScheduler } from "./queues/keetaPortalScraperWorker";
@@ -229,6 +230,8 @@ app.use("/api/admin", adminRouter);
 // are disjoint so this is a clean dual-mount.
 app.use("/api/ai/chat", chatRouter);
 app.use("/api/chat", chatRouter);
+// Phase 4 Wave 4 — Pinned views CRUD + /:id/refresh.
+app.use("/api/pinned-views", pinnedViewsRouter);
 
 // API Documentation (Swagger UI — available at /api-docs)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
