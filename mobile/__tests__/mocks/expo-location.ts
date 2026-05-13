@@ -19,6 +19,11 @@ export const ActivityType = {
   Airborne: 5,
 };
 
+// Real expo-location exports both names — `ActivityType` for the older surface
+// and `LocationActivityType` for the typed-routes-era enum. Wave 1 production
+// code uses the new name; the mock mirrors both to avoid runtime undefined errors.
+export const LocationActivityType = ActivityType;
+
 export const requestForegroundPermissionsAsync = jest.fn(async () => ({
   status: "undetermined",
   granted: false,
@@ -52,6 +57,7 @@ export const getCurrentPositionAsync = jest.fn(async (_options?: any) => ({
 export default {
   Accuracy,
   ActivityType,
+  LocationActivityType,
   requestForegroundPermissionsAsync,
   requestBackgroundPermissionsAsync,
   startLocationUpdatesAsync,

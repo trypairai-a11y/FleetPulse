@@ -1,127 +1,128 @@
+/**
+ * Background GPS beacon service.
+ *
+ * Wave 1 rewrite — replaces the AsyncStorage-buffered legacy implementation with:
+ *   - expo-sqlite outbox (durable, idempotency-keyed)
+ *   - TaskManager.defineTask at MODULE TOP LEVEL (mandatory — see comment below)
+ *   - iOS background settings: activityType=AutomotiveNavigation,
+ *     pausesUpdatesAutomatically=false, showsBackgroundLocationIndicator=true
+ *     (without these the OS kills our location stream after ~30 min)
+ *   - Two-step permission flow: WhenInUse first, then upgrade to Always
+ *     (per Apple HIG + Android best practice; asking bg-only is rejected by OS)
+ *
+ * Why defineTask at module top-level?
+ *   When the OS wakes the process to deliver a background location event, it instantiates
+ *   the JS VM and resolves the task by name. If defineTask is inside a React useEffect or
+ *   any other lazy callback, the lookup fails and the OS records the task as "missing" —
+ *   on Android 14 this is grounds for the OS to permanently revoke our background-location
+ *   token. Module-top-level guarantees the registration happens during the import phase
+ *   that runs before any React tree is mounted.
+ */
+
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { uploadLocations } from "../api/client";
+import { enqueueGpsPoint, flushPendingPoints } from "./outbox";
+import { getLastTab } from "./platformGuess";
 
 const LOCATION_TASK = "darb-background-location";
-const BUFFER_STORAGE_KEY = "darb_location_buffer";
 
-type LocationEntry = {
-  latitude: number;
-  longitude: number;
-  accuracy: number;
-  timestamp: string;
-};
-
-let locationBuffer: LocationEntry[] = [];
-
-/**
- * Persist the current in-memory buffer to AsyncStorage.
- * Called after every buffer mutation so data survives app crashes.
- */
-async function persistBuffer(): Promise<void> {
-  try {
-    await AsyncStorage.setItem(BUFFER_STORAGE_KEY, JSON.stringify(locationBuffer));
-  } catch {
-    // Storage write failed — buffer remains in memory only
-  }
-}
-
-/**
- * Restore any previously persisted buffer from disk on startup.
- * Merges with the current in-memory buffer.
- */
-async function restoreBuffer(): Promise<void> {
-  try {
-    const stored = await AsyncStorage.getItem(BUFFER_STORAGE_KEY);
-    if (stored) {
-      const parsed: LocationEntry[] = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        locationBuffer = [...parsed, ...locationBuffer];
-      }
-    }
-  } catch {
-    // Restore failed — start with empty buffer
-  }
-}
-
-// Restore persisted buffer when the module loads
-restoreBuffer();
-
-/**
- * Define the background location task. This runs even when the app is
- * backgrounded or the screen is off. Locations are buffered and flushed
- * to the backend every 10 entries or 60 seconds (whichever comes first).
- */
-TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
+// MUST be at module top-level — see header doc. Anti-pattern alarm: do not move this
+// inside useEffect, useLayoutEffect, or any conditional branch. The OS rehydrates the
+// task by name; module-load is the only safe time to register.
+TaskManager.defineTask(LOCATION_TASK, async ({ data, error }: any) => {
   if (error) return;
+  if (!data) return;
   const { locations } = data as { locations: Location.LocationObject[] };
+  if (!locations || locations.length === 0) return;
 
   for (const loc of locations) {
-    locationBuffer.push({
+    await enqueueGpsPoint({
       latitude: loc.coords.latitude,
       longitude: loc.coords.longitude,
       accuracy: loc.coords.accuracy ?? 0,
-      timestamp: new Date(loc.timestamp).toISOString(),
+      speed: loc.coords.speed ?? null,
+      capturedAt: new Date(loc.timestamp).toISOString(),
+      platformGuess: getLastTab(),
     });
   }
 
-  await persistBuffer();
-
-  if (locationBuffer.length >= 10) {
-    await flushLocations();
-  }
+  // Best-effort flush — failures push attempts++ on the rows we just enqueued, the
+  // give-up filter prevents forever-retry. We swallow errors here so a transient
+  // network blip doesn't bubble up into the TaskManager runtime (which would mark
+  // the task as failing and back off scheduling — see RESEARCH.md Pitfall 6).
+  await flushPendingPoints().catch(() => {});
 });
 
-async function flushLocations() {
-  if (locationBuffer.length === 0) return;
-  const batch = [...locationBuffer];
-  locationBuffer = [];
-  await persistBuffer();
-  try {
-    await uploadLocations(batch);
-    // Clear persisted buffer on successful upload
-    await AsyncStorage.removeItem(BUFFER_STORAGE_KEY);
-  } catch {
-    // Re-queue on failure — will be sent next flush
-    locationBuffer = [...batch, ...locationBuffer];
-    await persistBuffer();
+export type StartBeaconResult =
+  | { ok: true }
+  | { ok: false; reason: "foreground_denied" | "background_denied" | "unknown" };
+
+export async function startBeacon(): Promise<StartBeaconResult> {
+  // Step 1: ask for WhenInUse first. iOS requires this — asking for Always without
+  // a prior WhenInUse grant on iOS 14+ silently denies. Android allows the upgrade
+  // either way but matching iOS keeps the prompt sequence identical cross-platform.
+  const fg = await Location.requestForegroundPermissionsAsync();
+  if (fg.status !== "granted") {
+    return { ok: false, reason: "foreground_denied" };
   }
-}
 
-export async function startTracking(): Promise<boolean> {
-  const { status } = await Location.requestForegroundPermissionsAsync();
-  if (status !== "granted") return false;
+  // Step 2: upgrade to Always (background). On Android 14+ this surfaces the
+  // "Allow all the time" / "Only while using the app" dialog. If denied here,
+  // the beacon cannot run during shifts (background updates are required to
+  // keep tracking when the screen is off / app is backgrounded).
+  const bg = await Location.requestBackgroundPermissionsAsync();
+  if (bg.status !== "granted") {
+    return { ok: false, reason: "background_denied" };
+  }
 
-  const bgStatus = await Location.requestBackgroundPermissionsAsync();
-  if (bgStatus.status !== "granted") return false;
+  const running = await TaskManager.isTaskRegisteredAsync(LOCATION_TASK);
+  if (running) return { ok: true };
 
   await Location.startLocationUpdatesAsync(LOCATION_TASK, {
-    accuracy: Location.Accuracy.High,
+    accuracy: Location.Accuracy.BestForNavigation,
     timeInterval: 30_000,
-    distanceInterval: 50,
-    foregroundService: {
-      notificationTitle: "Darb Agent",
-      notificationBody: "Tracking your location during shift",
-      notificationColor: "#FF5A00",
-    },
-    showsBackgroundLocationIndicator: true,
+    distanceInterval: 25,
+    deferredUpdatesInterval: 60_000,
+    deferredUpdatesDistance: 100,
+    activityType: Location.LocationActivityType.AutomotiveNavigation,
     pausesUpdatesAutomatically: false,
+    showsBackgroundLocationIndicator: true,
+    foregroundService: {
+      notificationTitle: "Darb is tracking your shift",
+      notificationBody: "Active until you tap End Shift",
+      notificationColor: "#F97316",
+      killServiceOnDestroy: false,
+    },
   });
 
-  return true;
+  return { ok: true };
 }
 
-export async function stopTracking(): Promise<void> {
-  await flushLocations();
+export async function stopBeacon(): Promise<void> {
+  // Drain the outbox before stopping — last-mile flush so we don't leave 1-2 stale
+  // points sitting in SQLite for the next shift. Best-effort: if the network is down
+  // the rows stay queued and the next startBeacon picks them up.
+  await flushPendingPoints().catch(() => {});
   const running = await TaskManager.isTaskRegisteredAsync(LOCATION_TASK);
   if (running) {
     await Location.stopLocationUpdatesAsync(LOCATION_TASK);
   }
 }
 
-export async function getCurrentLocation() {
+export async function getCurrentLocation(): Promise<Location.LocationObject | null> {
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status !== "granted") return null;
   return Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
 }
+
+// ─── Backwards-compat aliases ────────────────────────────────────────────────
+// dashboard.tsx still imports startTracking/stopTracking. Wave 3 will rename
+// the call sites; Wave 1 keeps them callable so the existing app continues to
+// build and run unchanged.
+
+export const startTracking = async (): Promise<boolean> => {
+  const r = await startBeacon();
+  return r.ok;
+};
+
+export const stopTracking = stopBeacon;

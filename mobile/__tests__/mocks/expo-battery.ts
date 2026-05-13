@@ -9,6 +9,7 @@ export const getPowerStateAsync = jest.fn(async () => ({
   batteryState: 1,
   lowPowerMode: false,
 }));
+export const isLowPowerModeEnabledAsync = jest.fn(async () => false);
 
 export const BatteryState = {
   UNKNOWN: 0,
@@ -21,5 +22,6 @@ export default {
   getBatteryLevelAsync,
   getBatteryStateAsync,
   getPowerStateAsync,
+  isLowPowerModeEnabledAsync,
   BatteryState,
 };

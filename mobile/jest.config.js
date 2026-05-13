@@ -20,6 +20,7 @@ module.exports = {
     "^expo-image-manipulator$": "<rootDir>/__tests__/mocks/expo-image-manipulator.ts",
     "^expo-camera$": "<rootDir>/__tests__/mocks/expo-camera.ts",
     "^expo-battery$": "<rootDir>/__tests__/mocks/expo-battery.ts",
+    "^expo-application$": "<rootDir>/__tests__/mocks/expo-application.ts",
     "^expo-secure-store$": "<rootDir>/__tests__/mocks/expo-secure-store.ts",
     "^.*api/client$": "<rootDir>/__tests__/mocks/api-client.ts",
   },
